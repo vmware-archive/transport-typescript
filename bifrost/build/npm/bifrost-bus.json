@@ -1,0 +1,23 @@
+{
+    "name": "bifrost",
+    "version": "/* @echo VERSION */",
+    "description": "The bifröst is an asychronous messagebus with a STOMP + websocket distributed broadcast capability",
+    "homepage": "TBA",
+    "repository" : {
+        "type" : "git",
+        "url" : "ssh://git@stash.eng.vmware.com:7999/ss/ui-bifrost.git"
+    },
+    "peerDependencies": {
+    },
+    "publishConfig": {
+        "registry": "http://build-artifactory.eng.vmware.com:80/artifactory/api/npm/npm-local"
+    },
+    //@exclude
+    "scripts": {
+        "prepublish": "echo 'Error: Please run \"npm run publish:bifrost\" on the parent project' && exit 1"
+    },
+    //@endexclude
+    "author": ["Dave Shanley <dshanley@vmware.com>","Akmal Khan <akhan@vmware.com>"],
+    "contributors": [],
+    "license": "SEE LICENSE IN LICENSE.txt"
+}
