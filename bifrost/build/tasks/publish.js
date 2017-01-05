@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2016 VMware, Inc. All Rights Reserved.
- * This software is released under MIT license.
- * The full license information can be found in LICENSE in the root directory of this project.
+ * Copyright (c) 2017 VMware, Inc. All Rights Reserved.
  */
 
 var gulp = require("gulp");
@@ -13,93 +11,6 @@ var es = require('event-stream');
 // All packages share the same version number.
 var VERSION = util.env.version;
 var npmFolder = "dist/npm/";
-
-
-/**
- * Preparing the clarity-icons package
- */
-
-gulp.task("npm:icons:bundles", function () {
-    return gulp.src([
-        "dist/bundles/clarity-icons.min.js",
-        "dist/bundles/clarity-icons.min.css",
-        "dist/clarity-icons/svg-icon-templates.js"
-    ]).pipe(gulp.dest(npmFolder + "/clarity-icons"));
-});
-
-/**
- * We publish icons' sources just for information.
- */
-gulp.task("npm:icons:sources", function () {
-    return gulp.src([
-        "src/clarity-icons/**/*.scss",
-        "src/clarity-icons/**/*.ts",
-    ])
-    .pipe(gulp.dest(npmFolder + "/clarity-icons/src"));
-});
-
-/**
- * We insert the version number in the correct package.json
- * and copy it to the root of our package.
- */
-gulp.task("npm:icons:package", function () {
-    return gulp.src("build/npm/clarity-icons.json")
-        .pipe(preprocess({context: {VERSION: VERSION}, extension: "js"}))
-        .pipe(rename("package.json"))
-        .pipe(gulp.dest(npmFolder + "/clarity-icons"));
-});
-
-gulp.task("npm:icons:readme", function () {
-    return gulp.src("build/npm/clarity-icons-README.md")
-        .pipe(rename("README.md"))
-        .pipe(gulp.dest(npmFolder + "/clarity-icons"));
-});
-
-gulp.task("npm:icons", ["npm:icons:bundles", "npm:icons:sources", "npm:icons:package", "npm:icons:readme"], function () {});
-
-/**
- * Preparing the clarity-ui package
- */
-
-/**
- * The only deliverable for clarity-ui is the minified CSS bundle.
- */
-gulp.task("npm:ui:bundles", function () {
-    return gulp.src("dist/bundles/clarity-ui.min.css")
-
-        .pipe(gulp.dest(npmFolder + "/clarity-ui"));
-});
-
-/**
- * We publish SCSS sources so users can make changes to them and compile on their own.
- */
-gulp.task("npm:ui:sources", function () {
-    return gulp.src([
-        "src/bifrost/main.scss",
-        "src/bifrost/**/*.clarity.scss"
-    ])
-        .pipe(gulp.dest(npmFolder + "/clarity-ui/src"));
-});
-
-/**
- * We insert the version number in the correct package.json
- * and copy it to the root of our package.
- */
-gulp.task("npm:ui:package", function () {
-    return gulp.src("build/npm/clarity-ui.json")
-        .pipe(preprocess({context: {VERSION: VERSION}, extension: "js"}))
-        .pipe(rename("package.json"))
-        .pipe(gulp.dest(npmFolder + "/clarity-ui"));
-});
-
-gulp.task("npm:ui:readme", function () {
-    return gulp.src("build/npm/clarity-ui-README.md")
-        .pipe(rename("README.md"))
-        .pipe(gulp.dest(npmFolder + "/clarity-ui"));
-});
-
-
-gulp.task("npm:ui", ["npm:ui:bundles", "npm:ui:sources", "npm:ui:package", "npm:ui:readme"], function () {});
 
 /**
  * Preparing the bifrost package
@@ -124,22 +35,6 @@ gulp.task("npm:angular:bundles", function () {
 });
 
 /**
- * We publish our components' sources just for information.
- */
-gulp.task("npm:angular:sources", function () {
-    return gulp.src([
-        "src/bifrost/**/*.ts",
-        "!src/bifrost/**/*.spec.ts",
-        "!src/bifrost/**/*.mock.ts",
-        "src/bifrost/**/*.html",
-        "src/bifrost/**/*.scss",
-        "!src/bifrost/**/*.clarity.scss",
-        "dist/bifrost/**/*.d.ts",
-    ])
-        .pipe(gulp.dest(npmFolder + "/bifrost/src/"));
-});
-
-/**
  * We insert the version number in the correct package.json
  * and copy it to the root of our package.
  */
@@ -150,12 +45,6 @@ gulp.task("npm:angular:package", function () {
         .pipe(gulp.dest(npmFolder + "/bifrost"));
 });
 
-gulp.task("npm:angular:readme", function () {
-    return gulp.src("build/npm/bifrost-README.md")
-        .pipe(rename("README.md"))
-        .pipe(gulp.dest(npmFolder + "/bifrost"));
-});
+gulp.task("npm:angular", ["npm:angular:bundles", "npm:angular:package"], function () {});
 
-gulp.task("npm:angular", ["npm:angular:bundles", "npm:angular:sources", "npm:angular:package", "npm:angular:readme"], function () {});
-
-gulp.task("npm:all", ["npm:icons", "npm:ui", "npm:angular"], function () {});
+gulp.task("npm:all", ["npm:angular"], function () {});

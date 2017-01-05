@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2016 VMware, Inc. All Rights Reserved.
- * This software is released under MIT license.
- * The full license information can be found in LICENSE in the root directory of this project.
+ * Copyright (c) 2017 VMware, Inc. All Rights Reserved.
  */
 
 var gulp = require('gulp');
@@ -12,8 +10,7 @@ var clangFormat = require('clang-format');
 var bifrostSources = [
     'src/bifrost/**/*.ts',
     '!src/bifrost/**/*.spec.ts',
-    '!src/bifrost/**/*.mock.ts',
-    '!src/bifrost/angular1/**/*.ts'
+    '!src/bifrost/**/*.mock.ts'
 ];
 
 gulp.task('tslint:bifrost', function(){

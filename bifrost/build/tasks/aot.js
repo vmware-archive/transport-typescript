@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2016 VMware, Inc. All Rights Reserved.
- * This software is released under MIT license.
- * The full license information can be found in LICENSE in the root directory of this project.
+ * Copyright (c) 2017 VMware, Inc. All Rights Reserved.
  */
 
 var gulp = require("gulp");
@@ -11,14 +9,14 @@ var del = require("del");
 var os = require('os');
 
 gulp.task("aot:copy", function() {
-    var claritySources = [
+    var bifrostSources = [
         'src/bifrost/**/*.ts',
         'src/bifrost/**/*.html',
         '!src/bifrost/**/*.spec.ts',
         '!src/bifrost/**/*.mock.ts'
     ];
 
-    gulp.src(claritySources)
+    gulp.src(bifrostSources)
         .pipe(inlineNg2Template({
             base: '/src/bifrost/',
             useRelativePaths: true

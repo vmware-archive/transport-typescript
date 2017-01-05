@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2017 VMware, Inc. All Rights Reserved.
+ */
+
 import buble from 'rollup-plugin-buble';
 
 export default {
