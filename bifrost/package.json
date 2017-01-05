@@ -1,6 +1,6 @@
 {
-  "name": "bifrost-bus",
-  "version": "0.1.1",
+  "name": "bifrost",
+  "version": "0.1.2",
   "private": false,
   "dependencies": {
     "@angular/core": "2.4.1",
