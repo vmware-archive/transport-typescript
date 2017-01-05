@@ -9,6 +9,7 @@ import {LoggerService} from './log/logger.service';
 
 import {BIFROST_LOG_DIRECTIVES} from './log/index';
 import {BIFROST_BUS_DIRECTIVES} from './bus/index';
+import {BIFROST_BRIDGE_DIRECTIVES} from './bridge/index';
 
 @NgModule({
     imports: [
@@ -16,16 +17,14 @@ import {BIFROST_BUS_DIRECTIVES} from './bus/index';
     ],
     declarations: [
         BIFROST_BUS_DIRECTIVES,
-        BIFROST_LOG_DIRECTIVES
+        BIFROST_LOG_DIRECTIVES,
+        BIFROST_BRIDGE_DIRECTIVES
     ],
     exports: [
         BIFROST_BUS_DIRECTIVES,
-        BIFROST_LOG_DIRECTIVES
+        BIFROST_LOG_DIRECTIVES,
+        BIFROST_BRIDGE_DIRECTIVES
     ]
-    //providers: [
-    //    MessagebusService,
-    //    LoggerService
-   // ]
 })
 export class BifrostModule {
     static forRoot(): ModuleWithProviders {

@@ -5,11 +5,8 @@
  */
 
 import {Type} from '@angular/core';
-//import {LoggerService} from './logger.service';
 
 export * from './logger.service';
 export * from './logger.model'
 
-export const BIFROST_LOG_DIRECTIVES: Type<any>[] = [
-    //LoggerService,
-];
+export const BIFROST_LOG_DIRECTIVES: Type<any>[] = [];

@@ -17,7 +17,7 @@
         "prepublish": "echo 'Error: Please run \"npm run publish:bifrost\" on the parent project' && exit 1"
     },
     //@endexclude
-    "author": ["Dave Shanley <dshanley@vmware.com>","Akmal Khan <akhan@vmware.com>"],
-    "contributors": [],
+    "author": "Dave Shanley <dshanley@vmware.com>",
+    "contributors": ["Akmal Khan <akhan@vmware.com>"],
     "license": "SEE LICENSE IN LICENSE.txt"
 }
