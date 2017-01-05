@@ -35,7 +35,6 @@ gulp.task("bundle:bifrost:js", ["typescript:bifrost"], function() {
  */
 gulp.task("bundle:zip", ["bundle:bifrost:js"], function() {
     return gulp.src([
-        "dist/bundles/clarity-ui.min.css",
         "dist/bundles/bifrost.min.js",
         "tmp/definitions/**/*.d.ts"
     ])
@@ -61,7 +60,6 @@ gulp.task("bundle:watch", function () {
         "!src/bifrost/**/*.mock.ts",
         "src/bifrost/**/*.html",
         "src/**/*.scss",
-        "!src/**/*.clarity.scss"
     ];
     gulp.watch(bifrostSources, ["bundle:bifrost:js"]);
 });

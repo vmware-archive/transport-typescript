@@ -41,7 +41,7 @@ gulp.task('typescript:tests', function () {
             "bifrost": "tests"
         }
     }))
-    // The requires remaining are all actual clarity classes
+    // The requires remaining are all actual bifröst classes
     .pipe(absoluteRequires({}))
     .pipe(renameFolder({"bifrost": "tests"}))
     .pipe(gulp.dest("dist"));

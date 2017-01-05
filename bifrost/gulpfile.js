@@ -64,7 +64,7 @@ gulp.task("test", function (callback) {
 
 
 /**
- * Publishes the Clarity package to the NPM registry
+ * Publishes the bifröst package to the NPM registry
  */
 gulp.task("npm:prepare", function(callback) {
     env.set({NODE_ENV: "prod"}); // The build is in production mode
