@@ -2,7 +2,7 @@
   "name": "bifrost-bus",
   "version": "0.1.1",
   "private": false,
-  "dependencies": {
+  "peerDependencies": {
     "@angular/common": "2.2.4",
     "@angular/compiler": "2.2.4",
     "@angular/compiler-cli": "2.2.4",
