@@ -8,6 +8,6 @@ import {Type} from '@angular/core';
 
 export * from './messagebus.service';
 export * from './message.model'
-
+export * from './message.schema'
 
 export const BIFROST_BUS_DIRECTIVES: Type<any>[] = [];

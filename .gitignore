@@ -6,3 +6,4 @@ workspace.xml
 dist
 aot-compiled
 tmp
+.idea
