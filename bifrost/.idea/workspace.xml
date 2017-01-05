@@ -37,9 +37,12 @@
     </gulpfiles>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
+  <component name="NodeModulesDirectoryManager">
+    <handled-path value="$PROJECT_DIR$/node_modules" />
+  </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="2580" />
-    <option name="y" value="47" />
+    <option name="x" value="87" />
+    <option name="y" value="23" />
     <option name="width" value="2494" />
     <option name="height" value="1393" />
   </component>
@@ -464,15 +467,15 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1483583235560</updated>
-      <workItem from="1483583236944" duration="45000" />
+      <workItem from="1483583236944" duration="338000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="45000" />
+    <option name="totallyTimeSpent" value="338000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="2580" y="47" width="2494" height="1393" extended-state="0" />
+    <frame x="87" y="23" width="2494" height="1393" extended-state="0" />
     <editor active="false" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
