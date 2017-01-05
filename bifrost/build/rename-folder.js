@@ -8,7 +8,6 @@
  * the files will become foo/baz/*.
  */
 
-var through = require('through2');
 var rename = require("gulp-rename");
 
 module.exports = function(renaming) {

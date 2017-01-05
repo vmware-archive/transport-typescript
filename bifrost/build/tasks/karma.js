@@ -31,21 +31,3 @@ gulp.task('karma:verbose', function (done) {
 		done();
 	}).start();
 });
-
-/**
- * Run tests and watch for file changes (either test files or source ones).
- */
-gulp.task('karma:watch', function (done) {
-	new Server({
-		configFile: configFile,
-		autoWatch: true,
-		singleRun: false,
-		reporters: ['mocha'],
-		mochaReporter: {
-			output: 'autowatch'
-		}
-	}, function() {
-		// Ignore possible errors, the log should be enough when using :watch
-		done();
-	}).start();
-});

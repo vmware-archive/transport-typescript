@@ -5,10 +5,8 @@
 var gulp = require("gulp");
 var replace = require('gulp-replace');
 var sourcemaps = require("gulp-sourcemaps");
-var inlineNg2Template = require("gulp-inline-ng2-template");
 var ts = require("gulp-typescript");
 var mergeStream = require('merge-stream');
-
 
 var typings = ["src/typings.d.ts"];
 
@@ -29,20 +27,9 @@ module.exports = function(tsSources, options, destination) {
     var prod = process.env.NODE_ENV==="prod";
 
     var stream = gulp.src(allSources, {base: "src/"})
-        // replace .scss references in styleUrls: [...] in the files
-        .pipe(replace(/styleUrls\s*:\s*\[([^\]]*)\]/g, function(match, group) {
-            // here, match = styleUrls: [...]  and group = string inside []
-            return match.replace(group, group.replace(/\.scss/g, ".css"));
-        }));
+
     if (!prod) {
         stream = stream.pipe(sourcemaps.init());
-    }
-    if (options.inlineTemplates) {
-        stream = stream.pipe(inlineNg2Template({
-            base: "dist",
-            target: 'es5',
-            useRelativePaths: true
-        }));
     }
 
     stream = stream.pipe(ts(tsProject));

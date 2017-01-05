@@ -6,7 +6,7 @@ var gulp = require("gulp");
 var rename = require('gulp-rename');
 var preprocess = require('gulp-preprocess');
 var util = require('gulp-util');
-var es = require('event-stream');
+
 
 // All packages share the same version number.
 var VERSION = util.env.version;
