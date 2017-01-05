@@ -1,15 +1,15 @@
 import {TestBed, inject} from '@angular/core/testing';
 import {Injector} from '@angular/core';
 import {StompService} from './stomp.service';
-import {MessagebusService} from '../messagebus/messagebus.service';
-import {Syslog} from '../log/syslog';
-import {Message} from '../bus/message.model';
 import {StompChannel, StompBusCommand, StompConfig, StompSession} from './stomp.model';
 import {StompConfigSchema, StompCommandSchema} from './stomp.schema';
 import {StompParser} from './stomp.parser';
 import {StompClient} from './stomp.client';
-import 'rxjs/add/operator/take';
 import {MonitorChannel, MonitorObject, MonitorType} from '../bus/monitor.model';
+import {Message} from '../bus/message.model';
+import {MessagebusService} from '../bus/messagebus.service';
+import {Syslog} from '../log/syslog';
+import 'rxjs/add/operator/take';
 import createSpy = jasmine.createSpy;
 
 /**
@@ -65,6 +65,10 @@ export function main() {
                                     expect(true).toBeTruthy();
                                     done();
                                     break;
+
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
                             }
                         });
 
@@ -87,6 +91,9 @@ export function main() {
                                     expect(true).toBeTruthy();
                                     done();
                                     break;
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
                             }
                         });
 
@@ -112,6 +119,9 @@ export function main() {
                                     expect(true).toBeTruthy();
                                     done();
                                     break;
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
                             }
                         });
 
@@ -148,6 +158,10 @@ export function main() {
                                     expect(command.destination).toEqual(topicA);
                                     done();
                                     break;
+
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
                             }
                         });
 
@@ -197,6 +211,10 @@ export function main() {
                                         getName()
                                     );
                                     break;
+
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
                             }
                         });
 
@@ -256,6 +274,10 @@ export function main() {
                                     expect(command.session).toEqual(sessId);
                                     done();
                                     break;
+
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
                             }
                         });
 
@@ -345,6 +367,10 @@ export function main() {
                                     done();
 
                                     break;
+
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
                             }
                         });
                     StompService.fireConnectCommand(bus, config);
@@ -379,7 +405,8 @@ export function main() {
                                         );
 
                                     bus.send(StompChannel.subscription,
-                                        new Message().request(missingProperties, new StompConfigSchema()), getName());
+                                        new Message().request(missingProperties,
+                                            new StompConfigSchema()), getName());
 
                                     expect(ss.subscribeToDestination).not.toHaveBeenCalled();
 
@@ -408,6 +435,10 @@ export function main() {
 
                                     done();
                                     break;
+
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
                             }
                         });
                     StompService.fireConnectCommand(bus, config);
@@ -486,6 +517,10 @@ export function main() {
 
                                     done();
                                     break;
+
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
 
                             }
                         });
@@ -567,6 +602,10 @@ export function main() {
                                         getName()
                                     );
                                     break;
+
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
                             }
                         });
 
@@ -574,8 +613,7 @@ export function main() {
                         () => {
                             expect(ss.sendPacket).not.toHaveBeenCalled();
                         },
-                        () => {
-                        },
+                        () => { return; },
                         () => done()
                     );
                     StompService.fireConnectCommand(bus, config);
@@ -603,6 +641,10 @@ export function main() {
                                         () => session.client.clientSocket.triggerEvent('error', ['unknown'])
                                     );
                                     break;
+
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
                             }
                         });
 
@@ -645,6 +687,10 @@ export function main() {
                                     );
 
                                     break;
+
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
                             }
                         });
 
@@ -711,6 +757,10 @@ export function main() {
                                 case StompClient.STOMP_UNSUBSCRIBED:
                                     done();
                                     break;
+
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
                             }
 
                         });
@@ -741,6 +791,10 @@ export function main() {
                                     done();
                                     break;
 
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
+
                             }
                         });
 
@@ -755,13 +809,13 @@ export function main() {
                 }
             );
 
-            it('any galactic channels created before the stomp client has connected should be proxied once connected',
+            it('galactic channels created before the stomp client has connected should be proxied once connected',
 
                 (done) => {
 
                     /*
 
-                     This test tests that any galactic channels that are created before the stomp service has
+                     This tests that any galactic channels that are created before the stomp service has
                      connected to the broker, are extended/subscribed to once the broker has connected successfully.
 
                      This way we can ensure no race conditions occurr by having to ensure a broker connection before
@@ -777,7 +831,7 @@ export function main() {
                                 = StompParser.extractStompBusCommandFromMessage(msg);
 
                             switch (command.command) {
-                                 case StompClient.STOMP_SUBSCRIBED:
+                                case StompClient.STOMP_SUBSCRIBED:
                                     expect(ss.galacticChannels.size).toEqual(2);
 
                                     // trigger an unsubscription via channel close
@@ -786,8 +840,8 @@ export function main() {
 
                                 case StompClient.STOMP_UNSUBSCRIBED:
                                     ss.sessions.forEach(
-                                        (session:StompSession) => {
-                                            StompService.fireDisconnectCommand(bus,session.id);
+                                        (session: StompSession) => {
+                                            StompService.fireDisconnectCommand(bus, session.id);
                                         }
                                     );
                                     break;
@@ -795,6 +849,10 @@ export function main() {
                                 case StompClient.STOMP_DISCONNECTED:
                                     done();
                                     break;
+
+                                default:
+                                    expect(false).toBeTruthy();
+                                    done();
                             }
 
                         });

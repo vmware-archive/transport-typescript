@@ -29,8 +29,8 @@ gulp.task('build', function (callback) {
     return runSequence(
         'clean',
         prod ?
-            ['typescript', 'html', 'bundle'] :
-            ['typescript', 'html'],
+            ['typescript', 'bundle'] :
+            ['typescript'],
         callback
     );
 });
@@ -43,8 +43,8 @@ gulp.task("serve", function (callback) {
     return runSequence(
         'build',
         prod ?
-            ['typescript:watch', 'html:watch', 'bundle:watch'] :
-            ['typescript:watch', 'html:watch'],
+            ['typescript:watch', 'bundle:watch'] :
+            ['typescript:watch'],
         'live',
         callback
     );
@@ -62,19 +62,6 @@ gulp.task("test", function (callback) {
     );
 });
 
-/**
- * Builds the application in production mode, runs all tests on it,
- * then watches for file changes to re-run tests.
- */
-gulp.task("test:watch", function(callback) {
-    env.set({NODE_ENV: "prod"}); // We only run tests in production mode for now
-    return runSequence(
-        'build',
-        ['typescript:watch', 'html:watch', 'bundle:watch'],
-        'karma:watch',
-        callback
-    );
-});
 
 /**
  * Publishes the Clarity package to the NPM registry

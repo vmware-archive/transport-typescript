@@ -29,19 +29,19 @@ export interface StompBusCommand {
 
 export interface StompSubscription {
     session: string;
-    destination:string;
-    id:string;
+    destination: string;
+    id: string;
 }
 
 // session help for each broker connection
 export class StompSession {
 
-    private _id:string;
+    private _id: string;
     private _subscriptions: Map<String, Subject<StompMessage>>;
-    private _client:StompClient;
-    private _config:StompConfig;
+    private _client: StompClient;
+    private _config: StompConfig;
 
-    constructor(config:StompConfig) {
+    constructor(config: StompConfig) {
         this._config = config;
         this._client = new StompClient();
         this._id = StompParser.genUUID();
@@ -70,7 +70,7 @@ export class StompSession {
 
     subscribe(destination: string, id: string, headers?: any): Subject<StompMessage> {
 
-        let subject:Subject<StompMessage> =
+        let subject: Subject<StompMessage> =
             this._client.subscribeToDestination(destination, id, headers);
 
         this._subscriptions.set(id, subject);
@@ -82,7 +82,7 @@ export class StompSession {
         this._subscriptions.delete(id);
     }
 
-    disconnect(messageHeaders?:any): void {
+    disconnect(messageHeaders?: any): void {
         this._client.disconnect(messageHeaders);
     }
 }
@@ -90,18 +90,17 @@ export class StompSession {
 // stomp config.
 export class StompConfig {
 
-    private _useTopics:boolean = true;
-    private _useQueues:boolean = false;
-    private _topicLocation:string = "/topic";
-    private _queueLocation:string = "/queue";
+    private _useTopics: boolean = true;
+    private _useQueues: boolean = false;
+    private _topicLocation: string = '/topic';
+    private _queueLocation: string = '/queue';
 
-    static generate(
-            endpoint: string,
-            host: string,
-            port: number,
-            useSSL?: boolean,
-            user?: string,
-            pass?:string) {
+    static generate(endpoint: string,
+                    host: string,
+                    port: number,
+                    useSSL?: boolean,
+                    user?: string,
+                    pass?: string) {
 
         return new StompConfig(
             endpoint,
@@ -113,7 +112,7 @@ export class StompConfig {
         );
     }
 
-    private _testMode:boolean = false;
+    private _testMode: boolean = false;
 
     constructor(private _endpoint: string,
                 private _host: string,
@@ -136,6 +135,7 @@ export class StompConfig {
     set topicLocation(val: string) {
         this._topicLocation = val;
     }
+
     get topicLocation() {
         return this._topicLocation;
     }
@@ -143,6 +143,7 @@ export class StompConfig {
     set queueLocation(val: string) {
         this._queueLocation = val;
     }
+
     get queueLocation() {
         return this._queueLocation;
     }
@@ -195,7 +196,7 @@ export class StompConfig {
         return this._testMode;
     }
 
-    set testMode(val:boolean) {
+    set testMode(val: boolean) {
         this._testMode = val;
     }
 
@@ -219,7 +220,7 @@ export class StompConfig {
     }
 
     public generateSocket(): any {
-        if(this._testMode) {
+        if (this._testMode) {
             return new MockSocket();
         } else {
             return new WebSocket(this.generateConnectionURI());
@@ -233,12 +234,12 @@ export class StompConfig {
             scheme = 'wss';
         }
 
-        if(this._host!=='') {
+        if (this._host !== '') {
             hostPort = this._host;
         }
 
         if (this._port !== null && this._port !== -1) {
-            hostPort += ":" + this._port;
+            hostPort += ':' + this._port;
         } else {
             scheme = 'wss';
         }

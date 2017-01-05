@@ -1,16 +1,16 @@
 import {StompParser} from './stomp.parser';
 import {StompClient} from './stomp.client';
 import {StompMessage, StompBusCommand} from './stomp.model';
-import {Message} from '../messagebus/message.model';
 import {StompCommandSchema} from './stomp.schema';
 import {StompValidator} from './stomp.validator';
-import {MonitorObject, MonitorType} from "../messagebus/monitor.model";
+import {MonitorObject, MonitorType} from '../bus/monitor.model';
+import {Message} from '../bus/message.model';
 
 export function main() {
 
     describe('Stomp Validator [stomp.validator]', () => {
 
-        it("Check that connection messages can be validated",
+        it('Check that connection messages can be validated',
             () => {
 
                 let id = StompParser.genUUID();
@@ -22,7 +22,7 @@ export function main() {
                 expect(StompValidator.validateConnectionMessage(message)).toBeFalsy();
 
                 // missing session id.
-                stompMessage= StompParser.frame(StompClient.STOMP_DISCONNECT);
+                stompMessage = StompParser.frame(StompClient.STOMP_DISCONNECT);
                 message = packageStompMessage(StompClient.STOMP_DISCONNECT, null, stompMessage);
 
                 expect(StompValidator.validateConnectionMessage(message)).toBeFalsy();
@@ -35,7 +35,7 @@ export function main() {
             }
         );
 
-        it("Check that subscription messages can be validated",
+        it('Check that subscription messages can be validated',
             () => {
 
                 let id = StompParser.genUUID();
@@ -57,7 +57,7 @@ export function main() {
             }
         );
 
-        it("Check that monitor messages can be validated",
+        it('Check that monitor messages can be validated',
             () => {
 
                 let mo: MonitorObject = new MonitorObject().build(
@@ -74,7 +74,7 @@ export function main() {
             }
         );
 
-        it("Check that inbound messages (outbound requests) can be validated",
+        it('Check that inbound messages (outbound requests) can be validated',
             () => {
 
                 let id = StompParser.genUUID();
@@ -92,7 +92,7 @@ export function main() {
 
 
                 // wrong message command
-                let stompMessage = StompParser.frame(StompClient.STOMP_COMMIT, {}, "hiya georgie!");
+                let stompMessage = StompParser.frame(StompClient.STOMP_COMMIT, {}, 'hiya georgie!');
                 message = packageStompMessage(StompClient.STOMP_SEND, id, stompMessage);
 
                 expect(StompValidator.validateInboundMessage(message)).toBeFalsy();
@@ -105,7 +105,7 @@ export function main() {
 
 
                 // valid
-                stompMessage = StompParser.frame(StompClient.STOMP_SEND, {}, "hiya georgie");
+                stompMessage = StompParser.frame(StompClient.STOMP_SEND, {}, 'hiya georgie');
                 message = packageStompMessage(StompClient.STOMP_SEND, id, stompMessage);
 
                 expect(StompValidator.validateInboundMessage(message)).toBeTruthy();
@@ -120,12 +120,12 @@ function generateBusCommand(cmd: string,
                             msg: StompMessage,
                             destination: string = 'somewhere'): StompBusCommand {
 
-        return StompParser.generateStompBusCommand(
-            cmd,
-            id,
-            destination,
-            msg
-        );
+    return StompParser.generateStompBusCommand(
+        cmd,
+        id,
+        destination,
+        msg
+    );
 }
 
 function packageStompMessage(cmd: string, id: string, msg: StompMessage): Message {

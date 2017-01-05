@@ -28,7 +28,7 @@
     "no-angle-bracket-type-assertion": true,
     "no-any": false,
     "no-arg": true,
-    "no-bitwise": true,
+    "no-bitwise": false,
     "no-conditional-assignment": true,
     "no-consecutive-blank-lines": false,
     "no-console": [
@@ -56,7 +56,7 @@
     "no-trailing-whitespace": true,
     "no-unreachable": true,
     "no-unused-expression": true,
-    "no-unused-variable": true,
+    "no-unused-variable": false,
     "no-use-before-declare": true,
     "no-var-keyword": true,
     "no-var-requires": true,

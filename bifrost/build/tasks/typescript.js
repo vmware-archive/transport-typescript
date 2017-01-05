@@ -50,56 +50,13 @@ gulp.task('typescript:tests', function () {
 });
 
 
-/**
- * Sample application
- */
-var appSources = ['src/app/**/*.ts'];
 
-gulp.task('typescript:app', function () {
-    return typescriptCompile(appSources, {
-        inlineTemplates: false,
-        internal: true
-    })
-    .pipe(absoluteRequires({
-        parentOnly: true
-    }))
-    .pipe(gulp.dest("dist"));
-});
-
-/**
- * Watches for changes in ts files (or files that will be inlined in typescript)
- * to retrigger typescript compilation.
- */
-var clarityHtmlFiles = ["src/bifrost/**/*.html"];
-gulp.task('typescript:bifrost:watch', function () {
-    gulp.watch(bifrostSources.concat(clarityHtmlFiles), function () {
-        return runSequence('tslint:clarity:no-error', 'typescript:bifrost');
-    });
-});
-
-
-gulp.task('typescript:tests:watch', function () {
-    gulp.watch(testsSources, function () {
-        return runSequence('tslint:tests:no-error', 'typescript:tests');
-    });
-});
-
-gulp.task('typescript:app:watch', function () {
-    gulp.watch(appSources, function () {
-        return runSequence('tslint:app:no-error', 'typescript:app');
-    });
-});
 
 gulp.task('typescript', function (callback) {
     return runSequence(
         'tslint',
-        ['typescript:bifrost', 'typescript:app', 'typescript:tests'],
+        ['typescript:bifrost', 'typescript:tests'],
         callback
     );
 });
 
-gulp.task('typescript:watch', [
-    'typescript:bifrost:watch',
-    'typescript:app:watch',
-    'typescript:tests:watch'
-], function () {});

@@ -1,14 +1,14 @@
 import {StompParser} from './stomp.parser';
 import {StompClient} from './stomp.client';
-import {Message} from '../messagebus/message.model';
 import {StompMessage} from './stomp.model';
-import {MonitorObject} from "../messagebus/monitor.model";
+import {MonitorObject} from '../bus/monitor.model';
+import {Message} from '../bus/message.model';
 
 export class StompValidator {
 
     public static validateMonitorMessage(msg: Message): boolean {
         let mo = msg.payload as MonitorObject;
-        if(mo && mo.channel) {
+        if (mo && mo.channel) {
             return true;
         }
         return false;
@@ -31,6 +31,9 @@ export class StompValidator {
                     return true;
                 }
                 break;
+
+            default:
+                break;
         }
         return false;
     }
@@ -51,6 +54,9 @@ export class StompValidator {
                     return true;
                 }
                 break;
+
+            default:
+                break;
         }
         return false;
     }
@@ -68,6 +74,9 @@ export class StompValidator {
                         return true;
                     }
                 }
+                break;
+
+            default:
                 break;
         }
         return false;

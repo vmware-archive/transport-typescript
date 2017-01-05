@@ -2,3 +2,5 @@
 workspace.xml
 /bifrost/.idea/workspace.xml
 /bifrost/.idea
+/bifrost/npm-debug.log
+dist

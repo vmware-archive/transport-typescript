@@ -1,17 +1,17 @@
 import {Injectable} from '@angular/core';
-import {MessagebusService, MessageBusEnabled} from '../messagebus/messagebus.service';
 import {StompClient} from './stomp.client';
 import {Observable, ReplaySubject} from 'rxjs/Rx';
 import {
     StompSession, StompChannel, StompBusCommand, StompSubscription, StompMessage,
     StompConfig
-} from "../bridge/stomp.model";
-import {Message} from '../messagebus/message.model';
+} from '../bridge/stomp.model';
 import {StompCommandSchema, StompConfigSchema} from './stomp.schema';
 import {StompParser} from '../bridge/stomp.parser';
 import {StompValidator} from './stomp.validator';
 import {Syslog} from '../log/syslog';
-import {MonitorChannel, MonitorObject, MonitorType} from "../messagebus/monitor.model";
+import {MonitorChannel, MonitorObject, MonitorType} from '../bus/monitor.model';
+import {Message} from '../bus/message.model';
+import {MessagebusService, MessageBusEnabled} from '../bus/messagebus.service';
 
 // max length of a subscription ID before truncation
 const SUBSCRIPTION_ID_LENGTH = 13;
@@ -23,7 +23,7 @@ const SUBSCRIPTION_ID_LENGTH = 13;
 @Injectable()
 export class StompService implements MessageBusEnabled {
 
-    static serviceName: string = "stomp.service";
+    static serviceName: string = 'stomp.service';
 
     // helper methods for boilerplate commands.
     static fireSubscriptionCommand(bus: MessagebusService,
@@ -147,7 +147,7 @@ export class StompService implements MessageBusEnabled {
         this._galacticRequests = new ReplaySubject<string>(10);
     }
 
-    get galacticChannels(): Map<string,boolean> {
+    get galacticChannels(): Map<string, boolean> {
         return this._galaticChannels;
     }
 
@@ -155,7 +155,7 @@ export class StompService implements MessageBusEnabled {
         return this._sessions.get(id);
     }
 
-    get sessions():  Map<string, StompSession> {
+    get sessions(): Map<string, StompSession> {
         return this._sessions;
     }
 
@@ -178,12 +178,14 @@ export class StompService implements MessageBusEnabled {
                     this.closeGalacticChannel(mo.channel);
                 }
                 break;
+            default:
+                break;
         }
     }
 
     private generateSubscriptionId(sessionId: string, channel: string): string {
         return sessionId.substr(0, SUBSCRIPTION_ID_LENGTH)
-            + "-" + channel.substr(0, SUBSCRIPTION_ID_LENGTH);
+            + '-' + channel.substr(0, SUBSCRIPTION_ID_LENGTH);
     }
 
     private openGalacticChannel(channel: string) {
@@ -265,7 +267,7 @@ export class StompService implements MessageBusEnabled {
         switch (busCommand.command) {
             case StompClient.STOMP_SUBSCRIBE:
 
-                Syslog.debug("subscribing to destination: " + sub.destination, this.getName());
+                Syslog.debug('subscribing to destination: ' + sub.destination, this.getName());
 
                 // create a subscription payload and throw it on the bus.
                 this.subscribeToDestination(sub);
@@ -273,10 +275,13 @@ export class StompService implements MessageBusEnabled {
 
             case StompClient.STOMP_UNSUBSCRIBE:
 
-                Syslog.debug("unsubscribing from destination: " + sub.destination, this.getName());
+                Syslog.debug('unsubscribing from destination: ' + sub.destination, this.getName());
 
                 // create an unsubscription payload and throw it on the bus.
                 this.unsubscribeFromDestination(sub);
+                break;
+
+            default:
                 break;
         }
     }
@@ -309,6 +314,9 @@ export class StompService implements MessageBusEnabled {
 
                 // disconnect
                 this.disconnectClient(busCommand.session);
+                break;
+
+            default:
                 break;
         }
     }
@@ -374,7 +382,7 @@ export class StompService implements MessageBusEnabled {
                 // if we have pending galactic channels waiting, lets open the replay
                 // and subscribe to those destinations
                 this._galacticRequests.subscribe(
-                    (channel:string) => {
+                    (channel: string) => {
                         this.openGalacticChannel(channel);
                     }
                 );
@@ -418,7 +426,7 @@ export class StompService implements MessageBusEnabled {
             (err: any) => {
                 let msg
                     = StompParser.generateStompBusCommand(
-                    StompClient.STOMP_ERROR, "", "", err);
+                    StompClient.STOMP_ERROR, '', '', err);
 
                 this.sendBusCommandResponseRaw(msg, StompChannel.error, true, true);
             }
@@ -484,7 +492,7 @@ export class StompService implements MessageBusEnabled {
         } else {
             let msg
                 = StompParser.generateStompBusCommand(
-                StompClient.STOMP_ERROR, "", "", "cannot subscribe, session does not exist.");
+                StompClient.STOMP_ERROR, '', '', 'cannot subscribe, session does not exist.');
 
             this.sendBusCommandResponseRaw(msg, StompChannel.error, true, true);
         }

@@ -3,8 +3,8 @@ import {StompParser} from './stomp.parser';
 export class MockSocket {
 
     public events: any = {};
-    private _socketState:number =  WebSocket.OPEN;
-    private _binaryType:string;
+    private _socketState: number = WebSocket.OPEN;
+    private _binaryType: string;
 
     public transaction: boolean = false;
     public transactionId: string;
@@ -15,11 +15,11 @@ export class MockSocket {
         setTimeout(() => this.triggerEvent('open', [true]), 0);
     }
 
-    set binaryType(bt:string) {
+    set binaryType(bt: string) {
         this._binaryType = bt;
     }
 
-    get binaryType():string {
+    get binaryType(): string {
         return this._binaryType;
     }
 
@@ -38,7 +38,7 @@ export class MockSocket {
                 setTimeout(() => {
                     this._socketState = WebSocket.OPEN;
                     this.triggerEvent('message', [{
-                        data: StompParser.marshal(StompClient.STOMP_CONNECTED, {}, "")
+                        data: StompParser.marshal(StompClient.STOMP_CONNECTED, {}, '')
                     }]);
                 }, 0);
                 break;
@@ -91,6 +91,9 @@ export class MockSocket {
                     this._socketState = WebSocket.CLOSED;
                     this.triggerEvent('close');
                 }, 0);
+                break;
+
+            default:
                 break;
         }
     }
