@@ -4,3 +4,5 @@ workspace.xml
 /bifrost/.idea
 /bifrost/npm-debug.log
 dist
+aot-compiled
+tmp

@@ -66,7 +66,6 @@
     "build": "gulp build --prod && gulp karma",
     "build:dev": "gulp build",
     "test": "gulp test",
-    "test:watch": "gulp test:watch",
     "prepublish:all": "gulp npm:prepare --version $npm_package_version",
     "typings": "typings",
     "postinstall": "typings install",
