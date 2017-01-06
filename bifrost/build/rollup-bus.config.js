@@ -5,10 +5,10 @@
 import buble from 'rollup-plugin-buble';
 
 export default {
-    entry: 'tmp/index.js',
-    dest: 'dist/bundles/vmw-bifrosty.umd.js',
+    entry: 'tmp/bus/index.js',
+    dest: 'dist/npm/vmw-bifrost/bus/vmw-bifrost-bus.umd.js',
     format: 'umd',
-    moduleName: 'ng.vmw-bifrost',
+    moduleName: 'ng.vmw-bifrost-bus',
     external: [
         '@angular/core',
         '@angular/common',

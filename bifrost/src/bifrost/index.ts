@@ -4,3 +4,5 @@
  * The full license information can be found in LICENSE in the root directory of this project.
  */
 export * from './bifrost.module'
+export * from './bus/index';
+export * from './bridge/index';
