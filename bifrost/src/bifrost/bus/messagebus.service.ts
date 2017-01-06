@@ -8,9 +8,9 @@ import {LoggerService} from '../log/logger.service';
 import {LogLevel} from '../log/logger.model';
 import {MonitorObject, MonitorType, MonitorChannel} from './monitor.model';
 import {Message} from './message.model';
-import {Subject} from 'rxjs/Subject';
-import {Observable} from 'rxjs/Observable';
-import 'rxjs/add/operator/filter';
+import {Subject} from 'rxjs';
+import {Observable} from 'rxjs';
+import {filter} from 'rxjs/operator/filter';
 
 
 // import * as Ajv from 'ajv';

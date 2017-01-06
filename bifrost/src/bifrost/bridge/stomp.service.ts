@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {StompClient} from './stomp.client';
-import {Observable, ReplaySubject} from 'rxjs/Rx';
+import {Observable, ReplaySubject} from 'rxjs';
 import {
     StompSession, StompChannel, StompBusCommand, StompSubscription, StompMessage,
     StompConfig

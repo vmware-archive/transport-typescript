@@ -6,7 +6,7 @@ import buble from 'rollup-plugin-buble';
 
 export default {
     entry: 'tmp/index.js',
-    dest: 'dist/bundles/vmw-bifrost.umd.js',
+    dest: 'dist/bundles/vmw-bifrosty.umd.js',
     format: 'umd',
     moduleName: 'ng.vmw-bifrost',
     external: [

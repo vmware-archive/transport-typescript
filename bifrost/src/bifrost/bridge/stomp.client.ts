@@ -1,11 +1,11 @@
-import {Observable} from 'rxjs/Observable';
-import {Subject} from 'rxjs/Subject';
+import {Observable} from 'rxjs';
+import {Subject} from 'rxjs';
 import {StompParser} from './stomp.parser';
 import {Syslog} from '../log/syslog';
 import {StompMessage, StompConfig} from './stomp.model';
 
-import 'rxjs/add/observable/fromEvent';
-import 'rxjs/add/operator/map';
+import {fromEvent} from 'rxjs/observable/fromEvent';
+import { map } from 'rxjs/operator/map';
 
 const LOCATION: string = '[shared/stomp/stomp-client]';
 

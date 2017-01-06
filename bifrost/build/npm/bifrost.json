@@ -8,11 +8,11 @@
         "url" : "ssh://git@stash.eng.vmware.com:7999/ss/ui-bifrost.git"
     },
     "peerDependencies": {
-        "@angular/core": "2.4.1",
-        "rxjs": "5.0.1"
+        "@angular/core": "^2.4.1",
+        "rxjs": "^5.0.1"
     },
     "publishConfig": {
-        "registry": "http://build-artifactory.eng.vmware.com:80/artifactory/api/npm/npm-local"
+        "registry": "http://build-artifactory.eng.vmware.com:80/artifactory/api/npm/npm"
     },
     //@exclude
     "scripts": {
