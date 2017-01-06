@@ -30,7 +30,7 @@ var allSpecFiles = Object.keys(window.__karma__.files)
 
 var packages = {
     'dist/tests': { defaultExtension: "js" },
-    'vmw-bifrost': { defaultExtension: "js" },
+    'bifrost': { defaultExtension: "js" },
     'rxjs': { defaultExtension: 'js', main: 'Rx.js'}
 };
 
