@@ -41,7 +41,7 @@ gulp.task("aot:umd", function(cb){
     var cmd = os.platform() === 'win32' ?
         'node_modules\\.bin\\rollup' : './node_modules/.bin/rollup';
 
-    cmd += ' -c build/rollup-bifrost.config.js'; // use config for rollup
+    cmd += ' -c build/rollup-vmw-bifrost.config.js'; // use config for rollup
 
     exec(cmd, function (err, stdout, stderr) {
         console.log(stdout);

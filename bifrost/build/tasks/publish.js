@@ -25,13 +25,13 @@ var npmFolder = "dist/npm/";
  */
 gulp.task("npm:angular:bundles", function () {
     gulp.src([
-        "dist/bundles/bifrost.min.js",
-        "dist/bundles/bifrost.umd.js",
+        "dist/bundles/vmw-bifrost.min.js",
+        "dist/bundles/vmw-bifrost.umd.js",
         'tmp/**/*.metadata.json',
         'tmp/**/*.d.ts',
         'tmp/**/*.js',
         'tmp/**/*.js.map'
-    ]).pipe(gulp.dest(npmFolder + "/bifrost"));
+    ]).pipe(gulp.dest(npmFolder + "/vmw-bifrost"));
 });
 
 /**
@@ -42,7 +42,7 @@ gulp.task("npm:angular:package", function () {
     return gulp.src("build/npm/bifrost.json")
         .pipe(preprocess({context: {VERSION: VERSION}, extension: "js"}))
         .pipe(rename("package.json"))
-        .pipe(gulp.dest(npmFolder + "/bifrost"));
+        .pipe(gulp.dest(npmFolder + "/vmw-bifrost"));
 });
 
 gulp.task("npm:angular", ["npm:angular:bundles", "npm:angular:package"], function () {});

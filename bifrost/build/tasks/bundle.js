@@ -23,7 +23,7 @@ gulp.task("bundle:bifrost:js", ["typescript:bifrost"], function() {
         }
     });
 
-    return builder.bundle("bifrost/**/*.js", "dist/bundles/bifrost.min.js", buildOpts)
+    return builder.bundle("bifrost/**/*.js", "dist/bundles/vmw-bifrost.min.js", buildOpts)
         .catch(function(err) {
             console.error(err);
             process.exit(1);
@@ -35,10 +35,10 @@ gulp.task("bundle:bifrost:js", ["typescript:bifrost"], function() {
  */
 gulp.task("bundle:zip", ["bundle:bifrost:js"], function() {
     return gulp.src([
-        "dist/bundles/bifrost.min.js",
+        "dist/bundles/vmw-bifrost.min.js",
         "tmp/definitions/**/*.d.ts"
     ])
-        .pipe(zip('bifrost.dev.zip'))
+        .pipe(zip('vmw-bifrost.dev.zip'))
         .pipe(gulp.dest("dist/bundles/"));
 });
 

@@ -1,6 +1,6 @@
 {
-  "name": "bifrost",
-  "version": "0.1.2",
+  "name": "vmw-bifrost",
+  "version": "0.1.0",
   "private": false,
   "dependencies": {
     "@angular/core": "2.4.1",
@@ -65,6 +65,6 @@
     "prepublish:all": "gulp npm:prepare --version $npm_package_version",
     "typings": "typings",
     "postinstall": "typings install",
-    "publish:all": "npm publish dist/npm/bifrost"
+    "publish:all": "npm publish dist/npm/vmw-bifrost"
   }
 }

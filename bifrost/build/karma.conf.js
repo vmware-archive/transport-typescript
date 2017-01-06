@@ -42,7 +42,7 @@ module.exports = function (config) {
             { pattern: 'build/karma-test-shim.js', included: true, watched: false },
 
             // Bifrost files
-            { pattern: dist + 'bundles/bifrost.min.js', included: true, watched: false },
+            { pattern: dist + 'bundles/vmw-bifrost.min.js', included: true, watched: false },
 
             // Test files
             { pattern: dist + 'tests/**/*.js', included: false, watched: true },

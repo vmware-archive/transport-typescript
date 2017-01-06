@@ -1,5 +1,5 @@
 {
-    "name": "bifrost",
+    "name": "vmw-bifrost",
     "version": "/* @echo VERSION */",
     "description": "The bifröst is an asychronous messagebus with a STOMP + websocket distributed broadcast capability",
     "homepage": "TBA",
@@ -16,7 +16,7 @@
     },
     //@exclude
     "scripts": {
-        "prepublish": "echo 'Error: Please run \"npm run publish:bifrost\" on the parent project' && exit 1"
+        "prepublish": "echo 'Error: Please run \"npm run publish:vmw-bifrost\" on the parent project' && exit 1"
     },
     //@endexclude
     "author": "Dave Shanley <dshanley@vmware.com>",
