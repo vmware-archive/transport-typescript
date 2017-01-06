@@ -39,7 +39,7 @@ gulp.task("npm:angular:bundles", function () {
  * and copy it to the root of our package.
  */
 gulp.task("npm:angular:package", function () {
-    return gulp.src("build/npm/vmw-bifrost.json")
+    return gulp.src("build/npm/bifrost.json")
         .pipe(preprocess({context: {VERSION: VERSION}, extension: "js"}))
         .pipe(rename("package.json"))
         .pipe(gulp.dest(npmFolder + "/vmw-bifrost"));
