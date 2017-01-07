@@ -41,6 +41,7 @@ export function main() {
             ss = injector.get(StompService);
             config = createStandardConfig();
             subId = StompParser.genUUID();
+            ss.init(bus);
 
             bus.logger().silent(true);
             Syslog.silent(false);

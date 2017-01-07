@@ -101,8 +101,15 @@ export class StompService implements MessageBusEnabled {
     private _sessions: Map<string, StompSession>;
     private _galaticChannels: Map<string, boolean>;
     private _galacticRequests: ReplaySubject<string>;
+    private bus: MessagebusService;
 
-    constructor(private bus: MessagebusService) {
+    setBus(bus: MessagebusService) {
+        this.bus = bus;
+    }
+
+    init(bus: MessagebusService) {
+
+        this.setBus(bus);
 
         let connectionChannel =
             this.bus.getRequestChannel(StompChannel.connection, this.getName());
