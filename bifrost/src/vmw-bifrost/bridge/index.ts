@@ -5,6 +5,8 @@
  */
 
 import {Type} from '@angular/core';
+import {StompService} from './stomp.service';
+
 
 export * from './stomp.client';
 export * from './stomp.parser';
@@ -13,4 +15,6 @@ export * from './stomp.validator';
 export * from './stomp.model';
 export * from './stomp.schema';
 
-export const BIFROST_BRIDGE_DIRECTIVES: Type<any>[] = [];
+export const BIFROST_BRIDGE_DIRECTIVES: Type<any>[] = [
+    StompService
+];

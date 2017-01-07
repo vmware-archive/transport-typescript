@@ -8,9 +8,9 @@ var format = require('gulp-clang-format');
 var clangFormat = require('clang-format');
 
 var bifrostSources = [
-    'src/bifrost/**/*.ts',
-    '!src/bifrost/**/*.spec.ts',
-    '!src/bifrost/**/*.mock.ts'
+    'src/vmw-bifrost/**/*.ts',
+    '!src/vmw-bifrost/**/*.spec.ts',
+    '!src/vmw-bifrost/**/*.mock.ts'
 ];
 
 gulp.task('tslint:bifrost', function(){
@@ -31,7 +31,7 @@ gulp.task('tslint:bifrost:no-error', function(){
         }));
 });
 
-var testsSources = ['src/bifrost/**/*.spec.ts', 'src/bifrost/**/*.mock.ts'];
+var testsSources = ['src/vmw-bifrost/**/*.spec.ts', 'src/vmw-bifrost/**/*.mock.ts'];
 
 gulp.task('tslint:tests', function(){
     return gulp.src(testsSources)

@@ -9,10 +9,10 @@ var os = require('os');
 
 gulp.task("aot:copy", function() {
     var bifrostSources = [
-        'src/bifrost/**/*.ts',
-        'src/bifrost/**/*.html',
-        '!src/bifrost/**/*.spec.ts',
-        '!src/bifrost/**/*.mock.ts'
+        'src/vmw-bifrost/**/*.ts',
+        'src/vmw-bifrost/**/*.html',
+        '!src/vmw-bifrost/**/*.spec.ts',
+        '!src/vmw-bifrost/**/*.mock.ts'
     ];
 
     gulp.src(bifrostSources)

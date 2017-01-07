@@ -5,9 +5,14 @@
  */
 
 import {Type} from '@angular/core';
+import {MessagebusService} from './messagebus.service';
 
 export * from './messagebus.service';
 export * from './message.model'
 export * from './message.schema'
+export * from './monitor.model'
 
-export const BIFROST_BUS_DIRECTIVES: Type<any>[] = [];
+
+export const BIFROST_BUS_DIRECTIVES: Type<any>[] = [
+    MessagebusService
+];

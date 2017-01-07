@@ -16,21 +16,22 @@ import {BIFROST_BRIDGE_DIRECTIVES} from './bridge/index';
         CommonModule,
     ],
     declarations: [
-        BIFROST_BUS_DIRECTIVES,
-        BIFROST_LOG_DIRECTIVES,
-        BIFROST_BRIDGE_DIRECTIVES
+        //BIFROST_BUS_DIRECTIVES,
+        //BIFROST_LOG_DIRECTIVES,
+        //BIFROST_BRIDGE_DIRECTIVES
     ],
     exports: [
-        BIFROST_BUS_DIRECTIVES,
-        BIFROST_LOG_DIRECTIVES,
-        BIFROST_BRIDGE_DIRECTIVES
-    ]
+        //BIFROST_BUS_DIRECTIVES,
+        //BIFROST_LOG_DIRECTIVES,
+        //BIFROST_BRIDGE_DIRECTIVES
+    ],
+    providers: [MessagebusService]
 })
 export class BifrostModule {
     static forRoot(): ModuleWithProviders {
         return {
             ngModule: BifrostModule,
-            providers: [MessagebusService, LoggerService]
+            providers: [MessagebusService]
         };
     }
 
