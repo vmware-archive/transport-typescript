@@ -10,8 +10,7 @@ import {MonitorObject, MonitorType, MonitorChannel} from './monitor.model';
 import {Message, MessageHandlerConfig, MessageResponder, MessageHandler} from './message.model';
 import {Subject, Subscription} from 'rxjs';
 import {Observable} from 'rxjs';
-import {filter} from 'rxjs/operator/filter';
-import {MessageSchema} from "./message.schema";
+import {MessageSchema} from './message.schema';
 
 
 // import * as Ajv from 'ajv';
