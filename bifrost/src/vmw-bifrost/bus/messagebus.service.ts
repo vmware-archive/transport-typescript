@@ -396,7 +396,7 @@ export class MessagebusService implements MessageBusEnabled {
                 let _sub = _chan.stream.subscribe(
                     (msg: Message) => {
                         this.send(handlerConfig.returnChannel,
-                            new Message().request(generateResponse(msg.payload.body),
+                            new Message().response(generateResponse(msg.payload.body),
                                 new MessageSchema()), this.getName());
 
                         if (handlerConfig.singleResponse) {
@@ -422,8 +422,8 @@ export class MessagebusService implements MessageBusEnabled {
 
         return {
             handle: (success: Function, error?: Function): Subscription => {
-                let _chan = this.getChannelObject(handlerConfig.returnChannel, this.getName());
-                let _sub = _chan.stream.subscribe(
+                let _chan = this.getResponseChannel(handlerConfig.returnChannel, this.getName());
+                let _sub = _chan.subscribe(
                     (msg: Message) => {
                         if (msg.isError()) {
                             error(msg.payload);
