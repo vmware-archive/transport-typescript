@@ -325,6 +325,63 @@ export class MessagebusService implements MessageBusEnabled {
     }
 
     /**
+     * Respond Once to a single channel and unsubscribe
+     * @param sendChannel
+     * @returns {MessageResponder}
+     */
+    public respondOnce(sendChannel: string): MessageResponder {
+
+        let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, null);
+        return this.respond(mh);
+
+    }
+
+    /**
+     * Respond to all events until responders unsubscribe() method is called.
+     * @param sendChannel
+     * @returns {MessageResponder}
+     */
+    public respondStream(sendChannel: string): MessageResponder {
+
+        let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, null);
+        return this.respond(mh);
+
+    }
+
+    /**
+     * Handle all incoming responses via handler until unsubscribe() method is called
+     * @param sendChannel
+     * @param body
+     * @param returnChannel
+     * @returns {MessageHandler}
+     */
+    public requestStream(sendChannel: string,
+                         body: any,
+                         returnChannel?: string): MessageHandler {
+
+        let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, body, false, returnChannel);
+        return this.request(mh);
+
+    }
+
+    /**
+     * Handle a single response on channel, then immediately unsubscribe.
+     * @param sendChannel
+     * @param body
+     * @param returnChannel
+     * @returns {MessageHandler}
+     */
+    public requestOnce(sendChannel: string,
+                       body: any,
+                       returnChannel?: string): MessageHandler {
+
+        let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, body, true, returnChannel);
+        return this.request(mh);
+
+    }
+
+
+    /**
      * Simplified responder will respond to any message sent on handler config send channel
      * with return value of generateResponse function.
      *

@@ -2,9 +2,8 @@
  * Copyright(c) VMware Inc., 2016
  */
 
-import { MessageSchema } from './message.schema';
-import { StompParser } from '../bridge/stomp.parser';
-import { Subscription } from 'rxjs';
+import {MessageSchema} from './message.schema';
+import {Subscription} from 'rxjs';
 
 /**
  * A Message object represents a single message on the message bus.
@@ -34,16 +33,12 @@ export class MessageHandlerConfig {
     private _body: any;
     singleResponse: boolean;
 
-    public static randomChannel(): string {
-        return StompParser.genUUID();
-    }
-
     constructor(sendChannel: string, body: any, singleResponse: boolean = true, returnChannel?: string) {
         this._returnChannel = returnChannel;
         this._sendChannel = sendChannel;
         this._body = body;
         if (!this._returnChannel) {
-            this._returnChannel = MessageHandlerConfig.randomChannel();
+            this._returnChannel = sendChannel;
         }
         this.singleResponse = singleResponse;
     }
@@ -67,11 +62,11 @@ export class Message {
     private _isError: boolean = false;
     private _messageSchema: MessageSchema;
 
-    constructor (messageSchema?: MessageSchema) {
+    constructor(messageSchema?: MessageSchema) {
         this._messageSchema = messageSchema;
     }
 
-    private build (type?: MessageType, payload?: any, messageSchema: MessageSchema = undefined, error = false) {
+    private build(type?: MessageType, payload?: any, messageSchema: MessageSchema = undefined, error = false) {
         this._isError = error;
         this._payload = payload;
         this._type = type;
@@ -91,31 +86,31 @@ export class Message {
         return this.build(MessageType.MessageTypeError, error, messageSchema, true);
     }
 
-    isRequest (): boolean {
+    isRequest(): boolean {
         return this._type === MessageType.MessageTypeRequest;
     }
 
-    isResponse (): boolean {
+    isResponse(): boolean {
         return this._type === MessageType.MessageTypeResponse;
     }
 
-    isError (): boolean {
+    isError(): boolean {
         return this._type === MessageType.MessageTypeError;
     }
 
-    get payload (): any {
+    get payload(): any {
         return this._payload;
     }
 
-    set payload (payload: any) {
+    set payload(payload: any) {
         this._payload = payload;
     }
 
-    get type (): MessageType {
+    get type(): MessageType {
         return this._type;
     }
 
-    get messageSchema (): MessageSchema {
+    get messageSchema(): MessageSchema {
         return this._messageSchema;
     }
 }
