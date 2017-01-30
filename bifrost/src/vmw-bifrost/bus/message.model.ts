@@ -2,8 +2,9 @@
  * Copyright(c) VMware Inc., 2016
  */
 
-import { Injectable } from '@angular/core';
 import { MessageSchema } from './message.schema';
+import { StompParser } from '../bridge/stomp.parser';
+import { Subscription } from 'rxjs';
 
 /**
  * A Message object represents a single message on the message bus.
@@ -19,7 +20,47 @@ export enum MessageType {
     MessageTypeError
 }
 
-@Injectable()
+export interface MessageHandler {
+    handle(successHander: any, errorHandler?: any): Subscription;
+}
+
+export interface MessageResponder {
+    generate(generateResponse: any): Subscription;
+}
+
+export class MessageHandlerConfig {
+    private _sendChannel: string;
+    private _returnChannel: string;
+    private _body: any;
+    singleResponse: boolean;
+
+    public static randomChannel(): string {
+        return StompParser.genUUID();
+    }
+
+    constructor(sendChannel: string, body: any, singleResponse: boolean = true, returnChannel?: string) {
+        this._returnChannel = returnChannel;
+        this._sendChannel = sendChannel;
+        this._body = body;
+        if (!this._returnChannel) {
+            this._returnChannel = MessageHandlerConfig.randomChannel();
+        }
+        this.singleResponse = singleResponse;
+    }
+
+    get returnChannel(): string {
+        return this._returnChannel;
+    }
+
+    get sendChannel(): string {
+        return this._sendChannel;
+    }
+
+    get body(): any {
+        return this._body;
+    }
+}
+
 export class Message {
     private _type: MessageType;
     private _payload: any;

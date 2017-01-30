@@ -1,7 +1,6 @@
 /**
  * Copyright(c) VMware Inc., 2016
  */
-import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { Message } from './message.model';
 
@@ -14,7 +13,6 @@ import { Message } from './message.model';
  * The Channel stream allows for packets and errors to be transmitted and both can be received by subscribers.
  */
 
-@Injectable()
 export class Channel {
     private _name: string;
     private _refCount: number;

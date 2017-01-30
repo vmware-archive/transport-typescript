@@ -7,10 +7,11 @@ import {LogUtil} from '../log/util';
 import {LoggerService} from '../log/logger.service';
 import {LogLevel} from '../log/logger.model';
 import {MonitorObject, MonitorType, MonitorChannel} from './monitor.model';
-import {Message} from './message.model';
-import {Subject} from 'rxjs';
+import {Message, MessageHandlerConfig, MessageResponder, MessageHandler} from './message.model';
+import {Subject, Subscription} from 'rxjs';
 import {Observable} from 'rxjs';
 import {filter} from 'rxjs/operator/filter';
+import {MessageSchema} from "./message.schema";
 
 
 // import * as Ajv from 'ajv';
@@ -322,6 +323,71 @@ export class MessagebusService implements MessageBusEnabled {
         this._channelMap.get(cname)
             .error(err);
         return true;
+    }
+
+    /**
+     * Simplified responder will respond to any message sent on handler config send channel
+     * with return value of generateResponse function.
+     *
+     * @param handlerConfig
+     * @returns {{generate: ((generateResponse:Function)=>Subscription)}}
+     */
+    public respond(handlerConfig: MessageHandlerConfig): MessageResponder {
+
+        return {
+            generate: (generateResponse: Function): Subscription => {
+                let _chan = this.getChannelObject(handlerConfig.sendChannel, this.getName());
+                let _sub = _chan.stream.subscribe(
+                    (msg: Message) => {
+                        this.send(handlerConfig.returnChannel,
+                            new Message().request(generateResponse(msg.payload.body),
+                                new MessageSchema()), this.getName());
+
+                        if (handlerConfig.singleResponse) {
+                            _sub.unsubscribe();
+                        }
+                    }
+                );
+                return _sub;
+            }
+        };
+    }
+
+    /**
+     * Simplified requester will send handler config body on send channel and handle success or error messages
+     * and call handler functions with message payload.
+     *
+     * @param handlerConfig
+     * @returns {{handle: ((success:Function, error?:Function)=>Subscription)}}
+     */
+    public request(handlerConfig: MessageHandlerConfig): MessageHandler {
+        this.send(handlerConfig.sendChannel,
+            new Message().request(handlerConfig, new MessageSchema()), this.getName());
+
+        return {
+            handle: (success: Function, error?: Function): Subscription => {
+                let _chan = this.getChannelObject(handlerConfig.returnChannel, this.getName());
+                let _sub = _chan.stream.subscribe(
+                    (msg: Message) => {
+                        if (msg.isError()) {
+                            error(msg.payload);
+                        } else {
+                            success(msg.payload);
+                        }
+                        if (handlerConfig.singleResponse) {
+                            _sub.unsubscribe();
+                        }
+                    },
+                    (data: any) => {
+                        if (error) {
+                            error(data);
+                        }
+                        _sub.unsubscribe();
+                    }
+                );
+                return _sub;
+            }
+        };
     }
 
     /**
