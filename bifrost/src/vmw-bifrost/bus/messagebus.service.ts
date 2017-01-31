@@ -305,6 +305,24 @@ export class MessagebusService implements MessageBusEnabled {
     }
 
     /**
+     * Wrap a payload in a request Message and send to the bus channel
+     * @param cname
+     * @param payload
+     */
+    sendRequestMessage(cname: string, payload: any): boolean {
+        return this.send(cname, new Message().request(payload, new MessageSchema()), this.getName());
+    }
+
+    /**
+     * Wrap a payload in a response Message and send to the bus channel.
+     * @param cname
+     * @param payload
+     */
+    sendResponseMessage(cname: string, payload: any): boolean {
+        return this.send(cname, new Message().response(payload, new MessageSchema()), this.getName());
+    }
+
+    /**
      * Transmit an error on a channel on the message bus if it exists.
      *
      * @param cname
@@ -365,7 +383,7 @@ export class MessagebusService implements MessageBusEnabled {
     }
 
     /**
-     * Handle a single response on channel, then immediately unsubscribe.
+     * Handle a single response on channel response stream, then immediately unsubscribe.
      * @param sendChannel
      * @param body
      * @param returnChannel
@@ -381,7 +399,7 @@ export class MessagebusService implements MessageBusEnabled {
     }
 
     /**
-     * Listen once, unsubscribe after single message comes through.
+     * Listen to a response stream once, unsubscribe after single message comes through.
      * @param sendChannel
      * @param body
      * @param returnChannel
@@ -401,6 +419,29 @@ export class MessagebusService implements MessageBusEnabled {
     public listenStream(channel: string): MessageHandler {
         let mh: MessageHandlerConfig = new MessageHandlerConfig(channel, null, false, channel);
         return this.listen(mh);
+    }
+
+    /**
+     * Listen to a request stream once, unsubscribe after single message comes through.
+     * @param sendChannel
+     * @param body
+     * @param returnChannel
+     * @returns {MessageHandler}
+     */
+    public listenRequestOnce(channel: string): MessageHandler {
+        let mh: MessageHandlerConfig = new MessageHandlerConfig(channel, null, true, channel);
+        return this.listen(mh, true);
+
+    }
+
+    /**
+     * Listen to a  request stream of a channel and stream all events to hander until manually unsubscribed.
+     * @param channel
+     * @returns {MessageHandler}
+     */
+    public listenRequestStream(channel: string): MessageHandler {
+        let mh: MessageHandlerConfig = new MessageHandlerConfig(channel, null, false, channel);
+        return this.listen(mh, true);
     }
 
 
@@ -452,14 +493,19 @@ export class MessagebusService implements MessageBusEnabled {
      * @param handlerConfig
      * @returns {{handle: ((success:Function, error?:Function)=>Subscription)}}
      */
-    public listen(handlerConfig: MessageHandlerConfig): MessageHandler {
-        return this.createMessageHandler(handlerConfig);
+    public listen(handlerConfig: MessageHandlerConfig, requestStream: boolean = false): MessageHandler {
+        return this.createMessageHandler(handlerConfig, requestStream);
     }
 
-    private createMessageHandler(handlerConfig: MessageHandlerConfig) {
+    private createMessageHandler(handlerConfig: MessageHandlerConfig, requestStream: boolean = false) {
         return {
             handle: (success: Function, error?: Function): Subscription => {
-                let _chan = this.getResponseChannel(handlerConfig.returnChannel, this.getName());
+                let _chan: Observable<Message>;
+                if (requestStream) {
+                    _chan = this.getRequestChannel(handlerConfig.returnChannel, this.getName());
+                } else {
+                    _chan = this.getResponseChannel(handlerConfig.returnChannel, this.getName());
+                }
                 let _sub = _chan.subscribe(
                     (msg: Message) => {
                         if (msg.isError()) {
