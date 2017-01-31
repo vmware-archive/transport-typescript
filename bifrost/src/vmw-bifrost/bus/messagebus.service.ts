@@ -380,6 +380,29 @@ export class MessagebusService implements MessageBusEnabled {
 
     }
 
+    /**
+     * Listen once, unsubscribe after single message comes through.
+     * @param sendChannel
+     * @param body
+     * @param returnChannel
+     * @returns {MessageHandler}
+     */
+    public listenOnce(channel: string): MessageHandler {
+        let mh: MessageHandlerConfig = new MessageHandlerConfig(channel, null, true, channel);
+        return this.listen(mh);
+
+    }
+
+    /**
+     * Listen to a channel and stream all events to hander until manually unsubscribed.
+     * @param channel
+     * @returns {MessageHandler}
+     */
+    public listenStream(channel: string): MessageHandler {
+        let mh: MessageHandlerConfig = new MessageHandlerConfig(channel, null, false, channel);
+        return this.listen(mh);
+    }
+
 
     /**
      * Simplified responder will respond to any message sent on handler config send channel
@@ -420,6 +443,20 @@ export class MessagebusService implements MessageBusEnabled {
         this.send(handlerConfig.sendChannel,
             new Message().request(handlerConfig, new MessageSchema()), this.getName());
 
+        return this.createMessageHandler(handlerConfig);
+    }
+
+    /**
+     * Simplified listener, same as request, except no outbound message is sent.
+     *
+     * @param handlerConfig
+     * @returns {{handle: ((success:Function, error?:Function)=>Subscription)}}
+     */
+    public listen(handlerConfig: MessageHandlerConfig): MessageHandler {
+        return this.createMessageHandler(handlerConfig);
+    }
+
+    private createMessageHandler(handlerConfig: MessageHandlerConfig) {
         return {
             handle: (success: Function, error?: Function): Subscription => {
                 let _chan = this.getResponseChannel(handlerConfig.returnChannel, this.getName());
