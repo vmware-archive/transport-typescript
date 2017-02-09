@@ -322,6 +322,16 @@ export class MessagebusService implements MessageBusEnabled {
         return this.send(cname, new Message().response(payload, new MessageSchema()), this.getName());
     }
 
+
+    /**
+     * Wrap a payload in a response Message with type error and send to the bus channel.
+     * @param cname
+     * @param payload
+     */
+    sendErrorMessage(cname: string, payload: any): boolean {
+        return this.send(cname, new Message().error(payload, new MessageSchema()), this.getName());
+    }
+
     /**
      * Transmit an error on a channel on the message bus if it exists.
      *
@@ -361,7 +371,7 @@ export class MessagebusService implements MessageBusEnabled {
      */
     public respondStream(sendChannel: string): MessageResponder {
 
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, null);
+        let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, null, false);
         return this.respond(mh);
 
     }
