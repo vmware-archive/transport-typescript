@@ -8,3 +8,4 @@ aot-compiled
 tmp
 .idea
 /bifrost/typings
+*.swp
