@@ -179,15 +179,19 @@ export class StompClient {
     }
 
     public unsubscribeFromDestination(id: string, headers?: any): void {
-
         headers = headers || {};
         headers.id = id;
+
         this.transmit(StompClient.STOMP_UNSUBSCRIBE, headers);
 
         setTimeout(() => {
-
-            this.getSubscription(id).complete();
-            this.deleteSubscription(id);
+            let subscription = this.getSubscription(id);
+            if (subscription) {
+                subscription.complete();
+                this.deleteSubscription(id);
+            } else {
+                Syslog.debug('Tried to complete subscription that did not exist: ' + id);
+            }
         });
 
     }
