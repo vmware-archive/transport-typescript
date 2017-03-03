@@ -87,7 +87,7 @@ export class Syslog {
      * @param object
      * @param from optional caller filename
      */
-    public static verbose (object: any, from: string) {
+    public static verbose (object: any, from?: string) {
         Syslog.createLogger();
         Syslog.logger.verbose(object, from);
     }
@@ -98,7 +98,7 @@ export class Syslog {
      * @param object
      * @param from optional caller filename
      */
-    public static debug (object: any, from: string) {
+    public static debug (object: any, from?: string) {
         Syslog.createLogger();
         Syslog.logger.debug(object, from);
     }
@@ -109,7 +109,7 @@ export class Syslog {
      * @param object
      * @param from optional caller filename
      */
-    public static info (object: any, from: string) {
+    public static info (object: any, from?: string) {
         Syslog.createLogger();
         Syslog.logger.info(object, from);
     }
@@ -120,7 +120,7 @@ export class Syslog {
      * @param object
      * @param from optional caller filename
      */
-    public static warn (object: any, from: string) {
+    public static warn (object: any, from?: string) {
         Syslog.createLogger();
         Syslog.logger.warn(object, from);
     }
@@ -131,7 +131,7 @@ export class Syslog {
      * @param object
      * @param from optional caller filename
      */
-    public static error (object: any, from: string) {
+    public static error (object: any, from?: string) {
         Syslog.createLogger();
         Syslog.logger.error(object, from);
     }
