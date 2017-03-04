@@ -8,8 +8,7 @@ import {LoggerService} from '../log/logger.service';
 import {LogLevel} from '../log/logger.model';
 import {MonitorObject, MonitorType, MonitorChannel} from './monitor.model';
 import {Message, MessageHandlerConfig, MessageResponder, MessageHandler} from './message.model';
-import {Subject, Subscription} from 'rxjs';
-import {Observable} from 'rxjs';
+import {Subject, Subscription, Observable} from 'rxjs';
 import {MessageSchema} from './message.schema';
 
 
@@ -357,10 +356,10 @@ export class MessagebusService implements MessageBusEnabled {
      * @param sendChannel
      * @returns {MessageResponder}
      */
-    public respondOnce(sendChannel: string): MessageResponder {
+    public respondOnce(sendChannel: string, schema?: any): MessageResponder {
 
         let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, null);
-        return this.respond(mh);
+        return this.respond(mh, schema);
 
     }
 
@@ -369,10 +368,10 @@ export class MessagebusService implements MessageBusEnabled {
      * @param sendChannel
      * @returns {MessageResponder}
      */
-    public respondStream(sendChannel: string): MessageResponder {
+    public respondStream(sendChannel: string, schema?: any): MessageResponder {
 
         let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, null, false);
-        return this.respond(mh);
+        return this.respond(mh, schema);
 
     }
 
@@ -385,10 +384,11 @@ export class MessagebusService implements MessageBusEnabled {
      */
     public requestStream(sendChannel: string,
                          body: any,
-                         returnChannel?: string): MessageHandler {
+                         returnChannel?: string,
+                         schema?: any): MessageHandler {
 
         let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, body, false, returnChannel);
-        return this.request(mh);
+        return this.request(mh, schema);
 
     }
 
@@ -401,10 +401,11 @@ export class MessagebusService implements MessageBusEnabled {
      */
     public requestOnce(sendChannel: string,
                        body: any,
-                       returnChannel?: string): MessageHandler {
+                       returnChannel?: string,
+                       schema?: any): MessageHandler {
 
         let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, body, true, returnChannel);
-        return this.request(mh);
+        return this.request(mh, schema);
 
     }
 
@@ -462,7 +463,14 @@ export class MessagebusService implements MessageBusEnabled {
      * @param handlerConfig
      * @returns {{generate: ((generateResponse:Function)=>Subscription)}}
      */
-    public respond(handlerConfig: MessageHandlerConfig): MessageResponder {
+    public respond(handlerConfig: MessageHandlerConfig, schema?: any): MessageResponder {
+        let _schema: any;
+        if (schema) {
+            _schema = schema;
+        } else {
+            // TODO: build an intelligent schema generator.
+            _schema = new MessageSchema();
+        }
 
         return {
             generate: (generateResponse: Function): Subscription => {
@@ -471,7 +479,7 @@ export class MessagebusService implements MessageBusEnabled {
                     (msg: Message) => {
                         this.send(handlerConfig.returnChannel,
                             new Message().response(generateResponse(msg.payload.body),
-                                new MessageSchema()), this.getName());
+                                _schema), this.getName());
 
                         if (handlerConfig.singleResponse) {
                             _sub.unsubscribe();
@@ -490,9 +498,19 @@ export class MessagebusService implements MessageBusEnabled {
      * @param handlerConfig
      * @returns {{handle: ((success:Function, error?:Function)=>Subscription)}}
      */
-    public request(handlerConfig: MessageHandlerConfig): MessageHandler {
+    public request(handlerConfig: MessageHandlerConfig, schema?: any): MessageHandler {
+        let _schema: any;
+
+        // if a schema is supplied, use it!
+        if (schema) {
+            _schema = schema;
+        } else {
+            // TODO: build intelligent schema builder if none is supplied.
+            _schema = new MessageSchema();
+        }
+
         this.send(handlerConfig.sendChannel,
-            new Message().request(handlerConfig, new MessageSchema()), this.getName());
+            new Message().request(handlerConfig, _schema), this.getName());
 
         return this.createMessageHandler(handlerConfig);
     }
@@ -507,6 +525,14 @@ export class MessagebusService implements MessageBusEnabled {
         return this.createMessageHandler(handlerConfig, requestStream);
     }
 
+
+    /**
+     * Handle the creation and destruction of subscriptions based on the handler type.
+     *
+     * @param handlerConfig
+     * @param requestStream
+     * @returns {{handle: ((success:Function, error?:Function)=>Subscription)}}
+     */
     private createMessageHandler(handlerConfig: MessageHandlerConfig, requestStream: boolean = false) {
         return {
             handle: (success: Function, error?: Function): Subscription => {
