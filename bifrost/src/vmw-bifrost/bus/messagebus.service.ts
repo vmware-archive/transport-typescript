@@ -9,7 +9,7 @@ import {LogLevel} from '../log/logger.model';
 import {MonitorObject, MonitorType, MonitorChannel} from './monitor.model';
 import {Message, MessageHandlerConfig, MessageResponder, MessageHandler} from './message.model';
 import {Subject, Subscription, Observable} from 'rxjs';
-import {MessageSchema} from './message.schema';
+import {MessageSchema, ErrorSchema} from './message.schema';
 
 
 // import * as Ajv from 'ajv';
@@ -317,7 +317,10 @@ export class MessagebusService implements MessageBusEnabled {
      * @param payload
      * @param schema any
      */
-    sendRequestMessage(cname: string, payload: any, schema: any): boolean {
+    sendRequestMessage(cname: string, payload: any, schema?: any): boolean {
+        if(!schema) {
+            schema = new MessageSchema();
+        }
         return this.send(cname, new Message().request(payload, schema), this.getName());
     }
 
@@ -327,7 +330,10 @@ export class MessagebusService implements MessageBusEnabled {
      * @param payload
      * @param schema any
      */
-    sendResponseMessage(cname: string, payload: any, schema: any): boolean {
+    sendResponseMessage(cname: string, payload: any, schema?: any): boolean {
+        if(!schema) {
+            schema = new MessageSchema();
+        }
         return this.send(cname, new Message().response(payload, schema), this.getName());
     }
 
@@ -337,8 +343,11 @@ export class MessagebusService implements MessageBusEnabled {
      * @param cname
      * @param payload
      */
-    sendErrorMessage(cname: string, payload: any): boolean {
-        return this.send(cname, new Message().error(payload, new MessageSchema()), this.getName());
+    sendErrorMessage(cname: string, payload: any, schema?: any): boolean {
+        if(!schema) {
+            schema = new ErrorSchema;
+        }
+        return this.send(cname, new Message().error(payload, schema), this.getName());
     }
 
     /**
