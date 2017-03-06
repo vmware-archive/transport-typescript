@@ -308,8 +308,8 @@ export class MessagebusService implements MessageBusEnabled {
      * @param cname
      * @param payload
      */
-    sendRequestMessage(cname: string, payload: any): boolean {
-        return this.send(cname, new Message().request(payload, new MessageSchema()), this.getName());
+    sendRequestMessage(cname: string, payload: any, schema: any): boolean {
+        return this.send(cname, new Message().request(payload, schema), this.getName());
     }
 
     /**
@@ -317,8 +317,8 @@ export class MessagebusService implements MessageBusEnabled {
      * @param cname
      * @param payload
      */
-    sendResponseMessage(cname: string, payload: any): boolean {
-        return this.send(cname, new Message().response(payload, new MessageSchema()), this.getName());
+    sendResponseMessage(cname: string, payload: any, schema: any): boolean {
+        return this.send(cname, new Message().response(payload, schema), this.getName());
     }
 
 
