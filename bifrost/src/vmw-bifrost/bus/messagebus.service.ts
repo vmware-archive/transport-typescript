@@ -47,6 +47,7 @@ import {MessageSchema} from './message.schema';
  * A channel is implicitly created whenever someone calls getChannel() and no such channel exists.
  */
 
+
 export abstract class MessageBusEnabled {
     abstract getName(): string;
 }
@@ -56,9 +57,7 @@ export class MessagebusService implements MessageBusEnabled {
     private log: LoggerService;
     private monitorChannel = MonitorChannel.stream;
     private monitorStream: Channel;
-    // Disable bus monitor in tests by default
-    private enableMonitor = typeof(jasmine) === 'undefined';
-    private dumpMonitor = true;
+    private dumpMonitor: boolean;
 
     // private ajv = new Ajv({allErrors: true});
 
@@ -72,9 +71,7 @@ export class MessagebusService implements MessageBusEnabled {
         this.log = new LoggerService();
         this.log.logLevel = LogLevel.Info;
 
-        if (this.enableMonitor) {
-            this.monitorBus();
-        }
+        this.enableMonitorDump(false);
     }
 
     getName() {
@@ -105,8 +102,19 @@ export class MessagebusService implements MessageBusEnabled {
     }
 
     /**
-     * Turn
+     * Get current bus logging state
+     *
+     * @returns {boolean}
+     */
+    get isLoggingEnabled() {
+        return this.dumpMonitor;
+    }
+
+    /**
+     * Turn logging on/off
+     *
      * @param flag
+     * @returns {boolean}
      */
     enableMonitorDump(flag: boolean) {
         this.dumpMonitor = flag;
@@ -307,6 +315,7 @@ export class MessagebusService implements MessageBusEnabled {
      * Wrap a payload in a request Message and send to the bus channel
      * @param cname
      * @param payload
+     * @param schema any
      */
     sendRequestMessage(cname: string, payload: any, schema: any): boolean {
         return this.send(cname, new Message().request(payload, schema), this.getName());
@@ -316,6 +325,7 @@ export class MessagebusService implements MessageBusEnabled {
      * Wrap a payload in a response Message and send to the bus channel.
      * @param cname
      * @param payload
+     * @param schema any
      */
     sendResponseMessage(cname: string, payload: any, schema: any): boolean {
         return this.send(cname, new Message().response(payload, schema), this.getName());
@@ -354,6 +364,7 @@ export class MessagebusService implements MessageBusEnabled {
     /**
      * Respond Once to a single channel and unsubscribe
      * @param sendChannel
+     * @param schema any
      * @returns {MessageResponder}
      */
     public respondOnce(sendChannel: string, schema?: any): MessageResponder {
@@ -366,6 +377,7 @@ export class MessagebusService implements MessageBusEnabled {
     /**
      * Respond to all events until responders unsubscribe() method is called.
      * @param sendChannel
+     * @param schema any
      * @returns {MessageResponder}
      */
     public respondStream(sendChannel: string, schema?: any): MessageResponder {
@@ -380,6 +392,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param sendChannel
      * @param body
      * @param returnChannel
+     * @param schema any
      * @returns {MessageHandler}
      */
     public requestStream(sendChannel: string,
@@ -397,6 +410,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param sendChannel
      * @param body
      * @param returnChannel
+     * @param schema any
      * @returns {MessageHandler}
      */
     public requestOnce(sendChannel: string,
@@ -411,9 +425,7 @@ export class MessagebusService implements MessageBusEnabled {
 
     /**
      * Listen to a response stream once, unsubscribe after single message comes through.
-     * @param sendChannel
-     * @param body
-     * @param returnChannel
+     * @param channel
      * @returns {MessageHandler}
      */
     public listenOnce(channel: string): MessageHandler {
@@ -434,9 +446,7 @@ export class MessagebusService implements MessageBusEnabled {
 
     /**
      * Listen to a request stream once, unsubscribe after single message comes through.
-     * @param sendChannel
-     * @param body
-     * @param returnChannel
+     * @param channel
      * @returns {MessageHandler}
      */
     public listenRequestOnce(channel: string): MessageHandler {
@@ -461,7 +471,8 @@ export class MessagebusService implements MessageBusEnabled {
      * with return value of generateResponse function.
      *
      * @param handlerConfig
-     * @returns {{generate: ((generateResponse:Function)=>Subscription)}}
+     * @param schema any
+     * @returns MessageResponder
      */
     public respond(handlerConfig: MessageHandlerConfig, schema?: any): MessageResponder {
         let _schema: any;
@@ -496,7 +507,8 @@ export class MessagebusService implements MessageBusEnabled {
      * and call handler functions with message payload.
      *
      * @param handlerConfig
-     * @returns {{handle: ((success:Function, error?:Function)=>Subscription)}}
+     * @param schema any
+     * @returns MessageHandler
      */
     public request(handlerConfig: MessageHandlerConfig, schema?: any): MessageHandler {
         let _schema: any;
@@ -519,7 +531,8 @@ export class MessagebusService implements MessageBusEnabled {
      * Simplified listener, same as request, except no outbound message is sent.
      *
      * @param handlerConfig
-     * @returns {{handle: ((success:Function, error?:Function)=>Subscription)}}
+     * @param requestStream boolean
+     * @returns MessageHandler
      */
     public listen(handlerConfig: MessageHandlerConfig, requestStream: boolean = false): MessageHandler {
         return this.createMessageHandler(handlerConfig, requestStream);
@@ -531,7 +544,7 @@ export class MessagebusService implements MessageBusEnabled {
      *
      * @param handlerConfig
      * @param requestStream
-     * @returns {{handle: ((success:Function, error?:Function)=>Subscription)}}
+     * @returns Subscription
      */
     private createMessageHandler(handlerConfig: MessageHandlerConfig, requestStream: boolean = false) {
         return {

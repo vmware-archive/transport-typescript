@@ -1,5 +1,5 @@
 /**
- * Copyright(c) VMware Inc., 2016
+ * Copyright(c) VMware Inc., 2016,2017
  */
 import {inject, TestBed} from '@angular/core/testing';
 import {Injector} from '@angular/core';
@@ -64,7 +64,7 @@ describe('Messagebus Service [messagebus.service]', () => {
         bus.suppressLog(true);
     }));
 
-    it('Should check messageLog', () => {
+    it('Should check messageLogging', () => {
         bus.messageLog(testMessage, getName());
         expect(bus.logger()
             .last())
@@ -72,6 +72,12 @@ describe('Messagebus Service [messagebus.service]', () => {
         bus.setLogLevel(LogLevel.Off);
         expect(bus.logger().logLevel)
             .toBe(LogLevel.Off);
+        bus.enableMonitorDump(true);
+        expect(bus.isLoggingEnabled)
+            .toBeTruthy();
+        bus.enableMonitorDump(false);
+        expect(bus.isLoggingEnabled)
+            .toBeFalsy();
     });
 
     it('Should cause a new Channel to be instantiated', () => {
