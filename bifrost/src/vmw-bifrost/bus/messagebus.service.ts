@@ -345,7 +345,7 @@ export class MessagebusService implements MessageBusEnabled {
      */
     sendErrorMessage(cname: string, payload: any, schema?: any): boolean {
         if(!schema) {
-            schema = new ErrorSchema;
+            schema = new ErrorSchema();
         }
         return this.send(cname, new Message().error(payload, schema), this.getName());
     }
