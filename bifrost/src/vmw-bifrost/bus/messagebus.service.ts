@@ -683,45 +683,47 @@ export class MessagebusService implements MessageBusEnabled {
         this.getMonitor()
             .subscribe(
                 (message: Message) => {
-                    if (!message.isError() && this.dumpMonitor) {
-                        let mo = message.payload as MonitorObject;
+                    if (!message.isError()) {
+                        if (this.dumpMonitor) {
+                            let mo = message.payload as MonitorObject;
 
-                        switch (mo.type) {
-                            case MonitorType.MonitorNewChannel:
-                                this.log.info(mo.data + mo.channel, mo.from);
-                                break;
+                            switch (mo.type) {
+                                case MonitorType.MonitorNewChannel:
+                                    this.log.info(mo.data + mo.channel, mo.from);
+                                    break;
 
-                            case MonitorType.MonitorCloseChannel:
-                                this.log.info(' X ' + mo.channel + '[' + mo.data + ']', mo.from);
-                                break;
+                                case MonitorType.MonitorCloseChannel:
+                                    this.log.info(' X ' + mo.channel + '[' + mo.data + ']', mo.from);
+                                    break;
 
-                            case MonitorType.MonitorCompleteChannel:
-                                this.log.info(' C ' + mo.channel, mo.from);
-                                break;
+                                case MonitorType.MonitorCompleteChannel:
+                                    this.log.info(' C ' + mo.channel, mo.from);
+                                    break;
 
-                            case MonitorType.MonitorDestroyChannel:
-                                this.log.info('XXX ' + mo.channel, mo.from);
-                                break;
+                                case MonitorType.MonitorDestroyChannel:
+                                    this.log.info('XXX ' + mo.channel, mo.from);
+                                    break;
 
-                            case MonitorType.MonitorData:
-                                this.dumpData(mo, mo.from + ' -> ' + mo.channel +
-                                    (message.messageSchema
-                                        ? '  ['
-                                        + message.messageSchema._title
-                                        + ']'
-                                        : ''));
-                                break;
+                                case MonitorType.MonitorData:
+                                    this.dumpData(mo, mo.from + ' -> ' + mo.channel +
+                                                      (message.messageSchema
+                                                          ? '  ['
+                                                      + message.messageSchema._title
+                                                      + ']'
+                                                          : ''));
+                                    break;
 
-                            case MonitorType.MonitorDropped:
-                                this.dumpData(mo, '*DROP* message from ' + mo.from + ' -> ' + mo.channel +
-                                    (message.messageSchema
-                                        ? '  ['
-                                        + message.messageSchema._title
-                                        + ']'
-                                        : ''));
-                                break;
-                            default:
-                                break;
+                                case MonitorType.MonitorDropped:
+                                    this.dumpData(mo, '*DROP* message from ' + mo.from + ' -> ' + mo.channel +
+                                                      (message.messageSchema
+                                                          ? '  ['
+                                                      + message.messageSchema._title
+                                                      + ']'
+                                                          : ''));
+                                    break;
+                                default:
+                                    break;
+                            }
                         }
                     } else {
                         this.log.error('Error on monitor channel: ' + LogUtil.pretty(message), this.getName());
