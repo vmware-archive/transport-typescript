@@ -72,6 +72,7 @@ export class MessagebusService implements MessageBusEnabled {
         this.log.logLevel = LogLevel.Info;
 
         this.enableMonitorDump(false);
+        this.monitorBus();
     }
 
     getName() {
@@ -334,8 +335,11 @@ export class MessagebusService implements MessageBusEnabled {
 
     /**
      * Wrap a payload in a response Message with type error and send to the bus channel.
+     *
      * @param cname
      * @param payload
+     * @param schema
+     * @returns {boolean}
      */
     sendErrorMessage(cname: string, payload: any, schema = new ErrorSchema()): boolean {
         return this.send(cname, new Message().error(payload, schema), this.getName());
