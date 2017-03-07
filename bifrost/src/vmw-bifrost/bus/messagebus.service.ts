@@ -683,7 +683,7 @@ export class MessagebusService implements MessageBusEnabled {
         this.getMonitor()
             .subscribe(
                 (message: Message) => {
-                    if (!message.isError()) {
+                    if (!message.isError() && this.dumpMonitor) {
                         let mo = message.payload as MonitorObject;
 
                         switch (mo.type) {
@@ -704,10 +704,6 @@ export class MessagebusService implements MessageBusEnabled {
                                 break;
 
                             case MonitorType.MonitorData:
-                                if (!this.dumpMonitor) {
-                                    break;
-                                }
-
                                 this.dumpData(mo, mo.from + ' -> ' + mo.channel +
                                     (message.messageSchema
                                         ? '  ['
@@ -717,10 +713,6 @@ export class MessagebusService implements MessageBusEnabled {
                                 break;
 
                             case MonitorType.MonitorDropped:
-                                if (!this.dumpMonitor) {
-                                    break;
-                                }
-
                                 this.dumpData(mo, '*DROP* message from ' + mo.from + ' -> ' + mo.channel +
                                     (message.messageSchema
                                         ? '  ['
