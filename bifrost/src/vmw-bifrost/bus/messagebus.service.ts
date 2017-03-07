@@ -318,7 +318,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param schema any
      */
     sendRequestMessage(cname: string, payload: any, schema?: any): boolean {
-        if(!schema) {
+        if (!schema) {
             schema = new MessageSchema();
         }
         return this.send(cname, new Message().request(payload, schema), this.getName());
@@ -331,7 +331,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param schema any
      */
     sendResponseMessage(cname: string, payload: any, schema?: any): boolean {
-        if(!schema) {
+        if (!schema) {
             schema = new MessageSchema();
         }
         return this.send(cname, new Message().response(payload, schema), this.getName());
@@ -344,7 +344,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param payload
      */
     sendErrorMessage(cname: string, payload: any, schema?: any): boolean {
-        if(!schema) {
+        if (!schema) {
             schema = new ErrorSchema();
         }
         return this.send(cname, new Message().error(payload, schema), this.getName());
