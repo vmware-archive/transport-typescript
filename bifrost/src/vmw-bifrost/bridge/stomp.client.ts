@@ -270,7 +270,7 @@ export class StompClient {
     }
 
     public sendHeartbeat() {
-        this._socket.send('\0');
+        this._socket.send('\n');
     }
 
     private onOpen() {
