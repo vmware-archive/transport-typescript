@@ -1,6 +1,6 @@
 {
   "name": "vmw-bifrost",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "private": false,
   "license": "VMware Proprietary",
   "repository": "stash.eng.vmware.com:ss/ui-bifrost.git",
