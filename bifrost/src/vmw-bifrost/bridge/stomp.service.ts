@@ -191,8 +191,7 @@ export class StompService implements MessageBusEnabled {
     }
 
     private generateSubscriptionId(sessionId: string, channel: string): string {
-        return sessionId.substr(0, SUBSCRIPTION_ID_LENGTH)
-            + '-' + channel.substr(0, SUBSCRIPTION_ID_LENGTH);
+        return sessionId + '-' + channel;
     }
 
     private openGalacticChannel(channel: string) {
