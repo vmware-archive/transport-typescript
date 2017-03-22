@@ -372,12 +372,13 @@ export class MessagebusService implements MessageBusEnabled {
      * Respond Once to a single channel and unsubscribe
      * @param sendChannel
      * @param schema any
+     * @param name string
      * @returns {MessageResponder}
      */
-    public respondOnce(sendChannel: string, schema?: any): MessageResponder {
+    public respondOnce(sendChannel: string, schema?: any, name = this.getName()): MessageResponder {
 
         let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, null);
-        return this.respond(mh, schema);
+        return this.respond(mh, schema, name);
 
     }
 
@@ -385,12 +386,13 @@ export class MessagebusService implements MessageBusEnabled {
      * Respond to all events until responders unsubscribe() method is called.
      * @param sendChannel
      * @param schema any
+     * @param name string
      * @returns {MessageResponder}
      */
-    public respondStream(sendChannel: string, schema?: any): MessageResponder {
+    public respondStream(sendChannel: string, schema?: any, name = this.getName()): MessageResponder {
 
         let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, null, false);
-        return this.respond(mh, schema);
+        return this.respond(mh, schema, name);
 
     }
 
@@ -400,15 +402,17 @@ export class MessagebusService implements MessageBusEnabled {
      * @param body
      * @param returnChannel
      * @param schema any
+     * @param name string
      * @returns {MessageHandler}
      */
     public requestStream(sendChannel: string,
                          body: any,
                          returnChannel?: string,
-                         schema?: any): MessageHandler {
+                         schema?: any,
+                         name = this.getName()): MessageHandler {
 
         let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, body, false, returnChannel);
-        return this.request(mh, schema);
+        return this.request(mh, schema, name);
 
     }
 
@@ -418,15 +422,17 @@ export class MessagebusService implements MessageBusEnabled {
      * @param body
      * @param returnChannel
      * @param schema any
+     * @param name string
      * @returns {MessageHandler}
      */
     public requestOnce(sendChannel: string,
                        body: any,
                        returnChannel?: string,
-                       schema?: any): MessageHandler {
+                       schema?: any,
+                       name = this.getName()): MessageHandler {
 
         let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, body, true, returnChannel);
-        return this.request(mh, schema);
+        return this.request(mh, schema, name);
 
     }
 
