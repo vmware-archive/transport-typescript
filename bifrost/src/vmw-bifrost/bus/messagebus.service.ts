@@ -76,7 +76,7 @@ export class MessagebusService implements MessageBusEnabled {
     }
 
     getName() {
-        return (this as any).constructor.name;
+        return 'MessagebusService';
     }
 
     increment(cname: string) {
@@ -317,9 +317,10 @@ export class MessagebusService implements MessageBusEnabled {
      * @param cname
      * @param payload
      * @param schema any
+     * @param name string
      */
-    sendRequestMessage(cname: string, payload: any, schema = new MessageSchema()): boolean {
-        return this.send(cname, new Message().request(payload, schema), this.getName());
+    sendRequestMessage(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
+        return this.send(cname, new Message().request(payload, schema), name);
     }
 
     /**
@@ -327,9 +328,10 @@ export class MessagebusService implements MessageBusEnabled {
      * @param cname
      * @param payload
      * @param schema any
+     * @param name string
      */
-    sendResponseMessage(cname: string, payload: any, schema = new MessageSchema()): boolean {
-        return this.send(cname, new Message().response(payload, schema), this.getName());
+    sendResponseMessage(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
+        return this.send(cname, new Message().response(payload, schema), name);
     }
 
 
@@ -339,10 +341,11 @@ export class MessagebusService implements MessageBusEnabled {
      * @param cname
      * @param payload
      * @param schema
+     * @param name string
      * @returns {boolean}
      */
-    sendErrorMessage(cname: string, payload: any, schema = new ErrorSchema()): boolean {
-        return this.send(cname, new Message().error(payload, schema), this.getName());
+    sendErrorMessage(cname: string, payload: any, schema = new ErrorSchema(), name = this.getName()): boolean {
+        return this.send(cname, new Message().error(payload, schema), name);
     }
 
     /**
@@ -430,43 +433,47 @@ export class MessagebusService implements MessageBusEnabled {
     /**
      * Listen to a response stream once, unsubscribe after single message comes through.
      * @param channel
+     * @param name string
      * @returns {MessageHandler}
      */
-    public listenOnce(channel: string): MessageHandler {
+    public listenOnce(channel: string, name = this.getName()): MessageHandler {
         let mh: MessageHandlerConfig = new MessageHandlerConfig(channel, null, true, channel);
-        return this.listen(mh);
+        return this.listen(mh, false, name);
 
     }
 
     /**
      * Listen to a channel and stream all events to hander until manually unsubscribed.
      * @param channel
+     * @param name string
      * @returns {MessageHandler}
      */
-    public listenStream(channel: string): MessageHandler {
+    public listenStream(channel: string, name = this.getName()): MessageHandler {
         let mh: MessageHandlerConfig = new MessageHandlerConfig(channel, null, false, channel);
-        return this.listen(mh);
+        return this.listen(mh, false, name);
     }
 
     /**
      * Listen to a request stream once, unsubscribe after single message comes through.
      * @param channel
+     * @param name string
      * @returns {MessageHandler}
      */
-    public listenRequestOnce(channel: string): MessageHandler {
+    public listenRequestOnce(channel: string, name = this.getName()): MessageHandler {
         let mh: MessageHandlerConfig = new MessageHandlerConfig(channel, null, true, channel);
-        return this.listen(mh, true);
+        return this.listen(mh, true, name);
 
     }
 
     /**
      * Listen to a  request stream of a channel and stream all events to hander until manually unsubscribed.
      * @param channel
+     * @param name string
      * @returns {MessageHandler}
      */
-    public listenRequestStream(channel: string): MessageHandler {
+    public listenRequestStream(channel: string, name = this.getName()): MessageHandler {
         let mh: MessageHandlerConfig = new MessageHandlerConfig(channel, null, false, channel);
-        return this.listen(mh, true);
+        return this.listen(mh, true, name);
     }
 
 
@@ -476,9 +483,10 @@ export class MessagebusService implements MessageBusEnabled {
      *
      * @param handlerConfig
      * @param schema any
+     * @param name string
      * @returns MessageResponder
      */
-    public respond(handlerConfig: MessageHandlerConfig, schema?: any): MessageResponder {
+    public respond(handlerConfig: MessageHandlerConfig, schema?: any, name = this.getName()): MessageResponder {
         let _schema: any;
         if (schema) {
             _schema = schema;
@@ -489,12 +497,11 @@ export class MessagebusService implements MessageBusEnabled {
 
         return {
             generate: (generateResponse: Function): Subscription => {
-                let _chan = this.getChannelObject(handlerConfig.sendChannel, this.getName());
+                let _chan = this.getChannelObject(handlerConfig.sendChannel, name);
                 let _sub = _chan.stream.subscribe(
                     (msg: Message) => {
                         this.send(handlerConfig.returnChannel,
-                            new Message().response(generateResponse(msg.payload.body),
-                                _schema), this.getName());
+                            new Message().response(generateResponse(msg.payload.body), _schema), name);
 
                         if (handlerConfig.singleResponse) {
                             _sub.unsubscribe();
@@ -512,9 +519,10 @@ export class MessagebusService implements MessageBusEnabled {
      *
      * @param handlerConfig
      * @param schema any
+     * @param name string
      * @returns MessageHandler
      */
-    public request(handlerConfig: MessageHandlerConfig, schema?: any): MessageHandler {
+    public request(handlerConfig: MessageHandlerConfig, schema?: any, name = this.getName()): MessageHandler {
         let _schema: any;
 
         // if a schema is supplied, use it!
@@ -525,10 +533,9 @@ export class MessagebusService implements MessageBusEnabled {
             _schema = new MessageSchema();
         }
 
-        this.send(handlerConfig.sendChannel,
-            new Message().request(handlerConfig, _schema), this.getName());
+        this.send(handlerConfig.sendChannel, new Message().request(handlerConfig, _schema), name);
 
-        return this.createMessageHandler(handlerConfig);
+        return this.createMessageHandler(handlerConfig, false, name);
     }
 
     /**
@@ -536,10 +543,12 @@ export class MessagebusService implements MessageBusEnabled {
      *
      * @param handlerConfig
      * @param requestStream boolean
+     * @param name string
      * @returns MessageHandler
      */
-    public listen(handlerConfig: MessageHandlerConfig, requestStream: boolean = false): MessageHandler {
-        return this.createMessageHandler(handlerConfig, requestStream);
+    public listen(handlerConfig: MessageHandlerConfig, requestStream: boolean = false,
+                  name = this.getName()): MessageHandler {
+        return this.createMessageHandler(handlerConfig, requestStream, name);
     }
 
 
@@ -548,16 +557,18 @@ export class MessagebusService implements MessageBusEnabled {
      *
      * @param handlerConfig
      * @param requestStream
+     * @param name string
      * @returns Subscription
      */
-    private createMessageHandler(handlerConfig: MessageHandlerConfig, requestStream: boolean = false) {
+    private createMessageHandler(handlerConfig: MessageHandlerConfig, requestStream: boolean = false,
+                                 name = this.getName()) {
         return {
             handle: (success: Function, error?: Function): Subscription => {
                 let _chan: Observable<Message>;
                 if (requestStream) {
-                    _chan = this.getRequestChannel(handlerConfig.returnChannel, this.getName());
+                    _chan = this.getRequestChannel(handlerConfig.returnChannel, name);
                 } else {
-                    _chan = this.getResponseChannel(handlerConfig.returnChannel, this.getName());
+                    _chan = this.getResponseChannel(handlerConfig.returnChannel, name);
                 }
                 let _sub = _chan.subscribe(
                     (msg: Message) => {
@@ -609,7 +620,7 @@ export class MessagebusService implements MessageBusEnabled {
      */
     countListeners(): number {
         let count = 0;
-        this.channelMap.forEach((channel, name) => {
+        this.channelMap.forEach((channel) => {
             count += channel.refCount;
         });
         return count;
