@@ -102,7 +102,7 @@ export class MessagebusService implements MessageBusEnabled {
      *
      * @returns {LoggerService}
      */
-    public logger(): LoggerService {
+    get logger(): LoggerService {
         return this.log;
     }
 
