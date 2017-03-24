@@ -7,7 +7,7 @@ import {Injector} from '@angular/core';
 import {Syslog} from '../log/syslog';
 import {LogUtil} from '../log/util';
 import {LogLevel} from '../log/logger.model';
-import {Message} from './message.model';
+import {Message, MessageHandlerConfig} from './message.model';
 import {MessagebusService} from './index';
 
 //import {BifrostModule} from '../bifrost.module';
@@ -38,7 +38,7 @@ function getName(): string {
 
 
 describe('Messagebus Service [messagebus.service]', () => {
-    const testChannel = 'test-channel';
+    const testChannel = '#local-channel';
     const testData = {
         name: 'test-name'
     };
@@ -349,5 +349,280 @@ describe('Messagebus Service [messagebus.service]', () => {
         expect(bus.complete('nonexistent-Channel', getName()))
             .toBeFalsy();
     });
+
+    /**
+     * New Simple API Tests.
+     */
+    describe('Simple API Tests', () => {
+
+        it('respondOnce() and requestOnce()',
+            (done) => {
+
+                bus.respondOnce(testChannel)
+                    .generate(
+                        (request: string) => {
+                            expect(request).toEqual('strawbarita');
+                            return 'margarita';
+                        }
+                    );
+
+                bus.requestOnce(testChannel, 'strawbarita')
+                    .handle(
+                        (resp: string) => {
+                            expect(resp).toEqual('margarita');
+                            done();
+                        }
+                    );
+            }
+        );
+
+        it('respondStream() and requestStream()',
+            (done) => {
+
+                let responder = bus.respondStream(testChannel);
+
+                responder.generate(
+                    (request: number) => {
+                        return ++request;
+                    }
+                );
+
+                let requester = bus.requestStream(testChannel, 1);
+
+                requester.handle(
+                    (resp: number) => {
+                        if (resp < 10) {
+                            // loop the response back through the channel
+                            // so the responder can increment it.
+                            requester.tick(resp);
+                        } else {
+                            expect(resp).toEqual(10);
+
+                            requester.close();
+                            responder.close();
+
+                            // check if susbcriptions are closed.
+                            expect(requester.isClosed()).toBeTruthy();
+                            expect(responder.isClosed()).toBeTruthy();
+                            done();
+                        }
+                    }
+                );
+
+            }
+        );
+
+        it('listenOnce() [ listen for a single response ]',
+            (done) => {
+
+                let c: number = 0;
+                let h: number = 0;
+
+                let sub = bus.listenOnce(testChannel)
+                    .handle(
+                        () => {
+                            h++;
+                        }
+                    );
+
+                let chan = bus.getResponseChannel(testChannel, 'listenOnce()');
+                chan.subscribe(
+                    () => {
+                        c++;
+                        if (c >= 10) {
+                            expect(h).toEqual(1);
+                            expect(sub.closed).toBeTruthy();
+                            done();
+                        }
+                    }
+                );
+
+                bus.sendResponseMessage(testChannel, 'C');
+                bus.sendResponseMessage(testChannel, 'A');
+                bus.sendResponseMessage(testChannel, 'K');
+                bus.sendResponseMessage(testChannel, 'E');
+                bus.sendResponseMessage(testChannel, 'P');
+                bus.sendResponseMessage(testChannel, 'A');
+                bus.sendResponseMessage(testChannel, 'R');
+                bus.sendResponseMessage(testChannel, 'T');
+                bus.sendResponseMessage(testChannel, 'Y');
+                bus.sendResponseMessage(testChannel, '!');
+            }
+        );
+
+        it('listenStream() [ listen for multiple response messages on channel ]',
+            (done) => {
+
+                let h: number = 0;
+
+                bus.listenStream(testChannel)
+                    .handle(
+                        () => {
+                            h++;
+                            if (h === 4) {
+                                expect(true).toBeTruthy();
+                                done();
+                            }
+                        }
+                    );
+
+                bus.sendResponseMessage(testChannel, 'B');
+                bus.sendRequestMessage(testChannel, 'E');
+                bus.sendRequestMessage(testChannel, 'R');
+                bus.sendRequestMessage(testChannel, 'R');
+                bus.sendRequestMessage(testChannel, 'Y');
+                bus.sendRequestMessage(testChannel, 'M');
+                bus.sendRequestMessage(testChannel, 'A');
+                bus.sendRequestMessage(testChannel, 'D');
+                bus.sendResponseMessage(testChannel, 'N');
+                bus.sendResponseMessage(testChannel, 'E');
+                bus.sendRequestMessage(testChannel, 'S');
+                bus.sendRequestMessage(testChannel, 'S');
+                bus.sendResponseMessage(testChannel, '!');
+            }
+        );
+
+        it('listenRequestOnce() [listen to a single request]',
+            (done) => {
+
+                let c: number = 0;
+                let h: number = 0;
+
+                let sub = bus.listenRequestOnce(testChannel)
+                    .handle(
+                        () => {
+                            h++;
+                        }
+                    );
+
+                let chan = bus.getRequestChannel(testChannel, 'listenRequestOnce()');
+                chan.subscribe(
+                    () => {
+                        c++;
+                        if (c >= 5) {
+                            expect(h).toEqual(1);
+                            expect(sub.closed).toBeTruthy();
+                            done();
+                        }
+                    }
+                );
+
+                bus.sendRequestMessage(testChannel, 'B');
+                bus.sendRequestMessage(testChannel, 'U');
+                bus.sendRequestMessage(testChannel, 'N');
+                bus.sendRequestMessage(testChannel, 'N');
+                bus.sendRequestMessage(testChannel, 'Y');
+            }
+        );
+
+        it('listenRequestStream() [ listen for multiple request messages on a channel ]',
+            (done) => {
+
+                let h: number = 0;
+
+                bus.listenRequestStream(testChannel)
+                    .handle(
+                        () => {
+                            h++;
+                            if (h === 4) {
+                                expect(true).toBeTruthy();
+                                done();
+                            }
+                        }
+                    );
+
+                bus.sendResponseMessage(testChannel, 'F');
+                bus.sendResponseMessage(testChannel, 'R');
+                bus.sendResponseMessage(testChannel, 'A');
+                bus.sendResponseMessage(testChannel, 'G');
+                bus.sendResponseMessage(testChannel, 'G');
+                bus.sendRequestMessage(testChannel, 'L');
+                bus.sendResponseMessage(testChannel, 'E');
+                bus.sendRequestMessage(testChannel, 'R');
+                bus.sendRequestMessage(testChannel, 'O');
+                bus.sendRequestMessage(testChannel, 'C');
+                bus.sendResponseMessage(testChannel, 'K');
+            }
+        );
+
+        it('sendRequest() [ simple API wrapper for sending request messages (wraps MessageHandlerConfig) ]',
+            (done) => {
+
+                bus.listenRequestOnce(testChannel)
+                    .handle(
+                        (mh: MessageHandlerConfig) => {
+                            expect(mh.body).toEqual('Cotton');
+                            done();
+                        }
+                    );
+                bus.sendRequest(testChannel, 'Cotton');
+            }
+        );
+
+        it('sendResponse() [ simple API wrapper for sending response messages (wraps MessageHandlerConfig) ]',
+            (done) => {
+
+                bus.listenOnce(testChannel)
+                    .handle(
+                        (mh: MessageHandlerConfig) => {
+                            expect(mh.body).toEqual('Fox');
+                            done();
+                        }
+                    );
+                bus.sendResponse(testChannel, 'Fox');
+            }
+        );
+
+        it('sendRequestMessage() [ lower level wrapper for sending request messages ]',
+            (done) => {
+
+                let _chan = bus.getRequestChannel(testChannel, 'sendRequestMessage()');
+                let p = _chan.subscribe(
+                    (m: Message) => {
+                        expect(m.payload).toEqual('Maggie');
+                        p.unsubscribe();
+                        done();
+                    }
+                );
+
+                bus.sendRequestMessage(testChannel, 'Maggie');
+            }
+        );
+
+        it('sendResponseMessage() [ lower level wrapper for sending response messages ]',
+            (done) => {
+
+                let _chan = bus.getResponseChannel(testChannel, 'sendResponseMessage()');
+                let p = _chan.subscribe(
+                    (m: Message) => {
+                        expect(m.payload).toEqual('Chickie');
+                        p.unsubscribe();
+                        done();
+                    }
+                );
+
+                bus.sendResponseMessage(testChannel, 'Chickie');
+            }
+        );
+
+        it('sendErrorMessage() [ lower level wrapper for sending error messages ]',
+            (done) => {
+
+                let _chan = bus.getChannel(testChannel, 'sendErrorMessage()');
+                let p = _chan.subscribe(
+                    (m: Message) => {
+                        expect(m.payload).toEqual('Puppy Error');
+                        expect(m.isError()).toBeTruthy();
+                        p.unsubscribe();
+                        done();
+                    }
+                );
+
+                bus.sendErrorMessage(testChannel, 'Puppy Error');
+            }
+        );
+
+    });
+
 });
 

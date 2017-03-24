@@ -819,8 +819,8 @@ export function main() {
                      This tests that any galactic channels that are created before the stomp service has
                      connected to the broker, are extended/subscribed to once the broker has connected successfully.
 
-                     This way we can ensure no race conditions occurr by having to ensure a broker connection before
-                     requesting a galatic channel.
+                     This way we can ensure no race conditions occur by having to ensure a broker connection before
+                     requesting a galactic channel.
 
                      */
 

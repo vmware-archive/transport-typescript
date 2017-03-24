@@ -14,7 +14,6 @@ export class StompValidator {
         return false;
     }
 
-
     public static validateConnectionMessage(msg: Message): boolean {
 
         // TODO: validate command schema
