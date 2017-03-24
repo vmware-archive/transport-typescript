@@ -20,6 +20,6 @@
     },
     //@endexclude
     "author": "Dave Shanley <dshanley@vmware.com>",
-    "contributors": ["Akmal Khan <akhan@vmware.com>"],
+    "contributors": ["Akmal Khan <akhan@vmware.com>","Etienne Le Sueur <elesueur@vmware.com>"],
     "license": "VMware Inc."
 }
