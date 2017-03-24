@@ -21,10 +21,16 @@ export enum MessageType {
 
 export interface MessageHandler {
     handle(successHander: any, errorHandler?: any): Subscription;
+    tick(payload: any): void;
+    close(): boolean;
+    isClosed(): boolean;
 }
 
 export interface MessageResponder {
     generate(generateResponse: any): Subscription;
+    tick(payload: any): void;
+    close(): boolean;
+    isClosed(): boolean;
 }
 
 export class MessageHandlerConfig {

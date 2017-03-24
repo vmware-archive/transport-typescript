@@ -58,10 +58,11 @@ export class MessagebusService implements MessageBusEnabled {
     private monitorChannel = MonitorChannel.stream;
     private monitorStream: Channel;
     private dumpMonitor: boolean;
+    private _channelMap: Map<string, Channel>;
 
     // private ajv = new Ajv({allErrors: true});
 
-    constructor(private _channelMap: Map<string, Channel>) {
+    constructor() {
         this._channelMap = new Map<string, Channel>();
 
         // Create Monitor channel
@@ -313,6 +314,35 @@ export class MessagebusService implements MessageBusEnabled {
     }
 
     /**
+     * Send simple API message to MessageResponder enabled calls.
+     * @param cname
+     * @param payload
+     * @param schema
+     * @param name
+     * @returns {boolean}
+     */
+    sendRequest(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
+        let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
+        this.send(mh.sendChannel, new Message().request(mh, schema), name);
+        return true;
+    }
+
+    /**
+     * Send simple API message to MessageHandler enabled calls.
+     * @param cname
+     * @param payload
+     * @param schema
+     * @param name
+     * @returns {boolean}
+     */
+    sendResponse(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
+        let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
+        this.send(mh.sendChannel, new Message().response(mh, schema), name);
+        return true;
+    }
+
+
+    /**
      * Wrap a payload in a request Message and send to the bus channel
      * @param cname
      * @param payload
@@ -501,13 +531,18 @@ export class MessagebusService implements MessageBusEnabled {
             _schema = new MessageSchema();
         }
 
+        let _sub: Subscription;
         return {
             generate: (generateResponse: Function): Subscription => {
-                let _chan = this.getChannelObject(handlerConfig.sendChannel, name);
-                let _sub = _chan.stream.subscribe(
+                let _chan = this.getRequestChannel(handlerConfig.sendChannel, name);
+                _sub = _chan.subscribe(
                     (msg: Message) => {
-                        this.send(handlerConfig.returnChannel,
-                            new Message().response(generateResponse(msg.payload.body), _schema), name);
+                        this.sendResponseMessage(
+                            handlerConfig.returnChannel,
+                            generateResponse(msg.payload.body),
+                            _schema,
+                            name
+                        );
 
                         if (handlerConfig.singleResponse) {
                             _sub.unsubscribe();
@@ -515,6 +550,24 @@ export class MessagebusService implements MessageBusEnabled {
                     }
                 );
                 return _sub;
+            },
+            tick: (payload: any): void => {
+                if (_sub && !_sub.closed) {
+                    this.sendResponse(handlerConfig.returnChannel, payload);
+                }
+            },
+            close: (): boolean => {
+                if (!handlerConfig.singleResponse) {
+                    _sub.unsubscribe();
+                    _sub = null;
+                }
+                return true;
+            },
+            isClosed(): boolean {
+                if (!_sub || _sub.closed) {
+                    return true;
+                }
+                return false;
             }
         };
     }
@@ -568,6 +621,8 @@ export class MessagebusService implements MessageBusEnabled {
      */
     private createMessageHandler(handlerConfig: MessageHandlerConfig, requestStream: boolean = false,
                                  name = this.getName()) {
+        let _sub: Subscription;
+
         return {
             handle: (success: Function, error?: Function): Subscription => {
                 let _chan: Observable<Message>;
@@ -576,7 +631,7 @@ export class MessagebusService implements MessageBusEnabled {
                 } else {
                     _chan = this.getResponseChannel(handlerConfig.returnChannel, name);
                 }
-                let _sub = _chan.subscribe(
+                _sub = _chan.subscribe(
                     (msg: Message) => {
                         if (msg.isError()) {
                             error(msg.payload);
@@ -595,6 +650,24 @@ export class MessagebusService implements MessageBusEnabled {
                     }
                 );
                 return _sub;
+            },
+            tick: (payload: any): void => {
+                if (_sub && !_sub.closed) {
+                    this.sendRequest(handlerConfig.returnChannel, payload);
+                }
+            },
+            close: (): boolean => {
+                if (!handlerConfig.singleResponse) {
+                    _sub.unsubscribe();
+                    _sub = null;
+                }
+                return true;
+            },
+            isClosed(): boolean {
+                if (!_sub || _sub.closed) {
+                    return true;
+                }
+                return false;
             }
         };
     }
