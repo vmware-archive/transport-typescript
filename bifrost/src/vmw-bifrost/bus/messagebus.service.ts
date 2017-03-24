@@ -15,36 +15,10 @@ import {MessageSchema, ErrorSchema} from './message.schema';
 // import * as Ajv from 'ajv';
 
 /**
- * The Messagebus service provides an asynchronous channel-based software bus for sharing data between services and
- * components using a subscription model. Dynamic type checking can be done by both the sender and the receiver(s),
- * but is not a requirement for what is allowed on the bus.
+ * SEE DOCS.
  *
- * Each channel on the bus is a 'Stream' object. The Messagebus is a collection of streams that are identified by
- * the channel name, and referenced through a Map object. The ES6 Map object is now supported in Typescript even in
- * ES5. The following are the interfaces to the Map class:
+ * https://confluence.eng.vmware.com/pages/viewpage.action?pageId=214302828
  *
- * interface Map<K, V> {
- *   clear(): void;
- *   delete(key: K): boolean;
- *   entries(): IterableIterator<[K, V]>;
- *   forEach(callbackfn: (value: V, index: K, map: Map<K, V>) => void, thisArg?: any): void;
- *   get(key: K): V;
- *   has(key: K): boolean;
- *   keys(): IterableIterator<K>;
- *   set(key: K, value?: V): Map<K, V>;
- *   size: number;
- *   values(): IterableIterator<V>;
- *   [Symbol.iterator]():IterableIterator<[K,V]>;
- *   [Symbol.toStringTag]: string;
- * }
- *
- * interface MapConstructor {
- *   new <K, V>(): Map<K, V>;
- *   new <K, V>(iterable: Iterable<[K, V]>): Map<K, V>;
- *   prototype: Map<any, any>;
- * }
- *
- * A channel is implicitly created whenever someone calls getChannel() and no such channel exists.
  */
 
 
