@@ -336,7 +336,8 @@ export class MessagebusService implements MessageBusEnabled {
      * @param schema any
      * @param name string
      */
-    public sendRequestMessage(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
+    public sendRequestMessage(cname: string, payload: any,
+                              schema = new MessageSchema(), name = this.getName()): boolean {
         return this.send(cname, new Message().request(payload, schema), name);
     }
 
@@ -347,7 +348,8 @@ export class MessagebusService implements MessageBusEnabled {
      * @param schema any
      * @param name string
      */
-    public sendResponseMessage(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
+    public sendResponseMessage(cname: string, payload: any,
+                               schema = new MessageSchema(), name = this.getName()): boolean {
         return this.send(cname, new Message().response(payload, schema), name);
     }
 
