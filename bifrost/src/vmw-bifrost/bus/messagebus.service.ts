@@ -76,11 +76,11 @@ export class MessagebusService implements MessageBusEnabled {
         this.monitorBus();
     }
 
-    getName() {
+    public getName() {
         return 'MessagebusService';
     }
 
-    increment(cname: string) {
+    public increment(cname: string) {
         this.channelMap.get(cname)
             .increment();
     }
@@ -99,7 +99,7 @@ export class MessagebusService implements MessageBusEnabled {
      *
      * @returns {BehaviorSubject<any>}
      */
-    getMonitor(): Subject<Message> {
+    public getMonitor(): Subject<Message> {
         return this.monitorStream.stream;
     }
 
@@ -118,7 +118,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param flag
      * @returns {boolean}
      */
-    enableMonitorDump(flag: boolean) {
+    public enableMonitorDump(flag: boolean) {
         this.dumpMonitor = flag;
         return this.dumpMonitor;
     }
@@ -128,7 +128,7 @@ export class MessagebusService implements MessageBusEnabled {
      *
      * @returns {LoggerService}
      */
-    logger(): LoggerService {
+    public logger(): LoggerService {
         return this.log;
     }
 
@@ -138,7 +138,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param msg
      * @param from
      */
-    messageLog(msg: string, from: string) {
+    public messageLog(msg: string, from: string) {
         this.log.info(msg, from);
     }
 
@@ -147,11 +147,11 @@ export class MessagebusService implements MessageBusEnabled {
      *
      * @param set
      */
-    suppressLog(set: boolean) {
+    public suppressLog(set: boolean) {
         this.log.suppress(set);
     }
 
-    silenceLog(set: boolean) {
+    public silenceLog(set: boolean) {
         this.log.silent(set);
     }
 
@@ -160,7 +160,7 @@ export class MessagebusService implements MessageBusEnabled {
      *
      * @param logLevel
      */
-    setLogLevel(logLevel: LogLevel) {
+    public setLogLevel(logLevel: LogLevel) {
         this.log.logLevel = logLevel;
     }
 
@@ -171,16 +171,27 @@ export class MessagebusService implements MessageBusEnabled {
      * @param from
      * @returns {Subject<Message>}
      */
-    getChannel(cname: string, from: string): Subject<Message> {
+    public getChannel(cname: string, from: string): Subject<Message> {
         return this.getChannelObject(cname, from).stream;
     }
 
-    getGalacticChannel(cname: string, from: string): Subject<Message> {
+    /**
+     * Activate the bridge to subscribe to a topic/queue on broker with the same channel name.
+     * @param cname
+     * @param from
+     * @returns {Subject<Message>}
+     */
+    public getGalacticChannel(cname: string, from: string): Subject<Message> {
         return this.getChannelObject(cname, from)
             .setGalactic().stream;
     }
 
-    isGalacticChannel(cname: string): boolean {
+    /**
+     * Returns true if a channel is Galactic. Galactic status requires a bit flipped on the channel object.
+     * @param cname
+     * @returns {boolean}
+     */
+    public isGalacticChannel(cname: string): boolean {
         if (this._channelMap.has(cname)) {
             return this._channelMap.get(cname).galactic;
         }
@@ -198,7 +209,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param from
      * @returns {Channel}
      */
-    getChannelObject(cname: string, from: string) {
+    public getChannelObject(cname: string, from: string) {
         let channel: Channel;
         let symbol = ' + ';
 
@@ -223,7 +234,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param from
      * @returns {Observable<Message>}
      */
-    getRequestChannel(cname: string, from: string): Observable<Message> {
+    public getRequestChannel(cname: string, from: string): Observable<Message> {
         return this.getChannel(cname, from)
             .filter((message: Message) => {
                 return (message.isRequest());
@@ -237,7 +248,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param from
      * @returns {Observable<Message>}
      */
-    getResponseChannel(cname: string, from: string): Observable<Message> {
+    public getResponseChannel(cname: string, from: string): Observable<Message> {
         return this.getChannel(cname, from)
             .filter((message: Message) => {
                 return (message.isResponse() || message.isError());
@@ -250,7 +261,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param cname
      * @returns {number}
      */
-    refCount(cname: string): number {
+    public refCount(cname: string): number {
         if (!this._channelMap.has(cname)) {
             return -1;
         }
@@ -265,7 +276,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param from
      * @returns {boolean}
      */
-    close(cname: string, from: string): boolean {
+    public close(cname: string, from: string): boolean {
         if (!this._channelMap.has(cname)) {
             return false;
         }
@@ -287,12 +298,14 @@ export class MessagebusService implements MessageBusEnabled {
      * This routine is called with traceback strings to allow for debugging and monitoring
      * bus traffic.
      *
+     * This method will soon become private, avoid using!
+     *
      * @param cname -> Channel to send to
      * @param message -> Message
      * @param from -> Caller name
      * @returns {boolean} -> on successful transmission
      */
-    send(cname: string, message: Message, from: string): boolean {
+    public send(cname: string, message: Message, from: string): boolean {
         // TEMPORARY - flag all messages without schema
         if (!message.messageSchema) {
             this.logger()
@@ -321,7 +334,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param name
      * @returns {boolean}
      */
-    sendRequest(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
+    public sendRequest(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
         let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
         this.send(mh.sendChannel, new Message().request(mh, schema), name);
         return true;
@@ -335,7 +348,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param name
      * @returns {boolean}
      */
-    sendResponse(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
+    public sendResponse(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
         let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
         this.send(mh.sendChannel, new Message().response(mh, schema), name);
         return true;
@@ -349,7 +362,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param schema any
      * @param name string
      */
-    sendRequestMessage(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
+    public sendRequestMessage(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
         return this.send(cname, new Message().request(payload, schema), name);
     }
 
@@ -360,7 +373,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param schema any
      * @param name string
      */
-    sendResponseMessage(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
+    public sendResponseMessage(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
         return this.send(cname, new Message().response(payload, schema), name);
     }
 
@@ -374,18 +387,20 @@ export class MessagebusService implements MessageBusEnabled {
      * @param name string
      * @returns {boolean}
      */
-    sendErrorMessage(cname: string, payload: any, schema = new ErrorSchema(), name = this.getName()): boolean {
+    public sendErrorMessage(cname: string, payload: any, schema = new ErrorSchema(), name = this.getName()): boolean {
         return this.send(cname, new Message().error(payload, schema), name);
     }
 
     /**
      * Transmit an error on a channel on the message bus if it exists.
      *
+     * This method will become private soon, avoid!
+     *
      * @param cname
      * @param err Error object
      * @returns {boolean} channel existed and transmission made
      */
-    error(cname: string, err: any): boolean {
+    public error(cname: string, err: any): boolean {
         if (!this._channelMap.has(cname)) {
             return false;
         }
@@ -679,7 +694,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param from
      * @returns {boolean}
      */
-    complete(cname: string, from: string): boolean {
+    public complete(cname: string, from: string): boolean {
         if (!this._channelMap.has(cname)) {
             return false;
         }
@@ -697,7 +712,7 @@ export class MessagebusService implements MessageBusEnabled {
      *
      * @returns {number}
      */
-    countListeners(): number {
+    public countListeners(): number {
         let count = 0;
         this.channelMap.forEach((channel) => {
             count += channel.refCount;
@@ -712,7 +727,7 @@ export class MessagebusService implements MessageBusEnabled {
      *
      * @returns {void}
      */
-    destroyAllChannels() {
+    public destroyAllChannels() {
         this.channelMap.forEach((channel, name) => {
             this.destroy(channel, name);
         });
