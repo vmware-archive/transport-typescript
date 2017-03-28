@@ -2,8 +2,8 @@
  * Copyright(c) VMware Inc., 2016
  */
 
-import {MessageSchema} from './message.schema';
-import {Subscription} from 'rxjs';
+import { MessageSchema } from './message.schema';
+import { Subscription } from 'rxjs';
 
 /**
  * A Message object represents a single message on the message bus.
@@ -27,7 +27,7 @@ export interface MessageHandler {
 }
 
 export interface MessageResponder {
-    generate(generateResponse: any): Subscription;
+    generate(generateSuccessResponse: any, generateErrorResponse?: any): Subscription;
     tick(payload: any): void;
     close(): boolean;
     isClosed(): boolean;

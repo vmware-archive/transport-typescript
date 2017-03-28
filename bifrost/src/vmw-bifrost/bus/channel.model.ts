@@ -21,7 +21,7 @@ export class Channel {
 
     private _streamObject: Subject<Message>;
 
-    constructor (name: string) {
+    constructor(name: string) {
         this._name = name;
         this._refCount = 0;
         this._streamObject = new Subject<Message>();
@@ -34,8 +34,12 @@ export class Channel {
      *
      * @returns {Subject<Message>}
      */
-    get stream (): Subject<Message> {
+    get stream(): Subject<Message> {
         return this._streamObject;
+    }
+
+    set stream(stream: Subject<Message>) {
+        this._streamObject = stream;
     }
 
     /**
@@ -43,7 +47,7 @@ export class Channel {
      *
      * @returns {string}
      */
-    get name (): string {
+    get name(): string {
         return this._name;
     }
 
@@ -52,7 +56,7 @@ export class Channel {
      *
      * @returns {boolean}
      */
-    get isClosed (): boolean {
+    get isClosed(): boolean {
         return this._closed;
     }
 
@@ -61,7 +65,7 @@ export class Channel {
      *
      * @param message Message
      */
-    send (message: Message) {
+    send(message: Message) {
         setTimeout(
             () => {
                 this._streamObject.next(message);
@@ -73,23 +77,23 @@ export class Channel {
      *
      * @param err
      */
-    error (err: any) {
+    error(err: any) {
         this._streamObject.error(err);
     }
 
     /**
      * Transmit a completion on the stream
      */
-    complete () {
+    complete() {
         this._closed = true;
         this._streamObject.complete();
     }
 
-    increment (): number {
+    increment(): number {
         return ++this._refCount;
     }
 
-    decrement (): number {
+    decrement(): number {
         if (this._refCount > 0) {
             --this._refCount;
         }
@@ -97,21 +101,21 @@ export class Channel {
         return this._refCount;
     }
 
-    get refCount () {
+    get refCount() {
         return this._refCount;
     }
 
-    setGalactic () {
+    setGalactic() {
         this._galactic = true;
         return this;
     }
 
-    setPrivate () {
+    setPrivate() {
         this._galactic = false;
         return this;
     }
 
-    get galactic (): boolean {
+    get galactic(): boolean {
         return this._galactic;
     }
 }

@@ -7,7 +7,7 @@ import {Injector} from '@angular/core';
 import {Syslog} from '../log/syslog';
 import {LogUtil} from '../log/util';
 import {LogLevel} from '../log/logger.model';
-import {Message, MessageHandlerConfig} from './message.model';
+import {Message} from './message.model';
 import {MessagebusService} from './index';
 
 //import {BifrostModule} from '../bifrost.module';
@@ -172,8 +172,8 @@ describe('Messagebus Service [messagebus.service]', () => {
     });
 
     it('Should return same Channel for a new subscriber', () => {
-        let channel = bus.getChannel(testChannel, getName());
-        let channel2 = bus.getChannel(testChannel, getName());
+        let channel = bus.getChannelObject(testChannel, getName());
+        let channel2 = bus.getChannelObject(testChannel, getName());
 
         expect(channel)
             .not
@@ -550,8 +550,8 @@ describe('Messagebus Service [messagebus.service]', () => {
 
                 bus.listenRequestOnce(testChannel)
                     .handle(
-                        (mh: MessageHandlerConfig) => {
-                            expect(mh.body).toEqual('Cotton');
+                        (msg: string) => {
+                            expect(msg).toEqual('Cotton');
                             done();
                         }
                     );
@@ -564,8 +564,8 @@ describe('Messagebus Service [messagebus.service]', () => {
 
                 bus.listenOnce(testChannel)
                     .handle(
-                        (mh: MessageHandlerConfig) => {
-                            expect(mh.body).toEqual('Fox');
+                        (msg: string) => {
+                            expect(msg).toEqual('Fox');
                             done();
                         }
                     );
@@ -621,6 +621,180 @@ describe('Messagebus Service [messagebus.service]', () => {
                 bus.sendErrorMessage(testChannel, 'Puppy Error');
             }
         );
+
+        it('Should be able to mix old and new APIs together [sendRequest() and subscribe()]',
+            (done) => {
+
+
+                let chan = bus.getRequestChannel(testChannel, 'mixOldAndNew');
+                chan.subscribe(
+                    (msg: Message) => {
+                        expect(msg.payload).toEqual('tea');
+                        done();
+                    }
+                );
+
+                bus.sendRequest(testChannel, 'tea');
+
+            }
+        );
+
+        it('Should be able to mix old and new APIs together [send() and listenOnce()]',
+            (done) => {
+
+
+                // message should come through already unpacked.
+                bus.listenRequestOnce(testChannel)
+                    .handle(
+                        (msg: string) => {
+                            expect(msg).toEqual('Chickie');
+                            done();
+                        }
+                    );
+
+                // message is sent using traditional API.
+                bus.send(testChannel, new Message().request('Chickie'), 'mixOldAndNew');
+
+            }
+        );
+
+        it('Should be able to mix old and new APIs together [requestOnce(), subscribe(), sendResponse()]',
+            (done) => {
+
+                let chan = bus.getRequestChannel(testChannel, 'mixOldAndNew');
+                chan.subscribe(
+                    (msg: Message) => {
+                        expect(msg.payload).toEqual('bikes');
+                        bus.sendResponse(testChannel, 'cars');
+                    }
+                );
+
+                bus.requestOnce(testChannel, 'bikes')
+                    .handle(
+                        (msg: string) => {
+                            expect(msg).toEqual('cars');
+                            done();
+                        }
+                    );
+
+
+            }
+        );
+
+        it('Should be able to mix old and new APIs together [requestStream(), subscribe(), sendResponse()]',
+            (done) => {
+
+                let chan = bus.getRequestChannel(testChannel, 'mixOldAndNew');
+                chan.subscribe(
+                    (msg: Message) => {
+                        expect(msg.payload).toBeGreaterThan(0);
+                        expect(msg.payload).toBeLessThan(10);
+                        let val = msg.payload;
+
+                        // increment by one and fire back a response.
+                        bus.sendResponse(testChannel, ++val);
+                    }
+                );
+
+                let stream = bus.requestStream(testChannel, 1);
+                stream.handle(
+                    (val: number) => {
+                        if (val <= 9) {
+                            // send the value right back down the stream again as another request.
+                            stream.tick(val);
+                            return;
+                        }
+                        expect(val).toEqual(10);
+                        stream.close();
+                        done();
+                    }
+                );
+
+
+            }
+        );
+
+        it('Should be able to mix old and new APIs together [respondOnce(), send(), subscribe()]',
+            (done) => {
+
+                let chan = bus.getResponseChannel(testChannel, 'mixOldAndNew');
+                chan.subscribe(
+                    (msg: Message) => {
+                        expect(msg.payload).toEqual('echo kitty');
+                        done();
+                    }
+                );
+
+                bus.respondOnce(testChannel)
+                    .generate(
+                        (request: string) => {
+                            return 'echo ' + request;
+                        }
+                    );
+
+                bus.send(testChannel, new Message().request('kitty'), 'mixOldAndNew');
+
+            }
+        );
+
+        it('Should be able to mix old and new APIs together [respondStream(), requestStream(), tick(), subscribe()]',
+            (done) => {
+
+                let tickCount = 0;
+
+                let responder = bus.respondStream(testChannel);
+                responder.generate(
+                    (request: number) => {
+                        return ++request;
+                    }
+                );
+
+                let chan = bus.getResponseChannel(testChannel, 'mixOldAndNew');
+                let sub = chan.subscribe(
+                    (msg: Message) => {
+                        expect(msg.payload).toBeGreaterThan(0);
+                        tickCount++;
+                    }
+                );
+
+                let requester = bus.requestStream(testChannel, 1);
+                requester.handle(
+                    (val: number) => {
+                        if (val <= 9) {
+                            requester.tick(val);
+                            return;
+                        }
+                        expect(tickCount).toEqual(9);
+                        requester.close();
+                        responder.close();
+                        sub.unsubscribe();
+                        done();
+                    }
+                );
+            }
+        );
+
+        it('Should be able to handle an Error [listenOnce(), sendErrorMessage()]',
+            (done) => {
+
+                bus.listenOnce(testChannel)
+                    .handle(
+                        () => {
+                            expect(false).toBeTruthy();
+                            done();
+
+                        },
+                        (request: string) => {
+                            expect(request).toEqual('fire!');
+                            done();
+                        }
+                    );
+
+                bus.sendErrorMessage(testChannel, 'fire!');
+
+            }
+        );
+
 
     });
 

@@ -34,6 +34,7 @@ export class MessagebusService implements MessageBusEnabled {
     private dumpMonitor: boolean;
     private _channelMap: Map<string, Channel>;
 
+
     // private ajv = new Ajv({allErrors: true});
 
     constructor() {
@@ -140,13 +141,24 @@ export class MessagebusService implements MessageBusEnabled {
 
     /**
      * Get a subscribable stream from channel. If the channel doesn't exist, it will be created.
+     * Automatically unpack wrapped messages.
      *
      * @param cname
      * @param from
      * @returns {Subject<Message>}
      */
-    public getChannel(cname: string, from: string): Subject<Message> {
-        return this.getChannelObject(cname, from).stream;
+    public getChannel(cname: string, from: string): Observable<Message> {
+        return this.getChannelObject(cname, from)
+            .stream
+            .map(
+                (msg: Message) => {
+                    if (msg.payload.hasOwnProperty('_sendChannel')) {
+                        msg.payload = msg.payload.body;
+                    }
+                    return msg;
+                }
+            );
+
     }
 
     /**
@@ -194,6 +206,7 @@ export class MessagebusService implements MessageBusEnabled {
             this._channelMap.set(cname, channel);
             symbol = ' +++ ';
         }
+
 
         let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, cname, from, symbol);
         this.monitorStream.send(new Message().request(mo));
@@ -524,17 +537,36 @@ export class MessagebusService implements MessageBusEnabled {
 
         let _sub: Subscription;
         return {
-            generate: (generateResponse: Function): Subscription => {
+            generate: (generateSuccessResponse: Function, generateErrorResponse: Function): Subscription => {
                 let _chan = this.getRequestChannel(handlerConfig.sendChannel, name);
                 _sub = _chan.subscribe(
                     (msg: Message) => {
-                        this.sendResponseMessage(
-                            handlerConfig.returnChannel,
-                            generateResponse(msg.payload.body),
-                            _schema,
-                            name
-                        );
-
+                        let _pl = msg.payload;
+                        // check if message is using wrapped API or not.
+                        if (_pl.hasOwnProperty('_sendChannel')) {
+                            _pl = msg.payload.body;
+                        }
+                        if (!msg.isError()) {
+                            this.sendResponseMessage(
+                                handlerConfig.returnChannel,
+                                generateSuccessResponse(_pl),
+                                _schema,
+                                name
+                            );
+                        } else {
+                            let _err: Function;
+                            if (generateErrorResponse) {
+                                _err = generateErrorResponse;
+                            } else {
+                                _err = generateSuccessResponse;
+                            }
+                            this.sendErrorMessage(
+                                handlerConfig.returnChannel,
+                                _err(_pl),
+                                _schema,
+                                name
+                            );
+                        }
                         if (handlerConfig.singleResponse) {
                             _sub.unsubscribe();
                         }
@@ -624,10 +656,14 @@ export class MessagebusService implements MessageBusEnabled {
                 }
                 _sub = _chan.subscribe(
                     (msg: Message) => {
+                        let _pl = msg.payload;
+                        if (_pl.hasOwnProperty('_sendChannel')) {
+                            _pl = msg.payload.body;
+                        }
                         if (msg.isError()) {
-                            error(msg.payload);
+                            error(_pl);
                         } else {
-                            success(msg.payload);
+                            success(_pl);
                         }
                         if (handlerConfig.singleResponse) {
                             _sub.unsubscribe();
@@ -787,20 +823,20 @@ export class MessagebusService implements MessageBusEnabled {
 
                                 case MonitorType.MonitorData:
                                     this.dumpData(mo, mo.from + ' -> ' + mo.channel +
-                                                      (message.messageSchema
-                                                          ? '  ['
-                                                      + message.messageSchema._title
-                                                      + ']'
-                                                          : ''));
+                                        (message.messageSchema
+                                            ? '  ['
+                                            + message.messageSchema._title
+                                            + ']'
+                                            : ''));
                                     break;
 
                                 case MonitorType.MonitorDropped:
                                     this.dumpData(mo, '*DROP* message from ' + mo.from + ' -> ' + mo.channel +
-                                                      (message.messageSchema
-                                                          ? '  ['
-                                                      + message.messageSchema._title
-                                                      + ']'
-                                                          : ''));
+                                        (message.messageSchema
+                                            ? '  ['
+                                            + message.messageSchema._title
+                                            + ']'
+                                            : ''));
                                     break;
                                 default:
                                     break;
