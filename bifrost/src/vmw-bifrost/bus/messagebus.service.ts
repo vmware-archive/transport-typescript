@@ -145,7 +145,7 @@ export class MessagebusService implements MessageBusEnabled {
      *
      * @param cname
      * @param from
-     * @returns {Subject<Message>}
+     * @returns {Observable<Message>}
      */
     public getChannel(cname: string, from: string): Observable<Message> {
         return this.getChannelObject(cname, from)
@@ -163,13 +163,22 @@ export class MessagebusService implements MessageBusEnabled {
 
     /**
      * Activate the bridge to subscribe to a topic/queue on broker with the same channel name.
+     * Automatically unpack wrapped messages.
      * @param cname
      * @param from
-     * @returns {Subject<Message>}
+     * @returns {Observable<Message>}
      */
-    public getGalacticChannel(cname: string, from: string): Subject<Message> {
+    public getGalacticChannel(cname: string, from: string): Observable<Message> {
         return this.getChannelObject(cname, from)
-            .setGalactic().stream;
+            .setGalactic().stream
+            .map(
+                (msg: Message) => {
+                    if (msg.payload.hasOwnProperty('_sendChannel')) {
+                        msg.payload = msg.payload.body;
+                    }
+                    return msg;
+                }
+            );
     }
 
     /**
