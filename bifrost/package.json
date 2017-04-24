@@ -5,16 +5,17 @@
   "license": "VMware Proprietary",
   "repository": "stash.eng.vmware.com:ss/ui-bifrost.git",
   "dependencies": {
-    "@angular/core": "2.4.x",
+    "@angular/core": "^4.0.3",
     "rxjs": "^5.0.1"
   },
   "devDependencies": {
-    "@angular/common": "2.4.x",
-    "@angular/compiler": "2.4.x",
-    "@angular/compiler-cli": "2.4.x",
-    "@angular/platform-browser": "2.4.x",
-    "@angular/platform-browser-dynamic": "2.4.x",
-    "@angular/platform-server": "2.4.x",
+    "@angular/animations": "^4.0.3",
+    "@angular/common": "^4.0.3",
+    "@angular/compiler": "^4.0.3",
+    "@angular/compiler-cli": "^4.0.3",
+    "@angular/platform-browser": "^4.0.3",
+    "@angular/platform-browser-dynamic": "^4.0.3",
+    "@angular/platform-server": "^4.0.3",
     "@types/jasmine": "^2.5.41",
     "@types/selenium-webdriver": "^2.53.33",
     "bootstrap": "4.0.0-alpha.5",
@@ -30,6 +31,7 @@
     "gulp-concat": "^2.6.0",
     "gulp-env": "^0.4.0",
     "gulp-gzip": "^1.2.0",
+    "gulp-help": "^1.6.1",
     "gulp-preprocess": "^2.0.0",
     "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.5.4",
@@ -56,8 +58,8 @@
     "systemjs-builder": "^0.15.13",
     "through2": "^2.0.1",
     "tslint": "3.7.0-dev.5",
-    "typescript": "2.0.x",
-    "zone.js": "0.7.2"
+    "typescript": "^2.2.2",
+    "zone.js": "^0.8.8"
   },
   "scripts": {
     "build": "gulp build --prod && gulp karma",

@@ -2,7 +2,7 @@
  * Copyright (c) 2017 VMware, Inc. All Rights Reserved.
  */
 
-var gulp = require('gulp');
+var gulp = require('gulp-help')(require('gulp'));
 var tslint = require('gulp-tslint');
 var format = require('gulp-clang-format');
 var clangFormat = require('clang-format');

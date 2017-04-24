@@ -765,7 +765,6 @@ export class MessagebusService implements MessageBusEnabled {
         let mo = new MonitorObject().build(MonitorType.MonitorDestroyChannel, channel.name, from);
         this.monitorStream.send(new Message().request(mo));
 
-        delete this._channelMap.get(channel.name);
         this._channelMap.delete(channel.name);
 
         return true;

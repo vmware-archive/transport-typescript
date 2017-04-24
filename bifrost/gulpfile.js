@@ -4,7 +4,7 @@
  * The full license information can be found in LICENSE in the root directory of this project.
  */
 
-var gulp = require("gulp");
+var gulp = require('gulp-help')(require('gulp'));
 var env = require('gulp-env');
 var requireDir = require('require-dir');
 var runSequence = require('run-sequence');

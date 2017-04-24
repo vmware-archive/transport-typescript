@@ -2,7 +2,7 @@
  * Copyright (c) 2017 VMware, Inc. All Rights Reserved.
  */
 
-var gulp = require("gulp");
+var gulp = require('gulp-help')(require('gulp'));
 var rename = require('gulp-rename');
 var preprocess = require('gulp-preprocess');
 var util = require('gulp-util');

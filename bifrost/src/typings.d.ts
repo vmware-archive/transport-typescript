@@ -14,8 +14,6 @@
 //     id: string;
 // }
 
-declare var customElements: CustomElements;
-
 declare interface CustomElements {
     define: any;
 }

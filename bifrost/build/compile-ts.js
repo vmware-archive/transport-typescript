@@ -2,7 +2,7 @@
  * Copyright (c) 2017 VMware, Inc. All Rights Reserved.
  */
 
-var gulp = require("gulp");
+var gulp = require('gulp-help')(require('gulp'));
 var replace = require('gulp-replace');
 var sourcemaps = require("gulp-sourcemaps");
 var ts = require("gulp-typescript");
