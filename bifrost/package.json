@@ -1,12 +1,13 @@
 {
   "name": "vmw-bifrost",
-  "version": "0.1.19",
+  "version": "0.2.0",
   "private": false,
   "license": "VMware Proprietary",
   "repository": "stash.eng.vmware.com:ss/ui-bifrost.git",
   "dependencies": {
-    "@angular/core": "^4.0.3",
-    "rxjs": "^5.0.1"
+    "@angular/core": "^4.1.1",
+    "rxjs": "^5.0.1",
+    "zone.js": "^0.8.8"
   },
   "devDependencies": {
     "@angular/animations": "^4.0.3",
@@ -58,8 +59,7 @@
     "systemjs-builder": "^0.15.13",
     "through2": "^2.0.1",
     "tslint": "3.7.0-dev.5",
-    "typescript": "^2.2.2",
-    "zone.js": "^0.8.8"
+    "typescript": "^2.3.2"
   },
   "scripts": {
     "build": "gulp build --prod && gulp karma",
