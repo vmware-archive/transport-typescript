@@ -1,5 +1,5 @@
 {
-    "name": "vmw-bifrost",
+    "name": "@vmw/bifrost",
     "version": "/* @echo VERSION */",
     "description": "The bifröst is an asychronous messagebus with a STOMP + websocket distributed broadcast capability",
     "homepage": "TBA",

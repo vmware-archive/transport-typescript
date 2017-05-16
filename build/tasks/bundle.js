@@ -55,10 +55,10 @@ gulp.task("bundle", ["bundle:bifrost:js", "bundle:zip"], function(){});
 gulp.task("bundle:watch", function () {
 
     var bifrostSources = [
-        "src/vmw-bifrost/**/*.ts",
-        "!src/vmw-bifrost/**/*.spec.ts",
-        "!src/vmw-bifrost/**/*.mock.ts",
-        "src/vmw-bifrost/**/*.html",
+        "src/**/*.ts",
+        "!src/**/*.spec.ts",
+        "!src/**/*.mock.ts",
+        "src/**/*.html",
         "src/**/*.scss",
     ];
     gulp.watch(bifrostSources, ["bundle:bifrost:js"]);

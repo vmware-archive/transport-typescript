@@ -29,14 +29,21 @@ var allSpecFiles = Object.keys(window.__karma__.files)
 // Load our SystemJS configuration.
 
 var packages = {
-    'dist/tests': { defaultExtension: "js" },
-    'vmw-bifrost': { defaultExtension: "js" },
+    'tests': { defaultExtension: "js" },
+    'bridge': { defaultExtension: "js" },
+    'bus': { defaultExtension: "js" },
+    'log': { defaultExtension: "js" },
     'rxjs': { defaultExtension: 'js', main: 'Rx.js'}
 };
 
 System.config({
     baseURL: '/base',
+    defaultJSExtensions: true,
     map: {
+        'bridge': 'dist/bridge',
+        'bus': 'dist/bus',
+        'log': 'dist/log',
+        'bifrost.module': 'dist/bifrost.module',
         'tests': 'dist/tests',
         'rxjs': 'node_modules/rxjs',
         '@angular/core': 'node_modules/@angular/core/bundles/core.umd.js',

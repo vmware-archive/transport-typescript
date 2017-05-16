@@ -13,9 +13,9 @@ var renameFolder = require("../rename-folder");
  * bifröst sources.
  */
 var bifrostSources = [
-    'src/vmw-bifrost/**/*.ts',
-    '!src/vmw-bifrost/**/*.spec.ts',
-    '!src/vmw-bifrost/**/*.mock.ts'
+    'src/**/*.ts',
+    '!src/**/*.spec.ts',
+    '!src/**/*.mock.ts'
 ];
 
 gulp.task('typescript:bifrost', function () {
@@ -28,7 +28,7 @@ gulp.task('typescript:bifrost', function () {
 /**
  * Tests
  */
-var testsSources = ['src/vmw-bifrost/**/*.spec.ts', 'src/vmw-bifrost/**/*.mock.ts'];
+var testsSources = ['src/**/*.spec.ts', 'src/**/*.mock.ts'];
 
 gulp.task('typescript:tests', function () {
     return typescriptCompile(testsSources, {
@@ -43,8 +43,7 @@ gulp.task('typescript:tests', function () {
     }))
     // The requires remaining are all actual bifröst classes
     .pipe(absoluteRequires({}))
-    .pipe(renameFolder({"vmw-bifrost": "tests"}))
-    .pipe(gulp.dest("dist"));
+    .pipe(gulp.dest("dist/tests"));
 });
 
 

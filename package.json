@@ -65,7 +65,7 @@
     "build": "gulp build --prod && gulp karma",
     "build:dev": "gulp build",
     "test": "gulp test",
-    "prepublish:all": "gulp npm:prepare --version $npm_package_version",
+    "prepare:all": "gulp npm:prepare --version $npm_package_version",
     "publish:all": "npm publish dist/npm/vmw-bifrost"
   }
 }

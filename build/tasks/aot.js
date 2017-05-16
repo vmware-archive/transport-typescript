@@ -9,10 +9,10 @@ var os = require('os');
 
 gulp.task("aot:copy", function() {
     var bifrostSources = [
-        'src/vmw-bifrost/**/*.ts',
-        'src/vmw-bifrost/**/*.html',
-        '!src/vmw-bifrost/**/*.spec.ts',
-        '!src/vmw-bifrost/**/*.mock.ts'
+        'src/**/*.ts',
+        'src/**/*.html',
+        '!src/**/*.spec.ts',
+        '!src/**/*.mock.ts'
     ];
 
     gulp.src(bifrostSources)
@@ -29,8 +29,14 @@ gulp.task('aot:build', function (cb) {
     cmd += ' -p tsconfig.es2015.json'; // use config for aot to compile
 
     exec(cmd, function (err, stdout, stderr) {
-        console.log(stdout);
-        console.log(stderr);
+        if (stdout !== '') {
+            console.log(stdout);
+        }
+
+        if (stderr !== '') {
+            console.log(stderr);
+        }
+
         cb(err);
     });
 });
@@ -44,8 +50,14 @@ gulp.task("aot:umd:all", function(cb){
     cmd += ' -c build/rollup-all.config.js'; // use config for rollup
 
     exec(cmd, function (err, stdout, stderr) {
-        console.log(stdout);
-        console.log(stderr);
+        if (stdout !== '') {
+            console.log(stdout);
+        }
+
+        if (stderr !== '') {
+            console.log(stderr);
+        }
+
         cb(err);
     });
 });
@@ -59,8 +71,14 @@ gulp.task("aot:umd:bus", function(cb){
     cmd += ' -c build/rollup-bus.config.js'; // use config for rollup
 
     exec(cmd, function (err, stdout, stderr) {
-        console.log(stdout);
-        console.log(stderr);
+        if (stdout !== '') {
+            console.log(stdout);
+        }
+
+        if (stderr !== '') {
+            console.log(stderr);
+        }
+
         cb(err);
     });
 });
@@ -74,8 +92,14 @@ gulp.task("aot:umd:bridge", function(cb){
     cmd += ' -c build/rollup-bridge.config.js'; // use config for rollup
 
     exec(cmd, function (err, stdout, stderr) {
-        console.log(stdout);
-        console.log(stderr);
+        if (stdout !== '') {
+            console.log(stdout);
+        }
+
+        if (stderr !== '') {
+            console.log(stderr);
+        }
+
         cb(err);
     });
 });

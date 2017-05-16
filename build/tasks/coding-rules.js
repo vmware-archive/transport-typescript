@@ -8,9 +8,9 @@ var format = require('gulp-clang-format');
 var clangFormat = require('clang-format');
 
 var bifrostSources = [
-    'src/vmw-bifrost/**/*.ts',
-    '!src/vmw-bifrost/**/*.spec.ts',
-    '!src/vmw-bifrost/**/*.mock.ts'
+    'src/**/*.ts',
+    '!src/**/*.spec.ts',
+    '!src/**/*.mock.ts'
 ];
 
 gulp.task('tslint:bifrost', function(){
@@ -31,7 +31,7 @@ gulp.task('tslint:bifrost:no-error', function(){
         }));
 });
 
-var testsSources = ['src/vmw-bifrost/**/*.spec.ts', 'src/vmw-bifrost/**/*.mock.ts'];
+var testsSources = ['src/**/*.spec.ts', 'src/**/*.mock.ts'];
 
 gulp.task('tslint:tests', function(){
     return gulp.src(testsSources)
@@ -58,15 +58,15 @@ gulp.task("tslint", ["tslint:bifrost", "tslint:tests"], function(){});
  Warns if the typescript formatting is valid or not
  */
 gulp.task('check-format', function() {
-	return gulp.src('src/**/*.ts')
-		.pipe(format.checkFormat('file', clangFormat));
+    return gulp.src('src/**/*.ts')
+        .pipe(format.checkFormat('file', clangFormat));
 });
 
 /**
  Formats the typescript file according to the .clang-format file
  */
 gulp.task('format', function() {
-	return gulp.src('src/**/*.ts')
-		.pipe(format.format('file', clangFormat))
-		.pipe(gulp.dest('formatted'));
+    return gulp.src('src/**/*.ts')
+        .pipe(format.format('file', clangFormat))
+        .pipe(gulp.dest('formatted'));
 });
