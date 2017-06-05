@@ -670,7 +670,9 @@ export class MessagebusService implements MessageBusEnabled {
                             _pl = msg.payload.body;
                         }
                         if (msg.isError()) {
-                            error(_pl);
+                            if (error) {
+                                error(_pl);
+                            }
                         } else {
                             success(_pl);
                         }
