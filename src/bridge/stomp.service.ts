@@ -149,9 +149,7 @@ export class StompService implements MessageBusEnabled {
 
         this._sessions = new Map<string, StompSession>();
         this._galaticChannels = new Map<string, boolean>();
-
-        // lets keep this low to prevent a potential flood;
-        this._galacticRequests = new ReplaySubject<string>(10);
+        this._galacticRequests = new ReplaySubject<string>();
     }
 
     get galacticChannels(): Map<string, boolean> {
