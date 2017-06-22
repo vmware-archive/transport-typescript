@@ -205,7 +205,7 @@ describe('Messagebus Service [messagebus.service]', () => {
     });
 
     it('Should send and receive error over the message bus', (done) => {
-        let channel = bus.getResponseChannel(testChannel, getName());
+        let channel = bus.getErrorChannel(testChannel, getName());
         channel.subscribe(
             (message: Message) => {
                 expect(message.isError())
@@ -799,4 +799,3 @@ describe('Messagebus Service [messagebus.service]', () => {
     });
 
 });
-
