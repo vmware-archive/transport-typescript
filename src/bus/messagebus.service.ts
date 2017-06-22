@@ -11,6 +11,7 @@ import {Message, MessageHandlerConfig, MessageResponder, MessageHandler} from '.
 import {Subject, Subscription, Observable} from 'rxjs';
 import {MessageSchema, ErrorSchema} from './message.schema';
 
+import 'rxjs/add/operator/merge';
 
 // import * as Ajv from 'ajv';
 
@@ -238,7 +239,7 @@ export class MessagebusService implements MessageBusEnabled {
     }
 
     /**
-     * Filter bus events that contain response messages. Errors are always response messages.
+     * Filter bus events that contain response messages.
      *
      * @param cname
      * @param from
@@ -247,7 +248,21 @@ export class MessagebusService implements MessageBusEnabled {
     public getResponseChannel(cname: string, from: string): Observable<Message> {
         return this.getChannel(cname, from)
             .filter((message: Message) => {
-                return (message.isResponse() || message.isError());
+                return (message.isResponse());
+            });
+    }
+
+    /**
+     * Filter bus events that contain error messages.
+     *
+     * @param cname
+     * @param from
+     * @returns {Observable<Message>}
+     */
+    public getErrorChannel(cname: string, from: string): Observable<Message> {
+        return this.getChannel(cname, from)
+            .filter((message: Message) => {
+                return (message.isError());
             });
     }
 
@@ -302,11 +317,11 @@ export class MessagebusService implements MessageBusEnabled {
      * @returns {boolean} -> on successful transmission
      */
     public send(cname: string, message: Message, from: string): boolean {
-        // TEMPORARY - flag all messages without schema
-        if (!message.messageSchema) {
-            this.logger()
-                .warn('* No schema in message to ' + cname, from);
-        }
+        // Disabled until Schema's are fully implemented.
+        // if (!message.messageSchema) {
+        //     this.logger()
+        //         .warn('* No schema in message to ' + cname, from);
+        // }
 
         if (!this._channelMap.has(cname)) {
             let mo = new MonitorObject().build(MonitorType.MonitorDropped, cname, from, message);
@@ -418,9 +433,10 @@ export class MessagebusService implements MessageBusEnabled {
      * @param name string
      * @returns {MessageResponder}
      */
-    public respondOnce(sendChannel: string, schema?: any, name = this.getName()): MessageResponder {
+    public respondOnce(sendChannel: string, returnChannel?: string,
+                       schema?: any, name = this.getName()): MessageResponder {
 
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, null);
+        let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, null, true, returnChannel);
         return this.respond(mh, schema, name);
 
     }
@@ -432,9 +448,10 @@ export class MessagebusService implements MessageBusEnabled {
      * @param name string
      * @returns {MessageResponder}
      */
-    public respondStream(sendChannel: string, schema?: any, name = this.getName()): MessageResponder {
+    public respondStream(sendChannel: string, returnChannel?: string,
+                         schema?: any, name = this.getName()): MessageResponder {
 
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, null, false);
+        let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, null, false, returnChannel);
         return this.respond(mh, schema, name);
 
     }
@@ -476,7 +493,6 @@ export class MessagebusService implements MessageBusEnabled {
 
         let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, body, true, returnChannel);
         return this.request(mh, schema, name);
-
     }
 
     /**
@@ -488,7 +504,6 @@ export class MessagebusService implements MessageBusEnabled {
     public listenOnce(channel: string, name = this.getName()): MessageHandler {
         let mh: MessageHandlerConfig = new MessageHandlerConfig(channel, null, true, channel);
         return this.listen(mh, false, name);
-
     }
 
     /**
@@ -548,7 +563,9 @@ export class MessagebusService implements MessageBusEnabled {
         return {
             generate: (generateSuccessResponse: Function, generateErrorResponse: Function): Subscription => {
                 let _chan = this.getRequestChannel(handlerConfig.sendChannel, name);
-                _sub = _chan.subscribe(
+                const _errChan: Observable<Message> = this.getErrorChannel(handlerConfig.returnChannel, name);
+                const mergedStreams = Observable.merge(_errChan, _chan);
+                _sub = mergedStreams.subscribe(
                     (msg: Message) => {
                         let _pl = msg.payload;
                         // check if message is using wrapped API or not.
@@ -577,7 +594,9 @@ export class MessagebusService implements MessageBusEnabled {
                             );
                         }
                         if (handlerConfig.singleResponse) {
-                            _sub.unsubscribe();
+                            if (_sub) {
+                                _sub.unsubscribe();
+                            }
                         }
                     }
                 );
@@ -590,7 +609,9 @@ export class MessagebusService implements MessageBusEnabled {
             },
             close: (): boolean => {
                 if (!handlerConfig.singleResponse) {
-                    _sub.unsubscribe();
+                    if (_sub) {
+                        _sub.unsubscribe();
+                    }
                     _sub = null;
                 }
                 return true;
@@ -658,12 +679,15 @@ export class MessagebusService implements MessageBusEnabled {
         return {
             handle: (success: Function, error?: Function): Subscription => {
                 let _chan: Observable<Message>;
+                const _err: Observable<Message> = this.getErrorChannel(handlerConfig.returnChannel, name);
                 if (requestStream) {
                     _chan = this.getRequestChannel(handlerConfig.returnChannel, name);
                 } else {
                     _chan = this.getResponseChannel(handlerConfig.returnChannel, name);
                 }
-                _sub = _chan.subscribe(
+                const mergedStreams = Observable.merge(_err, _chan);
+
+                _sub = mergedStreams.subscribe(
                     (msg: Message) => {
                         let _pl = msg.payload;
                         if (_pl.hasOwnProperty('_sendChannel')) {
@@ -674,17 +698,23 @@ export class MessagebusService implements MessageBusEnabled {
                                 error(_pl);
                             }
                         } else {
-                            success(_pl);
+                            if (success) {
+                                success(_pl);
+                            }
                         }
                         if (handlerConfig.singleResponse) {
-                            _sub.unsubscribe();
+                            if (_sub) {
+                                _sub.unsubscribe();
+                            }
                         }
                     },
                     (data: any) => {
                         if (error) {
                             error(data);
                         }
-                        _sub.unsubscribe();
+                        if (_sub) {
+                            _sub.unsubscribe();
+                        }
                     }
                 );
                 return _sub;
@@ -696,7 +726,9 @@ export class MessagebusService implements MessageBusEnabled {
             },
             close: (): boolean => {
                 if (!handlerConfig.singleResponse) {
-                    _sub.unsubscribe();
+                    if (_sub) {
+                        _sub.unsubscribe();
+                    }
                     _sub = null;
                 }
                 return true;
