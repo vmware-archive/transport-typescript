@@ -13,13 +13,15 @@ export default {
         '@angular/core',
         '@angular/common',
         '@angular/platform-browser',
-        'rxjs'
+        'rxjs',
+        'rxjs/add/operator/merge'
     ],
     globals: {
         '@angular/core' : 'ng.core',
         '@angular/common' : 'ng.common',
         '@angular/platform-browser' : 'ng.platformBrowser',
-        'rxjs' : 'rxjs'
+        'rxjs' : 'rxjs',
+        'rxjs/add/operator/merge' : 'rxjs.merge'
     },
     plugins: [
         buble()
