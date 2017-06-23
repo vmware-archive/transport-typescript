@@ -908,7 +908,6 @@ describe('Messagebus Service [messagebus.service]', () => {
                 bus.sendErrorMessage(testChannel, 'chickie & maggie');
             }
         );
-        
         it('Should be able to get observable from message handler for full channel',
             (done) => {
 
