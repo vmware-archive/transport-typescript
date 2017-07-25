@@ -96,8 +96,8 @@ export class StompConfig {
     private _queueLocation: string = '/queue';
 
     static generate(endpoint: string,
-                    host: string,
-                    port: number,
+                    host?: string,
+                    port?: number,
                     useSSL?: boolean,
                     user?: string,
                     pass?: string) {
@@ -115,8 +115,8 @@ export class StompConfig {
     private _testMode: boolean = false;
 
     constructor(private _endpoint: string,
-                private _host: string,
-                private _port: number,
+                private _host?: string,
+                private _port?: number,
                 private _user?: string,
                 private _pass?: string,
                 private _useSSL?: boolean,
@@ -228,20 +228,19 @@ export class StompConfig {
     }
 
     public generateConnectionURI(): string {
-        let scheme: string = 'ws';
-        let hostPort: string = '';
+        let scheme: string = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        let hostPort: string = window.location.host;
+
         if (this._useSSL) {
             scheme = 'wss';
         }
 
-        if (this._host !== '') {
+        if (this._host) {
             hostPort = this._host;
         }
 
-        if (this._port !== null && this._port !== -1) {
+        if (this._port) {
             hostPort += ':' + this._port;
-        } else {
-            scheme = 'wss';
         }
 
         return scheme + '://'
