@@ -89,11 +89,10 @@ describe('Stomp Model [stomp.config]', () => {
 
         it('We should be able to create mock and real sockets',
             () => {
-
                 let config = new StompConfig(
                     '/endpoint',
                     'somehost',
-                    -1,
+                    1080,
                     'user',
                     'pass'
                 );
@@ -103,7 +102,7 @@ describe('Stomp Model [stomp.config]', () => {
                 expect((s instanceof MockSocket)).toBeFalsy();
 
                 expect(config.generateConnectionURI())
-                    .toEqual('wss://somehost/endpoint');
+                    .toEqual('ws://somehost:1080/endpoint');
 
 
                 config.testMode = true;
