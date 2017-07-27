@@ -562,8 +562,8 @@ export class MessagebusService implements MessageBusEnabled {
         }
 
         let sub: Subscription;
-        const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.returnChannel, name);
-        const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.returnChannel, name);
+        const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.sendChannel, name);
+        const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.sendChannel, name);
 
         return {
             generate: (generateSuccessResponse: Function, generateErrorResponse: Function): Subscription => {

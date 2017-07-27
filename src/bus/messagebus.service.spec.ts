@@ -378,6 +378,27 @@ describe('Messagebus Service [messagebus.service]', () => {
         );
 
 
+        it('respondOnce() and requestOnce() on differing request/response channels.',
+            (done) => {
+
+                bus.respondOnce(testChannel, '#some-different-return')
+                    .generate(
+                        (request: string) => {
+                            expect(request).toEqual('magnum');
+                            return 'maggie';
+                        }
+                    );
+
+                bus.requestOnce(testChannel, 'magnum', '#some-different-return')
+                    .handle(
+                        (resp: string) => {
+                            expect(resp).toEqual('maggie');
+                            done();
+                        }
+                    );
+            }
+        );
+
         it('request once with a different return channel',
             (done) => {
 
