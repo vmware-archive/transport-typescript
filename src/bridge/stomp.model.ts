@@ -97,9 +97,7 @@ export class StompSession {
     }
 
     getGalacticSubscription(chan: string): Subscription {
-        if (this.galacticSubscriptions.has(chan)) {
-            return this.galacticSubscriptions.get(chan);
-        }
+        return this.galacticSubscriptions.get(chan);
     }
 
     removeGalacticSubscription(chan: string): void {
