@@ -21,6 +21,13 @@ export enum MessageType {
 }
 
 /**
+ * Simple interface to add in generics.
+ */
+export interface MessageFunction<T> extends Function {
+    (exec: T): void;
+}
+
+/**
  * MessageHandler encapsulates bus handling and communication from the perspective of a consumer
  */
 export interface MessageHandler {
@@ -30,7 +37,7 @@ export interface MessageHandler {
      * @param successHander handle success responses
      * @param errorHandler handle error responses
      */
-    handle(successHander: Function, errorHandler?: Function): Subscription;
+    handle<T, E = any>(successHander: MessageFunction<T>, errorHandler?: MessageFunction<E>): Subscription;
 
     /**
      * if handler is streaming, and the handler is open, send a payload down the request channel
@@ -55,7 +62,7 @@ export interface MessageHandler {
     isClosed(): boolean;
 
     /**
-     * Get an observable for payloads
+     * / Get an observable for payloads
      * @param messageType optional filter for responses, requests or errors. If left blank, you get the firehose.
      */
     getObservable<T>(messageType?: MessageType): Observable<T>;
@@ -71,7 +78,8 @@ export interface MessageResponder {
      * @param generateSuccessResponse handle successful requests (must return response payload to be sent)
      * @param generateErrorResponse handle errors (must return error payload to be sent)
      */
-    generate(generateSuccessResponse: Function, generateErrorResponse?: Function): Subscription;
+    generate<T, E>(generateSuccessResponse: MessageFunction<T>,
+                   generateErrorResponse?: MessageFunction<E>): Subscription;
 
     /**
      * If responder is streaming, and the responder is open, send a new response message down the return channel.

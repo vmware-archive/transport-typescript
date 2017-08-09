@@ -1,4 +1,5 @@
 import {Subject} from 'rxjs/Subject';
+import {Subscription} from 'rxjs/Subscription';
 import {StompClient} from './stomp.client';
 import {StompParser} from './stomp.parser';
 import {MockSocket} from './stomp.mocksocket';
@@ -17,6 +18,7 @@ export interface StompMessage {
     command: string;
     headers: any;
     body: string;
+
     toString(): string;
 }
 
@@ -40,12 +42,14 @@ export class StompSession {
     private _subscriptions: Map<String, Subject<StompMessage>>;
     private _client: StompClient;
     private _config: StompConfig;
+    private galacticSubscriptions: Map<string, Subscription>;
 
     constructor(config: StompConfig) {
         this._config = config;
         this._client = new StompClient();
         this._id = StompParser.genUUID();
         this._subscriptions = new Map<String, Subject<StompMessage>>();
+        this.galacticSubscriptions = new Map<string, Subscription>();
     }
 
     get config(): StompConfig {
@@ -84,6 +88,28 @@ export class StompSession {
 
     disconnect(messageHeaders?: any): void {
         this._client.disconnect(messageHeaders);
+    }
+
+    addGalacticSubscription(chan: string, subscription: Subscription): void {
+        if (!this.galacticSubscriptions.has(chan)) {
+            this.galacticSubscriptions.set(chan, subscription);
+        }
+    }
+
+    getGalacticSubscription(chan: string): Subscription {
+        if (this.galacticSubscriptions.has(chan)) {
+            return this.galacticSubscriptions.get(chan);
+        }
+    }
+
+    removeGalacticSubscription(chan: string): void {
+        if (this.galacticSubscriptions.has(chan)) {
+            this.galacticSubscriptions.delete(chan);
+        }
+    }
+
+    getGalacticSubscriptions(): Map<string, Subscription> {
+        return this.galacticSubscriptions;
     }
 }
 
@@ -241,6 +267,8 @@ export class StompConfig {
 
         if (this._port) {
             hostPort += ':' + this._port;
+        } else {
+            scheme = 'wss';
         }
 
         return scheme + '://'

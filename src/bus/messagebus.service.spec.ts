@@ -956,6 +956,42 @@ describe('Messagebus Service [messagebus.service]', () => {
             }
         );
 
+        it('Should be able to listen to multiple streams',
+            (done) => {
+
+                let val = 0;
+                const handler1 = bus.listenStream(testChannel);
+                const handler2 = bus.listenStream(testChannel);
+                const handler3 = bus.listenStream(testChannel);
+
+                // create a handler so the subscription is opened up and we can tick the stream.
+                handler1.handle(
+                    () => {
+                        val++;
+                    }
+                );
+
+                handler2.handle(
+                    () => {
+                        val++;
+                    }
+                );
+
+                handler3.handle(
+                    () => {
+                        val++;
+                        if (val === 9) {
+                            done();
+                        }
+                    }
+                );
+
+                bus.sendResponseMessage(testChannel, val);
+                bus.sendResponseMessage(testChannel, val);
+                bus.sendResponseMessage(testChannel, val);
+            }
+        );
+
         it('Should be able to get observable from message responder for requests',
             (done) => {
                 const responder: MessageResponder = bus.respondOnce(testChannel);

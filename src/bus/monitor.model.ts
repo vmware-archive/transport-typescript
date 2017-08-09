@@ -23,6 +23,7 @@ export enum MonitorType {
     MonitorDestroyChannel,
     MonitorNewChannel,
     MonitorData,
+    MonitorGalacticData,
     MonitorError,
     MonitorDropped
 }

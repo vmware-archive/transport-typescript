@@ -197,4 +197,9 @@ export class StompParser {
                                                topicDesintation: string): string {
         return subscription.replace(topicDesintation + '/', '');
     }
+
+    // convert topic back into a channel
+    public static convertTopicToChannel(subscription: string): string {
+        return subscription.replace('/topic/', '').trim();
+    }
 }
