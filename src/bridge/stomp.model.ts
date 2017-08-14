@@ -263,10 +263,8 @@ export class StompConfig {
             hostPort = this._host;
         }
 
-        if (this._port) {
+        if (this._port && this._port !== -1) {
             hostPort += ':' + this._port;
-        } else {
-            scheme = 'wss';
         }
 
         return scheme + '://'
