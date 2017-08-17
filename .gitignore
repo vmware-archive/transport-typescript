@@ -12,3 +12,4 @@ tmp
 /ts
 /java
 /.gradle
+/node_modules
