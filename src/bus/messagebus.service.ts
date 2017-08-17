@@ -12,6 +12,8 @@ import {Subject, Subscription, Observable} from 'rxjs';
 import {MessageSchema, ErrorSchema} from './message.schema';
 
 import 'rxjs/add/operator/merge';
+import { CacheImpl } from './cache/cache';
+import { BusCache } from './cache/cache.api';
 
 // import * as Ajv from 'ajv';
 
@@ -34,7 +36,7 @@ export class MessagebusService implements MessageBusEnabled {
     private monitorStream: Channel;
     private dumpMonitor: boolean;
     private _channelMap: Map<string, Channel>;
-
+    private busCache: BusCache;
 
     // private ajv = new Ajv({allErrors: true});
 
@@ -50,6 +52,11 @@ export class MessagebusService implements MessageBusEnabled {
 
         this.enableMonitorDump(false);
         this.monitorBus();
+        this.busCache = new CacheImpl(this);
+    }
+
+    public get cache(): BusCache {
+        return this.busCache;
     }
 
     public getName() {
