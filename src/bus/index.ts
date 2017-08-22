@@ -11,6 +11,7 @@ export * from './messagebus.service';
 export * from './message.model'
 export * from './message.schema'
 export * from './monitor.model'
+export * from './cache/cache.api'
 
 
 export const BIFROST_BUS_DIRECTIVES: Type<any>[] = [

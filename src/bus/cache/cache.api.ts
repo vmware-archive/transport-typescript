@@ -6,7 +6,6 @@ import { MessageFunction } from '../message.model';
 import { Subscription } from 'rxjs/Subscription';
 import { UUID } from './cache.model';
 
-
 /**
  * CacheStream wraps an Observable, allowing for future underlying logic manipulation without
  * worrying about breaking API's.
@@ -23,6 +22,13 @@ export interface CacheStream<T> {
      * Unsubscribe from Observable stream.
      */
     unsubscribe(): void;
+
+
+    /**
+     * Send error back to mutation requestor.
+     * @param {E} error
+     */
+    error<E = any>(error: E): void;
 }
 
 /**
@@ -30,7 +36,7 @@ export interface CacheStream<T> {
  * will broadcast that updated object to any subscribers of the BusCache listening for those specific objects
  * or all objects of a certain type and state changes.
  */
-export interface BusCache {
+export interface BusCache<T> {
 
     /**
      * Place an object into the cache, will broadcast to all subscribers listening for state changes.
@@ -47,6 +53,13 @@ export interface BusCache {
      */
     retrieve<T>(id: UUID): T;
 
+
+    /**
+     * Get all values from cache.
+     * @returns {Array<T>} everything we got!
+     */
+    allValues(): Array<T>;
+
     /**
      * Remove/delete an object into the cache.
      * @param {UUID} id The string ID of the object you wish to remove.
@@ -54,6 +67,16 @@ export interface BusCache {
      * @param {S} state you want to be sent to subscribers notifying cache deletion.
      */
     remove<S>(id: UUID,  state: S): boolean;
+
+
+    /**
+     * Send a mutation request to any subscribers handling mutations.
+     * @param {T} value to be mutated
+     * @param {M} mutationType the type of the mutation
+     * @param {MessageFunction<E>} provide optional error handler for any mutation errors.
+     * @returns {boolean} true if mutation request was placed in stream
+     */
+    mutate<T, M, E>(value: T, mutationType: M, errorHandler?: MessageFunction<E>): boolean;
 
     /**
      * Populate the cache with a collection of objects and their ID's.
@@ -68,7 +91,7 @@ export interface BusCache {
      * @param {S} stateChangeType the state change type you wish to listen to
      * @returns {CacheStream<T>} stream that will tick the object you're listening for.
      */
-    notifyOnChange<S, T>(id: UUID, stateChangeType: S): CacheStream<T>;
+    notifyOnChange<S, T>(id: UUID, ...stateChangeType: S[]): CacheStream<T>;
 
     /**
      * Subscribe to state changes for all objects of a specific type and state change
@@ -79,7 +102,15 @@ export interface BusCache {
      * @param {S} stateChangeType the state change type you with to listen to
      * @returns {CacheStream<T>} stream that will tick the object you're listening for.
      */
-    notifyOnAllChanges<S, T>(objectType: T, stateChangeType: S): CacheStream<T>;
+    notifyOnAllChanges<S, T>(objectType: T, ...stateChangeType: S[]): CacheStream<T>;
+
+    /**
+     * Subscribe to mutation requests via mutate()
+     * @param {T} objectType the object you want to listen for.
+     * @param {M} mutationType optional mutation type
+     * @returns {CacheStream<T>} stream that will tick mutation requests you're listening for.
+     */
+    notifyOnMutationRequest<T, M = any>(objectType: T, ...mutationType: M[]): CacheStream<T>;
 
     /**
      * Will wipe all data out, in case you need a clean slate.

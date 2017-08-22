@@ -1,19 +1,20 @@
 /**
  * Copyright(c) VMware Inc., 2016
  */
-import {Injectable} from '@angular/core';
-import {Channel} from './channel.model';
-import {LogUtil} from '../log/util';
-import {LoggerService} from '../log/logger.service';
-import {LogLevel} from '../log/logger.model';
-import {MonitorObject, MonitorType, MonitorChannel} from './monitor.model';
-import {Message, MessageHandlerConfig, MessageResponder, MessageHandler, MessageType} from './message.model';
-import {Subject, Subscription, Observable} from 'rxjs';
-import {MessageSchema, ErrorSchema} from './message.schema';
-
-import 'rxjs/add/operator/merge';
+import { Injectable } from '@angular/core';
+import { Channel } from './channel.model';
+import { LogUtil } from '../log/util';
+import { LoggerService } from '../log/logger.service';
+import { LogLevel } from '../log/logger.model';
+import { MonitorObject, MonitorType, MonitorChannel } from './monitor.model';
+import { Message, MessageHandlerConfig, MessageResponder, MessageHandler, MessageType } from './message.model';
+import { Subject, Subscription, Observable } from 'rxjs';
+import { MessageSchema, ErrorSchema } from './message.schema';
 import { CacheImpl } from './cache/cache';
 import { BusCache } from './cache/cache.api';
+import 'rxjs/add/operator/merge';
+import { CacheType, UUID } from './cache/cache.model';
+
 
 // import * as Ajv from 'ajv';
 
@@ -23,7 +24,6 @@ import { BusCache } from './cache/cache.api';
  * https://confluence.eng.vmware.com/pages/viewpage.action?pageId=214302828
  *
  */
-
 
 export abstract class MessageBusEnabled {
     abstract getName(): string;
@@ -36,7 +36,9 @@ export class MessagebusService implements MessageBusEnabled {
     private monitorStream: Channel;
     private dumpMonitor: boolean;
     private _channelMap: Map<string, Channel>;
-    private busCache: BusCache;
+
+
+    private cacheMap: Map<string, BusCache<any>>;
 
     // private ajv = new Ajv({allErrors: true});
 
@@ -52,12 +54,34 @@ export class MessagebusService implements MessageBusEnabled {
 
         this.enableMonitorDump(false);
         this.monitorBus();
-        this.busCache = new CacheImpl(this);
+        this.cacheMap = new Map<CacheType, BusCache<any>>();
     }
 
-    public get cache(): BusCache {
-        return this.busCache;
+    public createCache<T>(objectType: CacheType, map?: Map<UUID, T>): BusCache<T> {
+        if (!this.getCache(objectType)) {
+            const cache: BusCache<T> = new CacheImpl<T>(this);
+            if (map) {
+                cache.populateCache(map);
+            }
+            this.cacheMap.set(objectType, cache);
+            return cache;
+        } else {
+            return this.getCache(objectType);
+        }
     }
+
+    public getCache<T>(objectType: CacheType): BusCache<T> {
+        return this.cacheMap.get(objectType);
+    }
+
+    public destroyCache(objectType: CacheType): boolean {
+        if (this.cacheMap.has(objectType)) {
+            this.cacheMap.delete(objectType);
+            return true;
+        }
+        return false;
+    }
+
 
     public getName() {
         return 'MessagebusService';

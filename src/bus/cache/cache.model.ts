@@ -5,16 +5,25 @@ import { MessageFunction } from '../message.model';
 import { Syslog } from '../../log/syslog';
 
 export type UUID = string;
+export type CacheType = string;
 
-export class CacheStateChange<T, V> {
-    constructor(private objectId: UUID,
-                private changeType: T,
-                private objectValue: V) {
+export class MutationRequestWrapper<T, E = any> {
+
+    value: T;
+    errorHandler: MessageFunction<E>;
+
+    constructor(value: T,
+                errorHandler?: MessageFunction<E>) {
+        this.value = value;
+        this.errorHandler = errorHandler;
 
     }
+}
 
-    public get id(): UUID {
-        return this.objectId;
+export class BaseCacheState<T, V> {
+    constructor(private changeType: T,
+                private objectValue: V) {
+
     }
 
     public get type(): T {
@@ -27,19 +36,60 @@ export class CacheStateChange<T, V> {
 
 }
 
-export class CacheStreamImpl<T> implements CacheStream<T> {
-    private subscription: Subscription;
+export class CacheStateChange<T, V> extends BaseCacheState<T, V> {
+    constructor(private objectId: UUID,
+                changeType: T,
+                objectValue: V) {
 
-    constructor(private stream: Observable<T>) {
+        super(changeType, objectValue);
+    }
+
+    public get id(): UUID {
+        return this.objectId;
+    }
+}
+
+export class CacheStateMutation<T, V, E = any> extends BaseCacheState<T, V> {
+    private error: MessageFunction<E>;
+
+    constructor(changeType: T,
+                objectValue: V) {
+        super(changeType, objectValue);
+    }
+
+    public set errorHandler(handler: MessageFunction<E>) {
+        this.error = handler;
+    }
+
+    public get errorHandler() {
+        return this.error;
+    }
+
+}
+
+export class CacheStreamImpl<T, E = any> implements CacheStream<T> {
+
+    private subscription: Subscription;
+    private errorHandler: MessageFunction<E>;
+
+    constructor(private stream: Observable<MutationRequestWrapper<T, E>>) {
 
     }
 
     subscribe(handler: MessageFunction<T>): Subscription {
 
         this.subscription = this.stream.subscribe(
-            (value: T) => {
+            (req: MutationRequestWrapper<T, E>) => {
                 if (handler) {
-                    handler(value);
+
+                    if (req.errorHandler) {
+                        // capture error handler.
+                        this.errorHandler = req.errorHandler;
+                    }
+
+                    // forward onto subscriber.
+                    handler(req.value);
+
                 } else {
                     Syslog.error('unable to handle cache stream event, no handler provided.');
                 }
@@ -52,6 +102,12 @@ export class CacheStreamImpl<T> implements CacheStream<T> {
     unsubscribe(): void {
         if (this.subscription) {
             this.subscription.unsubscribe();
+        }
+    }
+
+    error(error: any): void {
+        if (this.errorHandler) {
+            this.errorHandler(error);
         }
     }
 }
