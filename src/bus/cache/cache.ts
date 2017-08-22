@@ -90,7 +90,7 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
         const filterStream: Observable<MutationRequestWrapper<T>> =
             stream.filter(
                 (state: CacheStateChange<S, T>) => {
-                    if (stateChangeType.length > 0) {
+                    if (stateChangeType && stateChangeType.length > 0) {
                         return (stateChangeType.indexOf(state.type) >= 0);
                     }
                     return true; // all states.
@@ -117,11 +117,10 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
         const filterStream: Observable<MutationRequestWrapper<T>> =
             stream.filter(
                 (state: CacheStateChange<S, T>) => {
-                    if (stateChangeType.length > 0) {
+                    if (stateChangeType && stateChangeType.length > 0) {
                         return (stateChangeType.indexOf(state.type) >= 0);
-                    } else {
-                        return true; // all states.
                     }
+                    return true; // all states.
                 }
             ).filter(
                 (state: CacheStateChange<S, T>) => {
@@ -143,7 +142,6 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
     }
 
     mutate<T, M, E>(value: T, mutationType: M, errorHandler?: MessageFunction<E>): boolean {
-        // TODO: implement error handler for mutation.
         const mutation: CacheStateMutation<M, T> = new CacheStateMutation(mutationType, value);
         mutation.errorHandler = errorHandler;
 
@@ -169,7 +167,7 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
         const filterStream: Observable<MutationRequestWrapper<T, any>> =
             stream.filter(
                 (mutation: CacheStateMutation<M, T>) => {
-                    if (mutationType) {
+                    if (mutationType && mutationType.length > 0) {
                         return (mutationType.indexOf(mutation.type) >= 0);
                     }
                     return true;
