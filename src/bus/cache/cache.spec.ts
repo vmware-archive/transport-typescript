@@ -181,7 +181,7 @@ describe('BusCache [cache/cache]', () => {
 
     it('check notifyOnAllChanges() works correctly', (done) => {
 
-        const cache: BusCache<string> = bus.createCache('Dog');
+        const cache: BusCache<Dog> = bus.createCache('Dog');
 
         let counter: number = 0;
 
@@ -364,6 +364,45 @@ describe('BusCache [cache/cache]', () => {
         cache.mutate(d, Mutate.Update, errorHandler);
 
     });
+
+
+    it('check notifyOnCacheReady() and cacheInitialized() work.', (done) => {
+
+        const cache: BusCache<Dog> = bus.createCache('Dog');
+
+        cache.notifyOnCacheReady(
+            () => {
+                expect(cache.allValues().length).toEqual(1);
+                done();
+            }
+        );
+
+        let d: Dog = new Dog('stinky', 12, 'where is your ball');
+        cache.encache('magnum', d, State.Created);
+        cache.cacheInitialized();
+
+    });
+
+    it('check notifyOnCacheReady() and populateCache() work.', (done) => {
+
+        const cache: BusCache<Dog> = bus.createCache('Dog');
+
+        cache.notifyOnCacheReady(
+            () => {
+                expect(cache.allValues().length).toEqual(3);
+                expect(cache.retrieve<Dog>('cotton').dogPhrase).toEqual('go find the kitty');
+                done();
+            }
+        );
+
+        const vals: Map<UUID, Dog> = new Map();
+        vals.set('magnum', new Dog('stinky', 12, 'where is your ball'));
+        vals.set('cotton', new Dog('chickie', 6, 'go find the kitty'));
+        vals.set('fox', new Dog('foxy', 11, 'stop that barking'));
+        cache.populateCache(vals);
+
+    });
+
 });
 
 class Dog {
