@@ -221,6 +221,7 @@ export class StompService implements MessageBusEnabled {
 
     private openGalacticChannel(channel: string) {
 
+
         let cleanedChannel = StompParser.convertChannelToSubscription(channel);
         this._galaticChannels.set(channel, true);
 
@@ -251,7 +252,6 @@ export class StompService implements MessageBusEnabled {
     }
 
     private closeGalacticChannel(channel: string) {
-
         let cleanedChannel = StompParser.convertChannelToSubscription(channel);
         if (this._sessions.size >= 1) {
 

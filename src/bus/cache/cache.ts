@@ -1,4 +1,4 @@
-import { Message, MessageFunction } from '../message.model';
+import { Message, MessageFunction, MessageHandler } from '../message.model';
 import { MessageBusEnabled, MessagebusService } from '../messagebus.service';
 import { StompParser } from '../../bridge/stomp.parser';
 import { Observable } from 'rxjs/Observable';
@@ -18,6 +18,8 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
     private cache: Map<UUID, any>;
     private cacheStreamChan: string = 'cache-change-' + StompParser.genUUID();
     private cacheMutationChan: string = 'cache-mutation-' + StompParser.genUUID();
+    private cacheReadyChan: string = 'cache-ready-' + StompParser.genUUID();
+    private initialized = false;
 
     public static getObjectChannel(id: UUID): UUID {
         return 'cache-object-' + id;
@@ -52,6 +54,7 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
 
     populateCache<T>(items: Map<UUID, T>): boolean {
         if (this.cache.size === 0) {
+            this.cacheInitialized();
             this.cache = items;
             return true;
         }
@@ -97,7 +100,7 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
                 }
             ).map(
                 (stateChange: CacheStateChange<S, T>) => {
-                    return  new MutationRequestWrapper(stateChange.value);
+                    return new MutationRequestWrapper(stateChange.value);
                 }
             );
 
@@ -186,5 +189,26 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
 
     resetCache(): void {
         this.cache.clear();
+    }
+
+    notifyOnCacheReady(readyFunction: MessageFunction<boolean>): void {
+        setTimeout(
+            () => {
+                if (this.initialized) {
+                    this.bus.sendResponseMessage(this.cacheReadyChan, true);
+                }
+            }
+        );
+
+        this.bus.listenOnce(this.cacheReadyChan)
+            .handle(readyFunction);
+
+    }
+
+    cacheInitialized(): void {
+        if (!this.initialized) {
+            this.initialized = true;
+            this.bus.sendResponseMessage(this.cacheReadyChan, true);
+        }
     }
 }

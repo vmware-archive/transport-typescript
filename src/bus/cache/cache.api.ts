@@ -2,7 +2,7 @@
  * Copyright (c) 2017 VMware, Inc. All Rights Reserved.
  */
 
-import { MessageFunction } from '../message.model';
+import { MessageFunction, MessageHandler } from '../message.model';
 import { Subscription } from 'rxjs/Subscription';
 import { UUID } from './cache.model';
 
@@ -111,6 +111,17 @@ export interface BusCache<T> {
      * @returns {CacheStream<T>} stream that will tick mutation requests you're listening for.
      */
     notifyOnMutationRequest<T, M = any>(objectType: T, ...mutationType: M[]): CacheStream<T>;
+
+    /**
+     * Notify when the cache has been initialized (via populateCache() or setInitialized()
+     * @param {MessageFunction<boolean>} readyFunction
+     */
+    notifyOnCacheReady(readyFunction: MessageFunction<boolean>): void;
+
+    /**
+     * Flip an internal bit to set the cache to ready, notify all watchers.
+     */
+    cacheInitialized(): void;
 
     /**
      * Will wipe all data out, in case you need a clean slate.
