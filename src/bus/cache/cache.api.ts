@@ -2,7 +2,7 @@
  * Copyright (c) 2017 VMware, Inc. All Rights Reserved.
  */
 
-import { MessageFunction, MessageHandler } from '../message.model';
+import { MessageFunction } from '../message.model';
 import { Subscription } from 'rxjs/Subscription';
 import { UUID } from './cache.model';
 
@@ -53,7 +53,6 @@ export interface BusCache<T> {
      */
     retrieve<T>(id: UUID): T;
 
-
     /**
      * Get all values from cache.
      * @returns {Array<T>} everything we got!
@@ -61,10 +60,16 @@ export interface BusCache<T> {
     allValues(): Array<T>;
 
     /**
+     * Get the entire cache as a map.
+     * @returns {Map<UUID, T>}
+     */
+    allValuesAsMap<T>(): Map<UUID, T>;
+
+    /**
      * Remove/delete an object into the cache.
      * @param {UUID} id The string ID of the object you wish to remove.
-     * @param {boolean} true if it was removed, false if not.
      * @param {S} state you want to be sent to subscribers notifying cache deletion.
+     * @return {boolean} true if it was removed, false if not.
      */
     remove<S>(id: UUID,  state: S): boolean;
 
@@ -73,7 +78,7 @@ export interface BusCache<T> {
      * Send a mutation request to any subscribers handling mutations.
      * @param {T} value to be mutated
      * @param {M} mutationType the type of the mutation
-     * @param {MessageFunction<E>} provide optional error handler for any mutation errors.
+     * @param {MessageFunction<E>} errorHandler provide optional error handler for any mutation errors.
      * @returns {boolean} true if mutation request was placed in stream
      */
     mutate<T, M, E>(value: T, mutationType: M, errorHandler?: MessageFunction<E>): boolean;
@@ -83,7 +88,7 @@ export interface BusCache<T> {
      * @param {Map<UUID, T>} items a Map of your UUID's mapped to your Objects.
      * @returns {boolean} if the cache has already been populated (has objects), will return false.
      */
-    populateCache<T>(items: Map<UUID, T>): boolean;
+    populate<T>(items: Map<UUID, T>): boolean;
 
     /**
      * Subscribe to state changes for a specific object.
@@ -91,7 +96,7 @@ export interface BusCache<T> {
      * @param {S} stateChangeType the state change type you wish to listen to
      * @returns {CacheStream<T>} stream that will tick the object you're listening for.
      */
-    notifyOnChange<S, T>(id: UUID, ...stateChangeType: S[]): CacheStream<T>;
+    onChange<S, T>(id: UUID, ...stateChangeType: S[]): CacheStream<T>;
 
     /**
      * Subscribe to state changes for all objects of a specific type and state change
@@ -102,7 +107,7 @@ export interface BusCache<T> {
      * @param {S} stateChangeType the state change type you with to listen to
      * @returns {CacheStream<T>} stream that will tick the object you're listening for.
      */
-    notifyOnAllChanges<S, T>(objectType: T, ...stateChangeType: S[]): CacheStream<T>;
+    onAllChanges<S, T>(objectType: T, ...stateChangeType: S[]): CacheStream<T>;
 
     /**
      * Subscribe to mutation requests via mutate()
@@ -110,21 +115,21 @@ export interface BusCache<T> {
      * @param {M} mutationType optional mutation type
      * @returns {CacheStream<T>} stream that will tick mutation requests you're listening for.
      */
-    notifyOnMutationRequest<T, M = any>(objectType: T, ...mutationType: M[]): CacheStream<T>;
+    onMutationRequest<T, M = any>(objectType: T, ...mutationType: M[]): CacheStream<T>;
 
     /**
-     * Notify when the cache has been initialized (via populateCache() or setInitialized()
+     * Notify when the cache has been initialized (via populate() or initialized()
      * @param {MessageFunction<boolean>} readyFunction
      */
-    notifyOnCacheReady(readyFunction: MessageFunction<boolean>): void;
+    whenReady(readyFunction: MessageFunction<boolean>): void;
 
     /**
      * Flip an internal bit to set the cache to ready, notify all watchers.
      */
-    cacheInitialized(): void;
+    initialized(): void;
 
     /**
      * Will wipe all data out, in case you need a clean slate.
      */
-    resetCache(): void;
+    reset(): void;
 }

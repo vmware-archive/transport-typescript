@@ -61,7 +61,7 @@ export class MessagebusService implements MessageBusEnabled {
         if (!this.getCache(objectType)) {
             const cache: BusCache<T> = new CacheImpl<T>(this);
             if (map) {
-                cache.populateCache(map);
+                cache.populate(map);
             }
             this.cacheMap.set(objectType, cache);
             return cache;
