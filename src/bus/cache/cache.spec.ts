@@ -6,7 +6,7 @@ import { inject, TestBed } from '@angular/core/testing';
 import { Injector } from '@angular/core';
 import { MessagebusService } from '../index';
 import { UUID } from './cache.model';
-import { BusCache, CacheStream } from './cache.api';
+import { BusCache, CacheStream, MutateStream } from './cache.api';
 import { MessageFunction } from '../message.model';
 
 enum State {
@@ -128,7 +128,7 @@ describe('BusCache [cache/cache]', () => {
         expect(map.get('123')).toEqual('tip top');
         expect(map.get('456')).toEqual('clip clop');
 
-        /* check motification does not alter cache */
+        /* check notification does not alter cache */
         map.set('123', 'bacon!');
 
         expect(cache.allValuesAsMap().get('123')).not.toEqual('bacon!');
@@ -324,6 +324,60 @@ describe('BusCache [cache/cache]', () => {
         );
     });
 
+    it('check mutate() works with correct success handling', (done) => {
+
+        const cache: BusCache<Dog> = bus.createCache('Dog');
+
+        let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
+        cache.encache('fox', d, State.Created);
+
+        const mutateStream: MutateStream<Dog, string> = cache.onMutationRequest(new Dog(), Mutate.Update);
+        mutateStream.subscribe(
+            (dog: Dog) => {
+                expect(dog.dogName).toEqual('foxy');
+                expect(dog.dogPhrase).toEqual('eat it, not bury it');
+
+                // some task was done and the mutation was a success. let the caller know.
+                mutateStream.success('we mutated it!');
+            }
+        );
+
+        cache.mutate(d, Mutate.Update,
+            (e: string) => {
+                expect(e).toEqual('we mutated it!');
+                done();
+            }
+        );
+    });
+
+
+    it('check mutate() works with correct error handling', (done) => {
+
+        const cache: BusCache<Dog> = bus.createCache('Dog');
+
+        let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
+        cache.encache('fox', d, State.Created);
+
+        const mutateStream: MutateStream<Dog, string> = cache.onMutationRequest(new Dog(), Mutate.Update);
+        mutateStream.subscribe(
+            (dog: Dog) => {
+                expect(dog.dogName).toEqual('foxy');
+                expect(dog.dogPhrase).toEqual('eat it, not bury it');
+
+                // something failed with the mutate, throw an error to the caller.
+                mutateStream.error('something went wrong');
+            }
+        );
+
+        cache.mutate(d, Mutate.Update, null,
+            (e: string) => {
+                expect(e).toEqual('something went wrong');
+                done();
+            }
+        );
+    });
+
+
     it('check mutate() and notifyOnMutation() works correctly', (done) => {
 
         const cache: BusCache<Dog> = bus.createCache('Dog');
@@ -354,11 +408,11 @@ describe('BusCache [cache/cache]', () => {
                 }
             );
 
-        cache.mutate(d, Mutate.Update);
+        cache.mutate(d, Mutate.Update, null);
 
     });
 
-    it('check errorHandler works so mutator can send errors back to subscribers.', (done) => {
+    it('check mutatorErrorHandler works so mutator can send errors back to subscribers.', (done) => {
 
         const cache: BusCache<Dog> = bus.createCache('Dog');
 
@@ -381,7 +435,7 @@ describe('BusCache [cache/cache]', () => {
             done();
         };
 
-        cache.mutate(d, Mutate.Update, errorHandler);
+        cache.mutate(d, Mutate.Update, null, errorHandler);
 
     });
 

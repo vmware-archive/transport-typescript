@@ -10,25 +10,33 @@ import { UUID } from './cache.model';
  * CacheStream wraps an Observable, allowing for future underlying logic manipulation without
  * worrying about breaking API's.
  */
-export interface CacheStream<T> {
+export interface CacheStream<T, E = any> {
     /**
      * Subscribe to Observable stream.
      * @param {MessageFunction<T>} handler function to handle ticks on stream
      * @returns {Subscription} subscription to stream.
      */
-    subscribe(handler: MessageFunction<T>): Subscription;
+    subscribe(successHandler: MessageFunction<T>, errorHandler?: MessageFunction<E>): Subscription;
 
     /**
      * Unsubscribe from Observable stream.
      */
     unsubscribe(): void;
+}
 
+
+/**
+ * MutateStream allows mutating services to send back success or failure events to requesting actors.
+ */
+export interface MutateStream<T = any, E = any, S = any> extends CacheStream<T, E> {
 
     /**
-     * Send error back to mutation requestor.
+     * Something went wrong with mutation
      * @param {E} error
      */
-    error<E = any>(error: E): void;
+    error(error: E): void;
+
+    success(success: S): void;
 }
 
 /**
@@ -73,15 +81,16 @@ export interface BusCache<T> {
      */
     remove<S>(id: UUID,  state: S): boolean;
 
-
     /**
      * Send a mutation request to any subscribers handling mutations.
      * @param {T} value to be mutated
      * @param {M} mutationType the type of the mutation
+     * @param {MessageFunction<T>} successHandler provide successHandler for mutation requests.
      * @param {MessageFunction<E>} errorHandler provide optional error handler for any mutation errors.
      * @returns {boolean} true if mutation request was placed in stream
      */
-    mutate<T, M, E>(value: T, mutationType: M, errorHandler?: MessageFunction<E>): boolean;
+    mutate<T, M, E, S>(value: T, mutationType: M,
+                       successHandler: MessageFunction<S>, errorHandler?: MessageFunction<E>): boolean;
 
     /**
      * Populate the cache with a collection of objects and their ID's.
@@ -100,14 +109,14 @@ export interface BusCache<T> {
 
     /**
      * Subscribe to state changes for all objects of a specific type and state change
-     * @param {T} objectType the type of object you're looking to listen for, needs to be an actual object however
+     * @param {T} typeInstance the type of object you're looking to listen for, needs to be an actual object however
      *            the method will look at the properties of the objects and match them to see if they are the same
      *            type. object can be a new empty instance of the type you want to watch, or an exisiting instance of
      *            something. The actual property values of the supplied object are ignored.
      * @param {S} stateChangeType the state change type you with to listen to
      * @returns {CacheStream<T>} stream that will tick the object you're listening for.
      */
-    onAllChanges<S, T>(objectType: T, ...stateChangeType: S[]): CacheStream<T>;
+    onAllChanges<S, T>(typeInstance: T, ...stateChangeType: S[]): CacheStream<T>;
 
     /**
      * Subscribe to mutation requests via mutate()
@@ -115,7 +124,7 @@ export interface BusCache<T> {
      * @param {M} mutationType optional mutation type
      * @returns {CacheStream<T>} stream that will tick mutation requests you're listening for.
      */
-    onMutationRequest<T, M = any>(objectType: T, ...mutationType: M[]): CacheStream<T>;
+    onMutationRequest<T, M = any>(objectType: T, ...mutationType: M[]): MutateStream<T>;
 
     /**
      * Notify when the cache has been initialized (via populate() or initialized()

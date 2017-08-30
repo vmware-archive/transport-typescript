@@ -1,9 +1,12 @@
-import { Message, MessageFunction, MessageHandler } from '../message.model';
+import { Message, MessageFunction } from '../message.model';
 import { MessageBusEnabled, MessagebusService } from '../messagebus.service';
 import { StompParser } from '../../bridge/stomp.parser';
 import { Observable } from 'rxjs/Observable';
-import { CacheStateChange, CacheStateMutation, CacheStreamImpl, MutationRequestWrapper, UUID } from './cache.model';
-import { BusCache, CacheStream } from './cache.api';
+import {
+    CacheStateChange, CacheStateMutation, CacheStreamImpl, MutateStreamImpl, MutationRequestWrapper,
+    UUID
+} from './cache.model';
+import { BusCache, CacheStream, MutateStream } from './cache.api';
 
 /**
  * Copyright(c) VMware Inc. 2017
@@ -92,10 +95,19 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
 
     onChange<S, T>(id: UUID, ...stateChangeType: S[]): CacheStream<T> {
 
+        const cacheStreamChan: Observable<Message> =
+            this.bus.getResponseChannel(CacheImpl.getObjectChannel(id), this.getName());
+
+        const cacheErrorCan: Observable<Message> =
+            this.bus.getErrorChannel(CacheImpl.getObjectChannel(id), this.getName());
+
         const stream: Observable<CacheStateChange<S, T>> =
-            this.bus.getChannel(CacheImpl.getObjectChannel(id), this.getName())
+            Observable.merge(cacheStreamChan, cacheErrorCan)
                 .map(
                     (msg: Message) => {
+                        if (msg.isError()) {
+                            throw new Error(msg.payload);
+                        }
                         return msg.payload as CacheStateChange<S, T>;
                     }
                 );
@@ -119,10 +131,19 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
 
     onAllChanges<T, S>(objectType: T, ...stateChangeType: S[]): CacheStream<T> {
 
+        const cacheStreamChan: Observable<Message> =
+            this.bus.getResponseChannel(this.cacheStreamChan, this.getName());
+
+        const cacheErrorCan: Observable<Message> =
+            this.bus.getErrorChannel(this.cacheStreamChan, this.getName());
+
         const stream: Observable<CacheStateChange<S, T>> =
-            this.bus.getChannel(this.cacheStreamChan, this.getName())
+            Observable.merge(cacheStreamChan, cacheErrorCan)
                 .map(
                     (msg: Message) => {
+                        if (msg.isError()) {
+                            throw new Error(msg.payload);
+                        }
                         return msg.payload as CacheStateChange<S, T>;
                     }
                 );
@@ -154,9 +175,12 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
         return new CacheStreamImpl<T>(filterStream);
     }
 
-    mutate<T, M, E>(value: T, mutationType: M, errorHandler?: MessageFunction<E>): boolean {
+    mutate<T, M, E>(value: T, mutationType: M,
+                    successHandler: MessageFunction<T>, errorHandler?: MessageFunction<E>): boolean {
+
         const mutation: CacheStateMutation<M, T> = new CacheStateMutation(mutationType, value);
         mutation.errorHandler = errorHandler;
+        mutation.successHandler = successHandler;
 
         this.bus.sendRequestMessage(
             this.cacheMutationChan,
@@ -167,7 +191,7 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
         return true;
     }
 
-    onMutationRequest<T, M>(objectType: T, ...mutationType: M[]): CacheStream<T> {
+    onMutationRequest<T, M, E = any>(objectType: T, ...mutationType: M[]): MutateStream<T, E> {
 
         const stream: Observable<CacheStateMutation<M, T>> =
             this.bus.getChannel(this.cacheMutationChan, this.getName())
@@ -189,12 +213,13 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
                 (stateChange: CacheStateMutation<M, T>) => {
                     return new MutationRequestWrapper(
                         stateChange.value,
+                        stateChange.successHandler,
                         stateChange.errorHandler
                     );
                 }
             );
 
-        return new CacheStreamImpl<T>(filterStream);
+        return new MutateStreamImpl<T, E>(filterStream);
     }
 
     reset(): void {
@@ -202,6 +227,8 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
     }
 
     whenReady(readyFunction: MessageFunction<boolean>): void {
+
+        // push this off into the event loop, make sure all consumers are async.
         setTimeout(
             () => {
                 if (this.cacheInitialized) {

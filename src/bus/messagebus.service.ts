@@ -199,6 +199,7 @@ export class MessagebusService implements MessageBusEnabled {
      * @param cname
      * @param from
      * @returns {Observable<Message>}
+     * @deprecated Do not use. Use listenGalacticStream() instead.
      */
     public getGalacticChannel(cname: string, from: string): Observable<Message> {
         return this.getChannelObject(cname, from)
@@ -211,6 +212,17 @@ export class MessagebusService implements MessageBusEnabled {
                     return msg;
                 }
             );
+    }
+
+    /**
+     * Simple API for listening to a stream on a Galactic Channel.
+     * @param {string} cname
+     * @param {string} name
+     * @returns {MessageHandler}
+     */
+    public listenGalacticStream(cname: string, name: string = this.getName()): MessageHandler {
+        this.getChannelObject(cname, name).setGalactic();
+        return this.listenStream(cname, name);
     }
 
     /**

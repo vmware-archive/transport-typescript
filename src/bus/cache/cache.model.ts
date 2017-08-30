@@ -1,4 +1,4 @@
-import { CacheStream } from './cache.api';
+import { CacheStream, MutateStream } from './cache.api';
 import { Subscription } from 'rxjs/Subscription';
 import { Observable } from 'rxjs/Observable';
 import { MessageFunction } from '../message.model';
@@ -11,12 +11,14 @@ export class MutationRequestWrapper<T, E = any> {
 
     value: T;
     errorHandler: MessageFunction<E>;
+    successHandler: MessageFunction<T>;
 
     constructor(value: T,
+                successHandler?: MessageFunction<T>,
                 errorHandler?: MessageFunction<E>) {
         this.value = value;
+        this.successHandler = successHandler;
         this.errorHandler = errorHandler;
-
     }
 }
 
@@ -50,7 +52,8 @@ export class CacheStateChange<T, V> extends BaseCacheState<T, V> {
 }
 
 export class CacheStateMutation<T, V, E = any> extends BaseCacheState<T, V> {
-    private error: MessageFunction<E>;
+    private pvtErrorHandler: MessageFunction<E>;
+    private pvtSuccessHandler: MessageFunction<V>;
 
     constructor(changeType: T,
                 objectValue: V) {
@@ -58,40 +61,47 @@ export class CacheStateMutation<T, V, E = any> extends BaseCacheState<T, V> {
     }
 
     public set errorHandler(handler: MessageFunction<E>) {
-        this.error = handler;
+        this.pvtErrorHandler = handler;
     }
 
-    public get errorHandler() {
-        return this.error;
+    public get errorHandler(): MessageFunction<E> {
+        return this.pvtErrorHandler;
     }
 
+    public set successHandler(handler: MessageFunction<V>) {
+        this.pvtSuccessHandler = handler;
+    }
+
+    public get successHandler(): MessageFunction<V> {
+        return this.pvtSuccessHandler;
+    }
 }
 
 export class CacheStreamImpl<T, E = any> implements CacheStream<T> {
 
-    private subscription: Subscription;
-    private errorHandler: MessageFunction<E>;
+    protected subscription: Subscription;
 
-    constructor(private stream: Observable<MutationRequestWrapper<T, E>>) {
+
+    constructor(protected stream: Observable<MutationRequestWrapper<T, E>>) {
 
     }
 
-    subscribe(handler: MessageFunction<T>): Subscription {
+    subscribe(successHandler: MessageFunction<T>, errorHandler?: MessageFunction<E>): Subscription {
 
         this.subscription = this.stream.subscribe(
             (req: MutationRequestWrapper<T, E>) => {
-                if (handler) {
-
-                    if (req.errorHandler) {
-                        // capture error handler.
-                        this.errorHandler = req.errorHandler;
-                    }
+                if (successHandler) {
 
                     // forward onto subscriber.
-                    handler(req.value);
+                    successHandler(req.value);
 
                 } else {
                     Syslog.error('unable to handle cache stream event, no handler provided.');
+                }
+            },
+            (error: any) => {
+                if (errorHandler) {
+                    errorHandler(error);
                 }
             }
         );
@@ -104,10 +114,65 @@ export class CacheStreamImpl<T, E = any> implements CacheStream<T> {
             this.subscription.unsubscribe();
         }
     }
+}
 
-    error(error: any): void {
-        if (this.errorHandler) {
-            this.errorHandler(error);
+export class MutateStreamImpl<T, E = any> extends CacheStreamImpl<T> implements MutateStream<T, E> {
+
+    protected mutatorErrorHandler: MessageFunction<E>;
+    protected mutatorSuccessHandler: MessageFunction<T>;
+
+    constructor(protected stream: Observable<MutationRequestWrapper<T, E>>) {
+        super(stream);
+    }
+
+    subscribe(successHandler: MessageFunction<T>, errorHandler?: MessageFunction<E>): Subscription {
+
+        this.subscription = this.stream.subscribe(
+            (req: MutationRequestWrapper<T, E>) => {
+                if (successHandler) {
+
+                    if (req.errorHandler) {
+                        // capture mutator error handler.
+                        this.mutatorErrorHandler = req.errorHandler;
+                    }
+
+                    if (req.successHandler) {
+                        // capture mutator success handler.
+                        this.mutatorSuccessHandler = req.successHandler;
+                    }
+
+                    // forward onto subscriber.
+                    successHandler(req.value);
+
+                } else {
+                    Syslog.error('unable to handle cache stream event, no handler provided.');
+                }
+            },
+            (error: any) => {
+                if (errorHandler) {
+                    errorHandler(error);
+                }
+            }
+        );
+
+        return this.subscription;
+    }
+
+    error(error: E): void {
+        if (this.mutatorErrorHandler) {
+            // push off to the event loop to ensure async exec of mutator logic.
+            setTimeout(
+                () => this.mutatorErrorHandler(error)
+            );
+        }
+    }
+
+    success(success: T): void {
+        if (this.mutatorSuccessHandler) {
+            // push off to the event loop to ensure async exec of mutator logic.
+            setTimeout(
+                () => this.mutatorSuccessHandler(success)
+            );
         }
     }
 }
