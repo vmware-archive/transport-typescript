@@ -13,7 +13,8 @@ import { UUID } from './cache.model';
 export interface CacheStream<T, E = any> {
     /**
      * Subscribe to Observable stream.
-     * @param {MessageFunction<T>} handler function to handle ticks on stream
+     * @param {MessageFunction<T>} successHandler function to handle ticks on stream
+     * @param {MessageFunction<E>} errorHandler function to handle any internal failures.
      * @returns {Subscription} subscription to stream.
      */
     subscribe(successHandler: MessageFunction<T>, errorHandler?: MessageFunction<E>): Subscription;
@@ -32,10 +33,14 @@ export interface MutateStream<T = any, E = any, S = any> extends CacheStream<T, 
 
     /**
      * Something went wrong with mutation
-     * @param {E} error
+     * @param {E} error value to pass back to the mutator
      */
     error(error: E): void;
 
+    /**
+     * The mutation was a success!
+     * @param {S} success value to pass back to mutator
+     */
     success(success: S): void;
 }
 
@@ -85,8 +90,8 @@ export interface BusCache<T> {
      * Send a mutation request to any subscribers handling mutations.
      * @param {T} value to be mutated
      * @param {M} mutationType the type of the mutation
-     * @param {MessageFunction<T>} successHandler provide successHandler for mutation requests.
-     * @param {MessageFunction<E>} errorHandler provide optional error handler for any mutation errors.
+     * @param {MessageFunction<S>} successHandler provide object S to mutator function on successful mutation.
+     * @param {MessageFunction<E>} errorHandler provide object E to mutator function on error.
      * @returns {boolean} true if mutation request was placed in stream
      */
     mutate<T, M, E, S>(value: T, mutationType: M,
