@@ -14,6 +14,7 @@ export default {
         '@angular/common',
         '@angular/platform-browser',
         'rxjs',
+        'rxjs/Observable',
         'rxjs/add/operator/merge'
     ],
     globals: {
@@ -21,6 +22,7 @@ export default {
         '@angular/common' : 'ng.common',
         '@angular/platform-browser' : 'ng.platformBrowser',
         'rxjs' : 'rxjs',
+        'rxjs/Observable' : 'rxjs/Observable',
         'rxjs/add/operator/merge' : 'rxjs.merge'
     },
     plugins: [
