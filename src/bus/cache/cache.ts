@@ -56,18 +56,12 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
     }
 
     allValuesAsMap<T>(): Map<UUID, T> {
-        let copy: Map<UUID, T> = new Map<UUID, T>();
-        this.cache.forEach(
-            (val: T, key: UUID) => {
-                copy.set(key, val);
-            }
-        );
-        return copy;
+        return new Map(this.cache.entries());
     }
 
     populate<T>(items: Map<UUID, T>): boolean {
         if (this.cache.size === 0) {
-            this.initialized();
+            this.initialize();
             this.cache = items;
             return true;
         }
@@ -240,7 +234,7 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
         this.bus.listenOnce(this.cacheReadyChan).handle(readyFunction);
     }
 
-    initialized(): void {
+    initialize(): void {
         if (!this.cacheInitialized) {
             this.cacheInitialized = true;
             this.bus.sendResponseMessage(this.cacheReadyChan, true);

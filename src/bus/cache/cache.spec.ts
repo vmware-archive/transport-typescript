@@ -440,7 +440,7 @@ describe('BusCache [cache/cache]', () => {
     });
 
 
-    it('check whenReady() and initialized() work.', (done) => {
+    it('check whenReady() and initialize() work.', (done) => {
 
         const cache: BusCache<Dog> = bus.createCache('Dog');
 
@@ -453,7 +453,7 @@ describe('BusCache [cache/cache]', () => {
 
         let d: Dog = new Dog('stinky', 12, 'where is your ball');
         cache.encache('magnum', d, State.Created);
-        cache.initialized();
+        cache.initialize();
 
     });
 

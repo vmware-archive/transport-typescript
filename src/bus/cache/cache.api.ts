@@ -132,7 +132,7 @@ export interface BusCache<T> {
     onMutationRequest<T, M = any>(objectType: T, ...mutationType: M[]): MutateStream<T>;
 
     /**
-     * Notify when the cache has been initialized (via populate() or initialized()
+     * Notify when the cache has been initialize (via populate() or initialize()
      * @param {MessageFunction<boolean>} readyFunction
      */
     whenReady(readyFunction: MessageFunction<boolean>): void;
@@ -140,7 +140,7 @@ export interface BusCache<T> {
     /**
      * Flip an internal bit to set the cache to ready, notify all watchers.
      */
-    initialized(): void;
+    initialize(): void;
 
     /**
      * Will wipe all data out, in case you need a clean slate.
