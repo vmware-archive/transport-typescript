@@ -62,7 +62,7 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
     populate<T>(items: Map<UUID, T>): boolean {
         if (this.cache.size === 0) {
             this.initialize();
-            this.cache = items;
+            this.cache = new Map(items.entries());
             return true;
         }
         return false;
