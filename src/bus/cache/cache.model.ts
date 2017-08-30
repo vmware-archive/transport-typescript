@@ -154,7 +154,6 @@ export class MutateStreamImpl<T, E = any> extends CacheStreamImpl<T> implements 
                 }
             }
         );
-
         return this.subscription;
     }
 

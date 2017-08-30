@@ -237,9 +237,7 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
             }
         );
 
-        this.bus.listenOnce(this.cacheReadyChan)
-            .handle(readyFunction);
-
+        this.bus.listenOnce(this.cacheReadyChan).handle(readyFunction);
     }
 
     initialized(): void {
