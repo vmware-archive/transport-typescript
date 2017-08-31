@@ -12,6 +12,10 @@ import { BusCache, CacheStream, MutateStream } from './cache.api';
  * Copyright(c) VMware Inc. 2017
  */
 
+interface Predicate<T> {
+    (value: T): boolean;
+}
+
 export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
 
     getName(): string {
@@ -106,21 +110,14 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
                     }
                 );
 
-        const filterStream: Observable<MutationRequestWrapper<T>> =
-            stream.filter(
-                (state: CacheStateChange<S, T>) => {
-                    if (stateChangeType && stateChangeType.length > 0) {
-                        return (stateChangeType.indexOf(state.type) >= 0);
-                    }
-                    return true; // all states.
-                }
-            ).map(
-                (stateChange: CacheStateChange<S, T>) => {
-                    return new MutationRequestWrapper(stateChange.value);
-                }
-            );
+        const stateChangeFilter: Predicate<CacheStateChange<S, T>> = (state: CacheStateChange<S, T>) => {
+            if (stateChangeType && stateChangeType.length > 0) {
+                return (stateChangeType.indexOf(state.type) >= 0);
+            }
+            return true; // all states.
+        };
 
-        return new CacheStreamImpl<T>(filterStream);
+        return new CacheStreamImpl<T>(this.filterStream(stream, [stateChangeFilter]));
     }
 
     onAllChanges<T, S>(objectType: T, ...stateChangeType: S[]): CacheStream<T> {
@@ -142,31 +139,40 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
                     }
                 );
 
-        const filterStream: Observable<MutationRequestWrapper<T>> =
-            stream.filter(
-                (state: CacheStateChange<S, T>) => {
-                    if (stateChangeType && stateChangeType.length > 0) {
-                        return (stateChangeType.indexOf(state.type) >= 0);
-                    }
-                    return true; // all states.
-                }
-            ).filter(
-                (state: CacheStateChange<S, T>) => {
+        const stateChangeFilter: Predicate<CacheStateChange<S, T>> = (state: CacheStateChange<S, T>) => {
+            if (stateChangeType && stateChangeType.length > 0) {
+                return (stateChangeType.indexOf(state.type) >= 0);
+            }
+            return true; // all states.
+        };
 
-                    const compareKeys = (a: T, b: T): boolean => {
-                        const aKeys = Object.keys(a).sort();
-                        const bKeys = Object.keys(b).sort();
-                        return JSON.stringify(aKeys) === JSON.stringify(bKeys);
-                    };
-                    return compareKeys(objectType, state.value);
-                }
-            ).map(
-                (stateChange: CacheStateChange<S, T>) => {
-                    return new MutationRequestWrapper(stateChange.value);
-                }
-            );
+        const compareObjects: Predicate<CacheStateChange<S, T>> = (state: CacheStateChange<S, T>) => {
+            const compareKeys = (a: T, b: T): boolean => {
+                const aKeys = Object.keys(a).sort();
+                const bKeys = Object.keys(b).sort();
+                return JSON.stringify(aKeys) === JSON.stringify(bKeys);
+            };
+            return compareKeys(objectType, state.value);
+        };
 
-        return new CacheStreamImpl<T>(filterStream);
+        return new CacheStreamImpl<T>(this.filterStream(stream, [stateChangeFilter, compareObjects]));
+    }
+
+    private filterStream<S, T>(
+        stream: Observable<any>,
+        filters: Array<Predicate<CacheStateChange<S, T>>>): Observable<MutationRequestWrapper<T>> {
+
+        filters.forEach(
+            (f: Predicate<CacheStateChange<S, T>>) => {
+                stream = stream.filter(f);
+            }
+        );
+
+        return stream.map(
+            (stateChange: CacheStateChange<S, T>) => {
+                return new MutationRequestWrapper(stateChange.value);
+            }
+        );
     }
 
     mutate<T, M, E>(value: T, mutationType: M,
