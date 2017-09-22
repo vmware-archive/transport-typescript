@@ -1,20 +1,17 @@
-import {Injectable} from '@angular/core';
-import {StompClient} from './stomp.client';
-import {Observable, ReplaySubject, Subscription} from 'rxjs';
+import { Injectable } from '@angular/core';
+import { StompClient } from './stomp.client';
+import { Observable, ReplaySubject, Subscription } from 'rxjs';
 import {
     StompSession, StompChannel, StompBusCommand, StompSubscription, StompMessage,
     StompConfig
 } from '../bridge/stomp.model';
-import {StompCommandSchema, StompConfigSchema} from './stomp.schema';
-import {StompParser} from '../bridge/stomp.parser';
-import {StompValidator} from './stomp.validator';
-import {Syslog} from '../log/syslog';
-import {MonitorChannel, MonitorObject, MonitorType} from '../bus/monitor.model';
-import {Message} from '../bus/message.model';
-import {MessagebusService, MessageBusEnabled} from '../bus/messagebus.service';
-
-// max length of a subscription ID before truncation
-const SUBSCRIPTION_ID_LENGTH = 13;
+import { StompCommandSchema, StompConfigSchema } from './stomp.schema';
+import { StompParser } from '../bridge/stomp.parser';
+import { StompValidator } from './stomp.validator';
+import { Syslog } from '../log/syslog';
+import { MonitorChannel, MonitorObject, MonitorType } from '../bus/monitor.model';
+import { Message } from '../bus/message.model';
+import { MessagebusService, MessageBusEnabled } from '../bus/messagebus.service';
 
 /**
  * Service is responsible for handling all STOMP communications over a socket.
@@ -227,8 +224,8 @@ export class StompService implements MessageBusEnabled {
 
         // if we're connected, kick things off, if not then fill the requests stream up
         // and consume once we are connected.
-        if (this._sessions.size >= 1) {
 
+        if (this._sessions.size >= 1) {
             this._sessions.forEach(session => {
                 let config = session.config;
                 let subscriptionId = this.generateSubscriptionId(session.id, cleanedChannel);
@@ -288,7 +285,6 @@ export class StompService implements MessageBusEnabled {
     }
 
     private processSubscriptionMessage(msg: Message): void {
-
         if (!StompValidator.validateSubscriptionMessage(msg)) {
             return;
         }
@@ -388,37 +384,52 @@ export class StompService implements MessageBusEnabled {
     }
 
     public connectClient(config: StompConfig): void {
-
         let session = new StompSession(config);
 
         let connection = session.connect();
 
         connection.subscribe(
             () => {
+                session.connectionCount++;
+                if (session.config.brokerConnectCount === session.connectionCount) {
+                    if (!session.connected) {
 
-                let message: StompBusCommand =
-                    StompParser.generateStompBusCommand(
-                        StompClient.STOMP_CONNECTED,    // not a command, but used for local notifications.
-                        session.id                      // each broker requires a session.
-                    );
+                        let message: StompBusCommand =
+                            StompParser.generateStompBusCommand(
+                                StompClient.STOMP_CONNECTED,    // not a command, but used for local notifications.
+                                session.id                      // each broker requires a session.
+                            );
 
-                this.sendBusCommandResponseRaw(message, StompChannel.connection, true);
+                        this.sendBusCommandResponseRaw(message, StompChannel.connection, true);
 
-                // these are now available;
-                this._errorObservable = session.client.socketErrorObserver;
-                this._closeObservable = session.client.socketCloseObserver;
+                        // these are now available;
+                        this._errorObservable = session.client.socketErrorObserver;
+                        this._closeObservable = session.client.socketCloseObserver;
 
-                // add session to map
-                this._sessions.set(session.id, session);
-                this.subscribeToClientObservables();
+                        // add session to map
+                        this._sessions.set(session.id, session);
+                        this.subscribeToClientObservables();
 
-                // if we have pending galactic channels waiting, lets open the replay
-                // and subscribe to those destinations
-                this._galacticRequests.subscribe(
-                    (channel: string) => {
-                        this.openGalacticChannel(channel);
+                        // if we have pending galactic channels waiting, lets open the replay
+                        // and subscribe to those destinations
+                        this._galacticRequests.subscribe(
+                            (channel: string) => {
+                                this.openGalacticChannel(channel);
+                            }
+                        );
+                        session.connected = true;
+                    } else {
+                        // more connected messages than expected!
+                        let message: StompBusCommand =
+                            StompParser.generateStompBusCommand(
+                                StompClient.STOMP_CONNECTED_DUPLICATE, // Spring broker sends double CONNECT on
+                                session.id                              // each broker requires a session.
+                            );
+
+                        this.sendBusCommandResponseRaw(message, StompChannel.connection, true);
                     }
-                );
+                }
+
             }
         );
     }
@@ -473,7 +484,6 @@ export class StompService implements MessageBusEnabled {
 
             // subscribe to broker destination
             let subscriptionSubject = session.subscribe(data.destination, data.id);
-
             let message: StompBusCommand =
                 StompParser.generateStompBusCommand(
                     StompClient.STOMP_SUBSCRIBED,
@@ -521,7 +531,6 @@ export class StompService implements MessageBusEnabled {
                         StompParser.convertSubscriptionToChannel(data.destination, session.config.topicLocation);
 
                     let payload = JSON.parse(message.body);
-
                     this.bus.sendResponseMessage(channel, payload);
 
                     // duplicate to stomp messages.

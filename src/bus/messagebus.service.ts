@@ -7,13 +7,19 @@ import { LogUtil } from '../log/util';
 import { LoggerService } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
 import { MonitorObject, MonitorType, MonitorChannel } from './monitor.model';
-import { Message, MessageHandlerConfig, MessageResponder, MessageHandler, MessageType } from './message.model';
+import {
+    Message, MessageHandlerConfig, MessageResponder, MessageHandler, MessageType,
+    MessageFunction
+} from './message.model';
 import { Subject, Subscription, Observable } from 'rxjs';
 import { MessageSchema, ErrorSchema } from './message.schema';
 import { CacheImpl } from './cache/cache';
 import { BusCache } from './cache/cache.api';
 import 'rxjs/add/operator/merge';
 import { CacheType, UUID } from './cache/cache.model';
+import { StompBusCommand, StompChannel, StompConfig } from '../bridge/stomp.model';
+import { StompClient } from '../bridge/stomp.client';
+import { StompParser } from '../bridge/stomp.parser';
 
 
 // import * as Ajv from 'ajv';
@@ -194,6 +200,56 @@ export class MessagebusService implements MessageBusEnabled {
     }
 
     /**
+     * Connect up the bridge to a new broker.
+     * @param {MessageFunction<string>} readyHandler fires once the bridge is connected correctly.
+     * @param {string} endpoint of the broker you're connecting to
+     * @param {string} topicLocation topic prefix (defaults to /topic)
+     * @param {string} queueLocation queue prefic (defaults to /queue)
+     * @param {number} numBrokerRelays defaults to 1, handles multi-connect states according to relay count
+     * @param {string} host the host of the STOMP broker you want to connect to
+     * @param {number} port the port of the STOMP broker you want to connect to
+     * @param {string} user username (if required)
+     * @param {string} pass passwowrd (if required)
+     * @param {boolean} useSSL run over WSS?
+     * @returns {MessageHandler}
+     */
+    public connectBridge(readyHandler: MessageFunction<string>,
+                         endpoint: string,
+                         topicLocation: string,
+                         queueLocation?: string,
+                         numBrokerRelays: number = 1,
+                         host?: string,
+                         port?: number,
+                         user?: string,
+                         pass?: string,
+                         useSSL?: boolean): MessageHandler {
+
+        const config: StompConfig = StompConfig.generate(
+            endpoint,
+            host,
+            port,
+            useSSL,
+            user,
+            pass
+        );
+        config.topicLocation = topicLocation;
+        config.queueLocation = queueLocation;
+        config.brokerConnectCount = numBrokerRelays;
+        const handler: MessageHandler = this.requestStream(
+            StompChannel.connection,
+            StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, '', '', config),
+        );
+        handler.handle(
+            (command: StompBusCommand) => {
+                if (command.command === StompClient.STOMP_CONNECTED) {
+                    readyHandler(command.session);
+                }
+            }
+        );
+        return handler;
+    }
+
+    /**
      * Activate the bridge to subscribe to a topic/queue on broker with the same channel name.
      * Automatically unpack wrapped messages.
      * @param cname
@@ -258,11 +314,10 @@ export class MessagebusService implements MessageBusEnabled {
             channel = new Channel(cname);
             this._channelMap.set(cname, channel);
             symbol = ' +++ ';
+
+            let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, cname, from, symbol);
+            this.monitorStream.send(new Message().request(mo));
         }
-
-
-        let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, cname, from, symbol);
-        this.monitorStream.send(new Message().request(mo));
         channel.increment();
         return channel;
     }
@@ -336,12 +391,11 @@ export class MessagebusService implements MessageBusEnabled {
         }
 
         let channel = this._channelMap.get(cname);
-
         channel.decrement();
         let mo = new MonitorObject().build(MonitorType.MonitorCloseChannel, cname, from, ' ' + channel.refCount);
         this.monitorStream.send(new Message().request(mo));
 
-        if (channel.refCount === 0) {
+        if (channel.galactic || channel.refCount === 0) {
             return this.destroy(channel, from);
         }
         return false;

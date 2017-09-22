@@ -22,6 +22,7 @@ export class StompClient {
     static STOMP_CONFIGURED: string = 'CONFIGURED';
     static STOMP_CONNECT: string = 'CONNECT';
     static STOMP_CONNECTED: string = 'CONNECTED';
+    static STOMP_CONNECTED_DUPLICATE: string = 'CONNECTED_DUPLICATE';
     static STOMP_MESSAGE: string = 'MESSAGE';
     static STOMP_RECEIPT: string = 'RECEIPT';
     static STOMP_DISCONNECT: string = 'DISCONNECT';

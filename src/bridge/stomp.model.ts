@@ -1,8 +1,8 @@
-import {Subject} from 'rxjs/Subject';
-import {Subscription} from 'rxjs/Subscription';
-import {StompClient} from './stomp.client';
-import {StompParser} from './stomp.parser';
-import {MockSocket} from './stomp.mocksocket';
+import { Subject } from 'rxjs/Subject';
+import { Subscription } from 'rxjs/Subscription';
+import { StompClient } from './stomp.client';
+import { StompParser } from './stomp.parser';
+import { MockSocket } from './stomp.mocksocket';
 
 export class StompChannel {
 
@@ -43,6 +43,8 @@ export class StompSession {
     private _client: StompClient;
     private _config: StompConfig;
     private galacticSubscriptions: Map<string, Subscription>;
+    private isConnected: boolean = false;
+    private connCount: number = 0;
 
     constructor(config: StompConfig) {
         this._config = config;
@@ -50,6 +52,22 @@ export class StompSession {
         this._id = StompParser.genUUID();
         this._subscriptions = new Map<String, Subject<StompMessage>>();
         this.galacticSubscriptions = new Map<string, Subscription>();
+    }
+
+    public get connected(): boolean {
+        return this.isConnected;
+    }
+
+    public set connected(val: boolean) {
+        this.isConnected = val;
+    }
+
+    public get connectionCount(): number {
+        return this.connCount;
+    }
+
+    public set connectionCount(val: number) {
+        this.connCount = val;
     }
 
     get config(): StompConfig {
@@ -118,6 +136,7 @@ export class StompConfig {
     private _useQueues: boolean = false;
     private _topicLocation: string = '/topic';
     private _queueLocation: string = '/queue';
+    private numBrokerConnect: number = 1;
 
     static generate(endpoint: string,
                     host?: string,
@@ -155,6 +174,14 @@ export class StompConfig {
             this._heartbeatOut = 30000;
         }
     };
+
+    set brokerConnectCount(count: number) {
+        this.numBrokerConnect = count;
+    }
+
+    get brokerConnectCount(): number {
+        return this.numBrokerConnect;
+    }
 
     set topicLocation(val: string) {
         this._topicLocation = val;
