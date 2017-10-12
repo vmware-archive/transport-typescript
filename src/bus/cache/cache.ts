@@ -227,6 +227,7 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
     }
 
     whenReady(readyFunction: MessageFunction<boolean>): void {
+        this.bus.listenOnce(this.cacheReadyChan).handle(readyFunction);
 
         // push this off into the event loop, make sure all consumers are async.
         setTimeout(
@@ -236,8 +237,6 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
                 }
             }
         );
-
-        this.bus.listenOnce(this.cacheReadyChan).handle(readyFunction);
     }
 
     initialize(): void {

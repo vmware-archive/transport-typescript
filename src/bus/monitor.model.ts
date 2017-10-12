@@ -19,9 +19,11 @@ export class MonitorChannel {
 
 export enum MonitorType {
     MonitorCloseChannel,
+    MonitorGalacticUnsubscribe,
     MonitorCompleteChannel,
     MonitorDestroyChannel,
     MonitorNewChannel,
+    MonitorNewGalacticChannel,
     MonitorData,
     MonitorGalacticData,
     MonitorError,

@@ -278,6 +278,9 @@ export class MessagebusService implements MessageBusEnabled {
      */
     public listenGalacticStream(cname: string, name: string = this.getName()): MessageHandler {
         this.getChannelObject(cname, name).setGalactic();
+        let mo = new MonitorObject().build(MonitorType.MonitorNewGalacticChannel, cname, null, null);
+        this.monitorStream.send(new Message().request(mo));
+
         return this.listenStream(cname, name);
     }
 
@@ -432,6 +435,29 @@ export class MessagebusService implements MessageBusEnabled {
             .send(message);
 
         return true;
+    }
+
+    /**
+     * Unsubscribe from a Galactic Channel. Will send an UNSUBSCRIBE message to broker.
+     * @param {string} cname
+     * @param {string} from
+     */
+    public closeGalacticChannel(cname: string, from?: string): void {
+        let mo = new MonitorObject().build(MonitorType.MonitorGalacticUnsubscribe, cname, from);
+        this.monitorStream.send(new Message().request(mo));
+    }
+
+    /**
+     * Fire a galactic send notification to the montitor like it was a regular send on Observable. The
+     * bridge will then pick this up and fire a SEND packet down the wire to that destination.
+     *
+     * @param {string} cname galactic channel name to send to
+     * @param payload payload of message
+     * @param {MessageSchema} schema
+     */
+    public sendGalacticMessage(cname: string, payload: any, from?: string): void {
+        let mo = new MonitorObject().build(MonitorType.MonitorGalacticData, cname, from, payload);
+        this.monitorStream.send(new Message().request(mo));
     }
 
     /**

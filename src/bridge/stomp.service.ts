@@ -169,19 +169,16 @@ export class StompService implements MessageBusEnabled {
         }
         let mo = msg.payload as MonitorObject;
         switch (mo.type) {
-            case MonitorType.MonitorNewChannel:
-                if (this.bus.isGalacticChannel(mo.channel)) {
-                    this.openGalacticChannel(mo.channel);
-                }
+            case MonitorType.MonitorNewGalacticChannel:
+                this.openGalacticChannel(mo.channel);
                 break;
 
             case MonitorType.MonitorGalacticData:
                 this.sendGalacticMessage(mo.channel, mo.data);
-
                 break;
 
             case MonitorType.MonitorCompleteChannel:
-            case MonitorType.MonitorCloseChannel:
+            case MonitorType.MonitorGalacticUnsubscribe:
                 if (this._galaticChannels.get(mo.channel)) {
                     this.closeGalacticChannel(mo.channel);
                 }
@@ -218,7 +215,6 @@ export class StompService implements MessageBusEnabled {
     }
 
     private openGalacticChannel(channel: string) {
-
         let cleanedChannel = StompParser.convertChannelToSubscription(channel);
         this._galaticChannels.set(channel, true);
 
