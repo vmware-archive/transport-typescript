@@ -388,7 +388,12 @@ export class StompService implements MessageBusEnabled {
         connection.subscribe(
             () => {
                 session.connectionCount++;
+                // this checks to see if the number of brokers configured send by the bus connectBroker() method
+                // has been hit yet for this session. The broker connect count is equivalent to how many CONNECTED
+                // events will be sent down the socket.
                 if (session.config.brokerConnectCount === session.connectionCount) {
+
+                    // Making sure any duplicate runs (just in case things go mad), only run once per session.
                     if (!session.connected) {
 
                         let message: StompBusCommand =
@@ -415,16 +420,17 @@ export class StompService implements MessageBusEnabled {
                             }
                         );
                         session.connected = true;
-                    } else {
-                        // more connected messages than expected!
-                        let message: StompBusCommand =
-                            StompParser.generateStompBusCommand(
-                                StompClient.STOMP_CONNECTED_DUPLICATE, // Spring broker sends double CONNECT on
-                                session.id                              // each broker requires a session.
-                            );
-
-                        this.sendBusCommandResponseRaw(message, StompChannel.connection, true);
                     }
+                } else if (session.config.brokerConnectCount > session.connectionCount) {
+                    // more connected messages than expected, ignore, but tell the bus duplicates came in beyond
+                    // what we were expecting.
+                    let message: StompBusCommand =
+                        StompParser.generateStompBusCommand(
+                            StompClient.STOMP_CONNECTED_DUPLICATE, // Spring broker sends double CONNECT on
+                            session.id                              // each broker requires a session.
+                        );
+
+                    this.sendBusCommandResponseRaw(message, StompChannel.connection, true);
                 }
 
             }

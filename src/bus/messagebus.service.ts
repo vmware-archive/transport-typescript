@@ -398,7 +398,7 @@ export class MessagebusService implements MessageBusEnabled {
         let mo = new MonitorObject().build(MonitorType.MonitorCloseChannel, cname, from, ' ' + channel.refCount);
         this.monitorStream.send(new Message().request(mo));
 
-        if (channel.galactic || channel.refCount === 0) {
+        if (channel.refCount === 0) {
             return this.destroy(channel, from);
         }
         return false;
