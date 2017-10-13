@@ -7,7 +7,7 @@ import {StompMessage, StompConfig} from './stomp.model';
 import {fromEvent} from 'rxjs/observable/fromEvent';
 import { map } from 'rxjs/operator/map';
 
-const LOCATION: string = '[shared/stomp/stomp-client]';
+const LOCATION: string = 'Bifröst: StompClient';
 
 export interface StompTransaction {
     id: string;
@@ -235,7 +235,7 @@ export class StompClient {
     }
 
     private onStompError(frame: StompMessage) {
-        Syslog.error('Error with STOMP client on WebSocket: ' + frame, LOCATION);
+        Syslog.error('Error with STOMP Client on WebSocket: ' + frame.command + frame.body, LOCATION);
         this.sendStompErrorToSubscribers(frame.headers, frame.body);
     }
 
@@ -257,7 +257,7 @@ export class StompClient {
             this._subscriptions.forEach((subscriber: Subject<StompMessage>, id: string) => {
 
                 Syslog.debug('Unsubscribing: ' + id, LOCATION);
-                subscriber.complete();
+                //subscriber.complete();
                 this.deleteSubscription(id);
 
             });
@@ -350,6 +350,7 @@ export class StompClient {
                 // the subscription ID should have been sent back from the server
                 if (frame.headers.subscription) {
                     if (this.getSubscription(frame.headers.subscription) !== null) {
+
                         this.getSubscription(frame.headers.subscription).next(frame);
                     }
                 }

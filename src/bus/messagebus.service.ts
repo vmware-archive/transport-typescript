@@ -484,7 +484,11 @@ export class MessagebusService implements MessageBusEnabled {
      */
     public sendResponse(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
         let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
-        this.send(mh.sendChannel, new Message().response(mh, schema), name);
+        this.tickEventLoop(
+            () => {
+                this.send(mh.sendChannel, new Message().response(mh, schema), name);
+            }
+        );
         return true;
     }
 
@@ -498,6 +502,7 @@ export class MessagebusService implements MessageBusEnabled {
      */
     public sendRequestMessage(cname: string, payload: any,
                               schema = new MessageSchema(), name = this.getName()): boolean {
+
         return this.send(cname, new Message().request(payload, schema), name);
     }
 
@@ -510,7 +515,12 @@ export class MessagebusService implements MessageBusEnabled {
      */
     public sendResponseMessage(cname: string, payload: any,
                                schema = new MessageSchema(), name = this.getName()): boolean {
-        return this.send(cname, new Message().response(payload, schema), name);
+        this.tickEventLoop(
+            () => {
+                this.send(cname, new Message().response(payload, schema), name);
+            }
+        );
+        return true;
     }
 
 
@@ -665,6 +675,9 @@ export class MessagebusService implements MessageBusEnabled {
         return this.listen(mh, true, name);
     }
 
+    private tickEventLoop(func: Function) {
+        setTimeout(func);
+    };
 
     /**
      * Simplified responder will respond to any message sent on handler config send channel
@@ -691,6 +704,7 @@ export class MessagebusService implements MessageBusEnabled {
         return {
             generate: (generateSuccessResponse: Function, generateErrorResponse: Function): Subscription => {
                 const mergedStreams = Observable.merge(errorChannel, requestChannel);
+
                 sub = mergedStreams.subscribe(
                     (msg: Message) => {
                         let pl = msg.payload;
@@ -699,11 +713,15 @@ export class MessagebusService implements MessageBusEnabled {
                             pl = msg.payload.body;
                         }
                         if (!msg.isError()) {
-                            this.sendResponseMessage(
-                                handlerConfig.returnChannel,
-                                generateSuccessResponse(pl),
-                                schemaRef,
-                                name
+                            this.tickEventLoop(
+                                () => {
+                                    this.sendResponseMessage(
+                                        handlerConfig.returnChannel,
+                                        generateSuccessResponse(pl),
+                                        schemaRef,
+                                        name
+                                    );
+                                }
                             );
                         } else {
                             let err: Function;
@@ -712,11 +730,15 @@ export class MessagebusService implements MessageBusEnabled {
                             } else {
                                 err = generateSuccessResponse;
                             }
-                            this.sendErrorMessage(
-                                handlerConfig.returnChannel,
-                                err(pl),
-                                schemaRef,
-                                name
+                            this.tickEventLoop(
+                                () => {
+                                    this.sendErrorMessage(
+                                        handlerConfig.returnChannel,
+                                        err(pl),
+                                        schemaRef,
+                                        name
+                                    );
+                                }
                             );
                         }
                         if (handlerConfig.singleResponse) {

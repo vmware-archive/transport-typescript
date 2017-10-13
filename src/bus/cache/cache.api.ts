@@ -133,9 +133,9 @@ export interface BusCache<T> {
 
     /**
      * Notify when the cache has been initialize (via populate() or initialize()
-     * @param {MessageFunction<boolean>} readyFunction
+     * @param {MessageFunction<boolean>} readyFunction that accepts the entire cache as a map.
      */
-    whenReady(readyFunction: MessageFunction<boolean>): void;
+    whenReady(readyFunction: MessageFunction<Map<UUID, T>>): void;
 
     /**
      * Flip an internal bit to set the cache to ready, notify all watchers.

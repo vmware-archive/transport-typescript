@@ -98,6 +98,7 @@ export class StompService implements MessageBusEnabled {
     private _sessions: Map<string, StompSession>;
     private _galaticChannels: Map<string, boolean>;
     private _galacticRequests: ReplaySubject<string>;
+    private _galacticRequestSubscription: Subscription;
     private bus: MessagebusService;
 
     setBus(bus: MessagebusService) {
@@ -408,7 +409,7 @@ export class StompService implements MessageBusEnabled {
 
                         // if we have pending galactic channels waiting, lets open the replay
                         // and subscribe to those destinations
-                        this._galacticRequests.subscribe(
+                        this._galacticRequestSubscription = this._galacticRequests.subscribe(
                             (channel: string) => {
                                 this.openGalacticChannel(channel);
                             }
@@ -436,6 +437,7 @@ export class StompService implements MessageBusEnabled {
         if (session && session !== null) {
             session.disconnect();
             this._sessions.delete(sessionId);
+            this._galacticRequestSubscription.unsubscribe();
         }
     }
 

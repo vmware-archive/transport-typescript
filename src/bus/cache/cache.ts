@@ -65,8 +65,8 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
 
     populate<T>(items: Map<UUID, T>): boolean {
         if (this.cache.size === 0) {
-            this.initialize();
             this.cache = new Map(items.entries());
+            this.initialize();
             return true;
         }
         return false;
@@ -83,8 +83,9 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
 
     remove<S>(id: UUID, state: S): boolean {
         if (this.cache.has(id)) {
-            this.sendChangeBroadcast(state, id, this.cache.get(id));
+            const obj = this.cache.get(id);
             this.cache.delete(id);
+            this.sendChangeBroadcast(state, id, obj);
             this.bus.close(CacheImpl.getObjectChannel(id), this.getName());
             return true;
         }
@@ -226,14 +227,14 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
         this.cache.clear();
     }
 
-    whenReady(readyFunction: MessageFunction<boolean>): void {
+    whenReady<T>(readyFunction: MessageFunction<Map<UUID, T>>): void {
         this.bus.listenOnce(this.cacheReadyChan).handle(readyFunction);
 
         // push this off into the event loop, make sure all consumers are async.
         setTimeout(
             () => {
                 if (this.cacheInitialized) {
-                    this.bus.sendResponseMessage(this.cacheReadyChan, true);
+                    this.bus.sendResponseMessage(this.cacheReadyChan, this.allValuesAsMap());
                 }
             }
         );

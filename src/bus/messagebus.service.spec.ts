@@ -362,6 +362,7 @@ describe('Messagebus Service [messagebus.service]', () => {
                 bus.respondOnce(testChannel)
                     .generate(
                         (request: string) => {
+                            console.log('chewy pop');
                             expect(request).toEqual('strawbarita');
                             return 'margarita';
                         }
