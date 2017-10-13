@@ -3,25 +3,12 @@
  */
 import {inject, TestBed} from '@angular/core/testing';
 import {Injector} from '@angular/core';
-
 import {Syslog} from '../log/syslog';
 import {LogUtil} from '../log/util';
 import {LogLevel} from '../log/logger.model';
 import {Message, MessageResponder, MessageType} from './message.model';
 import {MessagebusService} from './index';
-import {Observable} from 'rxjs/Observable';
 
-//import {BifrostModule} from '../bifrost.module';
-
-/**
- * This is the unit test for the MessagebusService.
- */
-
-// beforeEach(function () {
-//     TestBed.configureTestingModule({
-//         imports: [BifrostModule.forRoot()]
-//     });
-// });
 
 function makeCallCountCaller(done: any, targetCount: number): any {
     let count = 0;
