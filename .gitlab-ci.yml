@@ -1,0 +1,14 @@
+before_script:
+  - npm install
+
+test:
+  script:
+    - npm run test
+
+coverage:
+  script:
+    - npm run coverage
+
+prepare:
+  script:
+    - npm run repare:all
