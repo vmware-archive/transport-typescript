@@ -1,14 +1,16 @@
+image: node:latest
+
 before_script:
-  - npm install
+  - install-chrome
 
 test:
   script:
-    - npm run test
+    - xvfb-run -a npm run test
 
-coverage:
-  script:
-    - npm run coverage
-
-prepare:
-  script:
-    - npm run repare:all
+#coverage:
+#  script:
+#    - xvfb-run -a npm run coverage
+#
+#prepare:
+#  script:
+#    - xvfb-run -a npm run prepare:all
