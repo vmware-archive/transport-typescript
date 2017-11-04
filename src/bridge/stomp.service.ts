@@ -1,3 +1,7 @@
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
+
 import { Injectable } from '@angular/core';
 import { StompClient } from './stomp.client';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
@@ -9,8 +13,8 @@ import { StompCommandSchema, StompConfigSchema } from './stomp.schema';
 import { StompParser } from '../bridge/stomp.parser';
 import { StompValidator } from './stomp.validator';
 import { Syslog } from '../log/syslog';
-import { MonitorChannel, MonitorObject, MonitorType } from '../bus/monitor.model';
-import { Message } from '../bus/message.model';
+import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
+import { Message } from '../bus/model/message.model';
 import { MessagebusService, MessageBusEnabled } from '../bus/messagebus.service';
 
 /**
@@ -41,7 +45,7 @@ export class StompService implements MessageBusEnabled {
                 destination,
                 subscription
             );
-        bus.send(StompChannel.subscription,
+        bus.api.send(StompChannel.subscription,
             new Message().request(command, new StompConfigSchema()), StompService.serviceName);
 
     }
@@ -76,7 +80,7 @@ export class StompService implements MessageBusEnabled {
     static fireConnectCommand(bus: MessagebusService, config: StompConfig = null): void {
 
         let command = StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, null, null, config);
-        bus.send(StompChannel.connection,
+        bus.api.send(StompChannel.connection,
             new Message().request(command, new StompConfigSchema()), StompService.serviceName);
     }
 
@@ -84,7 +88,7 @@ export class StompService implements MessageBusEnabled {
     static fireDisconnectCommand(bus: MessagebusService, sessionId: string): void {
 
         let command = StompParser.generateStompBusCommand(StompClient.STOMP_DISCONNECT, sessionId);
-        bus.send(StompChannel.connection,
+        bus.api.send(StompChannel.connection,
             new Message().request(command, new StompConfigSchema()), StompService.serviceName);
     }
 
@@ -110,16 +114,16 @@ export class StompService implements MessageBusEnabled {
         this.setBus(bus);
 
         let connectionChannel =
-            this.bus.getRequestChannel(StompChannel.connection, this.getName());
+            this.bus.api.getRequestChannel(StompChannel.connection, this.getName());
 
         let subscriptionChannel =
-            this.bus.getRequestChannel(StompChannel.subscription, this.getName());
+            this.bus.api.getRequestChannel(StompChannel.subscription, this.getName());
 
         let inboundChannel =
-            this.bus.getRequestChannel(StompChannel.messages, this.getName());
+            this.bus.api.getRequestChannel(StompChannel.messages, this.getName());
 
         let monitorChannel =
-            this.bus.getRequestChannel(MonitorChannel.stream, this.getName());
+            this.bus.api.getRequestChannel(MonitorChannel.stream, this.getName());
 
         connectionChannel.subscribe(
             (msg: Message) => {
@@ -197,12 +201,10 @@ export class StompService implements MessageBusEnabled {
             const config = session.config;
 
             if (config.useTopics) {
-                const destination = cleanedChannel;
-
                 const command: StompBusCommand = StompParser.generateStompBusCommand(
                     StompClient.STOMP_MESSAGE,
                     session.id,
-                    destination,
+                    cleanedChannel,
                     StompParser.generateStompReadyMessage(payload)
                 );
 
@@ -358,14 +360,14 @@ export class StompService implements MessageBusEnabled {
             messageType =
                 new Message().error(command, new StompCommandSchema());
         }
-        this.bus.send(
+        this.bus.api.send(
             channel,
             messageType,
             this.getName()
         );
 
         if (echoStatus) {
-            this.bus.send(
+            this.bus.api.send(
                 StompChannel.status,
                 messageType,
                 this.getName()
@@ -498,7 +500,7 @@ export class StompService implements MessageBusEnabled {
             const channel: string = StompParser.convertTopicToChannel(data.destination);
 
             const chan: Observable<Message> =
-                this.bus.getRequestChannel(channel, this.getName());
+                this.bus.api.getRequestChannel(channel, this.getName());
 
             const sub: Subscription = chan.subscribe(
                 (msg: Message) => {
@@ -534,11 +536,16 @@ export class StompService implements MessageBusEnabled {
                     let channel =
                         StompParser.convertSubscriptionToChannel(data.destination, session.config.topicLocation);
 
-                    let payload = JSON.parse(message.body);
+                    let payload;
+                    try {
+                        payload = JSON.parse(message.body);
+                    } catch (e) {
+                        payload = message.body;
+                    }
                     this.bus.sendResponseMessage(channel, payload);
 
                     // duplicate to stomp messages.
-                    this.bus.send(StompChannel.messages,
+                    this.bus.api.send(StompChannel.messages,
                         new Message().response(busResponse, new StompCommandSchema()),
                         this.getName()
                     );
@@ -581,10 +588,8 @@ export class StompService implements MessageBusEnabled {
             if (sub) {
                 sub.unsubscribe();
                 session.removeGalacticSubscription(channel);
-                this.bus.close(channel, this.getName());
+                this.bus.api.close(channel, this.getName());
             }
         }
     }
 }
-
-

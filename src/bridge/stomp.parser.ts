@@ -1,6 +1,10 @@
-import {StompClient} from './stomp.client';
-import {StompMessage, StompBusCommand, StompSubscription} from './stomp.model';
-import {Message} from '../bus/message.model';
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
+
+import { StompClient } from './stomp.client';
+import { StompMessage, StompBusCommand, StompSubscription } from './stomp.model';
+import { Message } from '../bus/model/message.model';
 
 export class StompParser {
 

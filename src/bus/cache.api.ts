@@ -1,16 +1,16 @@
-/*
- * Copyright (c) 2017 VMware, Inc. All Rights Reserved.
+/**
+ * Copyright(c) VMware Inc. 2016-2017
  */
 
-import { MessageFunction } from '../message.model';
+import { MessageFunction } from './model/message.model';
 import { Subscription } from 'rxjs/Subscription';
-import { UUID } from './cache.model';
+import { UUID } from './cache/cache.model';
 
 /**
- * CacheStream wraps an Observable, allowing for future underlying logic manipulation without
+ * StoreStream wraps an Observable, allowing for future underlying logic manipulation without
  * worrying about breaking API's.
  */
-export interface CacheStream<T, E = any> {
+export interface StoreStream<T, E = any> {
     /**
      * Subscribe to Observable stream.
      * @param {MessageFunction<T>} successHandler function to handle ticks on stream
@@ -29,7 +29,7 @@ export interface CacheStream<T, E = any> {
 /**
  * MutateStream allows mutating services to send back success or failure events to requesting actors.
  */
-export interface MutateStream<T = any, E = any, S = any> extends CacheStream<T, E> {
+export interface MutateStream<T = any, E = any, S = any> extends StoreStream<T, E> {
 
     /**
      * Something went wrong with mutation
@@ -45,11 +45,11 @@ export interface MutateStream<T = any, E = any, S = any> extends CacheStream<T, 
 }
 
 /**
- * BusCache is a stateful in memory cache for objects. All state changes (any time the cache is modified)
- * will broadcast that updated object to any subscribers of the BusCache listening for those specific objects
+ * BusStore is a stateful in memory cache for objects. All state changes (any time the cache is modified)
+ * will broadcast that updated object to any subscribers of the BusStore listening for those specific objects
  * or all objects of a certain type and state changes.
  */
-export interface BusCache<T> {
+export interface BusStore<T> {
 
     /**
      * Place an object into the cache, will broadcast to all subscribers listening for state changes.
@@ -57,14 +57,14 @@ export interface BusCache<T> {
      * @param {T} value the object you wish to cache
      * @param {S} state the state change event you want to broadcast with this action (created, updated etc).
      */
-    encache<T, S>(id: UUID, value: T, state: S): void;
+    put<T, S>(id: UUID, value: T, state: S): void;
 
     /**
      * Retrieve an object from the cache
-     * @param {UUID} id the string ID of the object you wish to retrieve.
+     * @param {UUID} id the string ID of the object you wish to get.
      * @returns {T} the object you're looking for.
      */
-    retrieve<T>(id: UUID): T;
+    get<T>(id: UUID): T;
 
     /**
      * Get all values from cache.
@@ -108,9 +108,9 @@ export interface BusCache<T> {
      * Subscribe to state changes for a specific object.
      * @param {UUID} id the ID of the object you wish to receive updates.
      * @param {S} stateChangeType the state change type you wish to listen to
-     * @returns {CacheStream<T>} stream that will tick the object you're listening for.
+     * @returns {StoreStream<T>} stream that will tick the object you're listening for.
      */
-    onChange<S, T>(id: UUID, ...stateChangeType: S[]): CacheStream<T>;
+    onChange<S, T>(id: UUID, ...stateChangeType: S[]): StoreStream<T>;
 
     /**
      * Subscribe to state changes for all objects of a specific type and state change
@@ -119,15 +119,15 @@ export interface BusCache<T> {
      *            type. object can be a new empty instance of the type you want to watch, or an exisiting instance of
      *            something. The actual property values of the supplied object are ignored.
      * @param {S} stateChangeType the state change type you with to listen to
-     * @returns {CacheStream<T>} stream that will tick the object you're listening for.
+     * @returns {StoreStream<T>} stream that will tick the object you're listening for.
      */
-    onAllChanges<S, T>(typeInstance: T, ...stateChangeType: S[]): CacheStream<T>;
+    onAllChanges<S, T>(typeInstance: T, ...stateChangeType: S[]): StoreStream<T>;
 
     /**
      * Subscribe to mutation requests via mutate()
      * @param {T} objectType the object you want to listen for.
      * @param {M} mutationType optional mutation type
-     * @returns {CacheStream<T>} stream that will tick mutation requests you're listening for.
+     * @returns {StoreStream<T>} stream that will tick mutation requests you're listening for.
      */
     onMutationRequest<T, M = any>(objectType: T, ...mutationType: M[]): MutateStream<T>;
 

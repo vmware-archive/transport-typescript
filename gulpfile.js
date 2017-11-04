@@ -35,6 +35,14 @@ gulp.task('build', function (callback) {
     );
 });
 
+gulp.task('build:dev', function (callback) {
+    return runSequence(
+        'clean',
+       ['typescript'],
+        callback
+    );
+});
+
 /**
  * Builds one time, then watches for changes and starts Browsersync
  */
@@ -54,14 +62,29 @@ gulp.task("serve", function (callback) {
  * Builds the application in production mode and runs all tests once on it.
  */
 gulp.task("test", function (callback) {
-    env.set({NODE_ENV: "prod"}); // We only run tests in production mode for now
     return runSequence(
-        'build',
+        'build:dev',
         'karma:verbose',
         callback
     );
 });
 
+gulp.task("test:debug", function (callback) {
+    return runSequence(
+        'build:dev',
+        'karma:debug',
+        callback
+    );
+});
+
+
+gulp.task("coverage", function (callback) {
+    return runSequence(
+        'build:dev',
+        'karma:coverage-report',
+        callback
+    );
+});
 
 /**
  * Publishes the bifröst package to the NPM registry

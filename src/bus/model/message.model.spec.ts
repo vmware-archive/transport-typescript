@@ -1,19 +1,8 @@
-import {Message, MessageType} from './message.model';
-import {BifrostModule} from '../bifrost.module';
-import {TestBed} from '@angular/core/testing';
-
-
 /**
- * This is the unit test for the Stream model.
+ * Copyright(c) VMware Inc. 2016-2017
  */
 
-
-
-beforeEach(() => {
-    TestBed.configureTestingModule({
-        imports: [BifrostModule.forRoot()]
-    });
-});
+import {Message, MessageType} from './message.model';
 
 describe('Stream Model [stream]', () => {
 

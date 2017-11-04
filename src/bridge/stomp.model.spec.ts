@@ -1,5 +1,9 @@
-import {MockSocket} from './stomp.mocksocket';
-import {StompConfig, StompSession} from './stomp.model';
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
+
+import { MockSocket } from './stomp.mocksocket';
+import { StompConfig, StompSession } from './stomp.model';
 
 describe('Stomp Model [stomp.config]', () => {
 

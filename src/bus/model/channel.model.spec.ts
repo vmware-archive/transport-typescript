@@ -1,8 +1,12 @@
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
+
 import {Channel} from './channel.model';
-import {Syslog} from '../log/syslog';
-import {LogUtil} from '../log/util';
+import {Syslog} from '../../log/syslog';
+import {LogUtil} from '../../log/util';
 import {Message} from './message.model';
-import {BifrostModule} from '../bifrost.module';
+import {BifrostModule} from '../../bifrost.module';
 import {TestBed} from '@angular/core/testing';
 
 /**

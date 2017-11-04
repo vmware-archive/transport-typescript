@@ -1,11 +1,12 @@
-import {Observable} from 'rxjs';
-import {Subject} from 'rxjs';
-import {StompParser} from './stomp.parser';
-import {Syslog} from '../log/syslog';
-import {StompMessage, StompConfig} from './stomp.model';
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
 
-import {fromEvent} from 'rxjs/observable/fromEvent';
-import { map } from 'rxjs/operator/map';
+import { Observable } from 'rxjs';
+import { Subject } from 'rxjs';
+import { StompParser } from './stomp.parser';
+import { Syslog } from '../log/syslog';
+import { StompMessage, StompConfig } from './stomp.model';
 
 const LOCATION: string = 'Bifröst: StompClient';
 
@@ -59,8 +60,8 @@ export class StompClient {
 
     constructor() {
 
-        this._transactionReceipts = new Map < string, Subject < StompMessage >>();
-        this._subscriptions = new Map < string, Subject < StompMessage >>();
+        this._transactionReceipts = new Map<string, Subject<StompMessage>>();
+        this._subscriptions = new Map<string, Subject<StompMessage>>();
 
         this._stompConnectedObserver = new Subject<Boolean>();
         this._ackObserver = new Subject<StompMessage>();

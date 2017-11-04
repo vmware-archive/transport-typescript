@@ -1,119 +1,121 @@
-import {StompParser} from './stomp.parser';
-import {StompClient} from './stomp.client';
-import {StompMessage, StompBusCommand} from './stomp.model';
-import {StompCommandSchema} from './stomp.schema';
-import {StompValidator} from './stomp.validator';
-import {MonitorObject, MonitorType} from '../bus/monitor.model';
-import {Message} from '../bus/message.model';
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
 
-export function main() {
+import { StompParser } from './stomp.parser';
+import { StompClient } from './stomp.client';
+import { StompMessage, StompBusCommand } from './stomp.model';
+import { StompCommandSchema } from './stomp.schema';
+import { StompValidator } from './stomp.validator';
+import { MonitorObject, MonitorType } from '../bus/model/monitor.model';
+import { Message } from '../bus/model/message.model';
 
-    describe('Stomp Validator [stomp.validator]', () => {
+describe('Stomp Validator [stomp.validator]', () => {
 
-        it('Check that connection messages can be validated',
-            () => {
+    it('Check that connection messages can be validated',
+        () => {
 
-                let id = StompParser.genUUID();
+            let id = StompParser.genUUID();
 
-                //missing payload.
-                let stompMessage = StompParser.frame(StompClient.STOMP_CONNECT);
-                let message = packageStompMessage(StompClient.STOMP_CONNECT, id, null);
+            //missing payload.
+            let stompMessage = StompParser.frame(StompClient.STOMP_CONNECT);
+            let message = packageStompMessage(StompClient.STOMP_CONNECT, id, null);
 
-                expect(StompValidator.validateConnectionMessage(message)).toBeFalsy();
+            expect(StompValidator.validateConnectionMessage(message)).toBeFalsy();
 
-                // missing session id.
-                stompMessage = StompParser.frame(StompClient.STOMP_DISCONNECT);
-                message = packageStompMessage(StompClient.STOMP_DISCONNECT, null, stompMessage);
+            // missing session id.
+            stompMessage = StompParser.frame(StompClient.STOMP_DISCONNECT);
+            message = packageStompMessage(StompClient.STOMP_DISCONNECT, null, stompMessage);
 
-                expect(StompValidator.validateConnectionMessage(message)).toBeFalsy();
+            expect(StompValidator.validateConnectionMessage(message)).toBeFalsy();
 
-                // valid
-                stompMessage = StompParser.frame(StompClient.STOMP_CONNECT);
-                message = packageStompMessage(StompClient.STOMP_CONNECT, id, stompMessage);
+            // valid
+            stompMessage = StompParser.frame(StompClient.STOMP_CONNECT);
+            message = packageStompMessage(StompClient.STOMP_CONNECT, id, stompMessage);
 
-                expect(StompValidator.validateConnectionMessage(message)).toBeTruthy();
-            }
-        );
+            expect(StompValidator.validateConnectionMessage(message)).toBeTruthy();
+        }
+    );
 
-        it('Check that subscription messages can be validated',
-            () => {
+    it('Check that subscription messages can be validated',
+        () => {
 
-                let id = StompParser.genUUID();
+            let id = StompParser.genUUID();
 
-                //missing payload.
-                let message = packageStompMessage(StompClient.STOMP_SUBSCRIBE, id, null);
+            //missing payload.
+            let message = packageStompMessage(StompClient.STOMP_SUBSCRIBE, id, null);
 
-                expect(StompValidator.validateSubscriptionMessage(message)).toBeFalsy();
+            expect(StompValidator.validateSubscriptionMessage(message)).toBeFalsy();
 
-                //missing payload.
-                message = packageStompMessage(StompClient.STOMP_UNSUBSCRIBE, id, null);
-                expect(StompValidator.validateSubscriptionMessage(message)).toBeFalsy();
+            //missing payload.
+            message = packageStompMessage(StompClient.STOMP_UNSUBSCRIBE, id, null);
+            expect(StompValidator.validateSubscriptionMessage(message)).toBeFalsy();
 
-                // valid
-                let stompMessage = StompParser.frame(StompClient.STOMP_SUBSCRIBE);
-                message = packageStompMessage(StompClient.STOMP_SUBSCRIBE, id, stompMessage);
+            // valid
+            let stompMessage = StompParser.frame(StompClient.STOMP_SUBSCRIBE);
+            message = packageStompMessage(StompClient.STOMP_SUBSCRIBE, id, stompMessage);
 
-                expect(StompValidator.validateSubscriptionMessage(message)).toBeTruthy();
-            }
-        );
+            expect(StompValidator.validateSubscriptionMessage(message)).toBeTruthy();
+        }
+    );
 
-        it('Check that monitor messages can be validated',
-            () => {
+    it('Check that monitor messages can be validated',
+        () => {
 
-                let mo: MonitorObject = new MonitorObject().build(
-                    MonitorType.MonitorNewChannel,
-                    '#bleep-blip-bloop',
-                    'somewhereOuthere'
-                );
+            let mo: MonitorObject = new MonitorObject().build(
+                MonitorType.MonitorNewChannel,
+                '#bleep-blip-bloop',
+                'somewhereOuthere'
+            );
 
-                expect(StompValidator.validateMonitorMessage(new Message().request(mo))).toBeTruthy();
+            expect(StompValidator.validateMonitorMessage(new Message().request(mo))).toBeTruthy();
 
-                mo.channel = null;
-                expect(StompValidator.validateMonitorMessage(new Message().request(mo))).toBeFalsy();
-                expect(StompValidator.validateMonitorMessage(new Message().request(null))).toBeFalsy();
-            }
-        );
+            mo.channel = null;
+            expect(StompValidator.validateMonitorMessage(new Message().request(mo))).toBeFalsy();
+            expect(StompValidator.validateMonitorMessage(new Message().request(null))).toBeFalsy();
+        }
+    );
 
-        it('Check that inbound messages (outbound requests) can be validated',
-            () => {
+    it('Check that inbound messages (outbound requests) can be validated',
+        () => {
 
-                let id = StompParser.genUUID();
-
-
-                //missing session.
-                let message = packageStompMessage(StompClient.STOMP_SEND, null, null);
-
-                expect(StompValidator.validateInboundMessage(message)).toBeFalsy();
-
-                // wrong command
-                message = packageStompMessage(StompClient.STOMP_DISCONNECT, null, null);
-
-                expect(StompValidator.validateInboundMessage(message)).toBeFalsy();
+            let id = StompParser.genUUID();
 
 
-                // wrong message command
-                let stompMessage = StompParser.frame(StompClient.STOMP_COMMIT, {}, 'hiya georgie!');
-                message = packageStompMessage(StompClient.STOMP_SEND, id, stompMessage);
+            //missing session.
+            let message = packageStompMessage(StompClient.STOMP_SEND, null, null);
 
-                expect(StompValidator.validateInboundMessage(message)).toBeFalsy();
+            expect(StompValidator.validateInboundMessage(message)).toBeFalsy();
 
-                // missing body
-                stompMessage = StompParser.frame(StompClient.STOMP_SEND, {}, null);
-                message = packageStompMessage(StompClient.STOMP_SEND, id, stompMessage);
+            // wrong command
+            message = packageStompMessage(StompClient.STOMP_DISCONNECT, null, null);
 
-                expect(StompValidator.validateInboundMessage(message)).toBeFalsy();
+            expect(StompValidator.validateInboundMessage(message)).toBeFalsy();
 
 
-                // valid
-                stompMessage = StompParser.frame(StompClient.STOMP_SEND, {}, 'hiya georgie');
-                message = packageStompMessage(StompClient.STOMP_SEND, id, stompMessage);
+            // wrong message command
+            let stompMessage = StompParser.frame(StompClient.STOMP_COMMIT, {}, 'hiya georgie!');
+            message = packageStompMessage(StompClient.STOMP_SEND, id, stompMessage);
 
-                expect(StompValidator.validateInboundMessage(message)).toBeTruthy();
-            }
-        );
+            expect(StompValidator.validateInboundMessage(message)).toBeFalsy();
 
-    });
-}
+            // missing body
+            stompMessage = StompParser.frame(StompClient.STOMP_SEND, {}, null);
+            message = packageStompMessage(StompClient.STOMP_SEND, id, stompMessage);
+
+            expect(StompValidator.validateInboundMessage(message)).toBeFalsy();
+
+
+            // valid
+            stompMessage = StompParser.frame(StompClient.STOMP_SEND, {}, 'hiya georgie');
+            message = packageStompMessage(StompClient.STOMP_SEND, id, stompMessage);
+
+            expect(StompValidator.validateInboundMessage(message)).toBeTruthy();
+        }
+    );
+
+});
+
 
 function generateBusCommand(cmd: string,
                             id: string,

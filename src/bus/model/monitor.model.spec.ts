@@ -1,3 +1,7 @@
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
+
 import {MonitorType, MonitorObject} from './monitor.model';
 
 /**

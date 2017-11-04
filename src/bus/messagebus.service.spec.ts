@@ -1,14 +1,16 @@
 /**
- * Copyright(c) VMware Inc., 2016,2017
+ * Copyright(c) VMware Inc. 2016-2017
  */
-import {inject, TestBed} from '@angular/core/testing';
-import {Injector} from '@angular/core';
-import {Syslog} from '../log/syslog';
-import {LogUtil} from '../log/util';
-import {LogLevel} from '../log/logger.model';
-import {Message, MessageResponder, MessageType} from './message.model';
-import {MessagebusService} from './index';
 
+import { inject, TestBed } from '@angular/core/testing';
+import { Injector } from '@angular/core';
+import { Syslog } from '../log/syslog';
+import { LogLevel } from '../log/logger.model';
+import { Message, MessageHandler, MessageResponder, MessageType } from './model/message.model';
+import { MessagebusService } from './index';
+import { Channel } from './model/channel.model';
+import { Observable } from 'rxjs/Observable';
+import { EventBus } from './bus.api';
 
 function makeCallCountCaller(done: any, targetCount: number): any {
     let count = 0;
@@ -25,7 +27,7 @@ function getName(): string {
 }
 
 
-describe('Messagebus Service [messagebus.service]', () => {
+describe('MessagebusService [messagebus.service]', () => {
     const testChannel = '#local-channel';
     const testData = {
         name: 'test-name'
@@ -41,127 +43,87 @@ describe('Messagebus Service [messagebus.service]', () => {
         TestBed.configureTestingModule({
             providers: [
                 Map,
-                MessagebusService,
+                { provide: EventBus, useClass: MessagebusService}
             ]
         });
     });
 
     beforeEach(inject([Injector], (injector: Injector) => {
-        bus = injector.get(MessagebusService);
-        bus.silenceLog(true);
-        bus.suppressLog(true);
+        bus = injector.get(EventBus);
+        bus.api.silenceLog(true);
+        bus.api.suppressLog(true);
+        bus.api.enableMonitorDump(false);
     }));
 
-    it('Should check messageLogging', () => {
-        bus.messageLog(testMessage, getName());
-        expect(bus.logger()
+    it('Should check logging', () => {
+        bus.api.messageLog(testMessage, getName());
+        expect(bus.api.logger()
             .last())
             .toBe(response);
-        bus.setLogLevel(LogLevel.Off);
-        expect(bus.logger().logLevel)
-            .toBe(LogLevel.Off);
-        bus.enableMonitorDump(true);
-        expect(bus.isLoggingEnabled)
-            .toBeTruthy();
-        bus.enableMonitorDump(false);
-        expect(bus.isLoggingEnabled)
-            .toBeFalsy();
+
+        bus.api.setLogLevel(LogLevel.Off);
+        expect(bus.api.logger().logLevel).toBe(LogLevel.Off);
+
+        bus.api.enableMonitorDump(true);
+        expect(bus.api.isLoggingEnabled()).toBeTruthy();
+
+        bus.api.enableMonitorDump(false);
+        expect(bus.api.isLoggingEnabled()).toBeFalsy();
     });
 
     it('Should cause a new Channel to be instantiated', () => {
-        let channel = bus.getChannel(testChannel, getName());
+        let channel = bus.api.getChannel(testChannel);
         expect(channel)
             .not
             .toBeUndefined();
-        expect(bus.refCount(testChannel))
-            .toBe(1);
-        expect(bus.getName())
-            .toBe('MessagebusService');
-        expect(bus.enableMonitorDump(true))
-            .toBeTruthy();
-        expect(bus.getMonitor())
+        expect(bus.api.refCount(testChannel)).toBe(1);
+        expect(bus.getName()).toBe('MessagebusService');
+        expect(bus.api.getMonitor())
             .not
             .toBeUndefined();
 
-        bus.enableMonitorDump(false);
-        expect(bus.send(testChannel, new Message().request('*data*'), getName()))
-            .toBeTruthy();
+        bus.api.send(testChannel, new Message().request('*data*'));
+        bus.api.getChannel(testChannel);
+        expect(bus.api.refCount(testChannel)).toBe(2);
 
-        bus.getChannel(testChannel, getName());
-        expect(bus.refCount(testChannel))
-            .toBe(2);
-        expect(bus.close(testChannel, getName()))
-            .toBeFalsy();
-        expect(bus.refCount(testChannel))
-            .toBe(1);
-        expect(bus.close(testChannel, getName()))
-            .toBeTruthy();
-        expect(bus.refCount(testChannel))
-            .toBe(-1);
-    });
+        bus.closeChannel(testChannel);
 
-    it('Should cause a new Request Channel to be instantiated', () => {
-        let channel = bus.getRequestChannel(testChannel, getName());
-        expect(channel)
-            .not
-            .toBeUndefined();
-        expect(bus.refCount(testChannel))
-            .toBe(1);
-        expect(bus.getName())
-            .toBe('MessagebusService');
-        expect(bus.enableMonitorDump(true))
-            .toBeTruthy();
-        expect(bus.getMonitor())
-            .not
-            .toBeUndefined();
+        expect(bus.api.refCount(testChannel)).toBe(1);
 
-        bus.enableMonitorDump(false);
-        expect(bus.send(testChannel, new Message().request('*data*'), getName()))
-            .toBeTruthy();
-
-        bus.getChannel(testChannel, getName());
-        expect(bus.refCount(testChannel))
-            .toBe(2);
-        expect(bus.close(testChannel, getName()))
-            .toBeFalsy();
-        expect(bus.refCount(testChannel))
-            .toBe(1);
-        expect(bus.close(testChannel, getName()))
-            .toBeTruthy();
-        expect(bus.refCount(testChannel))
-            .toBe(-1);
+        bus.closeChannel(testChannel);
+        expect(bus.api.refCount(testChannel)).toBe(-1);
     });
 
     it('Should fail to communicate with a closed channel', () => {
-        bus.getChannel(testChannel, getName());
-        bus.increment(testChannel);
-        expect(bus.close(testChannel, getName()))
-            .toBeFalsy();
-        expect(bus.close(testChannel, getName()))
+        bus.api.getChannel(testChannel);
+        bus.api.increment(testChannel);
+        bus.closeChannel(testChannel);
+
+        expect(bus.closeChannel(testChannel))
             .toBeTruthy();
-        expect(bus.send(testChannel, new Message().request(testData), getName()))
+        expect(bus.api.send(testChannel, new Message().request(testData)))
             .toBeFalsy();
-        expect(bus.error(testChannel, testData))
+        expect(bus.api.error(testChannel, testData))
             .toBeFalsy();
-        expect(bus.close(testChannel, getName()))
+        expect(bus.closeChannel(testChannel))
             .toBeFalsy();
     });
 
     it('Should fail to communicate with a completed channel', () => {
-        bus.getChannel(testChannel, getName());
-        expect(bus.complete(testChannel, getName()))
+        bus.api.getChannel(testChannel);
+        expect(bus.api.complete(testChannel))
             .toBeTruthy();
-        expect(bus.send(testChannel, new Message().request(testData), getName()))
+        expect(bus.api.send(testChannel, new Message().request(testData)))
             .toBeFalsy();
-        expect(bus.error(testChannel, testData))
+        expect(bus.api.error(testChannel, testData))
             .toBeFalsy();
-        expect(bus.complete(testChannel, getName()))
+        expect(bus.api.complete(testChannel))
             .toBeFalsy();
     });
 
     it('Should return same Channel for a new subscriber', () => {
-        let channel = bus.getChannelObject(testChannel, getName());
-        let channel2 = bus.getChannelObject(testChannel, getName());
+        const channel: Channel = bus.api.getChannelObject(testChannel);
+        const channel2: Channel = bus.api.getChannelObject(testChannel);
 
         expect(channel)
             .not
@@ -176,166 +138,130 @@ describe('Messagebus Service [messagebus.service]', () => {
     });
 
     it('Should send and receive data over the message bus', (done) => {
-        let channel = bus.getRequestChannel(testChannel, getName());
+        const channel: Observable<Message> = bus.api.getRequestChannel(testChannel);
         channel.subscribe(
             (message: Message) => {
-                expect(message.payload)
-                    .toBe(testData);
-                bus.close(testChannel, getName());
-                expect(bus.close(testChannel, getName()))
-                    .toBeFalsy();
+
+                expect(message.payload).toBe(testData);
+
+                bus.api.close(testChannel);
+
+                expect(bus.api.close(testChannel)).toBeFalsy();
                 done();
             }
         );
 
-        expect(bus.send(testChannel, new Message().request(testData), getName()))
-            .toBeTruthy();
+        bus.api.send(testChannel, new Message().request(testData));
     });
 
     it('Should send and receive error over the message bus', (done) => {
-        let channel = bus.getErrorChannel(testChannel, getName());
+        const channel: Observable<Message> = bus.api.getErrorChannel(testChannel);
         channel.subscribe(
             (message: Message) => {
-                expect(message.isError())
-                    .toBeTruthy();
-                expect(message.payload)
-                    .toBe(testData);
+                expect(message.isError()).toBeTruthy();
+                expect(message.payload).toBe(testData);
                 done();
             }
         );
 
-        expect(bus.send(testChannel, new Message().error(testData), getName()))
-            .toBeTruthy();
+        bus.api.send(testChannel, new Message().error(testData));
     });
 
     it('Should fail to send data over the message bus (negative test)', () => {
-        expect(bus.send('nonexistent-Channel', new Message().request(testData), getName()))
-            .toBeFalsy();
+        expect(bus.api.send('nonexistent', new Message().request(testData))).toBeFalsy();
     });
 
     it('Should send and receive an error over the message bus', (done) => {
-        let channel = bus.getChannel(testChannel, getName());
+        const channel: Observable<Message> = bus.api.getChannel(testChannel);
         channel.subscribe(
-            (message: Message) => {
-                Syslog.error('Unexpected data received: ' + LogUtil.pretty(message), getName());
-            },
-
+            null,
             (error: any) => {
-                expect(error)
-                    .toBe(testData);
+                expect(error).toBe(testData);
                 done();
             }
         );
 
-        expect(bus.error(testChannel, testData))
-            .toBeTruthy();
+        expect(bus.api.error(testChannel, testData)).toBeTruthy();
     });
 
     it('Should fail to send error over the message bus (negative test)', () => {
-        expect(bus.error('nonexistent-Channel', testData))
-            .toBeFalsy();
+        expect(bus.api.error('nonexistent', testData)).toBeFalsy();
     });
 
     it('Should send data over the message bus to 2 subscribers (one-to-many)', (done) => {
-        let doneCaller = makeCallCountCaller(done, 2);
+        const doneCaller = makeCallCountCaller(done, 2);
 
-        let channel = bus.getResponseChannel(testChannel, getName());
+        const channel: Observable<Message> = bus.api.getResponseChannel(testChannel);
         channel.subscribe(
             (message: Message) => {
-                expect(message.payload)
-                    .toBe(testData);
+                expect(message.payload).toBe(testData);
                 doneCaller();
             }
         );
 
-        let channel2 = bus.getChannel(testChannel, getName());
+        const channel2: Observable<Message> = bus.api.getChannel(testChannel);
         channel2.subscribe(
             (message: Message) => {
-                expect(message.payload)
-                    .toBe(testData);
+                expect(message.payload).toBe(testData);
                 doneCaller();
             }
         );
 
-        expect(bus.send(testChannel, new Message().response(testData), getName()))
-            .toBeTruthy();
+        expect(bus.api.send(testChannel, new Message().response(testData))).toBeTruthy();
     });
 
     it('Should send an error over the message bus to 2 subscribers (one-to-many)', (done) => {
-        let doneCaller = makeCallCountCaller(done, 2);
+        const doneCaller = makeCallCountCaller(done, 2);
 
-        let channel = bus.getChannel(testChannel, getName());
+        const channel: Observable<Message> = bus.api.getChannel(testChannel);
         channel.subscribe(
-            (message: Message) => {
-                Syslog.error('Channel1: Unexpected data received: ' + LogUtil.pretty(message), getName());
-            },
-
+            null,
             (error: any) => {
-                expect(error)
-                    .toBe(testData);
+                expect(error).toBe(testData);
                 doneCaller();
             }
         );
 
-        let channel2 = bus.getChannel(testChannel, getName());
+        const channel2: Observable<Message> = bus.api.getChannel(testChannel);
         channel2.subscribe(
-            (message: Message) => {
-                Syslog.error('Channel2: Unexpected data received: ' + LogUtil.pretty(message), getName());
-            },
-
+            null,
             (error: any) => {
-                expect(error)
-                    .toBe(testData);
+                expect(error).toBe(testData);
                 doneCaller();
             }
         );
 
-        expect(bus.error(testChannel, testData))
-            .toBeTruthy();
+        expect(bus.api.error(testChannel, testData)).toBeTruthy();
     });
 
     it('Should send a completion over the message bus to 2 subscribers (one-to-many)', (done) => {
-        let doneCaller = makeCallCountCaller(done, 2);
+        const doneCaller = makeCallCountCaller(done, 2);
 
-        let channel = bus.getChannel(testChannel, getName());
+        let channel: Observable<Message> = bus.api.getChannel(testChannel);
         channel.subscribe(
-            (message: Message) => {
-                Syslog.error('Channel1: Unexpected data received: ' + LogUtil.pretty(message), getName());
-            },
-
-            (error: any) => {
-                Syslog.error('Channel1: Unexpected error received: ' + LogUtil.pretty(error), getName());
-            },
-
+            null,
+            null,
             () => {
                 Syslog.debug('Channel1: Completion received correctly.', 'messagebus.service');
                 doneCaller();
             }
         );
 
-        let channel2 = bus.getChannel(testChannel, getName());
+        const channel2: Observable<Message> = bus.api.getChannel(testChannel);
         channel2.subscribe(
-            (message: Message) => {
-                Syslog.error('Channel2: Unexpected data received: ' + LogUtil.pretty(message), getName());
-            },
-
-            (error: any) => {
-                Syslog.error('Channel2: Unexpected error received: ' + LogUtil.pretty(error), getName());
-            },
-
+            null,
+            null,
             () => {
                 Syslog.debug('Channel2: Completion received correctly.', 'messagebus.service');
                 doneCaller();
             }
         );
 
-        expect(bus.complete(testChannel, getName()))
-            .toBeTruthy();
+        expect(bus.api.complete(testChannel)).toBeTruthy();
     });
 
     it('Should fail to send completion over the message bus (negative test)', () => {
-        expect(bus.complete('nonexistent-Channel', getName()))
-            .toBeFalsy();
+        expect(bus.api.complete('nonexistent')).toBeFalsy();
     });
 
     /**
@@ -349,7 +275,6 @@ describe('Messagebus Service [messagebus.service]', () => {
                 bus.respondOnce(testChannel)
                     .generate(
                         (request: string) => {
-                            console.log('chewy pop');
                             expect(request).toEqual('strawbarita');
                             return 'margarita';
                         }
@@ -364,7 +289,6 @@ describe('Messagebus Service [messagebus.service]', () => {
                     );
             }
         );
-
 
         it('respondOnce() and requestOnce() on differing request/response channels.',
             (done) => {
@@ -397,7 +321,7 @@ describe('Messagebus Service [messagebus.service]', () => {
                     .handle(
                         (request: string) => {
                             expect(request).toEqual('strawbarita');
-                            bus.sendResponse(channel2, 'margarita');
+                            bus.api.sendResponse(channel2, 'margarita');
                         }
                     );
 
@@ -421,7 +345,7 @@ describe('Messagebus Service [messagebus.service]', () => {
                 const sub1 = handler1.handle(
                     (request: string) => {
                         expect(request).toEqual('strawbarita');
-                        bus.sendResponse(channel2, 'margarita');
+                        bus.api.sendResponse(channel2, 'margarita');
                         sub1.unsubscribe();
                     }
                 );
@@ -485,7 +409,7 @@ describe('Messagebus Service [messagebus.service]', () => {
                         }
                     );
 
-                let chan = bus.getResponseChannel(testChannel, 'listenOnce()');
+                let chan = bus.api.getResponseChannel(testChannel, 'listenOnce()');
                 chan.subscribe(
                     () => {
                         c++;
@@ -555,7 +479,7 @@ describe('Messagebus Service [messagebus.service]', () => {
                         }
                     );
 
-                let chan = bus.getRequestChannel(testChannel, 'listenRequestOnce()');
+                let chan = bus.api.getRequestChannel(testChannel, 'listenRequestOnce()');
                 chan.subscribe(
                     () => {
                         c++;
@@ -615,7 +539,7 @@ describe('Messagebus Service [messagebus.service]', () => {
                             done();
                         }
                     );
-                bus.sendRequest(testChannel, 'Cotton');
+                bus.api.sendRequest(testChannel, 'Cotton');
             }
         );
 
@@ -629,14 +553,14 @@ describe('Messagebus Service [messagebus.service]', () => {
                             done();
                         }
                     );
-                bus.sendResponse(testChannel, 'Fox');
+                bus.api.sendResponse(testChannel, 'Fox');
             }
         );
 
         it('sendRequestMessage() [ lower level wrapper for sending request messages ]',
             (done) => {
 
-                let _chan = bus.getRequestChannel(testChannel, 'sendRequestMessage()');
+                let _chan = bus.api.getRequestChannel(testChannel, 'sendRequestMessage()');
                 let p = _chan.subscribe(
                     (m: Message) => {
                         expect(m.payload).toEqual('Maggie');
@@ -652,7 +576,7 @@ describe('Messagebus Service [messagebus.service]', () => {
         it('sendResponseMessage() [ lower level wrapper for sending response messages ]',
             (done) => {
 
-                let _chan = bus.getResponseChannel(testChannel, 'sendResponseMessage()');
+                let _chan = bus.api.getResponseChannel(testChannel, 'sendResponseMessage()');
                 let p = _chan.subscribe(
                     (m: Message) => {
                         expect(m.payload).toEqual('Chickie');
@@ -668,7 +592,7 @@ describe('Messagebus Service [messagebus.service]', () => {
         it('sendErrorMessage() [ lower level wrapper for sending error messages ]',
             (done) => {
 
-                let _chan = bus.getChannel(testChannel, 'sendErrorMessage()');
+                let _chan = bus.api.getChannel(testChannel, 'sendErrorMessage()');
                 let p = _chan.subscribe(
                     (m: Message) => {
                         expect(m.payload).toEqual('Puppy Error');
@@ -686,7 +610,7 @@ describe('Messagebus Service [messagebus.service]', () => {
             (done) => {
 
 
-                let chan = bus.getRequestChannel(testChannel, 'mixOldAndNew');
+                let chan = bus.api.getRequestChannel(testChannel, 'mixOldAndNew');
                 chan.subscribe(
                     (msg: Message) => {
                         expect(msg.payload).toEqual('tea');
@@ -694,7 +618,7 @@ describe('Messagebus Service [messagebus.service]', () => {
                     }
                 );
 
-                bus.sendRequest(testChannel, 'tea');
+                bus.api.sendRequest(testChannel, 'tea');
 
             }
         );
@@ -713,7 +637,7 @@ describe('Messagebus Service [messagebus.service]', () => {
                     );
 
                 // message is sent using traditional API.
-                bus.send(testChannel, new Message().request('Chickie'), 'mixOldAndNew');
+                bus.api.send(testChannel, new Message().request('Chickie'), 'mixOldAndNew');
 
             }
         );
@@ -721,11 +645,11 @@ describe('Messagebus Service [messagebus.service]', () => {
         it('Should be able to mix old and new APIs together [requestOnce(), subscribe(), sendResponse()]',
             (done) => {
 
-                let chan = bus.getRequestChannel(testChannel, 'mixOldAndNew');
+                let chan = bus.api.getRequestChannel(testChannel, 'mixOldAndNew');
                 chan.subscribe(
                     (msg: Message) => {
                         expect(msg.payload).toEqual('bikes');
-                        bus.sendResponse(testChannel, 'cars');
+                        bus.api.sendResponse(testChannel, 'cars');
                     }
                 );
 
@@ -736,15 +660,13 @@ describe('Messagebus Service [messagebus.service]', () => {
                             done();
                         }
                     );
-
-
             }
         );
 
         it('Should be able to mix old and new APIs together [requestStream(), subscribe(), sendResponse()]',
             (done) => {
 
-                let chan = bus.getRequestChannel(testChannel, 'mixOldAndNew');
+                let chan = bus.api.getRequestChannel(testChannel, 'mixOldAndNew');
                 chan.subscribe(
                     (msg: Message) => {
                         expect(msg.payload).toBeGreaterThan(0);
@@ -752,7 +674,7 @@ describe('Messagebus Service [messagebus.service]', () => {
                         let val = msg.payload;
 
                         // increment by one and fire back a response.
-                        bus.sendResponse(testChannel, ++val);
+                        bus.api.sendResponse(testChannel, ++val);
                     }
                 );
 
@@ -769,15 +691,13 @@ describe('Messagebus Service [messagebus.service]', () => {
                         done();
                     }
                 );
-
-
             }
-        );
+         );
 
         it('Should be able to mix old and new APIs together [respondOnce(), send(), subscribe()]',
             (done) => {
 
-                let chan = bus.getResponseChannel(testChannel, 'mixOldAndNew');
+                let chan = bus.api.getResponseChannel(testChannel, 'mixOldAndNew');
                 chan.subscribe(
                     (msg: Message) => {
                         expect(msg.payload).toEqual('echo kitty');
@@ -792,7 +712,7 @@ describe('Messagebus Service [messagebus.service]', () => {
                         }
                     );
 
-                bus.send(testChannel, new Message().request('kitty'), 'mixOldAndNew');
+                bus.api.send(testChannel, new Message().request('kitty'), 'mixOldAndNew');
 
             }
         );
@@ -809,7 +729,7 @@ describe('Messagebus Service [messagebus.service]', () => {
                     }
                 );
 
-                let chan = bus.getResponseChannel(testChannel, 'mixOldAndNew');
+                let chan = bus.api.getResponseChannel(testChannel, 'mixOldAndNew');
                 let sub = chan.subscribe(
                     (msg: Message) => {
                         expect(msg.payload).toBeGreaterThan(0);
@@ -865,8 +785,8 @@ describe('Messagebus Service [messagebus.service]', () => {
                         }
                     );
 
-                const handler = bus.listenOnce(testChannel);
-                const obs = handler.getObservable<string>(MessageType.MessageTypeResponse);
+                const handler: MessageHandler<string> = bus.listenOnce(testChannel);
+                const obs = handler.getObservable(MessageType.MessageTypeResponse);
 
                 obs.subscribe(
                     (val: string) => {
@@ -883,8 +803,8 @@ describe('Messagebus Service [messagebus.service]', () => {
         it('Should be able to get observable from message handler for requests',
             (done) => {
 
-                const handler = bus.listenOnce(testChannel);
-                const obs = handler.getObservable<string>(MessageType.MessageTypeRequest);
+                const handler: MessageHandler<string> = bus.listenOnce(testChannel);
+                const obs = handler.getObservable(MessageType.MessageTypeRequest);
 
                 obs.subscribe(
                     (val: string) => {
@@ -900,8 +820,8 @@ describe('Messagebus Service [messagebus.service]', () => {
         it('Should be able to get observable from message handler for errors',
             (done) => {
 
-                const handler = bus.listenOnce(testChannel);
-                const obs = handler.getObservable<string>(MessageType.MessageTypeError);
+                const handler: MessageHandler<string> = bus.listenOnce(testChannel);
+                const obs = handler.getObservable(MessageType.MessageTypeError);
 
                 obs.subscribe(
                     () => {
@@ -917,11 +837,12 @@ describe('Messagebus Service [messagebus.service]', () => {
                 bus.sendErrorMessage(testChannel, 'chickie & maggie');
             }
         );
+
         it('Should be able to get observable from message handler for full channel',
             (done) => {
 
-                const handler = bus.listenOnce(testChannel);
-                const obs = handler.getObservable<string>();
+                const handler: MessageHandler<string> = bus.listenOnce(testChannel);
+                const obs = handler.getObservable();
                 let count: number = 0;
 
                 // create a handler so the subscription is opened up and we can tick the stream.
@@ -982,8 +903,8 @@ describe('Messagebus Service [messagebus.service]', () => {
 
         it('Should be able to get observable from message responder for requests',
             (done) => {
-                const responder: MessageResponder = bus.respondOnce(testChannel);
-                const obs = responder.getObservable<string>();
+                const responder: MessageResponder<string> = bus.respondOnce(testChannel);
+                const obs = responder.getObservable();
 
                 obs.subscribe(
                     (val: string) => {
@@ -1000,8 +921,8 @@ describe('Messagebus Service [messagebus.service]', () => {
         it('Should be able to get observable from message responder for errors',
             (done) => {
 
-                const responder: MessageResponder = bus.respondOnce(testChannel);
-                const obs = responder.getObservable<string>();
+                const responder: MessageResponder<string> = bus.respondOnce(testChannel);
+                const obs = responder.getObservable();
 
                 obs.subscribe(
                     () => {

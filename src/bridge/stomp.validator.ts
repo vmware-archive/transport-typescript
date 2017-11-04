@@ -1,8 +1,12 @@
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
+
 import {StompParser} from './stomp.parser';
 import {StompClient} from './stomp.client';
 import {StompMessage} from './stomp.model';
-import {MonitorObject} from '../bus/monitor.model';
-import {Message} from '../bus/message.model';
+import {MonitorObject} from '../bus/model/monitor.model';
+import {Message} from '../bus/model/message.model';
 
 export class StompValidator {
 

@@ -1,218 +1,78 @@
 /**
- * Copyright(c) VMware Inc., 2016
+ * Copyright(c) VMware Inc. 2016-2017
  */
 import { Injectable } from '@angular/core';
-import { Channel } from './channel.model';
-import { LogUtil } from '../log/util';
-import { LoggerService } from '../log/logger.service';
-import { LogLevel } from '../log/logger.model';
-import { MonitorObject, MonitorType, MonitorChannel } from './monitor.model';
+import { Channel } from './model/channel.model';
+import { MonitorObject, MonitorType } from './model/monitor.model';
 import {
-    Message, MessageHandlerConfig, MessageResponder, MessageHandler, MessageType,
+    Message, MessageHandlerConfig, MessageResponder, MessageHandler,
     MessageFunction
-} from './message.model';
-import { Subject, Subscription, Observable } from 'rxjs';
-import { MessageSchema, ErrorSchema } from './message.schema';
-import { CacheImpl } from './cache/cache';
-import { BusCache } from './cache/cache.api';
-import 'rxjs/add/operator/merge';
-import { CacheType, UUID } from './cache/cache.model';
+} from './model/message.model';
+import { MessageSchema, ErrorSchema } from './model/message.schema';
+import { StoreImpl } from './cache/cache';
+import { BusStore } from './cache.api';
+import { StoreType, UUID } from './cache/cache.model';
 import { StompBusCommand, StompChannel, StompConfig } from '../bridge/stomp.model';
 import { StompClient } from '../bridge/stomp.client';
 import { StompParser } from '../bridge/stomp.parser';
+import { ChannelName, EventBus, EventBusLowApi, SentFrom } from './bus.api';
+import 'rxjs/add/operator/merge';
+import { EventBusLowLevelApiImpl } from './bus.lowlevel';
 
-
-// import * as Ajv from 'ajv';
-
-/**
- * SEE DOCS.
- *
- * https://confluence.eng.vmware.com/pages/viewpage.action?pageId=214302828
- *
- */
 
 export abstract class MessageBusEnabled {
     abstract getName(): string;
 }
 
 @Injectable()
-export class MessagebusService implements MessageBusEnabled {
-    private log: LoggerService;
-    private monitorChannel = MonitorChannel.stream;
-    private monitorStream: Channel;
-    private dumpMonitor: boolean;
-    private _channelMap: Map<string, Channel>;
+export class MessagebusService extends EventBus implements MessageBusEnabled {
 
+    private internalChannelMap: Map<string, Channel>;
+    private internalStoreMap: Map<string, BusStore<any>>;
 
-    private cacheMap: Map<string, BusCache<any>>;
-
-    // private ajv = new Ajv({allErrors: true});
+    // low level API
+    readonly api: EventBusLowApi;
 
     constructor() {
-        this._channelMap = new Map<string, Channel>();
+        super();
+        this.internalChannelMap = new Map<string, Channel>();
 
-        // Create Monitor channel
-        this.monitorStream = new Channel(this.monitorChannel);
-        this._channelMap.set(this.monitorChannel, this.monitorStream);
+        // Low Level API.
+        this.api = new EventBusLowLevelApiImpl(this, this.internalChannelMap);
 
-        this.log = new LoggerService();
-        this.log.logLevel = LogLevel.Info;
-
-        this.enableMonitorDump(false);
-        this.monitorBus();
-        this.cacheMap = new Map<CacheType, BusCache<any>>();
+        // Store map.
+        this.internalStoreMap = new Map<StoreType, BusStore<any>>();
     }
 
-    public createCache<T>(objectType: CacheType, map?: Map<UUID, T>): BusCache<T> {
-        if (!this.getCache(objectType)) {
-            const cache: BusCache<T> = new CacheImpl<T>(this);
+    public createStore<T>(objectType: StoreType, map?: Map<UUID, T>): BusStore<T> {
+        if (!this.getStore(objectType)) {
+            const cache: BusStore<T> = new StoreImpl<T>(this);
             if (map) {
                 cache.populate(map);
             }
-            this.cacheMap.set(objectType, cache);
+            this.internalStoreMap.set(objectType, cache);
             return cache;
         } else {
-            return this.getCache(objectType);
+            return this.getStore(objectType);
         }
     }
 
-    public getCache<T>(objectType: CacheType): BusCache<T> {
-        return this.cacheMap.get(objectType);
+    public getStore<T>(objectType: StoreType): BusStore<T> {
+        return this.internalStoreMap.get(objectType);
     }
 
-    public destroyCache(objectType: CacheType): boolean {
-        if (this.cacheMap.has(objectType)) {
-            this.cacheMap.delete(objectType);
+    public destroyStore(objectType: StoreType): boolean {
+        if (this.internalStoreMap.has(objectType)) {
+            this.internalStoreMap.delete(objectType);
             return true;
         }
         return false;
     }
 
-
     public getName() {
         return 'MessagebusService';
     }
 
-    public increment(cname: string) {
-        this.channelMap.get(cname)
-            .increment();
-    }
-
-    /**
-     * Returns the map for monitoring externally (read-only)
-     *
-     * @returns {Map<string, Channel>}
-     */
-    get channelMap() {
-        return this._channelMap;
-    }
-
-    /**
-     * Get a subscription to the monitor channel.
-     *
-     * @returns {BehaviorSubject<any>}
-     */
-    public getMonitor(): Subject<Message> {
-        return this.monitorStream.stream;
-    }
-
-    /**
-     * Get current bus logging state
-     *
-     * @returns {boolean}
-     */
-    get isLoggingEnabled() {
-        return this.dumpMonitor;
-    }
-
-    /**
-     * Turn logging on/off
-     *
-     * @param flag
-     * @returns {boolean}
-     */
-    public enableMonitorDump(flag: boolean) {
-        this.dumpMonitor = flag;
-        return this.dumpMonitor;
-    }
-
-    /**
-     * Access to private logger so messages can be sequentialized.
-     *
-     * @returns {LoggerService}
-     */
-    public logger(): LoggerService {
-        return this.log;
-    }
-
-    /**
-     * For external access to messagebus private logger (so output streams are sequentialized).
-     *
-     * @param msg
-     * @param from
-     */
-    public messageLog(msg: string, from: string) {
-        this.log.info(msg, from);
-    }
-
-    /**
-     * Set the log suppression on or off
-     *
-     * @param set
-     */
-    public suppressLog(set: boolean) {
-        this.log.suppress(set);
-    }
-
-    public silenceLog(set: boolean) {
-        this.log.silent(set);
-    }
-
-    /**
-     * Externally set messagebus private log level
-     *
-     * @param logLevel
-     */
-    public setLogLevel(logLevel: LogLevel) {
-        this.log.logLevel = logLevel;
-    }
-
-    /**
-     * Get a subscribable stream from channel. If the channel doesn't exist, it will be created.
-     * Automatically unpack wrapped messages.
-     *
-     * @param cname
-     * @param from
-     * @returns {Observable<Message>}
-     */
-    public getChannel(cname: string, from: string): Observable<Message> {
-        return this.getChannelObject(cname, from)
-            .stream
-            .map(
-                (msg: Message) => {
-                    if (msg.payload.hasOwnProperty('_sendChannel')) {
-                        msg.payload = msg.payload.body;
-                    }
-                    return msg;
-                }
-            );
-
-    }
-
-    /**
-     * Connect up the bridge to a new broker.
-     * @param {MessageFunction<string>} readyHandler fires once the bridge is connected correctly.
-     * @param {string} endpoint of the broker you're connecting to
-     * @param {string} topicLocation topic prefix (defaults to /topic)
-     * @param {string} queueLocation queue prefic (defaults to /queue)
-     * @param {number} numBrokerRelays defaults to 1, handles multi-connect states according to relay count
-     * @param {string} host the host of the STOMP broker you want to connect to
-     * @param {number} port the port of the STOMP broker you want to connect to
-     * @param {string} user username (if required)
-     * @param {string} pass passwowrd (if required)
-     * @param {boolean} useSSL run over WSS?
-     * @returns {MessageHandler}
-     */
     public connectBridge(readyHandler: MessageFunction<string>,
                          endpoint: string,
                          topicLocation: string,
@@ -222,7 +82,7 @@ export class MessagebusService implements MessageBusEnabled {
                          port?: number,
                          user?: string,
                          pass?: string,
-                         useSSL?: boolean): MessageHandler {
+                         useSSL?: boolean): MessageHandler<StompBusCommand> {
 
         const config: StompConfig = StompConfig.generate(
             endpoint,
@@ -235,7 +95,7 @@ export class MessagebusService implements MessageBusEnabled {
         config.topicLocation = topicLocation;
         config.queueLocation = queueLocation;
         config.brokerConnectCount = numBrokerRelays;
-        const handler: MessageHandler = this.requestStream(
+        const handler: MessageHandler<StompBusCommand> = this.requestStream(
             StompChannel.connection,
             StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, '', '', config),
         );
@@ -249,840 +109,149 @@ export class MessagebusService implements MessageBusEnabled {
         return handler;
     }
 
-    /**
-     * Activate the bridge to subscribe to a topic/queue on broker with the same channel name.
-     * Automatically unpack wrapped messages.
-     * @param cname
-     * @param from
-     * @returns {Observable<Message>}
-     * @deprecated Do not use. Use listenGalacticStream() instead.
-     */
-    public getGalacticChannel(cname: string, from: string): Observable<Message> {
-        return this.getChannelObject(cname, from)
-            .setGalactic().stream
-            .map(
-                (msg: Message) => {
-                    if (msg.payload.hasOwnProperty('_sendChannel')) {
-                        msg.payload = msg.payload.body;
-                    }
-                    return msg;
-                }
-            );
-    }
+    public listenGalacticStream<T>(cname: ChannelName, name: SentFrom = this.getName()): MessageHandler<T> {
 
-    /**
-     * Simple API for listening to a stream on a Galactic Channel.
-     * @param {string} cname
-     * @param {string} name
-     * @returns {MessageHandler}
-     */
-    public listenGalacticStream(cname: string, name: string = this.getName()): MessageHandler {
-        this.getChannelObject(cname, name).setGalactic();
-        let mo = new MonitorObject().build(MonitorType.MonitorNewGalacticChannel, cname, null, null);
-        this.monitorStream.send(new Message().request(mo));
+        this.api.getChannelObject(cname, name).setGalactic();
+
+        this.api.getMonitorStream().send(
+            new Message().request(
+                new MonitorObject()
+                    .build(MonitorType.MonitorNewGalacticChannel, cname, null, null)
+            )
+        );
 
         return this.listenStream(cname, name);
     }
 
-    /**
-     * Returns true if a channel is Galactic. Galactic status requires a bit flipped on the channel object.
-     * @param cname
-     * @returns {boolean}
-     */
-    public isGalacticChannel(cname: string): boolean {
-        if (this._channelMap.has(cname)) {
-            return this._channelMap.get(cname).galactic;
+    public isGalacticChannel(cname: ChannelName): boolean {
+        if (this.internalChannelMap.has(cname)) {
+            return this.internalChannelMap.get(cname).galactic;
         }
 
         return false;
     }
 
-    /**
-     * A new channel is created by the first reference to it. All subsequent references to that channel are handed
-     * the same stream to subscribe to. Accessing this method increments the channels reference count.
-     * This method subscribes to both request and response messages. See below for specific directional methods.
-     * This method is not filtered.
-     *
-     * @param cname
-     * @param from
-     * @returns {Channel}
-     */
-    public getChannelObject(cname: string, from: string) {
-        let channel: Channel;
-        let symbol = ' + ';
-
-        if (this._channelMap.has(cname)) {
-            channel = this._channelMap.get(cname);
-        } else {
-            channel = new Channel(cname);
-            this._channelMap.set(cname, channel);
-            symbol = ' +++ ';
-
-            let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, cname, from, symbol);
-            this.monitorStream.send(new Message().request(mo));
-        }
-        channel.increment();
-        return channel;
+    public closeGalacticChannel(cname: ChannelName, from?: SentFrom): void {
+        this.api.getMonitorStream().send(
+            new Message().request(
+                new MonitorObject().build(MonitorType.MonitorGalacticUnsubscribe, cname, from)
+            )
+        );
     }
 
-    /**
-     * Filter bus events that contain request messages
-     *
-     * @param cname
-     * @param from
-     * @returns {Observable<Message>}
-     */
-    public getRequestChannel(cname: string, from: string): Observable<Message> {
-        return this.getChannel(cname, from)
-            .filter((message: Message) => {
-                return (message.isRequest());
-            });
+    public sendGalacticMessage(cname: ChannelName, payload: any, from?: SentFrom): void {
+        this.api.getMonitorStream().send(
+            new Message().request(
+                new MonitorObject().build(MonitorType.MonitorGalacticData, cname, from, payload)
+            )
+        );
     }
 
-    /**
-     * Filter bus events that contain response messages.
-     *
-     * @param cname
-     * @param from
-     * @returns {Observable<Message>}
-     */
-    public getResponseChannel(cname: string, from: string): Observable<Message> {
-        return this.getChannel(cname, from)
-            .filter((message: Message) => {
-                return (message.isResponse());
-            });
+    public sendRequestMessage(cname: ChannelName, payload: any,
+                              name = this.getName(), schema = new MessageSchema()): void {
+
+        this.api.send(cname, new Message().request(payload, schema), name);
     }
 
-    /**
-     * Filter bus events that contain error messages.
-     *
-     * @param cname
-     * @param from
-     * @returns {Observable<Message>}
-     */
-    public getErrorChannel(cname: string, from: string): Observable<Message> {
-        return this.getChannel(cname, from)
-            .filter((message: Message) => {
-                return (message.isError());
-            });
-    }
-
-    /**
-     * Channel reference count
-     *
-     * @param cname
-     * @returns {number}
-     */
-    public refCount(cname: string): number {
-        if (!this._channelMap.has(cname)) {
-            return -1;
-        }
-
-        return this._channelMap.get(cname).refCount;
-    }
-
-    /**
-     * Close a channel. If the closer is the last subscriber, then the channel is destroyed.
-     *
-     * @param cname
-     * @param from
-     * @returns {boolean}
-     */
-    public close(cname: string, from: string): boolean {
-        if (!this._channelMap.has(cname)) {
-            return false;
-        }
-
-        let channel = this._channelMap.get(cname);
-        channel.decrement();
-        let mo = new MonitorObject().build(MonitorType.MonitorCloseChannel, cname, from, ' ' + channel.refCount);
-        this.monitorStream.send(new Message().request(mo));
-
-        if (channel.refCount === 0) {
-            return this.destroy(channel, from);
-        }
-        return false;
-    }
-
-    /**
-     * Transmit arbitrary data on a channel on the message bus if it exists.
-     * This routine is called with traceback strings to allow for debugging and monitoring
-     * bus traffic.
-     *
-     * This method will soon become private, avoid using!
-     *
-     * @param cname -> Channel to send to
-     * @param message -> Message
-     * @param from -> Caller name
-     * @returns {boolean} -> on successful transmission
-     */
-    public send(cname: string, message: Message, from: string): boolean {
-        // Disabled until Schema's are fully implemented.
-        // if (!message.messageSchema) {
-        //     this.logger()
-        //         .warn('* No schema in message to ' + cname, from);
-        // }
-
-        if (!this._channelMap.has(cname)) {
-            let mo = new MonitorObject().build(MonitorType.MonitorDropped, cname, from, message);
-            this.monitorStream.send(new Message().request(mo));
-            return false;
-        }
-
-        let mo = new MonitorObject().build(MonitorType.MonitorData, cname, from, message);
-        this.monitorStream.send(new Message().request(mo));
-        this._channelMap.get(cname)
-            .send(message);
-
-        return true;
-    }
-
-    /**
-     * Unsubscribe from a Galactic Channel. Will send an UNSUBSCRIBE message to broker.
-     * @param {string} cname
-     * @param {string} from
-     */
-    public closeGalacticChannel(cname: string, from?: string): void {
-        let mo = new MonitorObject().build(MonitorType.MonitorGalacticUnsubscribe, cname, from);
-        this.monitorStream.send(new Message().request(mo));
-    }
-
-    /**
-     * Fire a galactic send notification to the montitor like it was a regular send on Observable. The
-     * bridge will then pick this up and fire a SEND packet down the wire to that destination.
-     *
-     * @param {string} cname galactic channel name to send to
-     * @param payload payload of message
-     * @param {MessageSchema} schema
-     */
-    public sendGalacticMessage(cname: string, payload: any, from?: string): void {
-        let mo = new MonitorObject().build(MonitorType.MonitorGalacticData, cname, from, payload);
-        this.monitorStream.send(new Message().request(mo));
-    }
-
-    /**
-     * Send simple API message to MessageResponder enabled calls.
-     * @param cname
-     * @param payload
-     * @param schema
-     * @param name
-     * @returns {boolean}
-     */
-    public sendRequest(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
-        this.send(mh.sendChannel, new Message().request(mh, schema), name);
-        return true;
-    }
-
-    /**
-     * Send simple API message to MessageHandler enabled calls.
-     * @param cname
-     * @param payload
-     * @param schema
-     * @param name
-     * @returns {boolean}
-     */
-    public sendResponse(cname: string, payload: any, schema = new MessageSchema(), name = this.getName()): boolean {
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
-        this.tickEventLoop(
+    public sendResponseMessage(cname: ChannelName, payload: any,
+                               name = this.getName(), schema = new MessageSchema()): boolean {
+        this.api.tickEventLoop(
             () => {
-                this.send(mh.sendChannel, new Message().response(mh, schema), name);
+                this.api.send(cname, new Message().response(payload, schema), name);
             }
         );
         return true;
     }
 
-
-    /**
-     * Wrap a payload in a request Message and send to the bus channel
-     * @param cname
-     * @param payload
-     * @param schema any
-     * @param name string
-     */
-    public sendRequestMessage(cname: string, payload: any,
-                              schema = new MessageSchema(), name = this.getName()): boolean {
-
-        return this.send(cname, new Message().request(payload, schema), name);
+    public sendErrorMessage(cname: ChannelName, payload: any,
+                            name = this.getName(), schema = new ErrorSchema()): void {
+        this.api.send(cname, new Message().error(payload, schema), name);
     }
 
-    /**
-     * Wrap a payload in a response Message and send to the bus channel.
-     * @param cname
-     * @param payload
-     * @param schema any
-     * @param name string
-     */
-    public sendResponseMessage(cname: string, payload: any,
-                               schema = new MessageSchema(), name = this.getName()): boolean {
-        this.tickEventLoop(
-            () => {
-                this.send(cname, new Message().response(payload, schema), name);
-            }
+
+    public respondOnce<R>(sendChannel: ChannelName, returnChannel?: ChannelName,
+                          schema?: any, name = this.getName()): MessageResponder<R> {
+
+        return this.api.respond(
+            new MessageHandlerConfig(sendChannel, null, true, returnChannel),
+            name,
+            schema
         );
-        return true;
     }
 
+    public respondStream<R>(sendChannel: ChannelName, returnChannel?: ChannelName,
+                            schema?: any, name = this.getName()): MessageResponder<R> {
 
-    /**
-     * Wrap a payload in a response Message with type error and send to the bus channel.
-     *
-     * @param cname
-     * @param payload
-     * @param schema
-     * @param name string
-     * @returns {boolean}
-     */
-    public sendErrorMessage(cname: string, payload: any, schema = new ErrorSchema(), name = this.getName()): boolean {
-        return this.send(cname, new Message().error(payload, schema), name);
-    }
-
-    /**
-     * Transmit an error on a channel on the message bus if it exists.
-     *
-     * This method will become private soon, avoid!
-     *
-     * @param cname
-     * @param err Error object
-     * @returns {boolean} channel existed and transmission made
-     */
-    public error(cname: string, err: any): boolean {
-        if (!this._channelMap.has(cname)) {
-            return false;
-        }
-
-        let mo = new MonitorObject().build(MonitorType.MonitorError, cname, 'bus error');
-        this.monitorStream.send(new Message().error(mo));
-
-        this._channelMap.get(cname)
-            .error(err);
-        return true;
-    }
-
-    /**
-     * Respond Once to a single channel and unsubscribe
-     * @param sendChannel
-     * @param returnChannel
-     * @param schema any
-     * @param name string
-     * @returns {MessageResponder}
-     */
-    public respondOnce(sendChannel: string, returnChannel?: string,
-                       schema?: any, name = this.getName()): MessageResponder {
-
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, null, true, returnChannel);
-        return this.respond(mh, schema, name);
+        return this.api.respond(
+            new MessageHandlerConfig(sendChannel, null, false, returnChannel),
+            name,
+            schema
+        );
 
     }
 
-    /**
-     * Respond to all events until responders unsubscribe() method is called.
-     * @param sendChannel
-     * @param returnChannel
-     * @param schema any
-     * @param name string
-     * @returns {MessageResponder}
-     */
-    public respondStream(sendChannel: string, returnChannel?: string,
-                         schema?: any, name = this.getName()): MessageResponder {
+    public requestStream<T, R>(sendChannel: ChannelName,
+                               requestPayload: T,
+                               returnChannel?: ChannelName,
+                               schema?: any,
+                               name = this.getName()): MessageHandler<R> {
 
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, null, false, returnChannel);
-        return this.respond(mh, schema, name);
+        return this.api.request(
+            new MessageHandlerConfig(sendChannel, requestPayload, false, returnChannel),
+            name,
+            schema
+        );
 
     }
 
-    /**
-     * Handle all incoming responses via handler until unsubscribe() method is called
-     * @param sendChannel
-     * @param body
-     * @param returnChannel
-     * @param schema any
-     * @param name string
-     * @returns {MessageHandler}
-     */
-    public requestStream(sendChannel: string,
-                         body: any,
-                         returnChannel?: string,
-                         schema?: any,
-                         name = this.getName()): MessageHandler {
+    public requestOnce<T, R>(sendChannel: ChannelName,
+                             requestPayload: T,
+                             returnChannel?: ChannelName,
+                             schema?: any,
+                             name = this.getName()): MessageHandler<R> {
 
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, body, false, returnChannel);
-        return this.request(mh, schema, name);
-
+        return this.api.request(
+            new MessageHandlerConfig(sendChannel, requestPayload, true, returnChannel),
+            name,
+            schema
+        );
     }
 
-    /**
-     * Handle a single response on channel response stream, then immediately unsubscribe.
-     * @param sendChannel
-     * @param body
-     * @param returnChannel
-     * @param schema any
-     * @param name string
-     * @returns {MessageHandler}
-     */
-    public requestOnce(sendChannel: string,
-                       body: any,
-                       returnChannel?: string,
-                       schema?: any,
-                       name = this.getName()): MessageHandler {
-
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(sendChannel, body, true, returnChannel);
-        return this.request(mh, schema, name);
+    public listenOnce<R>(channel: ChannelName, name = this.getName()): MessageHandler<R> {
+        return this.api.listen(
+            new MessageHandlerConfig(channel, null, true, channel),
+            false,
+            name
+        );
     }
 
-    /**
-     * Listen to a response stream once, unsubscribe after single message comes through.
-     * @param channel
-     * @param name string
-     * @returns {MessageHandler}
-     */
-    public listenOnce(channel: string, name = this.getName()): MessageHandler {
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(channel, null, true, channel);
-        return this.listen(mh, false, name);
+    public listenStream<R>(channel: ChannelName, name = this.getName()): MessageHandler<R> {
+        return this.api.listen(
+            new MessageHandlerConfig(channel, null, false, channel),
+            false,
+            name
+        );
     }
 
-    /**
-     * Listen to a channel and stream all events to hander until manually unsubscribed.
-     * @param channel
-     * @param name string
-     * @returns {MessageHandler}
-     */
-    public listenStream(channel: string, name = this.getName()): MessageHandler {
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(channel, null, false, channel);
-        return this.listen(mh, false, name);
+    public listenRequestOnce<R>(channel: ChannelName, name = this.getName()): MessageHandler<R> {
+        return this.api.listen(
+            new MessageHandlerConfig(channel, null, true, channel),
+            true,
+            name
+        );
     }
 
-    /**
-     * Listen to a request stream once, unsubscribe after single message comes through.
-     * @param channel
-     * @param name string
-     * @returns {MessageHandler}
-     */
-    public listenRequestOnce(channel: string, name = this.getName()): MessageHandler {
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(channel, null, true, channel);
-        return this.listen(mh, true, name);
-
+    public listenRequestStream<R>(channel: ChannelName, name = this.getName()): MessageHandler<R> {
+        return this.api.listen(
+            new MessageHandlerConfig(channel, null, false, channel),
+            true,
+            name
+        );
     }
 
-    /**
-     * Listen to a  request stream of a channel and stream all events to hander until manually unsubscribed.
-     * @param channel
-     * @param name string
-     * @returns {MessageHandler}
-     */
-    public listenRequestStream(channel: string, name = this.getName()): MessageHandler {
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(channel, null, false, channel);
-        return this.listen(mh, true, name);
-    }
-
-    private tickEventLoop(func: Function) {
-        setTimeout(func);
-    };
-
-    /**
-     * Simplified responder will respond to any message sent on handler config send channel
-     * with return value of generateResponse function.
-     *
-     * @param handlerConfig
-     * @param schema any
-     * @param name string
-     * @returns MessageResponder
-     */
-    public respond(handlerConfig: MessageHandlerConfig, schema?: any, name = this.getName()): MessageResponder {
-        let schemaRef: any;
-        if (schemaRef) {
-            schemaRef = schema;
-        } else {
-            // TODO: build an intelligent schema generator.
-            schemaRef = new MessageSchema();
-        }
-
-        let sub: Subscription;
-        const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.sendChannel, name);
-        const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.sendChannel, name);
-
-        return {
-            generate: (generateSuccessResponse: Function, generateErrorResponse: Function): Subscription => {
-                const mergedStreams = Observable.merge(errorChannel, requestChannel);
-
-                sub = mergedStreams.subscribe(
-                    (msg: Message) => {
-                        let pl = msg.payload;
-                        // check if message is using wrapped API or not.
-                        if (pl.hasOwnProperty('_sendChannel')) {
-                            pl = msg.payload.body;
-                        }
-                        if (!msg.isError()) {
-                            this.tickEventLoop(
-                                () => {
-                                    this.sendResponseMessage(
-                                        handlerConfig.returnChannel,
-                                        generateSuccessResponse(pl),
-                                        schemaRef,
-                                        name
-                                    );
-                                }
-                            );
-                        } else {
-                            let err: Function;
-                            if (generateErrorResponse) {
-                                err = generateErrorResponse;
-                            } else {
-                                err = generateSuccessResponse;
-                            }
-                            this.tickEventLoop(
-                                () => {
-                                    this.sendErrorMessage(
-                                        handlerConfig.returnChannel,
-                                        err(pl),
-                                        schemaRef,
-                                        name
-                                    );
-                                }
-                            );
-                        }
-                        if (handlerConfig.singleResponse) {
-                            if (sub) {
-                                sub.unsubscribe();
-                            }
-                        }
-                    }
-                );
-                return sub;
-            },
-            tick: (payload: any): void => {
-                if (sub && !sub.closed) {
-                    this.sendResponse(handlerConfig.returnChannel, payload);
-                }
-            },
-            close: (): boolean => {
-                if (!handlerConfig.singleResponse) {
-                    if (sub) {
-                        sub.unsubscribe();
-                    }
-                    sub = null;
-                }
-                return true;
-            },
-            isClosed(): boolean {
-                return (!sub || sub.closed);
-            },
-            getObservable(): Observable<any> {
-                const chan = Observable.merge(requestChannel, errorChannel);
-                return chan.map(
-                    (msg: Message) => {
-                        let pl = msg.payload;
-                        if (pl.hasOwnProperty('_sendChannel')) {
-                            pl = msg.payload.body;
-                        }
-                        if (msg.isError()) {
-                            throw new Error(pl);
-                        } else {
-                            return pl;
-                        }
-                    }
-                );
-            }
-        };
-    }
-
-    /**
-     * Simplified requester will send handler config body on send channel and handle success or error messages
-     * and call handler functions with message payload.
-     *
-     * @param handlerConfig
-     * @param schema any
-     * @param name string
-     * @returns MessageHandler
-     */
-    public request(handlerConfig: MessageHandlerConfig, schemaRef?: any, name = this.getName()): MessageHandler {
-        let _schema: any;
-
-        // if a schema is supplied, use it!
-        if (schemaRef) {
-            _schema = schemaRef;
-        } else {
-            // TODO: build intelligent schema builder if none is supplied.
-            _schema = new MessageSchema();
-        }
-
-        this.send(handlerConfig.sendChannel, new Message().request(handlerConfig, _schema), name);
-
-        return this.createMessageHandler(handlerConfig, false, name);
-    }
-
-    /**
-     * Simplified listener, same as request, except no outbound message is sent.
-     *
-     * @param handlerConfig
-     * @param requestStream boolean
-     * @param name string
-     * @returns MessageHandler
-     */
-    public listen(handlerConfig: MessageHandlerConfig, requestStream: boolean = false,
-                  name = this.getName()): MessageHandler {
-        return this.createMessageHandler(handlerConfig, requestStream, name);
+    public closeChannel(cname: ChannelName, from?: SentFrom): boolean {
+        return this.api.close(cname, from);
     }
 
 
-    /**
-     * Handle the creation and destruction of subscriptions based on the handler type.
-     *
-     * @param handlerConfig
-     * @param requestStream
-     * @param name string
-     * @returns Subscription
-     */
-    private createMessageHandler(handlerConfig: MessageHandlerConfig, requestStream: boolean = false,
-                                 name = this.getName()) {
-        let sub: Subscription;
-        const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.returnChannel, name);
-        const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.returnChannel, name);
-        const responseChannel: Observable<Message> = this.getResponseChannel(handlerConfig.returnChannel, name);
-        const fullChannel: Observable<Message> = this.getChannel(handlerConfig.returnChannel, name);
-        return {
-
-            handle: (success: Function, error?: Function): Subscription => {
-                let _chan: Observable<Message>;
-                if (requestStream) {
-                    _chan = requestChannel;
-                } else {
-                    _chan = responseChannel;
-                }
-                const mergedStreams = Observable.merge(errorChannel, _chan);
-                sub = mergedStreams.subscribe(
-                    (msg: Message) => {
-                        let _pl = msg.payload;
-                        if (_pl.hasOwnProperty('_sendChannel')) {
-                            _pl = msg.payload.body;
-                        }
-                        if (msg.isError()) {
-                            if (error) {
-                                error(_pl);
-                            }
-                        } else {
-                            if (success) {
-                                success(_pl);
-                            }
-                        }
-                        if (handlerConfig.singleResponse) {
-                            if (sub) {
-                                sub.unsubscribe();
-                            }
-                        }
-                    },
-                    (data: any) => {
-                        if (error) {
-                            error(data);
-                        }
-                        if (sub) {
-                            sub.unsubscribe();
-                        }
-                    }
-                );
-                return sub;
-            },
-            tick: (payload: any): void => {
-                if (sub && !sub.closed) {
-                    this.sendRequestMessage(handlerConfig.sendChannel, payload);
-                }
-            },
-            error: (payload: any): void => {
-                if (sub && !sub.closed) {
-                    this.sendErrorMessage(handlerConfig.returnChannel, payload);
-                }
-            },
-            close: (): boolean => {
-                if (!handlerConfig.singleResponse) {
-                    if (sub) {
-                        sub.unsubscribe();
-                    }
-                    sub = null;
-                }
-                return true;
-            },
-            isClosed(): boolean {
-                return (!sub || sub.closed);
-            },
-            getObservable(type?: MessageType): Observable<any> {
-
-                let chan = fullChannel;
-                if (type) {
-                    switch (type) {
-                        case MessageType.MessageTypeResponse:
-                            chan = responseChannel;
-                            break;
-                        case MessageType.MessageTypeError:
-                            chan = errorChannel;
-                            break;
-                        default:
-                            chan = requestChannel;
-                            break;
-                    }
-                }
-                return chan.map(
-                    (msg: Message) => {
-                        let pl = msg.payload;
-                        if (pl.hasOwnProperty('_sendChannel')) {
-                            pl = msg.payload.body;
-                        }
-                        if (msg.isError()) {
-                            throw new Error(pl);
-                        } else {
-                            return pl;
-                        }
-                    }
-                );
-            }
-        };
-    }
-
-    /**
-     * Transmit complete() on stream.
-     *
-     * @param cname
-     * @param from
-     * @returns {boolean}
-     */
-    public complete(cname: string, from: string): boolean {
-        if (!this._channelMap.has(cname)) {
-            return false;
-        }
-
-        let mo = new MonitorObject().build(MonitorType.MonitorCompleteChannel, cname, from);
-        this.monitorStream.send(new Message().request(mo));
-
-        let channel = this._channelMap.get(cname);
-        channel.complete();
-        return this.destroy(channel, from);
-    }
-
-    /**
-     * Count listeners across all channels.
-     *
-     * @returns {number}
-     */
-    public countListeners(): number {
-        let count = 0;
-        this.channelMap.forEach((channel) => {
-            count += channel.refCount;
-        });
-        return count;
-    }
-
-    /**
-     * Destroy all channels, regardless of whether they still have subscribers.
-     * This is intended to be used in afterEach during jasmine tests, so that
-     * subscribers from previous tests never fire in subsequent tests.
-     *
-     * @returns {void}
-     */
-    public destroyAllChannels() {
-        this.channelMap.forEach((channel, name) => {
-            this.destroy(channel, name);
-        });
-    }
-
-    /**
-     *  Destroy a Channel and remove it from our map. If it is not closed, close it first.
-     *
-     * @param channel
-     * @param from
-     * @returns {boolean}
-     */
-    private destroy(channel: Channel, from: string): boolean {
-        let mo = new MonitorObject().build(MonitorType.MonitorDestroyChannel, channel.name, from);
-        this.monitorStream.send(new Message().request(mo));
-
-        this._channelMap.delete(channel.name);
-
-        return true;
-    }
-
-    private dumpData(mo: MonitorObject, tag: string) {
-
-        let message = mo.data as Message;
-
-        this.log.group(LogLevel.Info, tag);
-        this.log.info(' -> ' + mo.channel, 'Channel');
-
-        if (message.isRequest()) {
-            this.log.info('REQUEST', 'Type');
-        } else {
-            if (message.isError()) {
-                this.log.info('ERROR', 'Type');
-            } else {
-                this.log.info('RESPONSE', 'Type');
-            }
-        }
-
-        this.log.group(LogLevel.Info, message.isError() ? 'Error' : 'Payload');
-
-        this.log.info(LogUtil.pretty(message.payload), mo.from);
-        this.log.groupEnd(LogLevel.Info);
-
-        if (message.messageSchema) {
-            this.log.group(LogLevel.Info, 'Schema: ' + message.messageSchema._title);
-            this.log.info(LogUtil.pretty(message.messageSchema), 'Schema');
-            this.log.groupEnd(LogLevel.Info);
-        }
-
-        this.log.groupEnd(LogLevel.Info);
-    }
-
-    /**
-     * This is a listener on the monitor channel which dumps message events to the console
-     */
-    private monitorBus() {
-        this.getMonitor()
-            .subscribe(
-                (message: Message) => {
-                    if (!message.isError()) {
-                        if (this.dumpMonitor) {
-                            let mo = message.payload as MonitorObject;
-
-                            switch (mo.type) {
-                                case MonitorType.MonitorNewChannel:
-                                    this.log.info(mo.data + mo.channel, mo.from);
-                                    break;
-
-                                case MonitorType.MonitorCloseChannel:
-                                    this.log.info(' X ' + mo.channel + '[' + mo.data + ']', mo.from);
-                                    break;
-
-                                case MonitorType.MonitorCompleteChannel:
-                                    this.log.info(' C ' + mo.channel, mo.from);
-                                    break;
-
-                                case MonitorType.MonitorDestroyChannel:
-                                    this.log.info('XXX ' + mo.channel, mo.from);
-                                    break;
-
-                                case MonitorType.MonitorData:
-                                    this.dumpData(mo, mo.from + ' -> ' + mo.channel +
-                                        (message.messageSchema
-                                            ? '  ['
-                                            + message.messageSchema._title
-                                            + ']'
-                                            : ''));
-                                    break;
-
-                                case MonitorType.MonitorDropped:
-                                    this.dumpData(mo, '*DROP* message from ' + mo.from + ' -> ' + mo.channel +
-                                        (message.messageSchema
-                                            ? '  ['
-                                            + message.messageSchema._title
-                                            + ']'
-                                            : ''));
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                    } else {
-                        this.log.error('Error on monitor channel: ' + LogUtil.pretty(message), this.getName());
-                    }
-                }
-            );
-    }
 }
