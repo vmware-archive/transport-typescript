@@ -6,8 +6,6 @@ import {Channel} from './channel.model';
 import {Syslog} from '../../log/syslog';
 import {LogUtil} from '../../log/util';
 import {Message} from './message.model';
-import {BifrostModule} from '../../bifrost.module';
-import {TestBed} from '@angular/core/testing';
 
 /**
  * This is the unit test for the Stream model.
@@ -25,13 +23,11 @@ describe('Stream Model [stream]', () => {
     let testError = {
         error: 'fake error'
     };
-
-    beforeEach(function () {
-        channel = new Channel('test-stream');
-        TestBed.configureTestingModule({
-            imports: [BifrostModule.forRoot()]
-        });
-    });
+    beforeEach(
+        () => {
+            channel = new Channel('test-stream');
+        }
+    );
 
     it('Should verify stream creation', () => {
         channel.decrement();

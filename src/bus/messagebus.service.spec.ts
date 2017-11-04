@@ -2,15 +2,13 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import { inject, TestBed } from '@angular/core/testing';
-import { Injector } from '@angular/core';
 import { Syslog } from '../log/syslog';
 import { LogLevel } from '../log/logger.model';
 import { Message, MessageHandler, MessageResponder, MessageType } from './model/message.model';
-import { MessagebusService } from './index';
 import { Channel } from './model/channel.model';
 import { Observable } from 'rxjs/Observable';
 import { EventBus } from './bus.api';
+import { MessagebusService } from './messagebus.service';
 
 function makeCallCountCaller(done: any, targetCount: number): any {
     let count = 0;
@@ -26,7 +24,6 @@ function getName(): string {
     return 'messagebus.service.spec';
 }
 
-
 describe('MessagebusService [messagebus.service]', () => {
     const testChannel = '#local-channel';
     const testData = {
@@ -37,24 +34,14 @@ describe('MessagebusService [messagebus.service]', () => {
     const tag = '[' + getName() + ']: ';
     const response = tag + testMessage;
 
-    let bus: MessagebusService;
+    let bus: EventBus;
 
     beforeEach(() => {
-        TestBed.configureTestingModule({
-            providers: [
-                Map,
-                { provide: EventBus, useClass: MessagebusService}
-            ]
-        });
-    });
-
-    beforeEach(inject([Injector], (injector: Injector) => {
-        bus = injector.get(EventBus);
+        bus = new MessagebusService();
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
         bus.api.enableMonitorDump(false);
-    }));
-
+    });
     it('Should check logging', () => {
         bus.api.messageLog(testMessage, getName());
         expect(bus.api.logger()
@@ -77,7 +64,6 @@ describe('MessagebusService [messagebus.service]', () => {
             .not
             .toBeUndefined();
         expect(bus.api.refCount(testChannel)).toBe(1);
-        expect(bus.getName()).toBe('MessagebusService');
         expect(bus.api.getMonitor())
             .not
             .toBeUndefined();

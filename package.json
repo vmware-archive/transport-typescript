@@ -1,6 +1,6 @@
 {
   "name": "vmw-bifrost",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": false,
   "license": "UNLICENSED",
   "repository": "git@gitlab.eng.vmware.com:dshanley/bifrost.git",
@@ -10,13 +10,6 @@
     "zone.js": "^0.8.8"
   },
   "devDependencies": {
-    "@angular/animations": "^4.1.1",
-    "@angular/common": "^4.1.1",
-    "@angular/compiler": "^4.1.1",
-    "@angular/compiler-cli": "^4.1.1",
-    "@angular/platform-browser": "^4.1.1",
-    "@angular/platform-browser-dynamic": "^4.1.1",
-    "@angular/platform-server": "^4.1.1",
     "@types/jasmine": "^2.5.41",
     "@types/selenium-webdriver": "^2.53.33",
     "bootstrap": "4.0.0-alpha.5",
@@ -42,7 +35,6 @@
     "gulp-util": "^3.0.7",
     "gulp-zip": "^3.1.0",
     "intl": "1.1.0",
-    "is-docker": "^1.1.0",
     "jasmine-core": "^2.4.1",
     "karma": "^1.2.0",
     "karma-chrome-launcher": "^2.2.0",
