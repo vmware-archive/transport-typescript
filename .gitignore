@@ -13,3 +13,4 @@ tmp
 /java
 /.gradle
 /node_modules
+coverage

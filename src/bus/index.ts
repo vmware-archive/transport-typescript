@@ -1,19 +1,10 @@
-/*
- * Copyright (c) 2017 VMware, Inc. All Rights Reserved.
- * This software is released under MIT license.
- * The full license information can be found in LICENSE in the root directory of this project.
+/**
+ * Copyright(c) VMware Inc. 2016-2017
  */
 
-import {Type} from '@angular/core';
-import {MessagebusService} from './messagebus.service';
-
 export * from './messagebus.service';
-export * from './message.model'
-export * from './message.schema'
-export * from './monitor.model'
-export * from './cache/cache.api'
-
-
-export const BIFROST_BUS_DIRECTIVES: Type<any>[] = [
-    MessagebusService
-];
+export * from './model/message.model'
+export * from './model/message.schema'
+export * from './model/monitor.model'
+export * from './cache.api'
+export * from './bus.api'

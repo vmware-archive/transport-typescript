@@ -12,10 +12,13 @@
     "noImplicitAny": true,
     "types": [
       "jasmine"
-    ]
+    ],
+    "outDir": "dist/",
+    "rootDir": "src/"
   },
   "exclude": [
     "node_modules/*",
-    "compiled/*"
+    "compiled/*",
+    "dist/"
   ]
 }

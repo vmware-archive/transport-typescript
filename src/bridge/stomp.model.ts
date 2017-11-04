@@ -1,3 +1,7 @@
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
+
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
 import { StompClient } from './stomp.client';

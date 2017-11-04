@@ -1,5 +1,5 @@
 /**
- * Copyright(c) VMware Inc., 2016
+ * Copyright(c) VMware Inc. 2016-2017
  */
 
 import { MessageSchema } from './message.schema';
@@ -30,14 +30,14 @@ export interface MessageFunction<T> extends Function {
 /**
  * MessageHandler encapsulates bus handling and communication from the perspective of a consumer
  */
-export interface MessageHandler {
+export interface MessageHandler<T = any, E = any> {
 
     /**
      * Handler for incoming responses
      * @param successHander handle success responses
      * @param errorHandler handle error responses
      */
-    handle<T, E = any>(successHander: MessageFunction<T>, errorHandler?: MessageFunction<E>): Subscription;
+    handle(successHander: MessageFunction<T>, errorHandler?: MessageFunction<E>): Subscription;
 
     /**
      * if handler is streaming, and the handler is open, send a payload down the request channel
@@ -65,20 +65,20 @@ export interface MessageHandler {
      * / Get an observable for payloads
      * @param messageType optional filter for responses, requests or errors. If left blank, you get the firehose.
      */
-    getObservable<T>(messageType?: MessageType): Observable<T>;
+    getObservable(messageType?: MessageType): Observable<T>;
 }
 
 /**
  * MessageResponder encapsulates bus handling and communication from the perspective of a producer or supplier.
  */
-export interface MessageResponder {
+export interface MessageResponder<T = any, E = any> {
 
     /**
      * Generate responses to requests inbound on a channel.
      * @param generateSuccessResponse handle successful requests (must return response payload to be sent)
      * @param generateErrorResponse handle errors (must return error payload to be sent)
      */
-    generate<T, E>(generateSuccessResponse: MessageFunction<T>,
+    generate(generateSuccessResponse: MessageFunction<T>,
                    generateErrorResponse?: MessageFunction<E>): Subscription;
 
     /**
@@ -101,7 +101,7 @@ export interface MessageResponder {
      * Get an observable for incoming (request & error) payloads
      * @param messageType optional filter for responses, requests or errors. If left blank, you get the firehose.
      */
-    getObservable<T>(): Observable<T>;
+    getObservable(): Observable<T>;
 }
 
 export class MessageHandlerConfig {

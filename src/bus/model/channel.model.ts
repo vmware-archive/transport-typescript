@@ -1,5 +1,5 @@
 /**
- * Copyright(c) VMware Inc., 2016
+ * Copyright(c) VMware Inc. 2016-2017
  */
 import { Subject } from 'rxjs';
 import { Message } from './message.model';

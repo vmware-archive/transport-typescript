@@ -1,12 +1,14 @@
-import {StompClient} from './stomp.client';
-import {Subject} from 'rxjs';
-import {StompParser} from './stomp.parser';
-import {Syslog} from '../log/syslog';
-import {StompMessage, StompConfig} from './stomp.model';
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
 
+import { StompClient } from './stomp.client';
+import { Subject } from 'rxjs';
+import { StompParser } from './stomp.parser';
+import { Syslog } from '../log/syslog';
+import { StompMessage, StompConfig } from './stomp.model';
 
 describe('Stomp Client [stomp.client]', () => {
-
 
     let client: StompClient;
     let config: StompConfig;

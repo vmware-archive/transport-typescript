@@ -1,11 +1,15 @@
-import { CacheStream, MutateStream } from './cache.api';
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
+
+import { StoreStream, MutateStream } from '../cache.api';
 import { Subscription } from 'rxjs/Subscription';
 import { Observable } from 'rxjs/Observable';
-import { MessageFunction } from '../message.model';
+import { MessageFunction } from '../model/message.model';
 import { Syslog } from '../../log/syslog';
 
 export type UUID = string;
-export type CacheType = string;
+export type StoreType = string;
 
 export class MutationRequestWrapper<T, E = any> {
 
@@ -22,7 +26,7 @@ export class MutationRequestWrapper<T, E = any> {
     }
 }
 
-export class BaseCacheState<T, V> {
+export class BaseStoreState<T, V> {
     constructor(private changeType: T,
                 private objectValue: V) {
 
@@ -38,7 +42,7 @@ export class BaseCacheState<T, V> {
 
 }
 
-export class CacheStateChange<T, V> extends BaseCacheState<T, V> {
+export class StoreStateChange<T, V> extends BaseStoreState<T, V> {
     constructor(private objectId: UUID,
                 changeType: T,
                 objectValue: V) {
@@ -51,7 +55,7 @@ export class CacheStateChange<T, V> extends BaseCacheState<T, V> {
     }
 }
 
-export class CacheStateMutation<T, V, E = any> extends BaseCacheState<T, V> {
+export class StoreStateMutation<T, V, E = any> extends BaseStoreState<T, V> {
     private pvtErrorHandler: MessageFunction<E>;
     private pvtSuccessHandler: MessageFunction<V>;
 
@@ -77,7 +81,7 @@ export class CacheStateMutation<T, V, E = any> extends BaseCacheState<T, V> {
     }
 }
 
-export class CacheStreamImpl<T, E = any> implements CacheStream<T> {
+export class StoreStreamImpl<T, E = any> implements StoreStream<T> {
 
     protected subscription: Subscription;
 
@@ -116,7 +120,7 @@ export class CacheStreamImpl<T, E = any> implements CacheStream<T> {
     }
 }
 
-export class MutateStreamImpl<T, E = any> extends CacheStreamImpl<T> implements MutateStream<T, E> {
+export class MutateStreamImpl<T, E = any> extends StoreStreamImpl<T> implements MutateStream<T, E> {
 
     protected mutatorErrorHandler: MessageFunction<E>;
     protected mutatorSuccessHandler: MessageFunction<T>;

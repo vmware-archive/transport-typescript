@@ -1,7 +1,6 @@
 /**
- * Copyright(c) VMware Inc., 2016
+ * Copyright(c) VMware Inc. 2016-2017
  */
-
 
 /**
  * The MessageSchema describes the format of the Message payload (API).

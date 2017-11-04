@@ -1,7 +1,10 @@
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
+
 import {StompParser} from './stomp.parser';
 import {StompClient} from './stomp.client';
-import {Message} from '../bus/message.model';
-
+import {Message} from '../bus/model/message.model';
 
 describe('Stomp Parser [stomp.parser]', () => {
 

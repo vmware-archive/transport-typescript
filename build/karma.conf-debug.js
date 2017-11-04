@@ -66,14 +66,10 @@ module.exports = function (config) {
         ],
 
         customLaunchers: {
-            ChromeHeadless: {
+            ChromeDebug: {
                 base: 'Chrome',
                 flags: [
-                    '--headless',
-                    '--disable-gpu',
                     '--remote-debugging-port=9222',
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox'
                 ],
                 debug: true
             }
@@ -99,10 +95,10 @@ module.exports = function (config) {
         logLevel:
         config.LOG_INFO,
         autoWatch:
-            false,
+            true,
         browsers:
-            ['ChromeHeadless'],
+            ['ChromeDebug'],
         singleRun:
-            true
+            false
     });
 };

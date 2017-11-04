@@ -1,16 +1,10 @@
-image: node:latest
+image: gnomeontherun/docker-node-chrome-headless:latest
 
 before_script:
-  - ./install-chrome
+  - npm install
 
 test:
   script:
-    - xvfb-run -a npm run test
-
-#coverage:
-#  script:
-#    - xvfb-run -a npm run coverage
-#
-#prepare:
-#  script:
-#    - xvfb-run -a npm run prepare:all
+    - npm run test
+    - npm run prepare:all
+    - npm run coverage

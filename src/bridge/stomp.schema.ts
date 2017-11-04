@@ -1,4 +1,7 @@
-import {MessageSchema} from '../bus/message.schema';
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
+import { MessageSchema } from '../bus/model/message.schema';
 
 export const stompCommandPayload = {
     '_destination': {
@@ -18,7 +21,7 @@ export const stompCommandPayload = {
         'type': ['object', 'any'],
         'required': false,
     },
- };
+};
 
 export const stompConfigPayload = {
     '_endpoint': {
@@ -74,7 +77,7 @@ export const stompConfigPayload = {
  */
 export class StompConfigSchema extends MessageSchema {
 
-    constructor () {
+    constructor() {
         super('STOMP Config Schema', 'Schema sending connection configurations', stompConfigPayload);
     }
 }
@@ -82,7 +85,7 @@ export class StompConfigSchema extends MessageSchema {
 
 export class StompCommandSchema extends MessageSchema {
 
-    constructor () {
+    constructor() {
         super('STOMP Command Schema', 'Schema for sending commands & messages on channels', stompCommandPayload);
     }
 }

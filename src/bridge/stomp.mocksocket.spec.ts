@@ -1,5 +1,8 @@
-import {MockSocket} from './stomp.mocksocket';
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
 
+import { MockSocket } from './stomp.mocksocket';
 
 let mocket: MockSocket;
 

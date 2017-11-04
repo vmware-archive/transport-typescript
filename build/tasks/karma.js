@@ -7,6 +7,7 @@ var path = require("path");
 var Server = require('karma').Server;
 
 var configFile = path.resolve('build/karma.conf.js');
+var configFileDebug = path.resolve('build/karma.conf-debug.js');
 
 /**
  * Run tests once and exit
@@ -25,7 +26,28 @@ gulp.task('karma', function (done) {
 gulp.task('karma:verbose', function (done) {
     new Server({
         configFile: configFile,
-        reporters: ['mocha']
+        reporters: ['spec']
+    }, function() {
+        // Ignore possible errors, the log should be enough when using :verbose
+        done();
+    }).start();
+});
+
+gulp.task('karma:debug', function (done) {
+    new Server({
+        configFile: configFileDebug,
+        reporters: ['spec']
+    }, function() {
+        // Ignore possible errors, the log should be enough when using :verbose
+        done();
+    }).start();
+});
+
+
+gulp.task('karma:coverage-report', function (done) {
+    new Server({
+        configFile: configFile,
+        reporters: ['progress', 'coverage', 'karma-remap-istanbul']
     }, function() {
         // Ignore possible errors, the log should be enough when using :verbose
         done();

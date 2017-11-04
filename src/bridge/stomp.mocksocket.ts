@@ -1,5 +1,10 @@
-import {StompClient} from './stomp.client';
-import {StompParser} from './stomp.parser';
+/**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
+
+import { StompClient } from './stomp.client';
+import { StompParser } from './stomp.parser';
+
 export class MockSocket {
 
     public events: any = {};
