@@ -22,17 +22,17 @@ module.exports = function(tsSources, options, destination) {
     if (options.module) {
         tsConfig.module = options.module;
     }
-    var tsProject = ts.createProject("tsconfig.json", tsConfig);
+    var tsProject = ts.createProject('tsconfig.json', tsConfig);
 
     var prod = process.env.NODE_ENV==="prod";
-
-    var stream = gulp.src(allSources, {base: "src/"})
+   
+    var stream = gulp.src(tsSources);
 
     if (!prod) {
         stream = stream.pipe(sourcemaps.init());
     }
 
-    stream = stream.pipe(ts(tsProject));
+    stream = stream.pipe(tsProject());
     if (!prod) {
         stream = stream.pipe(sourcemaps.write(".", {sourceRoot: "/src"}));
     }

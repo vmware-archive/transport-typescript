@@ -1,24 +1,21 @@
 {
-  "compilerOptions": {
-    "target": "es5",
-    "declaration": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "sourceMap": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "lib": [ "es2015", "dom" ],
-    "removeComments": false,
-    "noImplicitAny": true,
-    "types": [
-      "jasmine"
-    ],
-    "outDir": "dist/",
-    "rootDir": "src/"
-  },
-  "exclude": [
-    "node_modules/*",
-    "compiled/*",
-    "dist/"
-  ]
+    "compilerOptions": {
+        "baseUrl": "src",
+        "declaration": false,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "lib": [
+            "es6",
+            "dom"
+        ],
+        "mapRoot": "./",
+        "module": "es6",
+        "moduleResolution": "node",
+        "outDir": "./dist/out-tsc",
+        "sourceMap": true,
+        "target": "es5",
+        "typeRoots": [
+            "node_modules/@types"
+        ]
+    }
 }

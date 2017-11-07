@@ -15,7 +15,8 @@ var renameFolder = require("../rename-folder");
 var bifrostSources = [
     'src/**/*.ts',
     '!src/**/*.spec.ts',
-    '!src/**/*.mock.ts'
+    '!src/**/*.mock.ts',
+    '!node_modules/**/*'
 ];
 
 gulp.task('typescript:bifrost', function () {

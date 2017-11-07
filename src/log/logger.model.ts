@@ -1,4 +1,8 @@
 /**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
+
+/**
  * Channels for communication with the logger Service, and its message object.
  */
 

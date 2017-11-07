@@ -3,8 +3,8 @@
  */
 
 export * from './messagebus.service';
-export * from './model/message.model'
-export * from './model/message.schema'
-export * from './model/monitor.model'
-export * from './cache.api'
-export * from './bus.api'
+export * from './model/message.model';
+export * from './model/message.schema';
+export * from './model/monitor.model';
+export * from './cache.api';
+export * from './bus.api';

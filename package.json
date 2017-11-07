@@ -10,7 +10,8 @@
     "zone.js": "^0.8.8"
   },
   "devDependencies": {
-    "@types/jasmine": "^2.5.41",
+    "@types/jasmine": "^2.5.45",
+    "@types/node": "^6.0.63",
     "@types/selenium-webdriver": "^2.53.33",
     "bootstrap": "4.0.0-alpha.5",
     "browser-sync": "^2.11.2",
@@ -30,8 +31,8 @@
     "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.5.4",
     "gulp-stylestats": "^1.2.1",
-    "gulp-tslint": "^4.3.4",
-    "gulp-typescript": "2.13.0",
+    "gulp-tslint": "^8.1.2",
+    "gulp-typescript": "3.2.3",
     "gulp-util": "^3.0.7",
     "gulp-zip": "^3.1.0",
     "intl": "1.1.0",
@@ -53,8 +54,8 @@
     "systemjs": "0.19.27",
     "systemjs-builder": "^0.15.13",
     "through2": "^2.0.1",
-    "tslint": "3.7.0-dev.5",
-    "typescript": "^2.4.2"
+    "tslint": "5.8.0",
+    "typescript": "^2.6.1"
   },
   "scripts": {
     "build": "gulp build --prod && gulp karma",
