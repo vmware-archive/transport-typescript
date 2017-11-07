@@ -177,7 +177,7 @@ export class StompConfig {
         if (!_heartbeatOut) {
             this._heartbeatOut = 30000;
         }
-    };
+    }
 
     set brokerConnectCount(count: number) {
         this.numBrokerConnect = count;

@@ -36,9 +36,9 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
         this.cache = new Map<UUID, any>();
     }
 
-    private sendChangeBroadcast<T, V>(changeType: T, id: UUID, value: V): void {
+    private sendChangeBroadcast<C>(changeType: C, id: UUID, value: T): void {
 
-        const stateChange: StoreStateChange<T, V> = new StoreStateChange<T, V>(id, changeType, value);
+        const stateChange: StoreStateChange<C, T> = new StoreStateChange<C, T>(id, changeType, value);
 
         this.bus.sendResponseMessage(
             this.cacheStreamChan,
@@ -57,11 +57,11 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
         return Array.from(this.cache.values());
     }
 
-    allValuesAsMap<T>(): Map<UUID, T> {
+    allValuesAsMap(): Map<UUID, T> {
         return new Map(this.cache.entries());
     }
 
-    populate<T>(items: Map<UUID, T>): boolean {
+    populate(items: Map<UUID, T>): boolean {
         if (this.cache.size === 0) {
             this.cache = new Map(items.entries());
             this.initialize();
@@ -70,12 +70,12 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
         return false;
     }
 
-    put<T, S>(id: UUID, value: T, state: S): void {
+    put<S>(id: UUID, value: T, state: S): void {
         this.cache.set(id, value);
         this.sendChangeBroadcast(state, id, value);
     }
 
-    get<T>(id: UUID): T {
+    get(id: UUID): T {
         return this.cache.get(id);
     }
 
@@ -90,7 +90,7 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
         return false;
     }
 
-    onChange<S, T>(id: UUID, ...stateChangeType: S[]): StoreStream<T> {
+    onChange<S>(id: UUID, ...stateChangeType: S[]): StoreStream<T> {
 
         const cacheStreamChan: Observable<Message> =
             this.bus.api.getResponseChannel(StoreImpl.getObjectChannel(id), this.getName());
@@ -119,7 +119,7 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
         return new StoreStreamImpl<T>(this.filterStream(stream, [stateChangeFilter]));
     }
 
-    onAllChanges<T, S>(objectType: T, ...stateChangeType: S[]): StoreStream<T> {
+    onAllChanges<S>(objectType: T, ...stateChangeType: S[]): StoreStream<T> {
 
         const cacheStreamChan: Observable<Message> =
             this.bus.api.getResponseChannel(this.cacheStreamChan, this.getName());
@@ -157,7 +157,7 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
         return new StoreStreamImpl<T>(this.filterStream(stream, [stateChangeFilter, compareObjects]));
     }
 
-    private filterStream<S, T>(
+    private filterStream<S>(
         stream: Observable<any>,
         filters: Array<Predicate<StoreStateChange<S, T>>>): Observable<MutationRequestWrapper<T>> {
 
@@ -174,8 +174,10 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
         );
     }
 
-    mutate<T, M, E>(value: T, mutationType: M,
-                    successHandler: MessageFunction<T>, errorHandler?: MessageFunction<E>): boolean {
+    mutate<M, E>(
+        value: T, mutationType: M,
+        successHandler: MessageFunction<T>, 
+        errorHandler?: MessageFunction<E>): boolean {
 
         const mutation: StoreStateMutation<M, T> = new StoreStateMutation(mutationType, value);
         mutation.errorHandler = errorHandler;
@@ -189,7 +191,7 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
         return true;
     }
 
-    onMutationRequest<T, M, E = any>(objectType: T, ...mutationType: M[]): MutateStream<T, E> {
+    onMutationRequest<M, E = any>(objectType: T, ...mutationType: M[]): MutateStream<T, E> {
 
         const stream: Observable<StoreStateMutation<M, T>> =
             this.bus.api.getChannel(this.cacheMutationChan, this.getName())
@@ -224,7 +226,7 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
         this.cache.clear();
     }
 
-    whenReady<T>(readyFunction: MessageFunction<Map<UUID, T>>): void {
+    whenReady(readyFunction: MessageFunction<Map<UUID, T>>): void {
         this.bus.listenOnce(this.cacheReadyChan).handle(readyFunction);
 
         // push this off into the event loop, make sure all consumers are async.

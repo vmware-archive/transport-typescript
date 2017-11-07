@@ -78,8 +78,9 @@ export interface MessageResponder<T = any, E = any> {
      * @param generateSuccessResponse handle successful requests (must return response payload to be sent)
      * @param generateErrorResponse handle errors (must return error payload to be sent)
      */
-    generate(generateSuccessResponse: MessageFunction<T>,
-                   generateErrorResponse?: MessageFunction<E>): Subscription;
+    generate(
+        generateSuccessResponse: MessageFunction<T>,
+        generateErrorResponse?: MessageFunction<E>): Subscription;
 
     /**
      * If responder is streaming, and the responder is open, send a new response message down the return channel.

@@ -57,14 +57,14 @@ export interface BusStore<T> {
      * @param {T} value the object you wish to cache
      * @param {S} state the state change event you want to broadcast with this action (created, updated etc).
      */
-    put<T, S>(id: UUID, value: T, state: S): void;
+    put<S>(id: UUID, value: T, state: S): void;
 
     /**
      * Retrieve an object from the cache
      * @param {UUID} id the string ID of the object you wish to get.
      * @returns {T} the object you're looking for.
      */
-    get<T>(id: UUID): T;
+    get(id: UUID): T;
 
     /**
      * Get all values from cache.
@@ -76,7 +76,7 @@ export interface BusStore<T> {
      * Get the entire cache as a map.
      * @returns {Map<UUID, T>}
      */
-    allValuesAsMap<T>(): Map<UUID, T>;
+    allValuesAsMap(): Map<UUID, T>;
 
     /**
      * Remove/delete an object into the cache.
@@ -94,15 +94,18 @@ export interface BusStore<T> {
      * @param {MessageFunction<E>} errorHandler provide object E to mutator function on error.
      * @returns {boolean} true if mutation request was placed in stream
      */
-    mutate<T, M, E, S>(value: T, mutationType: M,
-                       successHandler: MessageFunction<S>, errorHandler?: MessageFunction<E>): boolean;
+    mutate<M, E>(
+        value: T, 
+        mutationType: M,
+        successHandler: MessageFunction<T>, 
+        errorHandler?: MessageFunction<E>): boolean;
 
     /**
      * Populate the cache with a collection of objects and their ID's.
      * @param {Map<UUID, T>} items a Map of your UUID's mapped to your Objects.
      * @returns {boolean} if the cache has already been populated (has objects), will return false.
      */
-    populate<T>(items: Map<UUID, T>): boolean;
+    populate(items: Map<UUID, T>): boolean;
 
     /**
      * Subscribe to state changes for a specific object.
@@ -110,7 +113,7 @@ export interface BusStore<T> {
      * @param {S} stateChangeType the state change type you wish to listen to
      * @returns {StoreStream<T>} stream that will tick the object you're listening for.
      */
-    onChange<S, T>(id: UUID, ...stateChangeType: S[]): StoreStream<T>;
+    onChange<S>(id: UUID, ...stateChangeType: S[]): StoreStream<T>;
 
     /**
      * Subscribe to state changes for all objects of a specific type and state change
@@ -121,7 +124,7 @@ export interface BusStore<T> {
      * @param {S} stateChangeType the state change type you with to listen to
      * @returns {StoreStream<T>} stream that will tick the object you're listening for.
      */
-    onAllChanges<S, T>(typeInstance: T, ...stateChangeType: S[]): StoreStream<T>;
+    onAllChanges<S>(typeInstance: T, ...stateChangeType: S[]): StoreStream<T>;
 
     /**
      * Subscribe to mutation requests via mutate()
@@ -129,7 +132,7 @@ export interface BusStore<T> {
      * @param {M} mutationType optional mutation type
      * @returns {StoreStream<T>} stream that will tick mutation requests you're listening for.
      */
-    onMutationRequest<T, M = any>(objectType: T, ...mutationType: M[]): MutateStream<T>;
+    onMutationRequest<M = any>(objectType: T, ...mutationType: M[]): MutateStream<T>;
 
     /**
      * Notify when the cache has been initialize (via populate() or initialize()

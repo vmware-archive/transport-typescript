@@ -254,7 +254,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
 
     tickEventLoop(func: Function): void {
         setTimeout(func);
-    };
+    }
 
     request<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, schema?: any): MessageHandler<R, E> {
 

@@ -61,7 +61,7 @@ describe('BusStore [cache/cache]', () => {
     it('check remove() works correctly', (done) => {
         const cache: BusStore<string> = bus.getStore('string');
 
-        cache.onChange<State.Deleted, string>('123', State.Deleted)
+        cache.onChange<State.Deleted>('123', State.Deleted)
             .subscribe(
                 (s: string) => {
                     expect(s).toEqual('chickie & fox');
@@ -139,7 +139,7 @@ describe('BusStore [cache/cache]', () => {
 
     it('check onChange() works correctly', (done) => {
 
-        const cache: BusStore<string> = bus.createStore('Dog');
+        const cache: BusStore<Dog> = bus.createStore('Dog');
 
         let counter: number = 0;
 
@@ -149,7 +149,7 @@ describe('BusStore [cache/cache]', () => {
             commonPhrase: string;
         }
 
-        cache.onChange<State.Created, Dog>('magnum', State.Created)
+        cache.onChange<State.Created>('magnum', State.Created)
             .subscribe(
                 (d: Dog) => {
                     expect(d.name).toEqual('maggie');
@@ -159,7 +159,7 @@ describe('BusStore [cache/cache]', () => {
                 }
             );
 
-        cache.onChange<State.Updated, Dog>('fox', State.Updated)
+        cache.onChange<State.Updated>('fox', State.Updated)
             .subscribe(
                 (d: Dog) => {
                     expect(d.name).toEqual('foxy pop');
@@ -169,7 +169,7 @@ describe('BusStore [cache/cache]', () => {
                 }
             );
 
-        cache.onChange<State.Deleted, Dog>('cotton', State.Deleted)
+        cache.onChange<State.Deleted>('cotton', State.Deleted)
             .subscribe(
                 (d: Dog) => {
                     expect(d.name).toEqual('chickie');
@@ -202,19 +202,19 @@ describe('BusStore [cache/cache]', () => {
 
     it('check onAllChanges() works correctly', (done) => {
 
-        const cache: BusStore<Dog> = bus.createStore('Dog');
+        const cache = bus.createStore('Dog');
 
         let counter: number = 0;
 
 
-        cache.onAllChanges<State.Created, Dog>(new Dog(), State.Created)
+        cache.onAllChanges<State.Created>(new Dog(), State.Created)
             .subscribe(
                 () => {
                     counter++;
                 }
             );
 
-        cache.onAllChanges<State.Updated, Dog>(new Dog(), State.Updated)
+        cache.onAllChanges<State.Updated>(new Dog(), State.Updated)
             .subscribe(
                 () => {
                     counter++;
@@ -231,12 +231,12 @@ describe('BusStore [cache/cache]', () => {
         );
         cache.put(
             'magnum',
-            {name: 'maggie', age: 12, commonPhrase: 'get the kitty'},
+            new Dog('maggie', 12, 'get the kitty'),
             State.Created
         );
         cache.put(
             'fox',
-            {name: 'foxy pop', age: 11, commonPhrase: 'get out of the pantry'},
+            new Dog('foxy pop',11, 'get out of the pantry'),
             State.Created
         );
         cache.put(
@@ -280,12 +280,12 @@ describe('BusStore [cache/cache]', () => {
 
         cache.put(
             'fox',
-            {name: 'foxy pop', age: 11, commonPhrase: 'get out of the pantry'},
+            new Dog('foxy pop', 11, 'get out of the pantry'),
             State.Created
         );
         cache.put(
             'fox',
-            {name: 'foxy pop', age: 11, commonPhrase: 'get off the couch!'},
+            new Dog('foxy pop', 11, 'get off the couch!'),
             State.Updated
         );
 
@@ -309,18 +309,18 @@ describe('BusStore [cache/cache]', () => {
             );
         cache.put(
             'fox',
-            {name: 'foxy pop', age: 11, commonPhrase: 'get out of the pantry'},
+            new Dog('foxy pop', 11,'get out of the pantry'),
             State.Created
         );
         cache.put(
             'fox',
-            {name: 'foxy pop', age: 11, commonPhrase: 'get off the couch!'},
+            new Dog('foxy pop', 11, 'get off the couch!'),
             State.Updated
         );
 
         cache.put(
             'fox',
-            {name: 'foxy pop', age: 11, commonPhrase: 'get off the couch!'},
+            new Dog('foxy pop', 11, 'get off the couch!'),
             State.Deleted
         );
     });
@@ -339,13 +339,14 @@ describe('BusStore [cache/cache]', () => {
                 expect(dog.dogPhrase).toEqual('eat it, not bury it');
 
                 // some task was done and the mutation was a success. let the caller know.
-                mutateStream.success('we mutated it!');
+                dog.dogPhrase = 'ok, now you can eat it!';
+                mutateStream.success(dog);
             }
         );
 
         cache.mutate(d, Mutate.Update,
-            (e: string) => {
-                expect(e).toEqual('we mutated it!');
+            (d: Dog) => {
+                expect(d.dogPhrase).toEqual('ok, now you can eat it!');
                 done();
             }
         );
@@ -386,7 +387,7 @@ describe('BusStore [cache/cache]', () => {
         let d: Dog = new Dog('maggie', 12, 'get the kitty');
         cache.put('magnum', d, State.Created);
 
-        cache.onMutationRequest<Dog, Mutate.Update>(new Dog(), Mutate.Update)
+        cache.onMutationRequest<Mutate.Update>(new Dog(), Mutate.Update)
             .subscribe(
                 (dog: Dog) => {
                     expect(dog.dogName).toEqual('maggie');
@@ -400,7 +401,7 @@ describe('BusStore [cache/cache]', () => {
                 }
             );
 
-        cache.onChange<State.Updated, Dog>('magnum', State.Updated)
+        cache.onChange<State.Updated>('magnum', State.Updated)
             .subscribe(
                 (dog: Dog) => {
                     expect(dog.dogName).toEqual('maggles');
@@ -420,7 +421,7 @@ describe('BusStore [cache/cache]', () => {
         let d: Dog = new Dog('chicken', 6, 'go find the kitty');
         cache.put('cotton', d, State.Created);
 
-        const stream = cache.onMutationRequest<Dog, Mutate.Update>(new Dog(), Mutate.Update);
+        const stream = cache.onMutationRequest<Mutate.Update>(new Dog(), Mutate.Update);
 
         stream.subscribe(
             (dog: Dog) => {
@@ -465,7 +466,7 @@ describe('BusStore [cache/cache]', () => {
         cache.whenReady(
             () => {
                 expect(cache.allValues().length).toEqual(3);
-                expect(cache.get<Dog>('cotton').dogPhrase).toEqual('go find the kitty');
+                expect(cache.get('cotton').dogPhrase).toEqual('go find the kitty');
                 done();
             }
         );

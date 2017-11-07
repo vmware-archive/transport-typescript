@@ -519,7 +519,7 @@ export class StompService implements MessageBusEnabled {
             this.sendBusCommandResponseRaw(message, StompChannel.subscription, true);
 
             let subjectSubscription = subscriptionSubject.subscribe(
-                (message: StompMessage) => {
+                (msg: StompMessage) => {
 
                     let busResponse: StompBusCommand =
                         StompParser.generateStompBusCommand(
@@ -528,21 +528,21 @@ export class StompService implements MessageBusEnabled {
                             data.destination,
                             StompParser.frame(
                                 StompClient.STOMP_MESSAGE,
-                                message.headers,
-                                message.body
+                                msg.headers,
+                                msg.body
                             )
                         );
 
-                    let channel =
+                    let convChan =
                         StompParser.convertSubscriptionToChannel(data.destination, session.config.topicLocation);
 
                     let payload;
                     try {
-                        payload = JSON.parse(message.body);
+                        payload = JSON.parse(msg.body);
                     } catch (e) {
-                        payload = message.body;
+                        payload = msg.body;
                     }
-                    this.bus.sendResponseMessage(channel, payload);
+                    this.bus.sendResponseMessage(convChan, payload);
 
                     // duplicate to stomp messages.
                     this.bus.api.send(StompChannel.messages,

@@ -52,7 +52,7 @@ export class StompParser {
             body += chr;
         }
         return StompParser.frame(command, headers, body);
-    };
+    }
 
     public static byteCount(str: string): number {
         str = String(str);
@@ -106,11 +106,11 @@ export class StompParser {
                 return out;
             }
         };
-    };
+    }
 
     public static trim(str: string): string {
         return str.replace(/^\s+/g, '').replace(/\s+$/g, '');
-    };
+    }
 
     public static genUUID(): string {
         let uuid: string = '', i: number, random: number;
