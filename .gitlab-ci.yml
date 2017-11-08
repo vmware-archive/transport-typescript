@@ -7,4 +7,3 @@ test:
   script:
     - npm run test
     - npm run prepare:all
-    - npm run coverage
