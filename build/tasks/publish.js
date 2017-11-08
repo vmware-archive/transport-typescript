@@ -19,32 +19,29 @@ var npmFolder = "dist/npm/";
 /**
  * The deliverables for bifrost are:
  *   - the compiled js files in es5 with es2015 module format
- *   - the umd JS bundle
- *   - the minified JS bundle (in register format)
- *   - the Typescript declaration files for our components
+ *   - the minified umd JS bundle
+ *   - the Typescript declaration files
+ *   - the source maps.
  */
-gulp.task("npm:angular:bundles", function () {
+gulp.task("npm:publish:bundles", function () {
     gulp.src([
-        "dist/bundles/vmw-bifrost.min.js",
-        "dist/bundles/vmw-bifrost.umd.js",
-        'tmp/**/*.metadata.json',
-        'tmp/**/*.d.ts',
-        'tmp/**/*.js',
-        'tmp/**/*.js.map'
-    ]).pipe(gulp.dest(npmFolder + "/vmw-bifrost"));
+        'dist/**/*.d.ts',
+        'dist/**/*.js',
+        'dist/**/*.js.map',
+    ]).pipe(gulp.dest(npmFolder + "/bifrost"));
 });
 
 /**
  * We insert the version number in the correct package.json
  * and copy it to the root of our package.
  */
-gulp.task("npm:angular:package", function () {
-    return gulp.src("build/npm/vmw-bifrost.json")
+gulp.task("npm:publish:package", function () {
+    return gulp.src("build/npm/bifrost.json")
         .pipe(preprocess({context: {VERSION: VERSION}, extension: "js"}))
         .pipe(rename("package.json"))
-        .pipe(gulp.dest(npmFolder + "/vmw-bifrost"));
+        .pipe(gulp.dest(npmFolder + "/bifrost"));
 });
 
-gulp.task("npm:angular", ["npm:angular:bundles", "npm:angular:package"], function () {});
+gulp.task("npm:publish", ["npm:publish:bundles", "npm:publish:package"], function () {});
 
-gulp.task("npm:all", ["npm:angular"], function () {});
+gulp.task("npm:all", ["npm:publish"], function () {});

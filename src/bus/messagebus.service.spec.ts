@@ -1,14 +1,13 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
+import { EventBus, MessagebusService } from '../';
 
 import { Syslog } from '../log/syslog';
 import { LogLevel } from '../log/logger.model';
 import { Message, MessageHandler, MessageResponder, MessageType } from './model/message.model';
 import { Channel } from './model/channel.model';
 import { Observable } from 'rxjs/Observable';
-import { EventBus } from './bus.api';
-import { MessagebusService } from './messagebus.service';
 
 function makeCallCountCaller(done: any, targetCount: number): any {
     let count = 0;

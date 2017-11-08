@@ -1,8 +1,7 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-
-import { Injectable } from '@angular/core';
+import { EventBus } from '../';
 import { StompClient } from './stomp.client';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 import {
@@ -21,13 +20,12 @@ import { MessagebusService, MessageBusEnabled } from '../bus/messagebus.service'
  * Service is responsible for handling all STOMP communications over a socket.
  */
 
-@Injectable()
 export class StompService implements MessageBusEnabled {
 
     static serviceName: string = 'stomp.service';
 
     // helper methods for boilerplate commands.
-    static fireSubscriptionCommand(bus: MessagebusService,
+    static fireSubscriptionCommand(bus: EventBus,
                                    sessionId: string,
                                    destination: string,
                                    subscriptionId: string,
@@ -51,7 +49,7 @@ export class StompService implements MessageBusEnabled {
     }
 
     // helper function for subscriptions.
-    static fireSubscribeCommand(bus: MessagebusService,
+    static fireSubscribeCommand(bus: EventBus,
                                 sessionId: string,
                                 destination: string,
                                 subscriptionId: string): void {
@@ -64,7 +62,7 @@ export class StompService implements MessageBusEnabled {
     }
 
     // helper function for unsubscriptions.
-    static fireUnSubscribeCommand(bus: MessagebusService,
+    static fireUnSubscribeCommand(bus: EventBus,
                                   sessionId: string,
                                   destination: string,
                                   subscriptionId: string): void {
@@ -77,7 +75,7 @@ export class StompService implements MessageBusEnabled {
     }
 
     // helper function for connecting
-    static fireConnectCommand(bus: MessagebusService, config: StompConfig = null): void {
+    static fireConnectCommand(bus: EventBus, config: StompConfig = null): void {
 
         let command = StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, null, null, config);
         bus.api.send(StompChannel.connection,
@@ -85,7 +83,7 @@ export class StompService implements MessageBusEnabled {
     }
 
     // helper function for disconnecting
-    static fireDisconnectCommand(bus: MessagebusService, sessionId: string): void {
+    static fireDisconnectCommand(bus: EventBus, sessionId: string): void {
 
         let command = StompParser.generateStompBusCommand(StompClient.STOMP_DISCONNECT, sessionId);
         bus.api.send(StompChannel.connection,
@@ -103,13 +101,13 @@ export class StompService implements MessageBusEnabled {
     private _galaticChannels: Map<string, boolean>;
     private _galacticRequests: ReplaySubject<string>;
     private _galacticRequestSubscription: Subscription;
-    private bus: MessagebusService;
+    private bus: EventBus;
 
-    setBus(bus: MessagebusService) {
+    setBus(bus: EventBus) {
         this.bus = bus;
     }
 
-    init(bus: MessagebusService) {
+    init(bus: EventBus) {
 
         this.setBus(bus);
 

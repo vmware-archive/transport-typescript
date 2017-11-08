@@ -1,11 +1,9 @@
-import { TestBed, inject } from '@angular/core/testing';
-import { Injector } from '@angular/core';
+import { MessagebusService } from '../';
 import { StompService } from './stomp.service';
 import { StompChannel, StompBusCommand, StompConfig, StompSession } from './stomp.model';
 import { StompParser } from './stomp.parser';
 import { StompClient } from './stomp.client';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
-import { MessagebusService } from '../bus/messagebus.service';
 import { Syslog } from '../log/syslog';
 import 'rxjs/add/operator/take';
 import { EventBus } from '../bus/bus.api';
@@ -16,39 +14,31 @@ import { EventBus } from '../bus/bus.api';
 
 describe('StompService [stomp.service]', () => {
 
-    let bus: MessagebusService;
+    let bus: EventBus;
     let ss: StompService;
     let config: StompConfig;
     let subId: string;
 
     let topicA: string = '/topic/testA';
 
-    beforeEach(() => {
-        TestBed.configureTestingModule({
-            providers: [
-                StompService,
-                {provide: EventBus, useClass: MessagebusService},
-                Map
-            ]
-        });
-    });
-
+ 
     afterEach(() => {
-      bus.api.destroyAllChannels();
+        bus.api.destroyAllChannels();
     });
 
-    beforeEach(inject([Injector], (injector: Injector) => {
-        bus = injector.get(EventBus);
-        ss = injector.get(StompService);
-        config = createStandardConfig();
-        subId = StompParser.genUUID();
-        ss.init(bus);
-
-        bus.api.logger().silent(true);
-        Syslog.silent(false);
-        //Syslog.setLogLevel(LogLevel.Debug);
-
-    }));
+    beforeEach(
+        () => {
+        
+            bus = new MessagebusService();
+            ss = window.AppBrokerConnector;
+            
+            config = createStandardConfig();
+            subId = StompParser.genUUID();
+        
+            bus.api.logger().silent(true);
+            Syslog.silent(false);
+            //Syslog.setLogLevel(LogLevel.Debug);
+        });
 
     describe('Service configuration and basic connect/disconnect', () => {
 
@@ -57,17 +47,17 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
-                            switch (command.command) {
-                                case StompClient.STOMP_CONFIGURED:
-                                    expect(true).toBeTruthy();
-                                    done();
-                                    break;
+                    (command: StompBusCommand) => {
+                        switch (command.command) {
+                            case StompClient.STOMP_CONFIGURED:
+                                expect(true).toBeTruthy();
+                                done();
+                                break;
 
-                                default:
-                                    break;
-                            }
-                        });
+                            default:
+                                break;
+                        }
+                    });
 
                 StompService.fireConnectCommand(bus, config);
             }
@@ -78,17 +68,17 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
 
-                            switch (command.command) {
-                                case StompClient.STOMP_CONNECTED:
-                                    expect(true).toBeTruthy();
-                                    done();
-                                    break;
-                                default:
-                                    break;
-                            }
-                        });
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+                                expect(true).toBeTruthy();
+                                done();
+                                break;
+                            default:
+                                break;
+                        }
+                    });
 
                 StompService.fireConnectCommand(bus, config);
             }
@@ -99,22 +89,20 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+                                StompService.fireDisconnectCommand(bus, command.session);
+                                break;
 
-                            switch (command.command) {
-                                case StompClient.STOMP_CONNECTED:
-                                    StompService.fireDisconnectCommand(bus, command.session);
-                                    break;
-
-                                case StompClient.STOMP_DISCONNECTED:
-                                    expect(true).toBeTruthy();
-                                    done();
-                                    break;
-                                default:
-                                    break;
-                            }
-                        });
-
+                            case StompClient.STOMP_DISCONNECTED:
+                                expect(true).toBeTruthy();
+                                done();
+                                break;
+                            default:
+                                break;
+                        }
+                    });
                 StompService.fireConnectCommand(bus, config);
             }
         );
@@ -127,7 +115,7 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
 
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
@@ -162,11 +150,11 @@ describe('StompService [stomp.service]', () => {
                 let outboundMessage = 'a lovely horse';
 
                 let mId: string = StompParser.genUUID();
-                let headers: Object = {id: mId, subscription: subId};
+                let headers: Object = { id: mId, subscription: subId };
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
 
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
@@ -198,7 +186,7 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.messages)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
                         const stompMessage = StompParser.extractStompMessageFromBusCommand(command);
                         expect(stompMessage.body).toEqual(outboundMessage);
                         expect(stompMessage.headers['session']).toEqual(command.session);
@@ -217,7 +205,7 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
 
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
@@ -299,7 +287,7 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
 
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
@@ -348,7 +336,7 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
 
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
@@ -409,7 +397,7 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
 
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
@@ -480,7 +468,7 @@ describe('StompService [stomp.service]', () => {
                 let outboundMessage = 'anyone fancy a pint?';
 
                 let mId: string = StompParser.genUUID();
-                let headers: Object = {id: mId, subscription: subId};
+                let headers: Object = { id: mId, subscription: subId };
 
                 spyOn(ss, 'sendPacket')
                     .and
@@ -488,7 +476,7 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
 
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
@@ -550,11 +538,11 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        () => {
+                    () => {
                         expect(ss.sendPacket).not.toHaveBeenCalled();
                         done();
                     }
-                );
+                    );
                 StompService.fireConnectCommand(bus, config);
             }
         );
@@ -567,7 +555,7 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
 
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
@@ -603,7 +591,7 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
 
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
@@ -624,8 +612,8 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.error)
                     .handle(
-                        null,
-                        (busCommand: StompBusCommand) => {
+                    null,
+                    (busCommand: StompBusCommand) => {
 
                         expect(busCommand.command).toEqual(StompClient.STOMP_ERROR);
                         expect(busCommand.payload).toEqual('cannot subscribe, session does not exist.');
@@ -662,7 +650,7 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
 
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
@@ -683,7 +671,7 @@ describe('StompService [stomp.service]', () => {
                                 break;
 
                             default:
-                               done();
+                                done();
                         }
 
                     });
@@ -705,7 +693,7 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
 
                         switch (command.command) {
                             case StompClient.STOMP_INVALIDMONITOR:
@@ -745,7 +733,7 @@ describe('StompService [stomp.service]', () => {
 
                 bus.listenStream(StompChannel.status)
                     .handle(
-                        (command: StompBusCommand) => {
+                    (command: StompBusCommand) => {
 
                         switch (command.command) {
                             case StompClient.STOMP_SUBSCRIBED:
@@ -768,7 +756,7 @@ describe('StompService [stomp.service]', () => {
                                 break;
 
                             default:
-                               break;
+                                break;
                         }
 
                     });

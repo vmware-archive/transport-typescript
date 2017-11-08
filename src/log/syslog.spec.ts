@@ -22,9 +22,6 @@ describe('Syslog [log/syslog.spec ]', () => {
             Syslog.silent(true);
             Syslog.suppress(true);
 
-            expect(Syslog.last())
-                .toBeUndefined();
-
             Syslog.setLogLevel(LogLevel.Verbose);
             expect(Syslog.getLogLevel())
                 .toBe(LogLevel.Verbose);

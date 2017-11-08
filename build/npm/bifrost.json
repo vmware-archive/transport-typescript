@@ -5,10 +5,9 @@
     "homepage": "TBA",
     "repository" : {
         "type" : "git",
-        "url" : "ssh://git@stash.eng.vmware.com:7999/ss/ui-bifrost.git"
+        "url" : "git@gitlab.eng.vmware.com:bifrost/typescript.git"
     },
     "peerDependencies": {
-        "@angular/core": "^4.1.0",
         "rxjs": "^5.0.1"
     },
     "publishConfig": {
@@ -16,7 +15,7 @@
     },
     //@exclude
     "scripts": {
-        "prepublish": "echo 'Error: Please run \"npm run publish:vmw-bifrost\" on the parent project' && exit 1"
+        "prepublish": "echo 'Error: Please run \"npm run publish:all\" on the parent project' && exit 1"
     },
     //@endexclude
     "author": "Dave Shanley <dshanley@vmware.com>",

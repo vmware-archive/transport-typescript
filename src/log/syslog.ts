@@ -2,7 +2,7 @@
  * Copyright(c) VMware Inc., 2016
  */
 
-import { Injectable } from '@angular/core';
+
 import { LoggerService } from './logger.service';
 import { LogLevel } from './logger.model';
 
@@ -17,8 +17,6 @@ import { LogLevel } from './logger.model';
  * called dynamically to change the log level at any point in the app.
  */
 
-
-@Injectable()
 export class Syslog {
     static logger: LoggerService;
 

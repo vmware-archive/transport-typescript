@@ -1,8 +1,6 @@
 /**
  * Copyright(c) VMware Inc., 2016
  */
-
-import { Injectable } from '@angular/core';
 import { LogLevel, LogChannel, LogObject } from './logger.model';
 
 function checkForStyledLogSupport () {
@@ -18,8 +16,6 @@ function checkForStyledLogSupport () {
  * for use across the application, however, anyone can create an instance of this service and manage independent
  * Log Levels and output.
  */
-
-@Injectable()
 export class LoggerService {
     private dateCss = 'color: blue;';
     private fromCss = 'color: green';

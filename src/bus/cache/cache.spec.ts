@@ -2,8 +2,6 @@
  * Copyright(c) VMware Inc. 2017
  */
 
-import { inject, TestBed } from '@angular/core/testing';
-import { Injector } from '@angular/core';
 import { MessagebusService } from '../index';
 import { UUID } from './cache.model';
 import { BusStore, StoreStream, MutateStream } from '../cache.api';
@@ -23,24 +21,14 @@ enum Mutate {
 }
 
 describe('BusStore [cache/cache]', () => {
-    let bus: MessagebusService;
+    let bus: EventBus;
 
     beforeEach(() => {
-        TestBed.configureTestingModule({
-            providers: [
-                Map,
-                {provide: EventBus, useClass: MessagebusService},
-            ]
-        });
-    });
-
-    beforeEach(inject([Injector], (injector: Injector) => {
-        bus = injector.get(EventBus);
+        bus = new MessagebusService();
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
         bus.createStore('string');
-    }));
-
+    });
 
     afterEach(() => {
         bus.getStore('string').reset();

@@ -1,7 +1,9 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { Injectable } from '@angular/core';
+import { Syslog } from '../log/syslog';
+
+import { StompService } from '../';
 import { Channel } from './model/channel.model';
 import { MonitorObject, MonitorType } from './model/monitor.model';
 import {
@@ -19,12 +21,10 @@ import { ChannelName, EventBus, EventBusLowApi, SentFrom } from './bus.api';
 import 'rxjs/add/operator/merge';
 import { EventBusLowLevelApiImpl } from './bus.lowlevel';
 
-
 export abstract class MessageBusEnabled {
     abstract getName(): string;
 }
 
-@Injectable()
 export class MessagebusService extends EventBus implements MessageBusEnabled {
 
     private internalChannelMap: Map<string, Channel>;
@@ -42,6 +42,13 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
 
         // Store map.
         this.internalStoreMap = new Map<StoreType, BusStore<any>>();
+        
+        // wire up singleton to the window object under a custom namespace.
+        window.AppEventBus = this as EventBus;
+        window.AppBrokerConnector = new StompService();
+        window.AppBrokerConnector.init(this);
+        window.AppSyslog = Syslog;
+
     }
 
     public createStore<T>(objectType: StoreType, map?: Map<UUID, T>): BusStore<T> {

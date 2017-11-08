@@ -1,6 +1,8 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
+import { Syslog } from '../log/syslog';
+import { StompService } from '../';
 import { StoreType, UUID } from './cache/cache.model';
 import { BusStore } from './cache.api';
 import { MessageSchema, ErrorSchema } from './model/message.schema';
@@ -17,6 +19,15 @@ import { LogLevel } from '../log/logger.model';
 
 export type ChannelName = string;
 export type SentFrom = string;
+
+declare global {
+    interface Window { 
+    
+        AppEventBus: EventBus;
+        AppBrokerConnector: StompService;
+        AppSyslog: Syslog;
+    }
+}
 
 export abstract class EventBus {
 
