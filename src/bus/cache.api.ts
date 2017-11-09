@@ -90,7 +90,7 @@ export interface BusStore<T> {
      * Send a mutation request to any subscribers handling mutations.
      * @param {T} value to be mutated
      * @param {M} mutationType the type of the mutation
-     * @param {MessageFunction<S>} successHandler provide object S to mutator function on successful mutation.
+     * @param {MessageFunction<T>} successHandler provide object T to mutator function on successful mutation.
      * @param {MessageFunction<E>} errorHandler provide object E to mutator function on error.
      * @returns {boolean} true if mutation request was placed in stream
      */

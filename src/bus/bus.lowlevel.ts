@@ -110,6 +110,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
             .setGalactic().stream
             .map(
             (msg: Message) => {
+                // just an FYI -  I hate this... I made a bad choice and I will fix it!
                 if (msg.payload.hasOwnProperty('_sendChannel')) {
                     msg.payload = msg.payload.body;
                 }
@@ -391,7 +392,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
     private createMessageHandler(
         handlerConfig: MessageHandlerConfig, requestStream: boolean = false,
         name = this.getName()): MessageHandler<any> {
-            
+
         let sub: Subscription;
         const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.returnChannel, name, true);
         const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.returnChannel, name, true);
