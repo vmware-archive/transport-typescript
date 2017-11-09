@@ -287,8 +287,10 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
      * @param schema
      * @returns {MessageResponder<T, E>}
      */
-    private createMessageResponder<T, E = any>(handlerConfig: MessageHandlerConfig,
+    private createMessageResponder<T, E = any>(
+        handlerConfig: MessageHandlerConfig,
         name = this.getName(), schema?: any): MessageResponder<T, E> {
+
         let schemaRef = schema;
         let sub: Subscription;
         const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.sendChannel, name);
@@ -386,8 +388,10 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
      * @param {string} name
      * @returns {MessageHandler<any>}
      */
-    private createMessageHandler(handlerConfig: MessageHandlerConfig, requestStream: boolean = false,
+    private createMessageHandler(
+        handlerConfig: MessageHandlerConfig, requestStream: boolean = false,
         name = this.getName()): MessageHandler<any> {
+            
         let sub: Subscription;
         const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.returnChannel, name, true);
         const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.returnChannel, name, true);
