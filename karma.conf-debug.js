@@ -8,7 +8,7 @@ module.exports = function (config) {
         preprocessors: {
             "**/*.ts": ["karma-typescript"]
         },
-        reporters: ["spec", "karma-typescript"],
+        reporters: ["html"],
         exclude: [
             'node_modules/**/*spec.js'
         ],
@@ -33,20 +33,7 @@ module.exports = function (config) {
                 debug: false
             }
         },
-        coverageReporter: {
-            dir: 'reports/coverage/',
-            reporters: [
-                { type: 'text-summary' }
-            ]
-        },
-
-        remapIstanbulReporter: {
-            reports: {
-                lcovonly: 'coverage/lcov.info',
-                html:
-                'coverage/report'
-            }
-        },
+        
         port: 9876,
 
         // enable / disable colors in the output (reporters and logs)

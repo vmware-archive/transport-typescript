@@ -249,6 +249,96 @@ describe('MessagebusService [messagebus.service]', () => {
         expect(bus.api.complete('nonexistent')).toBeFalsy();
     });
 
+    it('Check countListeners() is accurate against high level API (single response)', (done) => {
+            
+            /* the default number of channels open is 4, these are core and low-level channels
+               used by the bus and broker connector.
+                #messagebus-monitor
+                #stomp-connection
+                #stomp-subscription
+                #stomp-messages
+            */    
+
+            expect(bus.api.countListeners()).toEqual(4);
+            
+            const handlerOnce: MessageHandler = bus.listenOnce('puppers');
+            
+            expect(bus.api.countListeners()).toEqual(5);
+            
+            handlerOnce.handle(
+                (msg: string) => {
+
+                    // there should now be five listeners!
+                    // the handler listens for a single event.
+                    expect(bus.api.countListeners()).toEqual(5);
+                    expect(msg).toEqual('chicken');
+                }
+            );
+
+            bus.sendResponseMessage('puppers', 'chicken');
+            
+            bus.api.tickEventLoop(
+                () =>{
+
+                    // handlerOnce should have closed the channel
+                    // so we should be at 4 listeners again!
+                    expect(bus.api.countListeners()).toEqual(4);
+                    done();
+                }
+            ,10);
+    });
+
+    it('Check countListeners() is accurate against high level API (stream response)', (done) => {
+        
+        /* the default number of channels open is 4, these are core and low-level channels
+           used by the bus and broker connector.
+            #messagebus-monitor
+            #stomp-connection
+            #stomp-subscription
+            #stomp-messages
+        */    
+        
+        expect(bus.api.countListeners()).toEqual(4);
+        
+        const handler: MessageHandler = bus.listenStream('puppers');
+        
+        expect(bus.api.countListeners()).toEqual(5);
+        
+        let count = 0;
+
+        handler.handle(
+            (msg: string) => {
+
+                // there should now be five listeners!
+                // the handler listens for a single event.
+                expect(bus.api.countListeners()).toEqual(5);
+                expect(msg).toEqual('chicken');
+                count++;
+            }
+        );
+
+        bus.sendResponseMessage('puppers', 'chicken');
+        bus.sendResponseMessage('puppers', 'chicken');
+        bus.sendResponseMessage('puppers', 'chicken');
+        bus.sendResponseMessage('puppers', 'chicken');
+        
+        
+        bus.api.tickEventLoop(
+            () => bus.closeChannel('puppers')
+        ,5);
+        
+        // should have settled 
+        bus.api.tickEventLoop(
+            () =>{
+
+                expect(bus.api.countListeners()).toEqual(4);
+                expect(count).toEqual(4);
+                done();
+            }
+        ,15);
+});
+
+
     /**
      * New Simple API Tests.
      */

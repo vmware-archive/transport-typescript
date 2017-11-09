@@ -292,11 +292,12 @@ export interface EventBusLowApi {
      *
      * This is a raw object that encapsulates the channel stream.
      *
-     * @param {ChannelName} name
-     * @param {SentFrom} from
+     * @param {ChannelName} name the name of the channel you want.
+     * @param {SentFrom} from optional  calling actor (for logging)
+     * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
      * @returns {Channel}
      */
-    getChannelObject(name: ChannelName, from?: SentFrom): Channel;
+    getChannelObject(name: ChannelName, from?: SentFrom, noRefCount?: boolean): Channel;
 
     /**
      * Get a subscribable stream from channel. If the channel doesn't exist, it will be created.
@@ -304,45 +305,50 @@ export interface EventBusLowApi {
      *
      * @param {ChannelName} cname name of the channel you want to subscribe to.
      * @param {SentFrom} from optional calling actor (for logging)
+     * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
      * @returns {Observable<Message>} Observable that can be subscribed to, Message object will be ticked on stream.
      */
-    getChannel(cname: ChannelName, from?: SentFrom): Observable<Message>;
+    getChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>;
 
     /**
      * Filter bus events that contain request messages only. Returns an Observable with un-marshaled Message payload.
      *
      * @param {ChannelName} name of the channel you want to listen to.
      * @param {SentFrom} from optional calling actor (for logging)
+     * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
      * @returns {Observable<Message>} Observable that will emit a request Message to any subscribers.
      */
-    getRequestChannel(name: ChannelName, from?: SentFrom): Observable<Message>;
+    getRequestChannel(name: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>;
 
     /**
      * Filter bus events that contain response messages only. Returns an Observable with un-marshaled Message payload.
      *
      * @param {ChannelName} cname name of the channel you want to listen to.
      * @param {SentFrom} from optional calling actor (for logging)
+     * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
      * @returns {Observable<Message>} Observable that will emit a response Message to any subscribers.
      */
-    getResponseChannel(cname: ChannelName, from?: SentFrom): Observable<Message>;
+    getResponseChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>;
 
     /**
      * Filter bus events that contain error messages only. Returns an Observable with un-marshaled Message payload.
      *
      * @param {ChannelName} cname name of the channel you want to listen to.
      * @param {SentFrom} from optional calling actor (for logging)
+     * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
      * @returns {Observable<Message>} Observable that will emit an error Message to any subscribers.
      */
-    getErrorChannel(cname: ChannelName, from?: SentFrom): Observable<Message>;
+    getErrorChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>;
 
     /**
      * Get or create a galactic channel. Channel will be mapped to broker destination and picked up by the bridge.
      *
      * @param {ChannelName} cname
      * @param {SentFrom} from
+     * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
      * @returns {Observable<Message>}
      */
-    getGalacticChannel(cname: ChannelName, from: SentFrom): Observable<Message>;
+    getGalacticChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>; 
 
     /**
      * Send simple API message to MessageResponder enabled calls. (non low-level API's)
@@ -529,7 +535,8 @@ export interface EventBusLowApi {
      * Push function onto the queue for next event loop tick.
      *
      * @param {Function} func function you want to execute asynchronously.
+     * @param {number} delay milliseconds you want to delay exectuion by.
      */
-    tickEventLoop(func: Function): void;
+    tickEventLoop(func: Function, delay?: number): void;
 
 }

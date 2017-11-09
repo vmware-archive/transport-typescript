@@ -1,4 +1,4 @@
-import { MessagebusService } from '../';
+import { Message, MessagebusService } from '../';
 import { StompService } from './stomp.service';
 import { StompChannel, StompBusCommand, StompConfig, StompSession } from './stomp.model';
 import { StompParser } from './stomp.parser';
@@ -768,6 +768,35 @@ describe('StompService [stomp.service]', () => {
 
             }
         );
+
+        it('check galactic channels can operate against low level messages',
+                    
+                    (done) => {
+                        let count = 0;
+                        /*
+        
+                        This tests that galatic channels operate over low level API's
+        
+                         */
+        
+                        const chan = bus.api.getGalacticChannel('bouncy-pups');
+                        chan.subscribe(
+                            (msg: Message) => {
+                                expect(msg.payload).toEqual('puppy1');
+                                count++;
+                                if(count==3) {
+                                    done();
+                                }
+                            }
+                        );
+                        bus.sendResponseMessage('bouncy-pups', 'puppy1');
+                        bus.api.sendResponse('bouncy-pups', 'puppy1');
+                        bus.api.send('bouncy-pups', new Message().response('puppy1'));
+                        
+        
+                    }
+                );
+
     });
 });
 
