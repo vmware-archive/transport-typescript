@@ -250,60 +250,60 @@ describe('MessagebusService [messagebus.service]', () => {
     });
 
     it('Check countListeners() is accurate against high level API (single response)', (done) => {
-            
-            /* the default number of channels open is 4, these are core and low-level channels
-               used by the bus and broker connector.
-                #messagebus-monitor
-                #stomp-connection
-                #stomp-subscription
-                #stomp-messages
-            */    
 
-            expect(bus.api.countListeners()).toEqual(4);
-            
-            const handlerOnce: MessageHandler = bus.listenOnce('puppers');
-            
-            expect(bus.api.countListeners()).toEqual(5);
-            
-            handlerOnce.handle(
-                (msg: string) => {
-
-                    // there should now be five listeners!
-                    // the handler listens for a single event.
-                    expect(bus.api.countListeners()).toEqual(5);
-                    expect(msg).toEqual('chicken');
-                }
-            );
-
-            bus.sendResponseMessage('puppers', 'chicken');
-            
-            bus.api.tickEventLoop(
-                () =>{
-
-                    // handlerOnce should have closed the channel
-                    // so we should be at 4 listeners again!
-                    expect(bus.api.countListeners()).toEqual(4);
-                    done();
-                }
-            ,10);
-    });
-
-    it('Check countListeners() is accurate against high level API (stream response)', (done) => {
-        
         /* the default number of channels open is 4, these are core and low-level channels
            used by the bus and broker connector.
             #messagebus-monitor
             #stomp-connection
             #stomp-subscription
             #stomp-messages
-        */    
-        
+        */
+
         expect(bus.api.countListeners()).toEqual(4);
-        
-        const handler: MessageHandler = bus.listenStream('puppers');
-        
+
+        const handlerOnce: MessageHandler = bus.listenOnce('puppers');
+
         expect(bus.api.countListeners()).toEqual(5);
-        
+
+        handlerOnce.handle(
+            (msg: string) => {
+
+                // there should now be five listeners!
+                // the handler listens for a single event.
+                expect(bus.api.countListeners()).toEqual(5);
+                expect(msg).toEqual('chicken');
+            }
+        );
+
+        bus.sendResponseMessage('puppers', 'chicken');
+
+        bus.api.tickEventLoop(
+            () => {
+
+                // handlerOnce should have closed the channel
+                // so we should be at 4 listeners again!
+                expect(bus.api.countListeners()).toEqual(4);
+                done();
+            }
+            , 10);
+    });
+
+    it('Check countListeners() is accurate against high level API (stream response)', (done) => {
+
+        /* the default number of channels open is 4, these are core and low-level channels
+           used by the bus and broker connector.
+            #messagebus-monitor
+            #stomp-connection
+            #stomp-subscription
+            #stomp-messages
+        */
+
+        expect(bus.api.countListeners()).toEqual(4);
+
+        const handler: MessageHandler = bus.listenStream('puppers');
+
+        expect(bus.api.countListeners()).toEqual(5);
+
         let count = 0;
 
         handler.handle(
@@ -321,22 +321,177 @@ describe('MessagebusService [messagebus.service]', () => {
         bus.sendResponseMessage('puppers', 'chicken');
         bus.sendResponseMessage('puppers', 'chicken');
         bus.sendResponseMessage('puppers', 'chicken');
-        
-        
+
+
         bus.api.tickEventLoop(
             () => bus.closeChannel('puppers')
-        ,5);
-        
+            , 5);
+
         // should have settled 
         bus.api.tickEventLoop(
-            () =>{
+            () => {
 
                 expect(bus.api.countListeners()).toEqual(4);
                 expect(count).toEqual(4);
                 done();
             }
-        ,15);
-});
+            , 15);
+    });
+
+    it('Check createResponder() handles errors with error handler', (done) => {
+
+        expect(bus.api.countListeners()).toEqual(4);
+        const responder: MessageResponder<string> = bus.respondOnce('puppers');
+        responder.generate(
+            null,
+            (msg: string) => {
+                expect(msg).toEqual('why are my shoes ruined?');
+                return "little baby ember did it";
+            }
+        );
+
+        bus.sendErrorMessage('puppers', 'why are my shoes ruined?')
+
+        // should have settled 
+        bus.api.tickEventLoop(
+            () => {
+                expect(bus.api.countListeners()).toEqual(4);
+                done();
+            }
+            , 1);
+    });
+
+    it('Check createResponder() handles errors with no error handler (negative testing)', (done) => {
+
+        expect(bus.api.countListeners()).toEqual(4);
+        const responder: MessageResponder<string> = bus.respondOnce('puppers');
+        responder.generate(
+            (msg: string) => {
+                expect(msg).toEqual('why are my shoes ruined?');
+                return "little baby ember did it";
+            }
+        );
+
+        bus.sendErrorMessage('puppers', 'why are my shoes ruined?')
+
+        // should have settled 
+        bus.api.tickEventLoop(
+            () => {
+                expect(bus.api.countListeners()).toEqual(4);
+                done();
+            }
+        , 1);
+    });
+
+    it('Check createResponder() handles tick() corectly', (done) => {
+        let count: number = 0;
+
+        const responder: MessageResponder<string> = bus.respondStream('puppers');
+        responder.generate(
+            (msg: string) => {
+                expect(msg).toEqual('how many bones has fox hidden?');
+                return ++count;
+            }
+        );
+
+        const handler: MessageHandler<number> = bus.listenStream('puppers');
+        handler.handle(
+            (resp: number) => {
+                if(count === 3) {
+                    done();
+                }
+            }
+        );
+
+        bus.sendRequestMessage('puppers', 'how many bones has fox hidden?');
+        responder.tick(++count);
+        responder.tick(++count);
+
+    });
+
+    it('Check createResponder() does not tick() on a closed stream', (done) => {
+        let count: number = 0;
+
+        const responder: MessageResponder<string> = bus.respondOnce('puppers');
+        responder.generate(
+            (msg: string) => {
+                expect(msg).toEqual('how many bones has fox hidden?');
+                return ++count;
+            }
+        );
+
+        bus.sendRequestMessage('puppers', 'how many bones has fox hidden?');
+
+        // should have settled 
+        bus.api.tickEventLoop(
+            () => {
+                responder.tick('ignore me');
+                responder.tick('mr cellophane');
+                responder.tick('do I even exist?');
+                responder.tick('why is there no answer?');
+                responder.tick('surely someone is there?');
+            }
+            , 10);
+
+
+        // should have settled 
+        bus.api.tickEventLoop(
+            () => {
+                expect(count).toEqual(1); // only a single event should have made it through
+                done();
+            }
+            , 20);
+    });
+
+    it('Check createMessageHandler() can handle observable errors', (done) => {
+        
+        const handler: MessageHandler<number> = bus.listenStream('puppers');
+        handler.handle(
+            null,
+            (error: string) => {
+                expect(error).toEqual('whoopsie, someone had an accident on my $2k rug.');
+                done();
+            }
+        );
+
+        const chan: Channel = bus.api.getChannelObject('puppers');
+        chan.error('whoopsie, someone had an accident on my $2k rug.');
+
+    });
+
+    // it('Check createMessagh() does not tick() on a closed stream', (done) => {
+    //     let count: number = 0;
+
+    //     const responder: MessageResponder<string> = bus.respondOnce('puppers');
+    //     responder.generate(
+    //         (msg: string) => {
+    //             expect(msg).toEqual('how many bones has fox hidden?');
+    //             return ++count;
+    //         }
+    //     );
+
+    //     bus.sendRequestMessage('puppers', 'how many bones has fox hidden?');
+
+    //     // should have settled 
+    //     bus.api.tickEventLoop(
+    //         () => {
+    //             responder.tick('ignore me');
+    //             responder.tick('mr cellophane');
+    //             responder.tick('do I even exist?');
+    //             responder.tick('why is there no answer?');
+    //             responder.tick('surely someone is there?');
+    //         }
+    //         , 10);
+
+
+    //     // should have settled 
+    //     bus.api.tickEventLoop(
+    //         () => {
+    //             expect(count).toEqual(1); // only a single event should have made it through
+    //             done();
+    //         }
+    //         , 20);
+    // });
 
 
     /**
@@ -349,18 +504,18 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 bus.respondOnce(testChannel)
                     .generate(
-                        (request: string) => {
-                            expect(request).toEqual('strawbarita');
-                            return 'margarita';
-                        }
+                    (request: string) => {
+                        expect(request).toEqual('strawbarita');
+                        return 'margarita';
+                    }
                     );
 
                 bus.requestOnce(testChannel, 'strawbarita')
                     .handle(
-                        (resp: string) => {
-                            expect(resp).toEqual('margarita');
-                            done();
-                        }
+                    (resp: string) => {
+                        expect(resp).toEqual('margarita');
+                        done();
+                    }
                     );
             }
         );
@@ -370,18 +525,18 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 bus.respondOnce(testChannel, '#some-different-return')
                     .generate(
-                        (request: string) => {
-                            expect(request).toEqual('magnum');
-                            return 'maggie';
-                        }
+                    (request: string) => {
+                        expect(request).toEqual('magnum');
+                        return 'maggie';
+                    }
                     );
 
                 bus.requestOnce(testChannel, 'magnum', '#some-different-return')
                     .handle(
-                        (resp: string) => {
-                            expect(resp).toEqual('maggie');
-                            done();
-                        }
+                    (resp: string) => {
+                        expect(resp).toEqual('maggie');
+                        done();
+                    }
                     );
             }
         );
@@ -394,18 +549,18 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 bus.listenRequestOnce(channel1)
                     .handle(
-                        (request: string) => {
-                            expect(request).toEqual('strawbarita');
-                            bus.api.sendResponse(channel2, 'margarita');
-                        }
+                    (request: string) => {
+                        expect(request).toEqual('strawbarita');
+                        bus.api.sendResponse(channel2, 'margarita');
+                    }
                     );
 
                 bus.requestOnce(channel1, 'strawbarita', channel2)
                     .handle(
-                        (resp: string) => {
-                            expect(resp).toEqual('margarita');
-                            done();
-                        }
+                    (resp: string) => {
+                        expect(resp).toEqual('margarita');
+                        done();
+                    }
                     );
             }
         );
@@ -479,9 +634,9 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 let sub = bus.listenOnce(testChannel)
                     .handle(
-                        () => {
-                            h++;
-                        }
+                    () => {
+                        h++;
+                    }
                     );
 
                 let chan = bus.api.getResponseChannel(testChannel, 'listenOnce()');
@@ -516,13 +671,13 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 bus.listenStream(testChannel)
                     .handle(
-                        () => {
-                            h++;
-                            if (h === 4) {
-                                expect(true).toBeTruthy();
-                                done();
-                            }
+                    () => {
+                        h++;
+                        if (h === 4) {
+                            expect(true).toBeTruthy();
+                            done();
                         }
+                    }
                     );
 
                 bus.sendResponseMessage(testChannel, 'B');
@@ -549,9 +704,9 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 let sub = bus.listenRequestOnce(testChannel)
                     .handle(
-                        () => {
-                            h++;
-                        }
+                    () => {
+                        h++;
+                    }
                     );
 
                 let chan = bus.api.getRequestChannel(testChannel, 'listenRequestOnce()');
@@ -581,13 +736,13 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 bus.listenRequestStream(testChannel)
                     .handle(
-                        () => {
-                            h++;
-                            if (h === 4) {
-                                expect(true).toBeTruthy();
-                                done();
-                            }
+                    () => {
+                        h++;
+                        if (h === 4) {
+                            expect(true).toBeTruthy();
+                            done();
                         }
+                    }
                     );
 
                 bus.sendResponseMessage(testChannel, 'F');
@@ -609,10 +764,10 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 bus.listenRequestOnce(testChannel)
                     .handle(
-                        (msg: string) => {
-                            expect(msg).toEqual('Cotton');
-                            done();
-                        }
+                    (msg: string) => {
+                        expect(msg).toEqual('Cotton');
+                        done();
+                    }
                     );
                 bus.api.sendRequest(testChannel, 'Cotton');
             }
@@ -623,10 +778,10 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 bus.listenOnce(testChannel)
                     .handle(
-                        (msg: string) => {
-                            expect(msg).toEqual('Fox');
-                            done();
-                        }
+                    (msg: string) => {
+                        expect(msg).toEqual('Fox');
+                        done();
+                    }
                     );
                 bus.api.sendResponse(testChannel, 'Fox');
             }
@@ -705,10 +860,10 @@ describe('MessagebusService [messagebus.service]', () => {
                 // message should come through already unpacked.
                 bus.listenRequestOnce(testChannel)
                     .handle(
-                        (msg: string) => {
-                            expect(msg).toEqual('Chickie');
-                            done();
-                        }
+                    (msg: string) => {
+                        expect(msg).toEqual('Chickie');
+                        done();
+                    }
                     );
 
                 // message is sent using traditional API.
@@ -730,10 +885,10 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 bus.requestOnce(testChannel, 'bikes')
                     .handle(
-                        (msg: string) => {
-                            expect(msg).toEqual('cars');
-                            done();
-                        }
+                    (msg: string) => {
+                        expect(msg).toEqual('cars');
+                        done();
+                    }
                     );
             }
         );
@@ -767,7 +922,7 @@ describe('MessagebusService [messagebus.service]', () => {
                     }
                 );
             }
-         );
+        );
 
         it('Should be able to mix old and new APIs together [respondOnce(), send(), subscribe()]',
             (done) => {
@@ -782,9 +937,9 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 bus.respondOnce(testChannel)
                     .generate(
-                        (request: string) => {
-                            return 'echo ' + request;
-                        }
+                    (request: string) => {
+                        return 'echo ' + request;
+                    }
                     );
 
                 bus.api.send(testChannel, new Message().request('kitty'), 'mixOldAndNew');
@@ -834,15 +989,15 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 bus.listenOnce(testChannel)
                     .handle(
-                        () => {
-                            expect(false).toBeTruthy();
-                            done();
+                    () => {
+                        expect(false).toBeTruthy();
+                        done();
 
-                        },
-                        (request: string) => {
-                            expect(request).toEqual('fire!');
-                            done();
-                        }
+                    },
+                    (request: string) => {
+                        expect(request).toEqual('fire!');
+                        done();
+                    }
                     );
 
                 bus.sendErrorMessage(testChannel, 'fire!');
@@ -854,10 +1009,10 @@ describe('MessagebusService [messagebus.service]', () => {
             (done) => {
                 bus.respondOnce(testChannel)
                     .generate(
-                        (val: string) => {
-                            expect(val).toEqual('chickie');
-                            return 'maggie';
-                        }
+                    (val: string) => {
+                        expect(val).toEqual('chickie');
+                        return 'maggie';
+                    }
                     );
 
                 const handler: MessageHandler<string> = bus.listenOnce(testChannel);

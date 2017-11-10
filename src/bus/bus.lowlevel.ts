@@ -55,7 +55,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                 }
                 return msg;
             }
-            );
+        );
     }
 
     getChannelObject(name: ChannelName, from?: SentFrom, noRefCount: boolean = false): Channel {
@@ -168,8 +168,10 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
     countListeners(): number {
         let count = 0;
         this.channelMap.forEach((channel) => {
+            //console.log('channel open: ' + channel.name + ' - ' + channel.refCount);
             count += channel.refCount;
         });
+        //console.log('----\n\n');
         return count;
     }
 
@@ -294,9 +296,9 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
 
         let schemaRef = schema;
         let sub: Subscription;
-        const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.sendChannel, name);
+        const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.sendChannel, name, true);
         const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.sendChannel, name);
-
+        let closed: boolean = false;
         return {
             generate: (generateSuccessResponse: Function, generateErrorResponse: Function): Subscription => {
                 const mergedStreams = Observable.merge(errorChannel, requestChannel);
@@ -304,11 +306,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                 sub = mergedStreams.subscribe(
                     (msg: Message) => {
                         let pl = msg.payload;
-                        // check if message is using wrapped API or not.
-                        if (pl.hasOwnProperty('_sendChannel')) {
-                            pl = msg.payload.body;
-                        }
-                        if (!msg.isError()) {
+                        if (!msg.isError()) { 
                             this.tickEventLoop(
                                 () => {
                                     this.eventBusRef.sendResponseMessage(
@@ -324,7 +322,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                             if (generateErrorResponse) {
                                 err = generateErrorResponse;
                             } else {
-                                err = generateSuccessResponse;
+                                err = generateSuccessResponse; // not sure this makes full sence? what else should we do here?
                             }
                             this.tickEventLoop(
                                 () => {
@@ -338,39 +336,41 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                             );
                         }
                         if (handlerConfig.singleResponse) {
-                            if (sub) {
-                                sub.unsubscribe();
-                            }
+                            sub.unsubscribe();
+
+                            // return refcount
+                            this.close(handlerConfig.sendChannel);
+                            closed = true;
+                            sub = null;
                         }
                     }
                 );
                 return sub;
             },
             tick: (payload: any): void => {
-                if (sub && !sub.closed) {
+                if (!closed) {
                     this.sendResponse(handlerConfig.returnChannel, payload);
                 }
             },
             close: (): boolean => {
                 if (!handlerConfig.singleResponse) {
-                    if (sub) {
-                        sub.unsubscribe();
-                    }
+                    sub.unsubscribe();
+
+                    // return refcount
+                    this.close(handlerConfig.sendChannel);
+                    closed = true;
                     sub = null;
                 }
                 return true;
             },
             isClosed(): boolean {
-                return (!sub || sub.closed);
+                return closed;
             },
             getObservable(): Observable<any> {
                 const chan = Observable.merge(requestChannel, errorChannel);
                 return chan.map(
                     (msg: Message) => {
                         let pl = msg.payload;
-                        if (pl.hasOwnProperty('_sendChannel')) {
-                            pl = msg.payload.body;
-                        }
                         if (msg.isError()) {
                             throw new Error(pl);
                         } else {
@@ -398,6 +398,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.returnChannel, name, true);
         const responseChannel: Observable<Message> = this.getResponseChannel(handlerConfig.returnChannel, name, true);
         const fullChannel: Observable<Message> = this.getChannel(handlerConfig.returnChannel, name, false);
+        let closed: boolean = false;
         return {
 
             handle: (success: Function, error?: Function): Subscription => {
@@ -411,9 +412,6 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                 sub = mergedStreams.subscribe(
                     (msg: Message) => {
                         let _pl = msg.payload;
-                        if (_pl.hasOwnProperty('_sendChannel')) {
-                            _pl = msg.payload.body;
-                        }
                         if (msg.isError()) {
                             if (error) {
                                 error(_pl);
@@ -429,25 +427,29 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
 
                                 // decrease ref count
                                 this.close(handlerConfig.returnChannel);
+                                sub = null;
+                                closed = true;
                             }
                         }
                     },
-                    (data: any) => {
+                    (errorData: any) => {
                         if (error) {
-                            error(data);
+                            error(errorData);
                         }
                         if (sub) {
                             sub.unsubscribe();
 
                             // decrease ref count.
                             this.close(handlerConfig.returnChannel);
+                            sub = null;
+                            closed = true;
                         }
                     }
                 );
                 return sub;
             },
             tick: (payload: any): void => {
-                if (sub && !sub.closed) {
+                if (!closed) {
                     this.eventBusRef.sendRequestMessage(handlerConfig.sendChannel, payload);
                 }
             },
@@ -463,13 +465,15 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
 
                         // decrese ref count.
                         this.close(handlerConfig.returnChannel);
+                        sub = null;
+                        closed = true;
                     }
                     sub = null;
                 }
                 return true;
             },
             isClosed(): boolean {
-                return (!sub || sub.closed);
+                return closed;
             },
             getObservable(type?: MessageType): Observable<any> {
 
