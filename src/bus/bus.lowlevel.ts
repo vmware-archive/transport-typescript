@@ -67,7 +67,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         } else {
             channel = new Channel(name);
             this.internalChannelMap.set(name, channel);
-            symbol = ' +++ ';
+            symbol = '🆕 -> ';
 
             let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, name, from, symbol);
             this.monitorStream.send(new Message().request(mo));
@@ -580,33 +580,23 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                                 break;
 
                             case MonitorType.MonitorCloseChannel:
-                                this.log.info(' X ' + mo.channel + '[' + mo.data + ']', mo.from);
+                                this.log.info('🚫 (closed)-> ' + mo.channel, mo.from);
                                 break;
 
                             case MonitorType.MonitorCompleteChannel:
-                                this.log.info(' C ' + mo.channel, mo.from);
+                                this.log.info('🏁 (completed)-> ' + mo.channel, mo.from);
                                 break;
 
                             case MonitorType.MonitorDestroyChannel:
-                                this.log.info('XXX ' + mo.channel, mo.from);
+                                this.log.info('❌ (destroyed)-> ' + mo.channel, mo.from);
                                 break;
 
                             case MonitorType.MonitorData:
-                                this.dumpData(mo, mo.from + ' -> ' + mo.channel +
-                                    (message.messageSchema
-                                        ? '  ['
-                                        + message.messageSchema._title
-                                        + ']'
-                                        : ''));
+                                this.dumpData(mo, mo.from + ' -> ' + mo.channel);
                                 break;
 
                             case MonitorType.MonitorDropped:
-                                this.dumpData(mo, '*DROP* message from ' + mo.from + ' -> ' + mo.channel +
-                                    (message.messageSchema
-                                        ? '  ['
-                                        + message.messageSchema._title
-                                        + ']'
-                                        : ''));
+                                this.dumpData(mo, '👻 (dropped)->  ' + mo.from + ' -> ' + mo.channel);
                                 break;
                             default:
                                 break;

@@ -3,14 +3,6 @@
  */
 import { LogLevel, LogChannel, LogObject } from './logger.model';
 
-function checkForStyledLogSupport () {
-    if (typeof(window) === 'undefined') {
-        return false;
-    }
-    const looksLikePhantomJS = /PhantomJS/.test(window.navigator.userAgent);
-    return !looksLikePhantomJS;
-}
-
 /**
  * This is the low-lever logger that can be instantiated and destroyed at will. Syslog maintains one of these
  * for use across the application, however, anyone can create an instance of this service and manage independent
@@ -32,7 +24,11 @@ export class LoggerService {
 
     private _lastLog: string;
 
-    private _styledLogsSupported: boolean = checkForStyledLogSupport();
+    private _styledLogsSupported: boolean = true;
+
+    setStylingVisble(flag: boolean) {
+        this._styledLogsSupported = flag;
+    }
 
     /**
      * Returns the last item logged.
@@ -159,15 +155,15 @@ export class LoggerService {
         }
 
         this._lastLog = '[' + logObject.caller + ']: ' + logObject.object;
-
+        
         if (logObject.suppress) {
             return;
         }
-
+        
         if (this._silent) {
             return;
         }
-
+        
         let date: string = new Date().toLocaleTimeString();
         let output: string = '%c' + date + ' %c[' + logObject.caller + ']: %c' + logObject.object;
         if (!this._styledLogsSupported) {

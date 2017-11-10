@@ -548,6 +548,64 @@ describe('MessagebusService [messagebus.service]', () => {
             , 15);
     });
 
+    fit('Check monitor dump is working correctly.', (done) => {
+
+        bus.api.enableMonitorDump(true);
+        bus.api.silenceLog(false);
+        bus.api.setLogLevel(LogLevel.Debug);
+        const log: LoggerService = bus.api.logger();
+        log.setStylingVisble(false);
+
+        bus.api.suppressLog(false);
+        const chanData = bus.api.getChannel('ember-the-puppy', 'baby-pup');
+        const chanClose = bus.api.getChannel('chicken-licken', 'mags');
+        const chan = bus.api.getChannel('maggie-pop', 'mags');
+        const chan2 = bus.api.getChannel('maggie-pop', 'mags');
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(log.last()).toEqual('[mags]: (*)-> maggie-pop');
+                bus.closeChannel('maggie-pop', 'mags');
+            }
+            , 10);
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(log.last()).toEqual('[mags]: (-)-> maggie-pop');
+                bus.closeChannel('maggie-pop', 'mags');
+                
+            }
+            , 20);
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(log.last()).toEqual('[mags]: (xXx)-> maggie-pop');
+                bus.api.complete('chicken-licken', 'chickie');
+                
+            }
+            , 30);
+
+        bus.api.tickEventLoop(
+            () => {
+                // complete calls destroy immediately,
+                expect(log.last()).toEqual('[chickie]: (xXx)-> chicken-licken');
+                bus.sendRequestMessage('ember-the-puppy', 'chomp chomp', 'baby-pup');
+                
+            }
+            , 40);
+
+        bus.api.tickEventLoop(
+            () => {
+                // complete calls destroy immediately,
+                expect(log.last()).toEqual('[baby-pup]: (d)-> chomp chomp');
+                done();
+            }
+            , 50);
+
+
+
+
+    });
 
     /**
      * New Simple API Tests.
