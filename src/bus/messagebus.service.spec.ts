@@ -8,6 +8,7 @@ import { LogLevel } from '../log/logger.model';
 import { Message, MessageHandler, MessageResponder, MessageType } from './model/message.model';
 import { Channel } from './model/channel.model';
 import { Observable } from 'rxjs/Observable';
+import { LoggerService } from '../log/logger.service';
 
 function makeCallCountCaller(done: any, targetCount: number): any {
     let count = 0;
@@ -380,7 +381,7 @@ describe('MessagebusService [messagebus.service]', () => {
                 expect(bus.api.countListeners()).toEqual(4);
                 done();
             }
-        , 1);
+            , 1);
     });
 
     it('Check createResponder() handles tick() corectly', (done) => {
@@ -444,7 +445,7 @@ describe('MessagebusService [messagebus.service]', () => {
     });
 
     it('Check createMessageHandler() can handle observable errors', (done) => {
-        
+
         const handler: MessageHandler<number> = bus.listenStream('puppers');
         handler.handle(
             null,
@@ -459,39 +460,93 @@ describe('MessagebusService [messagebus.service]', () => {
 
     });
 
-    // it('Check createMessagh() does not tick() on a closed stream', (done) => {
-    //     let count: number = 0;
+    it('Check createMessageHandler() does not tick() on a closed stream', (done) => {
+        let count: number = 0;
 
-    //     const responder: MessageResponder<string> = bus.respondOnce('puppers');
-    //     responder.generate(
-    //         (msg: string) => {
-    //             expect(msg).toEqual('how many bones has fox hidden?');
-    //             return ++count;
-    //         }
-    //     );
+        const responder: MessageResponder<string> = bus.respondOnce('puppers');
+        responder.generate(
+            (msg: string) => {
+                expect(msg).toEqual('how many bones has fox hidden?');
+                return ++count;
+            }
+        );
 
-    //     bus.sendRequestMessage('puppers', 'how many bones has fox hidden?');
+        const handler: MessageHandler<number> = bus.listenOnce('puppers');
+        handler.handle(
+            (msg: number) => {
+                expect(msg).toEqual(count);
+            }
+        );
 
-    //     // should have settled 
-    //     bus.api.tickEventLoop(
-    //         () => {
-    //             responder.tick('ignore me');
-    //             responder.tick('mr cellophane');
-    //             responder.tick('do I even exist?');
-    //             responder.tick('why is there no answer?');
-    //             responder.tick('surely someone is there?');
-    //         }
-    //         , 10);
+        bus.sendRequestMessage('puppers', 'how many bones has fox hidden?');
+
+        // should have settled 
+        bus.api.tickEventLoop(
+            () => {
+                handler.tick('ignore me');
+                handler.tick('mr cellophane');
+                handler.tick('do I even exist?');
+                handler.tick('why is there no answer?');
+                handler.tick('surely someone is there?');
+            }
+            , 10);
 
 
-    //     // should have settled 
-    //     bus.api.tickEventLoop(
-    //         () => {
-    //             expect(count).toEqual(1); // only a single event should have made it through
-    //             done();
-    //         }
-    //         , 20);
-    // });
+        // should have settled 
+        bus.api.tickEventLoop(
+            () => {
+                expect(count).toEqual(1); // only a single event should have made it through
+                done();
+            }
+            , 20);
+    });
+
+    it('Check createMessageHandler() observable handles default (empty) message type', (done) => {
+
+        const handler: MessageHandler<string> = bus.listenOnce('puppers');
+        handler.getObservable().subscribe(
+            (val: string) => {
+                expect(val).toEqual('bathtime ember!');
+                done();
+            }
+        );
+
+        bus.sendResponseMessage('puppers', 'bathtime ember!');
+
+    });
+
+    it('Check monitor dumping is working correctly', (done) => {
+
+        bus.api.enableMonitorDump(true);
+        bus.api.silenceLog(false);
+        bus.api.setLogLevel(LogLevel.Debug);
+        const log: LoggerService = bus.api.logger();
+
+        bus.sendResponseMessage('puppers', 'response test');
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(log.last()).toEqual('[MessagebusService]: "response test"');
+                bus.sendRequestMessage('puppers', 'request test');
+
+            }
+            , 5);
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(log.last()).toEqual('[MessagebusService]: "request test"');
+                bus.sendErrorMessage('puppers', 'error test');
+
+            }
+            , 10);
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(log.last()).toEqual('[MessagebusService]: "error test"');
+                done();
+            }
+            , 15);
+    });
 
 
     /**

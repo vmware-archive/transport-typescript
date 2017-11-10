@@ -55,7 +55,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                 }
                 return msg;
             }
-        );
+            );
     }
 
     getChannelObject(name: ChannelName, from?: SentFrom, noRefCount: boolean = false): Channel {
@@ -306,7 +306,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                 sub = mergedStreams.subscribe(
                     (msg: Message) => {
                         let pl = msg.payload;
-                        if (!msg.isError()) { 
+                        if (!msg.isError()) {
                             this.tickEventLoop(
                                 () => {
                                     this.eventBusRef.sendResponseMessage(
@@ -477,26 +477,26 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
             },
             getObservable(type?: MessageType): Observable<any> {
 
-                let chan = fullChannel;
-                if (type) {
-                    switch (type) {
-                        case MessageType.MessageTypeResponse:
-                            chan = responseChannel;
-                            break;
-                        case MessageType.MessageTypeError:
-                            chan = errorChannel;
-                            break;
-                        default:
-                            chan = requestChannel;
-                            break;
-                    }
+                let chan;
+                //if (type) {
+                switch (type) {
+                    case MessageType.MessageTypeResponse:
+                        chan = responseChannel;
+                        break;
+                    case MessageType.MessageTypeError:
+                        chan = errorChannel;
+                        break;
+                    case MessageType.MessageTypeRequest:
+                        chan = requestChannel;
+                        break;
+                    default: 
+                        chan = fullChannel;
+                        break;
                 }
+                //}
                 return chan.map(
                     (msg: Message) => {
                         let pl = msg.payload;
-                        if (pl.hasOwnProperty('_sendChannel')) {
-                            pl = msg.payload.body;
-                        }
                         if (msg.isError()) {
                             throw new Error(pl);
                         } else {
@@ -539,12 +539,12 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         this.log.info(' -> ' + mo.channel, 'Channel');
 
         if (message.isRequest()) {
-            this.log.info('REQUEST', 'Type');
+            this.log.info('[>] Request', 'Type');
         } else {
             if (message.isError()) {
-                this.log.info('ERROR', 'Type');
+                this.log.info('[x] Error', 'Type');
             } else {
-                this.log.info('RESPONSE', 'Type');
+                this.log.info('[<] Response', 'Type');
             }
         }
 
@@ -553,11 +553,12 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         this.log.info(LogUtil.pretty(message.payload), mo.from);
         this.log.groupEnd(LogLevel.Info);
 
-        if (message.messageSchema) {
-            this.log.group(LogLevel.Info, 'Schema: ' + message.messageSchema._title);
-            this.log.info(LogUtil.pretty(message.messageSchema), 'Schema');
-            this.log.groupEnd(LogLevel.Info);
-        }
+        // this is disabled for now.
+        // if (message.messageSchema) {
+        //     this.log.group(LogLevel.Info, 'Schema: ' + message.messageSchema._title);
+        //     this.log.info(LogUtil.pretty(message.messageSchema), 'Schema');
+        //     this.log.groupEnd(LogLevel.Info);
+        // }
 
         this.log.groupEnd(LogLevel.Info);
     }
