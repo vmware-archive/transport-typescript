@@ -322,7 +322,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                             if (generateErrorResponse) {
                                 err = generateErrorResponse;
                             } else {
-                                err = generateSuccessResponse; // not sure this makes full sence? what else should we do here?
+                                err = generateSuccessResponse; // what else should we do here?
                             }
                             this.tickEventLoop(
                                 () => {

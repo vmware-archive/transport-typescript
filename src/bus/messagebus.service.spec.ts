@@ -346,11 +346,11 @@ describe('MessagebusService [messagebus.service]', () => {
             null,
             (msg: string) => {
                 expect(msg).toEqual('why are my shoes ruined?');
-                return "little baby ember did it";
+                return 'little baby ember did it';
             }
         );
 
-        bus.sendErrorMessage('puppers', 'why are my shoes ruined?')
+        bus.sendErrorMessage('puppers', 'why are my shoes ruined?');
 
         // should have settled 
         bus.api.tickEventLoop(
@@ -368,11 +368,11 @@ describe('MessagebusService [messagebus.service]', () => {
         responder.generate(
             (msg: string) => {
                 expect(msg).toEqual('why are my shoes ruined?');
-                return "little baby ember did it";
+                return 'little baby ember did it';
             }
         );
 
-        bus.sendErrorMessage('puppers', 'why are my shoes ruined?')
+        bus.sendErrorMessage('puppers', 'why are my shoes ruined?');
 
         // should have settled 
         bus.api.tickEventLoop(
@@ -397,7 +397,7 @@ describe('MessagebusService [messagebus.service]', () => {
         const handler: MessageHandler<number> = bus.listenStream('puppers');
         handler.handle(
             (resp: number) => {
-                if(count === 3) {
+                if (count === 3) {
                     done();
                 }
             }
