@@ -12,6 +12,7 @@ import { LogLevel } from '../log/logger.model';
 import { MonitorChannel, MonitorObject, MonitorType } from './model/monitor.model';
 import { LogUtil } from '../log/util';
 import { Subscription } from 'rxjs/Subscription';
+import { UUID } from './cache/cache.model';
 
 export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowApi {
 
@@ -60,21 +61,45 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
 
     getChannelObject(name: ChannelName, from?: SentFrom, noRefCount: boolean = false): Channel {
         let channel: Channel;
-        let symbol = ' + ';
+        let symbol;
+
+        const monitorNewReference = () => {
+
+            const observerId: UUID = channel.createObserver();
+            let mo = new MonitorObject().build(MonitorType.MonitorObserverJoinedChannel,
+                name, from, { count: channel.refCount, id: observerId, from: from });
+            this.monitorStream.send(new Message().request(mo));
+        };
+
+        const newChannelCreated = () => {
+            let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, name, from, '');
+            this.monitorStream.send(new Message().request(mo));
+        };
+
+        let newChannel: boolean = false;
 
         if (this.internalChannelMap.has(name)) {
             channel = this.internalChannelMap.get(name);
+
         } else {
             channel = new Channel(name);
             this.internalChannelMap.set(name, channel);
-            symbol = '🆕 -> ';
-
-            let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, name, from, symbol);
-            this.monitorStream.send(new Message().request(mo));
+            newChannel = true;
         }
+
         if (!noRefCount) {
             channel.increment();
         }
+
+        if (newChannel) {
+            newChannelCreated();
+        }
+
+        if (!noRefCount) {
+            monitorNewReference();
+        }
+
+
         return channel;
     }
 
@@ -149,17 +174,22 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         return true;
     }
 
-    close(cname: ChannelName, from?: SentFrom): boolean {
+    close(cname: ChannelName, from?: SentFrom, observerId: UUID = 'none'): boolean {
         if (!this.internalChannelMap.has(cname)) {
             return false;
         }
 
         let channel = this.internalChannelMap.get(cname);
         channel.decrement();
-        let mo = new MonitorObject().build(MonitorType.MonitorCloseChannel, cname, from, ' ' + channel.refCount);
+        let mo = new MonitorObject().build(MonitorType.MonitorObserverLeftChannel, cname, from,
+            { count: channel.refCount, from: from, id: observerId });
         this.monitorStream.send(new Message().request(mo));
 
         if (channel.refCount === 0) {
+
+            mo = new MonitorObject().build(MonitorType.MonitorCloseChannel, cname, from, channel.refCount);
+            this.monitorStream.send(new Message().request(mo));
+
             this.destroy(channel, from);
             return true;
         }
@@ -264,9 +294,9 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
     request<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, schema?: any): MessageHandler<R, E> {
 
         // ignore schema for now.
+        const handler: MessageHandler<R, E> = this.createMessageHandler(handlerConfig, false, name);
         this.send(handlerConfig.sendChannel, new Message().request(handlerConfig, schema), name);
-
-        return this.createMessageHandler(handlerConfig, false, name);
+        return handler;
     }
 
     respond<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, schema?: any): MessageResponder<R, E> {
@@ -299,6 +329,10 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.sendChannel, name, true);
         const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.sendChannel, name);
         let closed: boolean = false;
+        const chanObject: Channel = this.getChannelObject(handlerConfig.returnChannel, name, true);
+        const subscriberId: UUID = chanObject.createSubscriber();
+        this.sendSubscribedMonitorMessage(subscriberId, chanObject.name, name);
+
         return {
             generate: (generateSuccessResponse: Function, generateErrorResponse: Function): Subscription => {
                 const mergedStreams = Observable.merge(errorChannel, requestChannel);
@@ -339,7 +373,8 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                             sub.unsubscribe();
 
                             // return refcount
-                            this.close(handlerConfig.sendChannel);
+                            this.close(handlerConfig.sendChannel, name, subscriberId);
+                            this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
                             closed = true;
                             sub = null;
                         }
@@ -357,7 +392,8 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                     sub.unsubscribe();
 
                     // return refcount
-                    this.close(handlerConfig.sendChannel);
+                    this.close(handlerConfig.sendChannel, name, subscriberId);
+                    this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
                     closed = true;
                     sub = null;
                 }
@@ -382,6 +418,23 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         };
     }
 
+    private sendSubscribedMonitorMessage(uuid: UUID, channelName: ChannelName, from?: SentFrom): void {
+        this.monitorStream.send(
+            new Message().request(
+                new MonitorObject().build(MonitorType.MonitorObserverSubscribedChannel, channelName, name,
+                    { id: uuid, from: from })
+            )
+        );
+    }
+
+    private sendUnsubscribedMonitorMessage(uuid: UUID, channelName: ChannelName, from?: SentFrom): void {
+        this.monitorStream.send(
+            new Message().request(
+                new MonitorObject().build(MonitorType.MonitorObserverUnsubscribedChannel, channelName, name,
+                    { id: uuid, from: from })
+            )
+        );
+    }
     /**
      * Create a message handler.
      * @param {MessageHandlerConfig} handlerConfig
@@ -398,10 +451,14 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.returnChannel, name, true);
         const responseChannel: Observable<Message> = this.getResponseChannel(handlerConfig.returnChannel, name, true);
         const fullChannel: Observable<Message> = this.getChannel(handlerConfig.returnChannel, name, false);
+        const chanObject: Channel = this.getChannelObject(handlerConfig.returnChannel, name, true);
+        const subscriberId: UUID = chanObject.createSubscriber();
+        this.sendSubscribedMonitorMessage(subscriberId, chanObject.name, name);
+
         let closed: boolean = false;
         return {
-
             handle: (success: Function, error?: Function): Subscription => {
+
                 let _chan: Observable<Message>;
                 if (requestStream) {
                     _chan = requestChannel;
@@ -426,7 +483,9 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                                 sub.unsubscribe();
 
                                 // decrease ref count
-                                this.close(handlerConfig.returnChannel);
+                                chanObject.removeSubscriber(subscriberId);
+                                this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
+                                this.close(handlerConfig.returnChannel, name, subscriberId);
                                 sub = null;
                                 closed = true;
                             }
@@ -437,10 +496,12 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                             error(errorData);
                         }
                         if (sub) {
+                            chanObject.removeSubscriber(subscriberId);
+                            this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
                             sub.unsubscribe();
 
                             // decrease ref count.
-                            this.close(handlerConfig.returnChannel);
+                            this.close(handlerConfig.returnChannel, name, subscriberId);
                             sub = null;
                             closed = true;
                         }
@@ -464,7 +525,9 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                         sub.unsubscribe();
 
                         // decrese ref count.
-                        this.close(handlerConfig.returnChannel);
+                        chanObject.removeSubscriber(subscriberId);
+                        this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
+                        this.close(handlerConfig.returnChannel, name, subscriberId);
                         sub = null;
                         closed = true;
                     }
@@ -489,7 +552,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                     case MessageType.MessageTypeRequest:
                         chan = requestChannel;
                         break;
-                    default: 
+                    default:
                         chan = fullChannel;
                         break;
                 }
@@ -536,21 +599,21 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         let message = mo.data as Message;
 
         this.log.group(LogLevel.Info, tag);
-        this.log.info(' -> ' + mo.channel, 'Channel');
+        this.log.info(mo.channel, 'channel');
 
         if (message.isRequest()) {
-            this.log.info('[>] Request', 'Type');
+            this.log.info('📤 Request (outbound)', 'type');
         } else {
             if (message.isError()) {
-                this.log.info('[x] Error', 'Type');
+                this.log.info('⁉️ ERROR!', 'type');
             } else {
-                this.log.info('[<] Response', 'Type');
+                this.log.info('📥 Response (inbound)', 'type');
             }
         }
 
-        this.log.group(LogLevel.Info, message.isError() ? 'Error' : 'Payload');
+        this.log.group(LogLevel.Info, message.isError() ? 'Error' : '📦 Message Payload');
 
-        this.log.info(LogUtil.pretty(message.payload), mo.from);
+        this.log.info(LogUtil.pretty(message.payload), null);
         this.log.groupEnd(LogLevel.Info);
 
         // this is disabled for now.
@@ -576,7 +639,27 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
 
                         switch (mo.type) {
                             case MonitorType.MonitorNewChannel:
-                                this.log.info(mo.data + mo.channel, mo.from);
+                                this.log.info('✨ (channel created)-> ' + mo.data + mo.channel, mo.from);
+                                break;
+
+                            case MonitorType.MonitorObserverJoinedChannel:
+                                this.log.info('👁 (new observer ' + mo.data.id + ' [' + mo.data.count + '])-> ' +
+                                    mo.channel, mo.data.from);
+                                break;
+
+                            case MonitorType.MonitorObserverSubscribedChannel:
+                                this.log.info('📡 (observer subscribed [' + mo.data.id + '])-> '
+                                    + mo.channel, mo.data.from);
+                                break;
+
+                            case MonitorType.MonitorObserverUnsubscribedChannel:
+                                this.log.info('💨 (observer un-subscribed [' + mo.data.id + '])-> '
+                                    + mo.channel, mo.data.from);
+                                break;
+
+                            case MonitorType.MonitorObserverLeftChannel:
+                                this.log.info('🗑️ (observer closed [' + mo.data.id + '])-> ' +
+                                    mo.channel, mo.data.from);
                                 break;
 
                             case MonitorType.MonitorCloseChannel:
@@ -588,15 +671,23 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                                 break;
 
                             case MonitorType.MonitorDestroyChannel:
-                                this.log.info('❌ (destroyed)-> ' + mo.channel, mo.from);
+                                this.log.info('💣 (destroyed)-> ' + mo.channel, mo.from);
                                 break;
 
                             case MonitorType.MonitorData:
-                                this.dumpData(mo, mo.from + ' -> ' + mo.channel);
+                                let type: string = 'Response';
+                                let pload: Message = mo.data as Message;
+                                if (pload.isRequest()) {
+                                    type = 'Request';
+                                }
+                                if (pload.isError()) {
+                                    type = 'Error';
+                                }
+                                this.dumpData(mo, '💬 (' + type + ')-> ' + mo.channel + ' [' + mo.from + ']');
                                 break;
 
                             case MonitorType.MonitorDropped:
-                                this.dumpData(mo, '👻 (dropped)->  ' + mo.from + ' -> ' + mo.channel);
+                                this.dumpData(mo, '💩 (dropped)->  ' + mo.from + ' -> ' + mo.channel);
                                 break;
                             default:
                                 break;
@@ -609,4 +700,4 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
             );
     }
 
-}
+}//	💬

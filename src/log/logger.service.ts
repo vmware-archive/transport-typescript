@@ -165,7 +165,14 @@ export class LoggerService {
         }
         
         let date: string = new Date().toLocaleTimeString();
-        let output: string = '%c' + date + ' %c[' + logObject.caller + ']: %c' + logObject.object;
+        let output: string = '%c' + logObject.object;
+        if (logObject.caller) {
+            output += '%c [' + logObject.caller + ']%c';
+            output += ' (' + date + ')';
+        } else {
+            output += '%c%c';
+        } 
+        
         if (!this._styledLogsSupported) {
             output = output.replace(/%c/g, '');
         }

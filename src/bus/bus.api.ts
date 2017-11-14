@@ -405,8 +405,9 @@ export interface EventBusLowApi {
      *
      * @param {ChannelName} cname channel you want to close
      * @param {SentFrom} from optional calling actor (for logging)
+     * @param {UUID} observerId optional id of observer closing (leaving) the channel.
      */
-    close(cname: ChannelName, from?: SentFrom): boolean;
+    close(cname: ChannelName, from?: SentFrom, observerId?: UUID): boolean;
 
     /**
      * Complete the channel stream.

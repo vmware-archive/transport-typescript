@@ -177,7 +177,7 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
 
 
     public respondOnce<R>(sendChannel: ChannelName, returnChannel?: ChannelName,
-                          schema?: any, name = this.getName()): MessageResponder<R> {
+                          name = this.getName(),  schema?: any): MessageResponder<R> {
 
         return this.api.respond(
             new MessageHandlerConfig(sendChannel, null, true, returnChannel),
@@ -187,7 +187,7 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
     }
 
     public respondStream<R>(sendChannel: ChannelName, returnChannel?: ChannelName,
-                            schema?: any, name = this.getName()): MessageResponder<R> {
+                            name = this.getName(), schema?: any): MessageResponder<R> {
 
         return this.api.respond(
             new MessageHandlerConfig(sendChannel, null, false, returnChannel),
@@ -200,8 +200,8 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
     public requestStream<T, R>(sendChannel: ChannelName,
                                requestPayload: T,
                                returnChannel?: ChannelName,
-                               schema?: any,
-                               name = this.getName()): MessageHandler<R> {
+                               name = this.getName(),
+                               schema?: any): MessageHandler<R> {
 
         return this.api.request(
             new MessageHandlerConfig(sendChannel, requestPayload, false, returnChannel),
@@ -214,8 +214,8 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
     public requestOnce<T, R>(sendChannel: ChannelName,
                              requestPayload: T,
                              returnChannel?: ChannelName,
-                             schema?: any,
-                             name = this.getName()): MessageHandler<R> {
+                             name = this.getName(),
+                             schema?: any): MessageHandler<R> {
 
         return this.api.request(
             new MessageHandlerConfig(sendChannel, requestPayload, true, returnChannel),

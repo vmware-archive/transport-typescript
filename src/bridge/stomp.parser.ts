@@ -124,6 +124,11 @@ export class StompParser {
         return uuid;
     }
 
+    public static genUUIDShort(): string {
+        return StompParser.genUUID().substr(0, 8);
+    }
+
+
     // extract a bus command from a bus message.
     public static extractStompBusCommandFromMessage(msg: Message): StompBusCommand {
         if (msg !== null) {
