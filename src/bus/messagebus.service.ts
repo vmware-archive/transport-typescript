@@ -92,7 +92,8 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         return 'MessagebusService';
     }
 
-    public connectBridge(readyHandler: MessageFunction<string>,
+    public connectBridge(
+        readyHandler: MessageFunction<string>,
         endpoint: string,
         topicLocation: string,
         queueLocation?: string,
@@ -166,14 +167,20 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         );
     }
 
-    public sendRequestMessage(cname: ChannelName, payload: any,
-        name = this.getName(), schema = new MessageSchema()): void {
+    public sendRequestMessage(
+        cname: ChannelName, payload: any,
+        name = this.getName(), 
+        schema = new MessageSchema()): void {
 
         this.api.send(cname, new Message().request(payload, schema), name);
     }
 
-    public sendResponseMessage(cname: ChannelName, payload: any,
-        name = this.getName(), schema = new MessageSchema()): boolean {
+    public sendResponseMessage(
+        cname: ChannelName, 
+        payload: any,
+        name = this.getName(), 
+        schema = new MessageSchema()): boolean {
+
         this.api.tickEventLoop(
             () => {
                 this.api.send(cname, new Message().response(payload, schema), name);
@@ -182,14 +189,21 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         return true;
     }
 
-    public sendErrorMessage(cname: ChannelName, payload: any,
-        name = this.getName(), schema = new ErrorSchema()): void {
+    public sendErrorMessage(
+        cname: ChannelName, 
+        payload: any,
+        name = this.getName(), 
+        schema = new ErrorSchema()): void {
+
         this.api.send(cname, new Message().error(payload, schema), name);
     }
 
 
-    public respondOnce<R>(sendChannel: ChannelName, returnChannel?: ChannelName,
-        name = this.getName(), schema?: any): MessageResponder<R> {
+    public respondOnce<R>(
+        sendChannel: ChannelName, 
+        returnChannel?: ChannelName,
+        name = this.getName(),
+        schema?: any): MessageResponder<R> {
 
         return this.api.respond(
             new MessageHandlerConfig(sendChannel, null, true, returnChannel),
@@ -198,8 +212,11 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         );
     }
 
-    public respondStream<R>(sendChannel: ChannelName, returnChannel?: ChannelName,
-        name = this.getName(), schema?: any): MessageResponder<R> {
+    public respondStream<R>(
+        sendChannel: ChannelName, 
+        returnChannel?: ChannelName,
+        name = this.getName(), 
+        schema?: any): MessageResponder<R> {
 
         return this.api.respond(
             new MessageHandlerConfig(sendChannel, null, false, returnChannel),
@@ -209,7 +226,8 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
 
     }
 
-    public requestStream<T, R>(sendChannel: ChannelName,
+    public requestStream<T, R>(
+        sendChannel: ChannelName,
         requestPayload: T,
         returnChannel?: ChannelName,
         name = this.getName(),
@@ -223,7 +241,8 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
 
     }
 
-    public requestOnce<T, R>(sendChannel: ChannelName,
+    public requestOnce<T, R>(
+        sendChannel: ChannelName,
         requestPayload: T,
         returnChannel?: ChannelName,
         name = this.getName(),
