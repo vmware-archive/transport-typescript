@@ -35,6 +35,7 @@ export class Channel {
 
     public subscribers: Map<UUID, Subscriber>;
     public observers: Map<UUID, Observer>;
+    public latestObserver: UUID;
 
     constructor(name: string) {
         this._name = name;
@@ -76,6 +77,7 @@ export class Channel {
     createObserver(): UUID {
         const id: UUID = StompParser.genUUIDShort();
         this.observers.set(id, {id: id, subscribed: new Date().getDate()});
+        this.latestObserver = id;
         return id;
     }
 

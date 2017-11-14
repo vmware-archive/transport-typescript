@@ -331,6 +331,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         let closed: boolean = false;
         const chanObject: Channel = this.getChannelObject(handlerConfig.returnChannel, name, true);
         const subscriberId: UUID = chanObject.createSubscriber();
+        const latestObserver = chanObject.latestObserver;
         this.sendSubscribedMonitorMessage(subscriberId, chanObject.name, name);
 
         return {
@@ -371,10 +372,10 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                         }
                         if (handlerConfig.singleResponse) {
                             sub.unsubscribe();
-
-                            // return refcount
-                            this.close(handlerConfig.sendChannel, name, subscriberId);
                             this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
+                            
+                            // return refcount
+                            this.close(handlerConfig.sendChannel, name, latestObserver);
                             closed = true;
                             sub = null;
                         }
@@ -392,7 +393,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                     sub.unsubscribe();
 
                     // return refcount
-                    this.close(handlerConfig.sendChannel, name, subscriberId);
+                    this.close(handlerConfig.sendChannel, name, latestObserver);
                     this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
                     closed = true;
                     sub = null;
@@ -453,6 +454,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         const fullChannel: Observable<Message> = this.getChannel(handlerConfig.returnChannel, name, false);
         const chanObject: Channel = this.getChannelObject(handlerConfig.returnChannel, name, true);
         const subscriberId: UUID = chanObject.createSubscriber();
+        const latestObserver = chanObject.latestObserver;
         this.sendSubscribedMonitorMessage(subscriberId, chanObject.name, name);
 
         let closed: boolean = false;
@@ -485,7 +487,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                                 // decrease ref count
                                 chanObject.removeSubscriber(subscriberId);
                                 this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
-                                this.close(handlerConfig.returnChannel, name, subscriberId);
+                                this.close(handlerConfig.returnChannel, name, latestObserver);
                                 sub = null;
                                 closed = true;
                             }
@@ -501,7 +503,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                             sub.unsubscribe();
 
                             // decrease ref count.
-                            this.close(handlerConfig.returnChannel, name, subscriberId);
+                            this.close(handlerConfig.returnChannel, name, latestObserver);
                             sub = null;
                             closed = true;
                         }
@@ -527,7 +529,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                         // decrese ref count.
                         chanObject.removeSubscriber(subscriberId);
                         this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
-                        this.close(handlerConfig.returnChannel, name, subscriberId);
+                        this.close(handlerConfig.returnChannel, name, latestObserver);
                         sub = null;
                         closed = true;
                     }
@@ -663,15 +665,15 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                                 break;
 
                             case MonitorType.MonitorCloseChannel:
-                                this.log.info('🚫 (closed)-> ' + mo.channel, mo.from);
+                                this.log.info('🚫 (channel closed)-> ' + mo.channel, mo.from);
                                 break;
 
                             case MonitorType.MonitorCompleteChannel:
-                                this.log.info('🏁 (completed)-> ' + mo.channel, mo.from);
+                                this.log.info('🏁 (channel completed)-> ' + mo.channel, mo.from);
                                 break;
 
                             case MonitorType.MonitorDestroyChannel:
-                                this.log.info('💣 (destroyed)-> ' + mo.channel, mo.from);
+                                this.log.info('💣 (channel destroyed)-> ' + mo.channel, mo.from);
                                 break;
 
                             case MonitorType.MonitorData:

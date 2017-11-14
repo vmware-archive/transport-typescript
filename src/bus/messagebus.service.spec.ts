@@ -603,14 +603,14 @@ describe('MessagebusService [messagebus.service]', () => {
         //     }
         //     , 50);
 
-        bus.respondOnce('chakka', 'chakka', 'responder')
+        bus.respondOnce('test-channel', 'test-channel', 'responder')
             .generate(
             () => {
                 return 'moo';
             }
         );
 
-        bus.requestOnce('chakka', 'woof!', 'chakka', 'requestor')
+        bus.requestOnce('test-channel', 'woof!', 'test-channel', 'requestor')
             .handle(
             (msg: any) => {
                 //console.log(msg);
