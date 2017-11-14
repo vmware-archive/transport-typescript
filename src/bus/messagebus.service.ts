@@ -20,6 +20,8 @@ import { StompParser } from '../bridge/stomp.parser';
 import { ChannelName, EventBus, EventBusLowApi, SentFrom } from './bus.api';
 import 'rxjs/add/operator/merge';
 import { EventBusLowLevelApiImpl } from './bus.lowlevel';
+import { LoggerService } from '../log/logger.service';
+import { LogLevel } from '../log/logger.model';
 
 export abstract class MessageBusEnabled {
     abstract getName(): string;
@@ -29,11 +31,13 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
 
     private internalChannelMap: Map<string, Channel>;
     private internalStoreMap: Map<string, BusStore<any>>;
+    private log: LoggerService;
+
 
     // low level API
     readonly api: EventBusLowApi;
 
-    constructor() {
+    constructor(logLevel: LogLevel = LogLevel.Info, disableBootMessage: boolean = false) {
         super();
         this.internalChannelMap = new Map<string, Channel>();
 
@@ -42,13 +46,21 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
 
         // Store map.
         this.internalStoreMap = new Map<StoreType, BusStore<any>>();
-        
+
         // wire up singleton to the window object under a custom namespace.
         window.AppEventBus = this as EventBus;
         window.AppBrokerConnector = new StompService();
         window.AppBrokerConnector.init(this);
         window.AppSyslog = Syslog;
 
+        // set up logging.
+        this.api.setLogLevel(logLevel);
+        if (!disableBootMessage) {
+            this.log = new LoggerService();
+            this.log.logLevel = logLevel;
+            this.log.setStylingVisble(false);
+            this.log.info('🌈 Bifröst ' + EventBus.version + ' Initialized', 'window.AppEventBus');
+        }
     }
 
     public createStore<T>(objectType: StoreType, map?: Map<UUID, T>): BusStore<T> {
@@ -81,15 +93,15 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
     }
 
     public connectBridge(readyHandler: MessageFunction<string>,
-                         endpoint: string,
-                         topicLocation: string,
-                         queueLocation?: string,
-                         numBrokerRelays: number = 1,
-                         host?: string,
-                         port?: number,
-                         user?: string,
-                         pass?: string,
-                         useSSL?: boolean): MessageHandler<StompBusCommand> {
+        endpoint: string,
+        topicLocation: string,
+        queueLocation?: string,
+        numBrokerRelays: number = 1,
+        host?: string,
+        port?: number,
+        user?: string,
+        pass?: string,
+        useSSL?: boolean): MessageHandler<StompBusCommand> {
 
         const config: StompConfig = StompConfig.generate(
             endpoint,
@@ -155,13 +167,13 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
     }
 
     public sendRequestMessage(cname: ChannelName, payload: any,
-                              name = this.getName(), schema = new MessageSchema()): void {
+        name = this.getName(), schema = new MessageSchema()): void {
 
         this.api.send(cname, new Message().request(payload, schema), name);
     }
 
     public sendResponseMessage(cname: ChannelName, payload: any,
-                               name = this.getName(), schema = new MessageSchema()): boolean {
+        name = this.getName(), schema = new MessageSchema()): boolean {
         this.api.tickEventLoop(
             () => {
                 this.api.send(cname, new Message().response(payload, schema), name);
@@ -171,13 +183,13 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
     }
 
     public sendErrorMessage(cname: ChannelName, payload: any,
-                            name = this.getName(), schema = new ErrorSchema()): void {
+        name = this.getName(), schema = new ErrorSchema()): void {
         this.api.send(cname, new Message().error(payload, schema), name);
     }
 
 
     public respondOnce<R>(sendChannel: ChannelName, returnChannel?: ChannelName,
-                          name = this.getName(),  schema?: any): MessageResponder<R> {
+        name = this.getName(), schema?: any): MessageResponder<R> {
 
         return this.api.respond(
             new MessageHandlerConfig(sendChannel, null, true, returnChannel),
@@ -187,7 +199,7 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
     }
 
     public respondStream<R>(sendChannel: ChannelName, returnChannel?: ChannelName,
-                            name = this.getName(), schema?: any): MessageResponder<R> {
+        name = this.getName(), schema?: any): MessageResponder<R> {
 
         return this.api.respond(
             new MessageHandlerConfig(sendChannel, null, false, returnChannel),
@@ -198,10 +210,10 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
     }
 
     public requestStream<T, R>(sendChannel: ChannelName,
-                               requestPayload: T,
-                               returnChannel?: ChannelName,
-                               name = this.getName(),
-                               schema?: any): MessageHandler<R> {
+        requestPayload: T,
+        returnChannel?: ChannelName,
+        name = this.getName(),
+        schema?: any): MessageHandler<R> {
 
         return this.api.request(
             new MessageHandlerConfig(sendChannel, requestPayload, false, returnChannel),
@@ -212,10 +224,10 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
     }
 
     public requestOnce<T, R>(sendChannel: ChannelName,
-                             requestPayload: T,
-                             returnChannel?: ChannelName,
-                             name = this.getName(),
-                             schema?: any): MessageHandler<R> {
+        requestPayload: T,
+        returnChannel?: ChannelName,
+        name = this.getName(),
+        schema?: any): MessageHandler<R> {
 
         return this.api.request(
             new MessageHandlerConfig(sendChannel, requestPayload, true, returnChannel),

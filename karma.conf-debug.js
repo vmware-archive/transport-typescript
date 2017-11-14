@@ -30,7 +30,7 @@ module.exports = function (config) {
                 flags: [
                     '--remote-debugging-port=9222',
                 ],
-                debug: false
+                debug: true
             }
         },
         

@@ -7,6 +7,7 @@ import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor
 import { Syslog } from '../log/syslog';
 import 'rxjs/add/operator/take';
 import { EventBus } from '../bus/bus.api';
+import { LogLevel } from '../log/index';
 
 /**
  * Main StompService tests.
@@ -29,7 +30,7 @@ describe('StompService [stomp.service]', () => {
     beforeEach(
         () => {
         
-            bus = new MessagebusService();
+            bus = new MessagebusService(LogLevel.Error);
             ss = window.AppBrokerConnector;
             
             config = createStandardConfig();

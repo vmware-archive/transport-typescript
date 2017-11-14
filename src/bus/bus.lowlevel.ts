@@ -601,18 +601,16 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         let message = mo.data as Message;
 
         this.log.group(LogLevel.Info, tag);
-        this.log.info(mo.channel, 'channel');
-
         if (message.isRequest()) {
-            this.log.info('📤 Request (outbound)', 'type');
+            this.log.info('📤 Request (outbound)', null);
         } else {
             if (message.isError()) {
-                this.log.info('⁉️ ERROR!', 'type');
+                this.log.info('⁉️ ERROR!', null);
             } else {
-                this.log.info('📥 Response (inbound)', 'type');
+                this.log.info('📥 Response (inbound)', 'message type');
             }
         }
-
+        this.log.info('📤 Channel: ' + mo.channel, null);
         this.log.group(LogLevel.Info, message.isError() ? 'Error' : '📦 Message Payload');
 
         this.log.info(LogUtil.pretty(message.payload), null);

@@ -7,6 +7,7 @@ import { UUID } from './cache.model';
 import { BusStore, StoreStream, MutateStream } from '../cache.api';
 import { MessageFunction } from '../model/message.model';
 import { EventBus } from '../bus.api';
+import { LogLevel } from '../../log/index';
 
 enum State {
     Created = 'Created',
@@ -24,7 +25,7 @@ describe('BusStore [cache/cache]', () => {
     let bus: EventBus;
 
     beforeEach(() => {
-        bus = new MessagebusService();
+        bus = new MessagebusService(LogLevel.Error);
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
         bus.createStore('string');

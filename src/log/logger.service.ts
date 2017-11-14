@@ -36,7 +36,7 @@ export class LoggerService {
      * @returns {string}
      */
     last(): string {
-       return this._lastLog;
+        return this._lastLog;
     }
 
     /**
@@ -51,19 +51,19 @@ export class LoggerService {
      *
      * @param level
      */
-    set logLevel (level: LogLevel) {
+    set logLevel(level: LogLevel) {
         this._logLevel = level;
     }
 
-    get logLevel () {
+    get logLevel() {
         return this._logLevel;
     }
 
-    suppress (flag: boolean) {
+    suppress(flag: boolean) {
         this._suppress = flag;
     }
 
-    silent (flag: boolean) {
+    silent(flag: boolean) {
         this._silent = flag;
     }
 
@@ -73,7 +73,7 @@ export class LoggerService {
      * @param object
      * @param from optional caller filename
      */
-    verbose (object: any, from: string) {
+    verbose(object: any, from: string) {
         this.log(new LogObject().build(LogLevel.Verbose, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -83,7 +83,7 @@ export class LoggerService {
      * @param object
      * @param from optional caller filename
      */
-    debug (object: any, from: string) {
+    debug(object: any, from: string) {
         this.log(new LogObject().build(LogLevel.Debug, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -93,7 +93,7 @@ export class LoggerService {
      * @param object
      * @param from optional caller filename
      */
-    info (object: any, from: string) {
+    info(object: any, from: string) {
         this.log(new LogObject().build(LogLevel.Info, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -103,7 +103,7 @@ export class LoggerService {
      * @param object
      * @param from optional caller filename
      */
-    warn (object: any, from: string) {
+    warn(object: any, from: string) {
         this.log(new LogObject().build(LogLevel.Warn, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -113,7 +113,7 @@ export class LoggerService {
      * @param object
      * @param from optional caller filename
      */
-    error (object: any, from: string) {
+    error(object: any, from: string) {
         this.log(new LogObject().build(LogLevel.Error, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -123,7 +123,7 @@ export class LoggerService {
      * @param object
      * @param from optional caller filename
      */
-    always (object: any, from: string) {
+    always(object: any, from: string) {
         this.log(new LogObject().build(LogLevel.Off, LogChannel.channel, object, from));
     }
 
@@ -149,21 +149,23 @@ export class LoggerService {
         fn.apply(console, consoleArgs);
     }
 
-    private log (logObject: LogObject) {
+    private log(logObject: LogObject) {
         if (logObject.logLevel < this.logLevel) {
             return;
         }
-
-        this._lastLog = '[' + logObject.caller + ']: ' + logObject.object;
-        
+        if (logObject.caller) {
+            this._lastLog = '[' + logObject.caller + ']: ' + logObject.object;
+        } else {
+            this._lastLog = logObject.object;
+        }
         if (logObject.suppress) {
             return;
         }
-        
+
         if (this._silent) {
             return;
         }
-        
+
         let date: string = new Date().toLocaleTimeString();
         let output: string = '%c' + logObject.object;
         if (logObject.caller) {
@@ -171,8 +173,8 @@ export class LoggerService {
             output += ' (' + date + ')';
         } else {
             output += '%c%c';
-        } 
-        
+        }
+
         if (!this._styledLogsSupported) {
             output = output.replace(/%c/g, '');
         }

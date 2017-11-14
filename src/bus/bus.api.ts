@@ -31,6 +31,8 @@ declare global {
 
 export abstract class EventBus {
 
+    public static version: string = '0.7.0';
+
     /**
      * Reference to Low Level API.
      */
