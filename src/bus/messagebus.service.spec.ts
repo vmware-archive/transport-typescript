@@ -11,6 +11,7 @@ import { Observable } from 'rxjs/Observable';
 import { LoggerService } from '../log/logger.service';
 import { StompParser } from '../bridge/stomp.parser';
 import { StompClient } from '../bridge/stomp.client';
+import { MonitorObject, MonitorType } from './model/monitor.model';
 
 function makeCallCountCaller(done: any, targetCount: number): any {
     let count = 0;
@@ -628,7 +629,7 @@ describe('MessagebusService [messagebus.service]', () => {
     it('Check monitor dump dropped payload handling is working correctly (simple API).', (done) => {
 
         spyOn(bus.api.loggerInstance, 'warn').and.callThrough();
-        
+
         bus.api.enableMonitorDump(true);
         bus.api.silenceLog(false);
         bus.api.setLogLevel(LogLevel.Debug);
@@ -1484,7 +1485,7 @@ describe('MessagebusService [messagebus.service]', () => {
     /**
      * Broker Connector Method Tests.
      */
-    describe('Broker Connector Tests', () => {
+    describe('Broker Connector & Galactic Tests', () => {
 
         it('connectBroker() reacts correctly to connected messages',
             (done) => {
@@ -1553,6 +1554,106 @@ describe('MessagebusService [messagebus.service]', () => {
                     },
                     50
                 );
+            }
+        );
+
+        it('listenGalacticStream() works correctly.',
+            (done) => {
+
+                const monitor = bus.api.getMonitor()
+                    .subscribe(
+                    (message: Message) => {
+                        const mo = message.payload as MonitorObject;
+                        switch (mo.type) {
+                            case MonitorType.MonitorNewGalacticChannel:
+                                expect(mo.channel).toEqual('space-dogs');
+                                done();
+                                break;
+
+                            default:
+                                break;
+                        }
+                    }
+                    );
+
+                bus.listenGalacticStream('space-dogs');
+            });
+
+        it('isGalacticChannel() works correctly.',
+            () => {
+                bus.listenGalacticStream('space-dogs');
+                bus.listenStream('earth-dogs');
+                expect(bus.isGalacticChannel('space-dogs')).toBeTruthy();
+                expect(bus.isGalacticChannel('earth-dogs')).toBeFalsy();
+                expect(bus.isGalacticChannel('ghost-dogs')).toBeFalsy(); // does not exist at all!
+            });
+
+        it('sendGalacticMessage() works correctly.',
+            (done) => {
+
+                const monitor = bus.api.getMonitor()
+                    .subscribe(
+                    (message: Message) => {
+                        const mo = message.payload as MonitorObject;
+                        switch (mo.type) {
+                            case MonitorType.MonitorGalacticData:
+                                expect(mo.channel).toEqual('space-dogs');
+                                expect(mo.data).toEqual('off to the moon goes fox!');
+                                done();
+                                break;
+
+                            default:
+                                break;
+                        }
+                    }
+                    );
+
+                bus.listenGalacticStream('space-dogs');
+                bus.sendGalacticMessage('space-dogs', 'off to the moon goes fox!');
+            });
+    });
+
+    /**
+     * BusStore tests
+     */
+    describe('BusStore Tests', () => {
+
+        it('check createStore() and getStore() works correctly.',
+            () => {
+
+                // new store
+                let store = bus.createStore('pupStore');
+                store.put('chicken', 'cotton', 'created');
+                expect(bus.getStore('pupStore')).not.toBeNull();
+                expect(store.get('chicken')).toEqual('cotton');
+
+                const map = new Map<string, string>();
+                map.set('maggie', 'magnum');
+
+                // check populating
+                const storePop = bus.createStore('pupStorePopulated', map);
+                expect(bus.getStore('pupStorePopulated')).not.toBeNull();
+                expect(bus.getStore('pupStorePopulated').allValues().length).toEqual(1);
+                expect(storePop.get('maggie')).toEqual('magnum');
+
+                // create with existing store
+                store = bus.createStore('pupStore');
+                expect(bus.getStore('pupStore')).not.toBeNull();
+                expect(store.get('chicken')).toEqual('cotton');
+
+            }
+        );
+
+        it('check destroyStore() works correctly.',
+            () => {
+
+                // new store
+                let store = bus.createStore('pupStore');
+                expect(bus.getStore('pupStore')).not.toBeNull();
+                expect(bus.destroyStore('pupStore')).toBeTruthy();
+                expect(bus.destroyStore('pupStore')).toBeFalsy();
+                expect(bus.destroyStore('noSuchStore')).toBeFalsy();
+
             }
         );
     });
