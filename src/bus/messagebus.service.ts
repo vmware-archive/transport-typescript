@@ -123,6 +123,9 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
             (command: StompBusCommand) => {
                 if (command.command === StompClient.STOMP_CONNECTED) {
                     readyHandler(command.session);
+                } else {
+                    this.api.logger()
+                    .info('connection handler received command message: ' + command.command, this.getName());
                 }
             }
         );

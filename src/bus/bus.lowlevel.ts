@@ -594,7 +594,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
      * @param {MonitorObject} mo
      * @param {string} tag
      */
-    private dumpData(mo: MonitorObject, tag: string) {
+    private dumpData(mo: MonitorObject, tag: string, dropped: boolean = false) {
 
         let message = mo.data as Message;
 
@@ -609,7 +609,10 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
             }
         }
         this.log.info('📤 Channel: ' + mo.channel, null);
-        this.log.group(LogLevel.Info, message.isError() ? '⚠️ Error' : '📦 Message Payload');
+        if (dropped) {
+            this.log.warn('💩 Message Was Dropped!', null);
+        }
+        this.log.group(LogLevel.Info, message.isError() ? '⚠️ Error Payload' : '📦 Message Payload');
 
         this.log.info(LogUtil.pretty(message.payload), null);
         this.log.groupEnd(LogLevel.Info);
@@ -687,7 +690,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                             break;
 
                         case MonitorType.MonitorDropped:
-                            this.dumpData(mo, '💩 (dropped)->  ' + mo.from + ' -> ' + mo.channel);
+                            this.dumpData(mo, '💩 (dropped)->  ' + mo.from + ' -> ' + mo.channel, true);
                             break;
 
                         case MonitorType.MonitorError:

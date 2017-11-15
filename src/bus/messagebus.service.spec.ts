@@ -1,7 +1,7 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { EventBus, MessagebusService } from '../';
+import { EventBus, MessagebusService, StompChannel } from '../';
 
 import { Syslog } from '../log/syslog';
 import { LogLevel } from '../log/logger.model';
@@ -9,6 +9,8 @@ import { Message, MessageHandler, MessageResponder, MessageType } from './model/
 import { Channel } from './model/channel.model';
 import { Observable } from 'rxjs/Observable';
 import { LoggerService } from '../log/logger.service';
+import { StompParser } from '../bridge/stomp.parser';
+import { StompClient } from '../bridge/stomp.client';
 
 function makeCallCountCaller(done: any, targetCount: number): any {
     let count = 0;
@@ -522,7 +524,7 @@ describe('MessagebusService [messagebus.service]', () => {
         const log: LoggerService = bus.api.logger();
         log.setStylingVisble(false);
 
-        bus.api.suppressLog(false);
+        bus.api.suppressLog(true);
         const chanData = bus.api.getChannel('ember-the-puppy', 'baby-pup');
         const chanClose = bus.api.getChannel('chicken-licken', 'mags');
         const chanClose3 = bus.api.getChannel('chicken-licken', 'mags');
@@ -575,10 +577,9 @@ describe('MessagebusService [messagebus.service]', () => {
         bus.api.setLogLevel(LogLevel.Debug);
         const log: LoggerService = bus.api.logger();
         log.setStylingVisble(false);
+        bus.api.suppressLog(true);
 
-        bus.api.suppressLog(false);
-
-        spyOn(console, 'log').and.callThrough();
+        spyOn(bus.api.loggerInstance, 'info').and.callThrough();
 
         bus.respondOnce('puppy-time')
             .generate(
@@ -593,7 +594,7 @@ describe('MessagebusService [messagebus.service]', () => {
 
         bus.api.tickEventLoop(
             () => {
-                expect(console.log).toHaveBeenCalledWith('"get the ball!"');
+                expect(bus.api.loggerInstance.info).toHaveBeenCalledWith('"get the ball!"', null);
                 done();
             }
             , 50);
@@ -602,15 +603,14 @@ describe('MessagebusService [messagebus.service]', () => {
 
     it('Check monitor dump error handling is working correctly (simple API).', (done) => {
 
-        spyOn(console, 'log').and.callThrough();
+        spyOn(bus.api.loggerInstance, 'info').and.callThrough();
 
         bus.api.enableMonitorDump(true);
         bus.api.silenceLog(false);
         bus.api.setLogLevel(LogLevel.Debug);
         const log: LoggerService = bus.api.logger();
         log.setStylingVisble(false);
-
-        bus.api.suppressLog(false);
+        bus.api.suppressLog(true);
 
         bus.listenOnce('naughty-dogs').handle(null);
 
@@ -618,8 +618,8 @@ describe('MessagebusService [messagebus.service]', () => {
 
         bus.api.tickEventLoop(
             () => {
-                expect(console.log).toHaveBeenCalledWith('⁉️ ERROR!');
-                expect(console.log).toHaveBeenCalledWith('📤 Channel: naughty-dogs');
+                expect(bus.api.loggerInstance.info).toHaveBeenCalledWith('⁉️ ERROR!', null);
+                expect(bus.api.loggerInstance.info).toHaveBeenCalledWith('📤 Channel: naughty-dogs', null);
                 done();
             }
             , 100);
@@ -627,23 +627,22 @@ describe('MessagebusService [messagebus.service]', () => {
 
     it('Check monitor dump dropped payload handling is working correctly (simple API).', (done) => {
 
-        spyOn(console, 'log').and.callThrough();
-        spyOn(console, 'groupCollapsed').and.callThrough();
-
+        spyOn(bus.api.loggerInstance, 'warn').and.callThrough();
+        
         bus.api.enableMonitorDump(true);
         bus.api.silenceLog(false);
         bus.api.setLogLevel(LogLevel.Debug);
         const log: LoggerService = bus.api.logger();
         log.setStylingVisble(false);
 
-        bus.api.suppressLog(false);
+        bus.api.suppressLog(true);
 
         bus.sendRequestMessage('naughty-dogs', 'who chewed my shoes?');
 
         bus.api.tickEventLoop(
             () => {
-                expect(console.groupCollapsed)
-                    .toHaveBeenCalledWith('💩 (dropped)->  MessagebusService -> naughty-dogs');
+                expect(bus.api.loggerInstance.warn)
+                    .toHaveBeenCalledWith('💩 Message Was Dropped!', null);
                 done();
             }
             , 10);
@@ -1475,6 +1474,82 @@ describe('MessagebusService [messagebus.service]', () => {
                             .toHaveBeenCalledWith('unable to handle error, no error handler function supplied',
                             'MessagebusService');
                         done();
+                    },
+                    50
+                );
+            }
+        );
+    });
+
+    /**
+     * Broker Connector Method Tests.
+     */
+    describe('Broker Connector Tests', () => {
+
+        it('connectBroker() reacts correctly to connected messages',
+            (done) => {
+
+                const readyHandler = (sessionId: string) => {
+                    expect(sessionId).toEqual('squeaky-chew');
+                    done();
+                };
+
+                bus.connectBridge(
+                    readyHandler,
+                    '/somewhere',
+                    '/topic',
+                    '/queue',
+                    0
+                );
+
+                // fake the broker sending back a valid connection and session.
+                bus.sendResponseMessage(
+                    StompChannel.connection,
+                    StompParser.generateStompBusCommand(
+                        StompClient.STOMP_CONNECTED,
+                        'squeaky-chew'
+                    )
+                );
+            }
+        );
+
+        it('connectBroker() logs unexpected stomp command',
+            (done) => {
+
+                const readyHandler = () => {
+                    done();
+                };
+
+                spyOn(bus.api.loggerInstance, 'info').and.callThrough();
+                bus.api.enableMonitorDump(true);
+                bus.api.silenceLog(false);
+                bus.api.setLogLevel(LogLevel.Error);
+                bus.api.suppressLog(true);
+                bus.api.logger().setStylingVisble(false);
+
+                bus.connectBridge(
+                    (readyHandler),
+                    '/somewhere',
+                    '/topic',
+                    '/queue',
+                    0
+                );
+
+                // fake the broker sending back an in correct/unexpected command
+                bus.sendResponseMessage(
+                    StompChannel.connection,
+                    StompParser.generateStompBusCommand(
+                        StompClient.STOMP_ABORT,
+                        'squeaky-chew'
+                    )
+                );
+
+                bus.api.tickEventLoop(
+                    () => {
+                        expect(bus.api.loggerInstance.info)
+                            .toHaveBeenCalledWith('connection handler received command message: ABORT',
+                            'MessagebusService');
+                        readyHandler();
                     },
                     50
                 );
