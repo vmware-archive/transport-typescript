@@ -90,7 +90,7 @@ export class StoreStreamImpl<T, E = any> implements StoreStream<T> {
 
     }
 
-    subscribe(successHandler: MessageFunction<T>, errorHandler?: MessageFunction<E>): Subscription {
+    subscribe(successHandler: MessageFunction<T>): Subscription {
 
         this.subscription = this.stream.subscribe(
             (req: MutationRequestWrapper<T, E>) => {
@@ -101,11 +101,6 @@ export class StoreStreamImpl<T, E = any> implements StoreStream<T> {
 
                 } else {
                     Syslog.error('unable to handle cache stream event, no handler provided.');
-                }
-            },
-            (error: any) => {
-                if (errorHandler) {
-                    errorHandler(error);
                 }
             }
         );
@@ -129,7 +124,7 @@ export class MutateStreamImpl<T, E = any> extends StoreStreamImpl<T> implements 
         super(stream);
     }
 
-    subscribe(successHandler: MessageFunction<T>, errorHandler?: MessageFunction<E>): Subscription {
+    subscribe(successHandler: MessageFunction<T>): Subscription {
 
         this.subscription = this.stream.subscribe(
             (req: MutationRequestWrapper<T, E>) => {
@@ -150,11 +145,6 @@ export class MutateStreamImpl<T, E = any> extends StoreStreamImpl<T> implements 
 
                 } else {
                     Syslog.error('unable to handle cache stream event, no handler provided.');
-                }
-            },
-            (error: any) => {
-                if (errorHandler) {
-                    errorHandler(error);
                 }
             }
         );

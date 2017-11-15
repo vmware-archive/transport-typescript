@@ -8,6 +8,7 @@ import { BusStore, StoreStream, MutateStream } from '../cache.api';
 import { MessageFunction } from '../model/message.model';
 import { EventBus } from '../bus.api';
 import { LogLevel } from '../../log/index';
+import { Syslog } from '../../log/syslog';
 
 enum State {
     Created = 'Created',
@@ -52,11 +53,11 @@ describe('BusStore [cache/cache]', () => {
 
         cache.onChange<State.Deleted>('123', State.Deleted)
             .subscribe(
-                (s: string) => {
-                    expect(s).toEqual('chickie & fox');
-                    expect(cache.get('123')).toBeUndefined();
-                    done();
-                }
+            (s: string) => {
+                expect(s).toEqual('chickie & fox');
+                expect(cache.get('123')).toBeUndefined();
+                done();
+            }
             );
 
         cache.put('123', 'chickie & fox', State.Created);
@@ -140,51 +141,111 @@ describe('BusStore [cache/cache]', () => {
 
         cache.onChange<State.Created>('magnum', State.Created)
             .subscribe(
-                (d: Dog) => {
-                    expect(d.name).toEqual('maggie');
-                    expect(d.age).toEqual(12);
-                    expect(d.commonPhrase).toEqual('get the kitty');
-                    counter++;
-                }
+            (d: Dog) => {
+                expect(d.name).toEqual('maggie');
+                expect(d.age).toEqual(12);
+                expect(d.commonPhrase).toEqual('get the kitty');
+                counter++;
+            }
             );
 
         cache.onChange<State.Updated>('fox', State.Updated)
             .subscribe(
-                (d: Dog) => {
-                    expect(d.name).toEqual('foxy pop');
-                    expect(d.age).toEqual(11);
-                    expect(d.commonPhrase).toEqual('get out of the pantry');
-                    counter++;
-                }
+            (d: Dog) => {
+                expect(d.name).toEqual('foxy pop');
+                expect(d.age).toEqual(11);
+                expect(d.commonPhrase).toEqual('get out of the pantry');
+                counter++;
+            }
             );
 
         cache.onChange<State.Deleted>('cotton', State.Deleted)
             .subscribe(
-                (d: Dog) => {
-                    expect(d.name).toEqual('chickie');
-                    expect(d.age).toEqual(6);
-                    expect(d.commonPhrase).toEqual('where is the kitty');
-                    counter++;
-                    if (counter === 3) {
-                        done();
-                    }
+            (d: Dog) => {
+                expect(d.name).toEqual('chickie');
+                expect(d.age).toEqual(6);
+                expect(d.commonPhrase).toEqual('where is the kitty');
+                counter++;
+                if (counter === 3) {
+                    done();
                 }
+            }
             );
 
         cache.put(
             'magnum',
-            {name: 'maggie', age: 12, commonPhrase: 'get the kitty'},
+            { name: 'maggie', age: 12, commonPhrase: 'get the kitty' },
             State.Created
         );
         cache.put(
             'fox',
-            {name: 'foxy pop', age: 11, commonPhrase: 'get out of the pantry'},
+            { name: 'foxy pop', age: 11, commonPhrase: 'get out of the pantry' },
             State.Updated
         );
         cache.put(
             'cotton',
-            {name: 'chickie', age: 6, commonPhrase: 'where is the kitty'},
+            { name: 'chickie', age: 6, commonPhrase: 'where is the kitty' },
             State.Deleted
+        );
+
+    });
+
+    it('onChange() works with no success handler supplied', (done) => {
+        spyOn(Syslog, 'error').and.callThrough();
+
+        const store: BusStore<string> = bus.createStore('dog');
+        store.onChange<State.Created>('magnum', State.Created)
+            .subscribe(null);
+
+        store.put('magnum', 'maggie', State.Created);
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(Syslog.error)
+                    .toHaveBeenCalledWith('unable to handle cache stream event, no handler provided.');
+                done();
+            },
+            5
+        );
+
+    });
+
+    it('onChange() works with unsubscriptions', (done) => {
+
+        let counter = 0;
+        const store: BusStore<string> = bus.createStore('dog');
+        const sub = store.onChange<State.Updated>('magnum', State.Updated);
+        sub.unsubscribe(); // nothing should happen because we're not subscribed yet.
+        
+        sub.subscribe(
+            () => {
+                counter++;
+            }
+        );
+
+        store.put('magnum', 'maggie', State.Created);
+        store.put('magnum', 'maggie', State.Updated);
+        store.put('magnum', 'maggie', State.Updated);
+        store.put('magnum', 'maggie', State.Updated);
+        
+        bus.api.tickEventLoop(
+            () => {
+                expect(counter).toEqual(3);
+                sub.unsubscribe();
+                store.put('magnum', 'maggie', State.Updated);
+                store.put('magnum', 'maggie', State.Updated);
+                store.put('magnum', 'maggie', State.Updated);
+                store.put('magnum', 'maggie', State.Updated);
+            },
+            10
+        );
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(counter).toEqual(3);
+                done();
+            },
+            20
         );
 
     });
@@ -198,19 +259,19 @@ describe('BusStore [cache/cache]', () => {
 
         cache.onAllChanges<State.Created>(new Dog(), State.Created)
             .subscribe(
-                () => {
-                    counter++;
-                }
+            () => {
+                counter++;
+            }
             );
 
         cache.onAllChanges<State.Updated>(new Dog(), State.Updated)
             .subscribe(
-                () => {
-                    counter++;
-                    if (counter === 5) {
-                        done();
-                    }
+            () => {
+                counter++;
+                if (counter === 5) {
+                    done();
                 }
+            }
             );
 
         cache.put(
@@ -225,12 +286,12 @@ describe('BusStore [cache/cache]', () => {
         );
         cache.put(
             'fox',
-            new Dog('foxy pop',11, 'get out of the pantry'),
+            new Dog('foxy pop', 11, 'get out of the pantry'),
             State.Created
         );
         cache.put(
             'cotton',
-            {name: 'chickie', age: 6, commonPhrase: 'where is the kitty'},
+            { name: 'chickie', age: 6, commonPhrase: 'where is the kitty' },
             State.Created
         );
         cache.put(
@@ -240,12 +301,12 @@ describe('BusStore [cache/cache]', () => {
         );
         cache.put(
             'fox',
-            {name: 'foxy pop', age: 11, commonPhrase: 'get off the couch!'},
+            { name: 'foxy pop', age: 11, commonPhrase: 'get off the couch!' },
             State.Updated
         );
         cache.put(
             'cotton',
-            {name: 'chickie', age: 6, commonPhrase: 'want to go for a walk?'},
+            { name: 'chickie', age: 6, commonPhrase: 'want to go for a walk?' },
             State.Updated
         );
 
@@ -259,12 +320,12 @@ describe('BusStore [cache/cache]', () => {
 
         listen<State, Dog>(cache, State.Created, State.Updated)
             .subscribe(
-                () => {
-                    counter++;
-                    if (counter === 2) {
-                        done();
-                    }
+            () => {
+                counter++;
+                if (counter === 2) {
+                    done();
                 }
+            }
             );
 
         cache.put(
@@ -289,16 +350,16 @@ describe('BusStore [cache/cache]', () => {
         // handle edge case of wrapper functions passing down muli-args.
         listen<State, Dog>(cache)
             .subscribe(
-                () => {
-                    counter++;
-                    if (counter === 3) {
-                        done();
-                    }
+            () => {
+                counter++;
+                if (counter === 3) {
+                    done();
                 }
+            }
             );
         cache.put(
             'fox',
-            new Dog('foxy pop', 11,'get out of the pantry'),
+            new Dog('foxy pop', 11, 'get out of the pantry'),
             State.Created
         );
         cache.put(
@@ -334,13 +395,33 @@ describe('BusStore [cache/cache]', () => {
         );
 
         cache.mutate(d, Mutate.Update,
-            (d: Dog) => {
+            (dog: Dog) => {
                 expect(d.dogPhrase).toEqual('ok, now you can eat it!');
                 done();
             }
         );
     });
 
+    it('check mutate() works without correct success handling', (done) => {
+        spyOn(Syslog, 'error').and.callThrough();
+        const cache: BusStore<Dog> = bus.createStore('Dog');
+
+        let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
+        cache.put('fox', d, State.Created);
+
+        const mutateStream: MutateStream<Dog, string> = cache.onMutationRequest(new Dog(), Mutate.Update);
+        mutateStream.subscribe(null);
+
+        cache.mutate(d, Mutate.Update, null);
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(Syslog.error).toHaveBeenCalledWith('unable to handle cache stream event, no handler provided.');
+                done();
+            }
+            , 20
+        );
+    });
 
     it('check mutate() works with correct error handling', (done) => {
 
@@ -378,25 +459,25 @@ describe('BusStore [cache/cache]', () => {
 
         cache.onMutationRequest<Mutate.Update>(new Dog(), Mutate.Update)
             .subscribe(
-                (dog: Dog) => {
-                    expect(dog.dogName).toEqual('maggie');
-                    expect(dog.dogPhrase).toEqual('get the kitty');
+            (dog: Dog) => {
+                expect(dog.dogName).toEqual('maggie');
+                expect(dog.dogPhrase).toEqual('get the kitty');
 
-                    // mutate!
-                    dog.dogName = 'maggles';
-                    dog.dogPhrase = 'where is your ball?';
+                // mutate!
+                dog.dogName = 'maggles';
+                dog.dogPhrase = 'where is your ball?';
 
-                    cache.put('magnum', d, State.Updated);
-                }
+                cache.put('magnum', d, State.Updated);
+            }
             );
 
         cache.onChange<State.Updated>('magnum', State.Updated)
             .subscribe(
-                (dog: Dog) => {
-                    expect(dog.dogName).toEqual('maggles');
-                    expect(dog.dogPhrase).toEqual('where is your ball?');
-                    done();
-                }
+            (dog: Dog) => {
+                expect(dog.dogName).toEqual('maggles');
+                expect(dog.dogPhrase).toEqual('where is your ball?');
+                done();
+            }
             );
 
         cache.mutate(d, Mutate.Update, null);
@@ -471,9 +552,10 @@ describe('BusStore [cache/cache]', () => {
 });
 
 class Dog {
-    constructor(private name?: string,
-                private age?: number,
-                private commonPhrase?: string) {
+    constructor(
+        private name?: string,
+        private age?: number,
+        private commonPhrase?: string) {
 
     }
 

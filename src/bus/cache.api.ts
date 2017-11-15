@@ -14,10 +14,9 @@ export interface StoreStream<T, E = any> {
     /**
      * Subscribe to Observable stream.
      * @param {MessageFunction<T>} successHandler function to handle ticks on stream
-     * @param {MessageFunction<E>} errorHandler function to handle any internal failures.
      * @returns {Subscription} subscription to stream.
      */
-    subscribe(successHandler: MessageFunction<T>, errorHandler?: MessageFunction<E>): Subscription;
+    subscribe(successHandler: MessageFunction<T>): Subscription;
 
     /**
      * Unsubscribe from Observable stream.

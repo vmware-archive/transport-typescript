@@ -99,7 +99,7 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
             this.bus.api.getErrorChannel(StoreImpl.getObjectChannel(id), this.getName());
 
         const stream: Observable<StoreStateChange<S, T>> =
-            Observable.merge(cacheStreamChan, cacheErrorCan)
+             Observable.merge(cacheStreamChan, cacheErrorCan)
                 .map(
                     (msg: Message) => {
                         if (msg.isError()) {

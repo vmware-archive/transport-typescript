@@ -41,7 +41,7 @@ describe('MessagebusService [messagebus.service]', () => {
     it('Check logging settings', () => {
         bus = new MessagebusService(LogLevel.Info, true);
         bus.api.silenceLog(false);
-        bus.api.suppressLog(false);
+        bus.api.suppressLog(true);
         bus.api.enableMonitorDump(false);
 
         bus.api.messageLog('testy-test', 'me');
