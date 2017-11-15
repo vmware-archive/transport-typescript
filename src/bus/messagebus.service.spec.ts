@@ -1324,5 +1324,161 @@ describe('MessagebusService [messagebus.service]', () => {
                 bus.sendErrorMessage(testChannel, 'chickie & maggie');
             }
         );
+
+        it('Responder streams should not be able to respond after closing the stream',
+            (done) => {
+
+                const responder: MessageResponder<string> = bus.respondStream('puppy-talk');
+                const handler: MessageHandler<string> = bus.listenStream('puppy-talk');
+                let counter = 0;
+
+                responder.generate(
+                    (req: string) => {
+                        expect(req).toEqual('where is my dinner?');
+                        counter++;
+                        if (counter === 3) {
+                            responder.close(); // stop responding, but keep handling. 
+                        }
+                        return 'coming soon, calm down pup!';
+                    }
+                );
+
+                handler.handle(
+                    (resp: string) => {
+                        expect(resp).toBe('coming soon, calm down pup!');
+                        bus.sendRequestMessage('puppy-talk', 'where is my dinner?');
+                    }
+                );
+
+                bus.sendRequestMessage('puppy-talk', 'where is my dinner?');
+
+                bus.api.tickEventLoop(
+                    () => {
+                        expect(counter).toEqual(3);
+                        bus.sendRequestMessage('puppy-talk', 'where is my dinner?');
+
+                    },
+                    200
+                );
+
+                bus.api.tickEventLoop(
+                    () => {
+                        expect(counter).toEqual(3);
+                        done();
+                    },
+                    250
+                );
+
+            }
+        );
+
+        it('Nothing should happen when trying to close a single responder.',
+            (done) => {
+
+                const responder: MessageResponder<string> = bus.respondOnce('puppy-talk');
+                const handler: MessageHandler<string> = bus.listenStream('puppy-talk');
+                let counter = 0;
+
+                responder.generate(
+                    (req: string) => {
+                        expect(req).toEqual('can I go outside?');
+                        counter++;
+                        return 'no! you just went out.';
+                    }
+                );
+
+                handler.handle(
+                    (resp: string) => {
+                        expect(resp).toBe('no! you just went out.');
+                        responder.close();
+                        bus.sendRequestMessage('puppy-talk', 'can I go outside?');
+                    }
+                );
+
+                bus.sendRequestMessage('puppy-talk', 'can I go outside?');
+
+                bus.api.tickEventLoop(
+                    () => {
+                        expect(counter).toEqual(1);
+                        done();
+                    },
+                    200
+                );
+            }
+        );
+
+        it('Responder should do nothing if there is an error thrown.',
+            (done) => {
+                spyOn(bus.api.loggerInstance, 'warn').and.callThrough();
+                bus.api.enableMonitorDump(true);
+                bus.api.silenceLog(false);
+                bus.api.setLogLevel(LogLevel.Error);
+                bus.api.suppressLog(true);
+                bus.api.logger().setStylingVisble(false);
+
+                bus.respondOnce('puppy-dinner-talk')
+                    .generate(
+                    () => 'tonights dinner is steak'
+                    );
+
+                bus.api.error('puppy-dinner-talk', 'oh no! the steak is all gone!');
+                bus.api.tickEventLoop(
+                    () => {
+                        expect(bus.api.loggerInstance.warn)
+                            .toHaveBeenCalledWith('responder caught error, discarding.',
+                            'MessagebusService');
+                        done();
+                    },
+                    10
+                );
+            }
+        );
+        it('createMessageHandler() should log error if valid message comes in without success handler defined',
+            (done) => {
+                spyOn(bus.api.loggerInstance, 'error').and.callThrough();
+                bus.api.enableMonitorDump(true);
+                bus.api.silenceLog(false);
+                bus.api.setLogLevel(LogLevel.Error);
+                bus.api.suppressLog(true);
+                bus.api.logger().setStylingVisble(false);
+
+                bus.listenOnce('puppy-play-talk').handle(null);
+
+                bus.sendResponseMessage('puppy-play-talk', 'where is the ball?');
+                bus.api.tickEventLoop(
+                    () => {
+                        expect(bus.api.loggerInstance.error)
+                            .toHaveBeenCalledWith('unable to handle response, no handler function supplied',
+                            'MessagebusService');
+                        done();
+                    },
+                    50
+                );
+            }
+        );
+
+        it('createMessageHandler() should log error if an error comes in without error  handler defined',
+            (done) => {
+                spyOn(bus.api.loggerInstance, 'error').and.callThrough();
+                bus.api.enableMonitorDump(true);
+                bus.api.silenceLog(false);
+                bus.api.setLogLevel(LogLevel.Error);
+                bus.api.suppressLog(true);
+                bus.api.logger().setStylingVisble(false);
+
+                bus.listenOnce('puppy-play-talk').handle(null);
+
+                bus.api.error('puppy-play-talk', 'the ball is gone!');
+                bus.api.tickEventLoop(
+                    () => {
+                        expect(bus.api.loggerInstance.error)
+                            .toHaveBeenCalledWith('unable to handle error, no error handler function supplied',
+                            'MessagebusService');
+                        done();
+                    },
+                    50
+                );
+            }
+        );
     });
 });

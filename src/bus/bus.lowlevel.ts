@@ -14,7 +14,7 @@ import { LogUtil } from '../log/util';
 import { Subscription } from 'rxjs/Subscription';
 import { UUID } from './cache/cache.model';
 
-export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowApi {
+export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
     readonly channelMap: Map<ChannelName, Channel>;
     private log: LoggerService;
@@ -42,10 +42,6 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
 
         this.channelMap = this.internalChannelMap;
         this.loggerInstance = this.log;
-    }
-
-    getName(): string {
-        return 'EventBusLowLevelApi';
     }
 
     getChannel(cname: ChannelName, from: SentFrom, noRefCount: boolean = false): Observable<Message> {
@@ -281,7 +277,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
             return false;
         }
 
-        const mo: MonitorObject = new MonitorObject().build(MonitorType.MonitorError, cname, 'bus error');
+        const mo: MonitorObject = new MonitorObject().build(MonitorType.MonitorError, cname, err);
         this.monitorStream.send(new Message().error(mo));
 
         this.internalChannelMap.get(cname)
@@ -323,8 +319,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
      * @returns {MessageResponder<T, E>}
      */
     private createMessageResponder<T, E = any>(
-        handlerConfig: MessageHandlerConfig,
-        name = this.getName(), schema?: any): MessageResponder<T, E> {
+        handlerConfig: MessageHandlerConfig, name?: string, schema?: any): MessageResponder<T, E> {
 
         let schemaRef = schema;
         let sub: Subscription;
@@ -335,6 +330,15 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         const subscriberId: UUID = chanObject.createSubscriber();
         const latestObserver = chanObject.latestObserver;
         this.sendSubscribedMonitorMessage(subscriberId, chanObject.name, name);
+
+        const killSubscription = () => { 
+            sub.unsubscribe();
+            this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
+            chanObject.removeSubscriber(subscriberId);
+            this.close(handlerConfig.sendChannel, name, latestObserver);
+            sub = null;
+            closed = true;
+        };
 
         return {
             generate: (generateSuccessResponse: Function, generateErrorResponse: Function): Subscription => {
@@ -373,13 +377,14 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                             );
                         }
                         if (handlerConfig.singleResponse) {
-                            sub.unsubscribe();
-                            this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
-                            
-                            // return refcount
-                            this.close(handlerConfig.sendChannel, name, latestObserver);
-                            closed = true;
-                            sub = null;
+                            killSubscription();
+                        }
+                    },
+                    (errorData: any) => {
+
+                        this.log.warn('responder caught error, discarding.', name);
+                        if (sub) {
+                            killSubscription();
                         }
                     }
                 );
@@ -446,8 +451,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
      * @returns {MessageHandler<any>}
      */
     private createMessageHandler(
-        handlerConfig: MessageHandlerConfig, requestStream: boolean = false,
-        name = this.getName()): MessageHandler<any> {
+        handlerConfig: MessageHandlerConfig, requestStream: boolean = false, name?: string): MessageHandler<any> {
 
         let sub: Subscription;
         const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.returnChannel, name, true);
@@ -458,8 +462,17 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         const subscriberId: UUID = chanObject.createSubscriber();
         const latestObserver = chanObject.latestObserver;
         this.sendSubscribedMonitorMessage(subscriberId, chanObject.name, name);
-
         let closed: boolean = false;
+
+        const killSubscription = () => { 
+            sub.unsubscribe();
+            chanObject.removeSubscriber(subscriberId);
+            this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
+            this.close(handlerConfig.returnChannel, name, latestObserver);
+            sub = null;
+            closed = true;
+        };
+
         return {
             handle: (success: Function, error?: Function): Subscription => {
 
@@ -480,34 +493,24 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                         } else {
                             if (success) {
                                 success(_pl);
+                            } else {
+                                this.log.error('unable to handle response, no handler function supplied', name);
                             }
                         }
                         if (handlerConfig.singleResponse) {
                             if (sub) {
-                                sub.unsubscribe();
-
-                                // decrease ref count
-                                chanObject.removeSubscriber(subscriberId);
-                                this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
-                                this.close(handlerConfig.returnChannel, name, latestObserver);
-                                sub = null;
-                                closed = true;
+                                killSubscription();
                             }
                         }
                     },
                     (errorData: any) => {
                         if (error) {
                             error(errorData);
+                        } else {
+                            this.log.error('unable to handle error, no error handler function supplied', name);
                         }
                         if (sub) {
-                            chanObject.removeSubscriber(subscriberId);
-                            this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
-                            sub.unsubscribe();
-
-                            // decrease ref count.
-                            this.close(handlerConfig.returnChannel, name, latestObserver);
-                            sub = null;
-                            closed = true;
+                            killSubscription();
                         }
                     }
                 );
@@ -526,14 +529,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
             close: (): boolean => {
                 if (!handlerConfig.singleResponse) {
                     if (sub) {
-                        sub.unsubscribe();
-
-                        // decrese ref count.
-                        chanObject.removeSubscriber(subscriberId);
-                        this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
-                        this.close(handlerConfig.returnChannel, name, latestObserver);
-                        sub = null;
-                        closed = true;
+                        killSubscription();
                     }
                     sub = null;
                 }
@@ -632,71 +628,75 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
      * This is a listener on the monitor channel which dumps message events to the console
      */
     private monitorBus() {
+
         this.getMonitor()
             .subscribe(
             (message: Message) => {
-                if (!message.isError()) {
-                    if (this.dumpMonitor) {
-                        let mo = message.payload as MonitorObject;
+                //if (!message.isError()) {
+                if (this.dumpMonitor) {
 
-                        switch (mo.type) {
-                            case MonitorType.MonitorNewChannel:
-                                this.log.info('✨ (channel created)-> ' + mo.data + mo.channel, mo.from);
-                                break;
+                    let mo = message.payload as MonitorObject;
+                    let type: string = 'Response';
+                    let pload: Message = mo.data as Message;
 
-                            case MonitorType.MonitorObserverJoinedChannel:
-                                this.log.info('👁 (new observer ' + mo.data.id + ' [' + mo.data.count + '])-> ' +
-                                    mo.channel, mo.data.from);
-                                break;
+                    switch (mo.type) {
+                        case MonitorType.MonitorNewChannel:
+                            this.log.info('✨ (channel created)-> ' + mo.data + mo.channel, mo.from);
+                            break;
 
-                            case MonitorType.MonitorObserverSubscribedChannel:
-                                this.log.info('📡 (observer subscribed [' + mo.data.id + '])-> '
-                                    + mo.channel, mo.data.from);
-                                break;
+                        case MonitorType.MonitorObserverJoinedChannel:
+                            this.log.info('👁 (new observer ' + mo.data.id + ' [' + mo.data.count + '])-> ' +
+                                mo.channel, mo.data.from);
+                            break;
 
-                            case MonitorType.MonitorObserverUnsubscribedChannel:
-                                this.log.info('💨 (observer un-subscribed [' + mo.data.id + '])-> '
-                                    + mo.channel, mo.data.from);
-                                break;
+                        case MonitorType.MonitorObserverSubscribedChannel:
+                            this.log.info('📡 (observer subscribed [' + mo.data.id + '])-> '
+                                + mo.channel, mo.data.from);
+                            break;
 
-                            case MonitorType.MonitorObserverLeftChannel:
-                                this.log.info('🗑️ (observer closed [' + mo.data.id + '])-> ' +
-                                    mo.channel, mo.data.from);
-                                break;
+                        case MonitorType.MonitorObserverUnsubscribedChannel:
+                            this.log.info('💨 (observer un-subscribed [' + mo.data.id + '])-> '
+                                + mo.channel, mo.data.from);
+                            break;
 
-                            case MonitorType.MonitorCloseChannel:
-                                this.log.info('🚫 (channel closed)-> ' + mo.channel, mo.from);
-                                break;
+                        case MonitorType.MonitorObserverLeftChannel:
+                            this.log.info('🗑️ (observer closed [' + mo.data.id + '])-> ' +
+                                mo.channel, mo.data.from);
+                            break;
 
-                            case MonitorType.MonitorCompleteChannel:
-                                this.log.info('🏁 (channel completed)-> ' + mo.channel, mo.from);
-                                break;
+                        case MonitorType.MonitorCloseChannel:
+                            this.log.info('🚫 (channel closed)-> ' + mo.channel, mo.from);
+                            break;
 
-                            case MonitorType.MonitorDestroyChannel:
-                                this.log.info('💣 (channel destroyed)-> ' + mo.channel, mo.from);
-                                break;
+                        case MonitorType.MonitorCompleteChannel:
+                            this.log.info('🏁 (channel completed)-> ' + mo.channel, mo.from);
+                            break;
 
-                            case MonitorType.MonitorData:
-                                let type: string = 'Response';
-                                let pload: Message = mo.data as Message;
-                                if (pload.isRequest()) {
-                                    type = 'Request';
-                                }
-                                if (pload.isError()) {
-                                    type = 'Error';
-                                }
-                                this.dumpData(mo, '💬 (' + type + ')-> ' + mo.channel + ' [' + mo.from + ']');
-                                break;
+                        case MonitorType.MonitorDestroyChannel:
+                            this.log.info('💣 (channel destroyed)-> ' + mo.channel, mo.from);
+                            break;
 
-                            case MonitorType.MonitorDropped:
-                                this.dumpData(mo, '💩 (dropped)->  ' + mo.from + ' -> ' + mo.channel);
-                                break;
-                            default:
-                                break;
-                        }
+                        case MonitorType.MonitorData:
+                            if (pload.isRequest()) {
+                                type = 'Request';
+                            }
+                            if (pload.isError()) {
+                                type = 'Error';
+                            }
+                            this.dumpData(mo, '💬 (' + type + ')-> ' + mo.channel + ' [' + mo.from + ']');
+                            break;
+
+                        case MonitorType.MonitorDropped:
+                            this.dumpData(mo, '💩 (dropped)->  ' + mo.from + ' -> ' + mo.channel);
+                            break;
+
+                        case MonitorType.MonitorError:
+                            this.log.error('(error)-> ' + mo.channel, mo.from);
+                            break;
+
+                        default:
+                            break;
                     }
-                } else {
-                    this.log.error('Error on monitor channel: ' + LogUtil.pretty(message), this.getName());
                 }
             }
             );

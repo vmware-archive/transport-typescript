@@ -178,13 +178,16 @@ export class LoggerService {
         if (!this._styledLogsSupported) {
             output = output.replace(/%c/g, '');
         }
+        
 
         switch (logObject.logLevel) {
             case LogLevel.Error:
+                output = '⁉️ [Error]: ' + output; 
                 this.outputWithOptionalStyle(console.error, output, this.errorCss);
                 break;
 
             case LogLevel.Warn:
+                output = '⚠️ [Warn]: ' + output; 
                 this.outputWithOptionalStyle(console.warn, output, this.warnCss);
                 break;
 
