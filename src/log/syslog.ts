@@ -147,6 +147,7 @@ export class Syslog {
     private static createLogger() {
         if (!Syslog.logger) {
             Syslog.logger = new LoggerService();
+            Syslog.logger.suppress(Syslog.suppressFlag);
             Syslog.logger.logLevel = Syslog.logLevel;
         }
     }

@@ -102,9 +102,6 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
              Observable.merge(cacheStreamChan, cacheErrorCan)
                 .map(
                     (msg: Message) => {
-                        if (msg.isError()) {
-                            throw new Error(msg.payload);
-                        }
                         return msg.payload as StoreStateChange<S, T>;
                     }
                 );
@@ -131,9 +128,6 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
             Observable.merge(cacheStreamChan, cacheErrorCan)
                 .map(
                     (msg: Message) => {
-                        if (msg.isError()) {
-                            throw new Error(msg.payload);
-                        }
                         return msg.payload as StoreStateChange<S, T>;
                     }
                 );

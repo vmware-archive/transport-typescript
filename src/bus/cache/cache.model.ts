@@ -157,6 +157,8 @@ export class MutateStreamImpl<T, E = any> extends StoreStreamImpl<T> implements 
             setTimeout(
                 () => this.mutatorErrorHandler(error)
             );
+        } else {
+            Syslog.error('unable to send error event back to mutator, no error handler provided.');
         }
     }
 
@@ -166,6 +168,8 @@ export class MutateStreamImpl<T, E = any> extends StoreStreamImpl<T> implements 
             setTimeout(
                 () => this.mutatorSuccessHandler(success)
             );
+        } else {
+            Syslog.error('unable to send success event back to mutator, no success handler provided.');
         }
     }
 }

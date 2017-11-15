@@ -24,6 +24,7 @@ enum Mutate {
 
 describe('BusStore [cache/cache]', () => {
     let bus: EventBus;
+    Syslog.suppressFlag = true;
 
     beforeEach(() => {
         bus = new MessagebusService(LogLevel.Error);
@@ -205,8 +206,27 @@ describe('BusStore [cache/cache]', () => {
                     .toHaveBeenCalledWith('unable to handle cache stream event, no handler provided.');
                 done();
             },
-            5
+            20
         );
+    });
+
+    it('onChange() works with all types', (done) => {
+        
+        let count = 0;
+        const store: BusStore<string> = bus.createStore('dog');
+        store.onChange<State.Created>('magnum')
+            .subscribe(
+                () => {
+                  count++;
+                  if (count === 3) {
+                      done();
+                  }  
+                }
+            );
+
+        store.put('magnum', 'maggie', State.Created);
+        store.put('magnum', 'maggie', State.Updated);
+        store.put('magnum', 'maggie', 'fart');
 
     });
 
@@ -402,6 +422,66 @@ describe('BusStore [cache/cache]', () => {
         );
     });
 
+    it('check mutate() works with all mutation types', (done) => {
+
+        const cache: BusStore<Dog> = bus.createStore('Dog');
+
+        let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
+        cache.put('fox', d, State.Created);
+        let counter = 0;
+        const mutateStream: MutateStream<Dog, string> = cache.onMutationRequest(new Dog());
+        mutateStream.subscribe(
+            (dog: Dog) => {
+                counter++;
+            }
+        );
+
+        cache.mutate(d, Mutate.Update, null);
+        cache.mutate(d, Mutate.RemoveStuff, null);
+        cache.mutate(d, Mutate.AddStuff, null);
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(counter).toEqual(3);
+                done();
+            }
+            , 20
+        );        
+    });
+
+    it('check mutate() works with correct logging, without success handler.', (done) => {
+
+        spyOn(Syslog, 'error').and.callThrough();
+        const cache: BusStore<Dog> = bus.createStore('Dog');
+
+        let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
+        cache.put('fox', d, State.Created);
+
+        const mutateStream: MutateStream<Dog, string> = cache.onMutationRequest(new Dog(), Mutate.Update);
+        mutateStream.subscribe(
+            (dog: Dog) => {
+                expect(dog.dogName).toEqual('foxy');
+                expect(dog.dogPhrase).toEqual('eat it, not bury it');
+
+                // some task was done and the mutation was a success. let the caller know.
+                dog.dogPhrase = 'ok, now you can eat it!';
+                mutateStream.success(dog);
+            }
+        );
+       
+        cache.mutate(d, Mutate.Update, null);
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(Syslog.error)
+                    .toHaveBeenCalledWith('unable to send success event back to mutator, no success handler provided.');
+                done();
+            }
+            , 20
+        );
+    });
+
+
     it('check mutate() works without correct success handling', (done) => {
         spyOn(Syslog, 'error').and.callThrough();
         const cache: BusStore<Dog> = bus.createStore('Dog');
@@ -419,7 +499,7 @@ describe('BusStore [cache/cache]', () => {
                 expect(Syslog.error).toHaveBeenCalledWith('unable to handle cache stream event, no handler provided.');
                 done();
             }
-            , 20
+            , 50
         );
     });
 
@@ -446,6 +526,36 @@ describe('BusStore [cache/cache]', () => {
                 expect(e).toEqual('something went wrong');
                 done();
             }
+        );
+    });
+
+    it('check mutate() works with correct error logging when no error handler provided', (done) => {
+
+        spyOn(Syslog, 'error').and.callThrough();
+        const cache: BusStore<Dog> = bus.createStore('Dog');
+
+        let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
+        cache.put('fox', d, State.Created);
+
+        const mutateStream: MutateStream<Dog, string> = cache.onMutationRequest(new Dog(), Mutate.Update);
+        mutateStream.subscribe(
+            (dog: Dog) => {
+                expect(dog.dogName).toEqual('foxy');
+                expect(dog.dogPhrase).toEqual('eat it, not bury it');
+
+                // something failed with the mutate, throw an error to the caller.
+                mutateStream.error('something went wrong');
+            }
+        );
+
+        cache.mutate(d, Mutate.Update, null);
+        bus.api.tickEventLoop(
+            () => {
+                expect(Syslog.error)
+                    .toHaveBeenCalledWith('unable to send error event back to mutator, no error handler provided.');
+                done();
+            }
+            , 50
         );
     });
 
