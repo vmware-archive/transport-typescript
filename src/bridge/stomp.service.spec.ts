@@ -38,7 +38,6 @@ describe('StompService [stomp.service]', () => {
         
             bus.api.logger().silent(true);
             Syslog.silent(false);
-            //Syslog.setLogLevel(LogLevel.Debug);
         });
 
     describe('Service configuration and basic connect/disconnect', () => {

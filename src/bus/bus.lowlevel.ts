@@ -22,6 +22,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
     private monitorStream: Channel;
     private dumpMonitor: boolean;
     private internalChannelMap: Map<string, Channel>;
+    public loggerInstance: LoggerService;
 
 
     constructor(private eventBusRef: EventBus, channelMap: Map<string, Channel>) {
@@ -40,6 +41,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         this.monitorBus();
 
         this.channelMap = this.internalChannelMap;
+        this.loggerInstance = this.log;
     }
 
     getName(): string {
@@ -611,7 +613,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
             }
         }
         this.log.info('📤 Channel: ' + mo.channel, null);
-        this.log.group(LogLevel.Info, message.isError() ? 'Error' : '📦 Message Payload');
+        this.log.group(LogLevel.Info, message.isError() ? '⚠️ Error' : '📦 Message Payload');
 
         this.log.info(LogUtil.pretty(message.payload), null);
         this.log.groupEnd(LogLevel.Info);

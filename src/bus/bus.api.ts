@@ -486,6 +486,11 @@ export interface EventBusLowApi {
     logger(): LoggerService ;
 
     /**
+     * Quick access to logger instance for spies and testing.
+     */
+    loggerInstance: LoggerService ;
+
+    /**
      * For external access to messagebus private logger (so output streams are sequentialized).
      *
      * @param {string} msg log message

@@ -20,19 +20,12 @@ function makeCallCountCaller(done: any, targetCount: number): any {
     };
 }
 
-function getName(): string {
-    return 'messagebus.service.spec';
-}
-
 describe('MessagebusService [messagebus.service]', () => {
     const testChannel = '#local-channel';
     const testData = {
         name: 'test-name'
     };
 
-    const testMessage = 'Test String';
-    const tag = '[' + getName() + ']: ';
-    const response = tag + testMessage;
 
     let bus: EventBus;
 
@@ -41,6 +34,27 @@ describe('MessagebusService [messagebus.service]', () => {
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
         bus.api.enableMonitorDump(false);
+    });
+    it('Check logging settings', () => {
+        bus = new MessagebusService(LogLevel.Info, true);
+        bus.api.silenceLog(false);
+        bus.api.suppressLog(false);
+        bus.api.enableMonitorDump(false);
+
+        bus.api.messageLog('testy-test', 'me');
+        expect(bus.api.logger()
+            .last())
+            .toBe('[me]: testy-test');
+
+        bus.api.setLogLevel(LogLevel.Off);
+        expect(bus.api.logger().logLevel).toBe(LogLevel.Off);
+
+        bus.api.enableMonitorDump(true);
+        expect(bus.api.isLoggingEnabled()).toBeTruthy();
+
+        bus.api.enableMonitorDump(false);
+        expect(bus.api.isLoggingEnabled()).toBeFalsy();
+
     });
 
     it('Should cause a new Channel to be instantiated', () => {
@@ -500,7 +514,7 @@ describe('MessagebusService [messagebus.service]', () => {
 
     });
 
-    it('Check monitor dump is working correctly.', (done) => {
+    it('Check monitor dump is working correctly (low level API).', (done) => {
 
         bus.api.enableMonitorDump(true);
         bus.api.silenceLog(false);
@@ -546,13 +560,95 @@ describe('MessagebusService [messagebus.service]', () => {
 
         bus.api.tickEventLoop(
             () => {
-                
+
                 expect(log.last()).toEqual('"chomp chomp"');
                 done();
             }
             , 150);
 
     });
+
+    it('Check monitor dump is working correctly (simple API).', (done) => {
+
+        bus.api.enableMonitorDump(true);
+        bus.api.silenceLog(false);
+        bus.api.setLogLevel(LogLevel.Debug);
+        const log: LoggerService = bus.api.logger();
+        log.setStylingVisble(false);
+
+        bus.api.suppressLog(false);
+
+        spyOn(console, 'log').and.callThrough();
+
+        bus.respondOnce('puppy-time')
+            .generate(
+            (req: string) => 'get the ball!'
+            );
+        bus.requestOnce('puppy-time', 'command')
+            .handle(
+            (resp: string) => {
+                expect(resp).toBe('get the ball!');
+            }
+            );
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(console.log).toHaveBeenCalledWith('"get the ball!"');
+                done();
+            }
+            , 15);
+
+    });
+
+    it('Check monitor dump error handling is working correctly (simple API).', (done) => {
+
+        spyOn(console, 'log').and.callThrough();
+
+        bus.api.enableMonitorDump(true);
+        bus.api.silenceLog(false);
+        bus.api.setLogLevel(LogLevel.Debug);
+        const log: LoggerService = bus.api.logger();
+        log.setStylingVisble(false);
+
+        bus.api.suppressLog(false);
+
+        bus.listenOnce('naughty-dogs').handle(null);
+
+        bus.sendErrorMessage('naughty-dogs', 'who chewed my shoes?');
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(console.log).toHaveBeenCalledWith('⁉️ ERROR!');
+                expect(console.log).toHaveBeenCalledWith('📤 Channel: naughty-dogs');
+                done();
+            }
+            , 100);
+    });
+
+    it('Check monitor dump dropped payload handling is working correctly (simple API).', (done) => {
+
+        spyOn(console, 'log').and.callThrough();
+        spyOn(console, 'groupCollapsed').and.callThrough();
+
+        bus.api.enableMonitorDump(true);
+        bus.api.silenceLog(false);
+        bus.api.setLogLevel(LogLevel.Debug);
+        const log: LoggerService = bus.api.logger();
+        log.setStylingVisble(false);
+
+        bus.api.suppressLog(false);
+
+        bus.sendRequestMessage('naughty-dogs', 'who chewed my shoes?');
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(console.groupCollapsed)
+                    .toHaveBeenCalledWith('💩 (dropped)->  MessagebusService -> naughty-dogs');
+                done();
+            }
+            , 10);
+    });
+
 
     /**
      * New Simple API Tests.
