@@ -596,7 +596,7 @@ describe('MessagebusService [messagebus.service]', () => {
                 expect(console.log).toHaveBeenCalledWith('"get the ball!"');
                 done();
             }
-            , 15);
+            , 50);
 
     });
 
