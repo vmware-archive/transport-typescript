@@ -18,24 +18,27 @@ describe('StompService [stomp.service]', () => {
     let bus: EventBus;
     let ss: StompService;
     let config: StompConfig;
+    let configNoTopics: StompConfig;
     let subId: string;
 
     let topicA: string = '/topic/testA';
 
- 
+
     afterEach(() => {
         bus.api.destroyAllChannels();
     });
 
     beforeEach(
         () => {
-        
+
             bus = new MessagebusService(LogLevel.Error);
             ss = window.AppBrokerConnector;
-            
+
             config = createStandardConfig();
+            configNoTopics = createStandardConfig(false); // no topics.
+
             subId = StompParser.genUUID();
-        
+
             bus.api.logger().silent(true);
             Syslog.silent(false);
         });
@@ -770,32 +773,208 @@ describe('StompService [stomp.service]', () => {
         );
 
         it('check galactic channels can operate against low level messages',
-                    
-                    (done) => {
-                        let count = 0;
-                        /*
-        
-                        This tests that galatic channels operate over low level API's
-        
-                         */
-        
-                        const chan = bus.api.getGalacticChannel('bouncy-pups');
-                        chan.subscribe(
-                            (msg: Message) => {
-                                expect(msg.payload).toEqual('puppy1');
-                                count++;
-                                if(count==3) {
-                                    done();
-                                }
-                            }
-                        );
-                        bus.sendResponseMessage('bouncy-pups', 'puppy1');
-                        bus.api.sendResponse('bouncy-pups', 'puppy1');
-                        bus.api.send('bouncy-pups', new Message().response('puppy1'));
-                        
-        
+
+            (done) => {
+                let count = 0;
+                /*
+ 
+                This tests that galatic channels operate over low level API's
+ 
+                 */
+
+                const chan = bus.api.getGalacticChannel('bouncy-pups');
+                chan.subscribe(
+                    (msg: Message) => {
+                        expect(msg.payload).toEqual('puppy1');
+                        count++;
+                        if (count == 3) {
+                            done();
+                        }
                     }
                 );
+                bus.sendResponseMessage('bouncy-pups', 'puppy1');
+                bus.api.sendResponse('bouncy-pups', 'puppy1');
+                bus.api.send('bouncy-pups', new Message().response('puppy1'));
+
+
+            }
+        );
+
+        it('check galactic messages are sent when sessions are in play',
+
+            (done) => {
+
+                spyOn(ss, 'sendPacket').and.callThrough();
+
+                /**
+                 * Will check that sendPacket is fired when valid connection sessions exist.
+                 */
+
+                bus.listenStream(StompChannel.status)
+                    .handle(
+                    (command: StompBusCommand) => {
+
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+                                bus.sendGalacticMessage('sometopic', 'hello!');
+
+                                bus.api.tickEventLoop(
+                                    () => {
+                                        expect(ss.sendPacket).toHaveBeenCalled();
+                                        done();
+                                    }
+                                );
+                                break;
+
+                            default:
+                                break;
+                        }
+                    });
+                StompService.fireConnectCommand(bus, config);
+            }
+        );
+
+        it('check galactic messages are sent when sessions are in play and no topics are configured',
+
+            (done) => {
+
+                spyOn(Syslog, 'warn').and.callThrough();
+
+                /**
+                 * Will check that sendPacket is fired when valid connection sessions exist.
+                 * only a syslog will be triggered however as there are no topics configured.
+                 */
+
+                bus.listenStream(StompChannel.status)
+                    .handle(
+                    (command: StompBusCommand) => {
+
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+                                bus.sendGalacticMessage('sometopic', 'hello!');
+
+                                bus.api.tickEventLoop(
+                                    () => {
+                                        expect(Syslog.warn)
+                                            .toHaveBeenCalledWith(
+                                            'Cannot send galactic message, topics not ' +
+                                            'enabled for broker, queues not implemented yet.');
+                                        done();
+                                    }
+                                );
+                                break;
+
+                            default:
+                                break;
+                        }
+                    });
+                StompService.fireConnectCommand(bus, configNoTopics);
+            }
+        );
+
+        it('check galactic channels are not opened if topics are not configured.',
+
+            (done) => {
+
+                spyOn(Syslog, 'warn').and.callThrough();
+
+                /**
+                 * check galactic channels cannot be opened if topics are no configured for the broker.
+                 */
+
+                bus.listenStream(StompChannel.status)
+                    .handle(
+                    (command: StompBusCommand) => {
+
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+                                bus.listenGalacticStream('pop');
+
+                                bus.api.tickEventLoop(
+                                    () => {
+                                        expect(Syslog.warn)
+                                            .toHaveBeenCalledWith(
+                                            'unable to open galactic channel, ' +
+                                            'topics not configured and queues not supported yet.');
+                                        done();
+                                    }
+                                );
+                                break;
+
+                            default:
+                                break;
+                        }
+                    });
+                StompService.fireConnectCommand(bus, configNoTopics);
+            }
+        );
+
+        it('check galactic channels are not closed if topics are not configured.',
+
+            (done) => {
+
+                spyOn(Syslog, 'warn').and.callThrough();
+
+                /**
+                 * Check that galactic channels cannot be closed if topics are no configured
+                 */
+
+                bus.listenStream(StompChannel.status)
+                    .handle(
+                    (command: StompBusCommand) => {
+
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+                                bus.listenGalacticStream('pop');
+                                bus.closeGalacticChannel('pop');
+
+                                bus.api.tickEventLoop(
+                                    () => {
+                                        expect(Syslog.warn)
+                                            .toHaveBeenCalledWith(
+                                            'unable to close galactic channel, ' +
+                                            'topics not configured, queues not supported yet.');
+                                        done();
+                                    }
+                                );
+                                break;
+
+                            default:
+                                break;
+                        }
+                    });
+                StompService.fireConnectCommand(bus, configNoTopics);
+            }
+        );
+
+        it('check galactic channels are not closed if there are no sessions active.',
+
+            (done) => {
+
+                spyOn(Syslog, 'warn').and.callThrough();
+                spyOn(Syslog, 'info').and.callThrough();
+
+                /**
+                 * Check that galactic channels cannot be closed if topics are no configured
+                 */
+                bus.listenGalacticStream('pop');
+                bus.closeGalacticChannel('pop');
+
+                bus.api.tickEventLoop(
+                    () => {
+
+                        //Added galactic channel to broker subscription requests:
+                        expect(Syslog.info)
+                            .toHaveBeenCalledWith(
+                            'Added galactic channel to broker subscription requests: pop');
+                        expect(Syslog.warn)
+                            .toHaveBeenCalledWith(
+                            'unable to close galactic channel, no open sessions.');
+                        done();
+                    }
+                );
+            }
+        );
 
     });
 });
@@ -807,7 +986,7 @@ function setTestMode(config: StompConfig): void {
 }
 
 // helper to create a standard mocked config
-function createStandardConfig(): StompConfig {
+function createStandardConfig(useTopics: boolean = true): StompConfig {
     let configuration = new StompConfig(
         'somwehere',
         'somehost',
@@ -815,6 +994,11 @@ function createStandardConfig(): StompConfig {
         '',
         ''
     );
+
+    configuration.brokerConnectCount = 1;
+    configuration.topicLocation = '/topic';
+    configuration.useTopics = useTopics;
+
     setTestMode(configuration);
     return configuration;
 }

@@ -207,6 +207,8 @@ export class StompService implements MessageBusEnabled {
                 );
 
                 this.sendPacket(command);
+            } else {
+                Syslog.warn('Cannot send galactic message, topics not enabled for broker, queues not implemented yet.');
             }
         });
     }
@@ -236,11 +238,14 @@ export class StompService implements MessageBusEnabled {
                             session.id, destination, subscriptionId
                         );
                     this.subscribeToDestination(subscription);
+                } else {
+                    Syslog.warn('unable to open galactic channel, topics not configured and queues not supported yet.');
                 }
             });
 
         } else {
             // stream will be subscribed to on connection.
+            Syslog.info('Added galactic channel to broker subscription requests: ' + channel);
             this._galacticRequests.next(channel);
         }
     }
@@ -264,10 +269,14 @@ export class StompService implements MessageBusEnabled {
                         );
 
                     this.unsubscribeFromDestination(subscription);
+                } else {
+                    Syslog.warn('unable to close galactic channel, topics not configured, queues not supported yet.');
                 }
             });
 
             this._galaticChannels.delete(cleanedChannel);
+        } else {
+            Syslog.warn('unable to close galactic channel, no open sessions.');
         }
     }
 
