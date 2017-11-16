@@ -976,6 +976,96 @@ describe('StompService [stomp.service]', () => {
             }
         );
 
+        it('check that incoming stomp messages are not processed if they are invalid.',
+
+            (done) => {
+
+                spyOn(Syslog, 'warn').and.callThrough();
+                spyOn(ss, 'sendPacket').and.callThrough();
+               
+                /**
+                 * Check that incoming messages for stomp comms are valid, no processing otherwise.
+                 */
+                bus.sendRequestMessage(StompChannel.messages, 'invalid msg');
+
+                bus.api.tickEventLoop(
+                    () => {
+
+                        //Added galactic channel to broker subscription requests:
+
+                        expect(Syslog.warn)
+                            .toHaveBeenCalledWith(
+                            'unable to validate inbound message, invalid: invalid msg');
+
+                        expect(ss.sendPacket).not.toHaveBeenCalled();
+                        done();
+                    }, 50
+                );
+            }
+        );
+
+        it('check that incoming stomp subscriptions are not processed if they are invalid commands',
+
+            (done) => {
+
+                spyOn(Syslog, 'warn').and.callThrough();
+                
+                bus.listenStream(StompChannel.status)
+                    .handle(
+                    (command: StompBusCommand) => {
+
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+                                bus.listenGalacticStream('pop');
+
+                                StompService.fireSubscriptionCommand(bus,
+                                    '123',
+                                    'somewhere',
+                                    '123456',
+                                    StompClient.STOMP_ABORT);
+                            
+
+                                bus.api.tickEventLoop(
+                                    () => {
+                                        expect(Syslog.warn)
+                                            .toHaveBeenCalledWith(
+                                            'unable to validate inbound subscription message, invalid');
+                                        done();
+                                    }
+                                );
+                                break;
+
+                            default:
+                                break;
+                        }
+                    });
+                StompService.fireConnectCommand(bus, config);
+
+
+
+
+                // /**
+                //  * Check that incoming messages for stomp comms are valid, no processing otherwise.
+                //  */
+                // bus.sendRequestMessage(StompChannel.messages, 'invalid msg');
+
+                // bus.api.tickEventLoop(
+                //     () => {
+
+                //         //Added galactic channel to broker subscription requests:
+
+                //         expect(Syslog.warn)
+                //             .toHaveBeenCalledWith(
+                //             'unable to valid inbound message, invalid: invalid msg');
+
+                //         expect(ss.subscribeToDestination).not.toHaveBeenCalled();
+                //         expect(ss.unsubscribeFromDestination).not.toHaveBeenCalled();
+                //         done();
+                //     }, 50
+                // );
+            }
+        );
+
     });
 });
 

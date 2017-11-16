@@ -283,6 +283,7 @@ export class StompService implements MessageBusEnabled {
     private processInboundMessage(msg: Message): void {
 
         if (!StompValidator.validateInboundMessage(msg)) {
+            Syslog.warn('unable to validate inbound message, invalid: ' + msg.payload);
             return;
         }
         let busCommand = StompParser.extractStompBusCommandFromMessage(msg);
@@ -292,6 +293,7 @@ export class StompService implements MessageBusEnabled {
 
     private processSubscriptionMessage(msg: Message): void {
         if (!StompValidator.validateSubscriptionMessage(msg)) {
+            Syslog.warn('unable to validate inbound subscription message, invalid');
             return;
         }
 
@@ -299,26 +301,20 @@ export class StompService implements MessageBusEnabled {
         let sub: StompSubscription = busCommand.payload as StompSubscription;
 
         // handle subscribe / un-subscribe requests
-        switch (busCommand.command) {
-            case StompClient.STOMP_SUBSCRIBE:
+        if (busCommand.command === StompClient.STOMP_SUBSCRIBE) {
+            Syslog.debug('subscribing to destination: ' + sub.destination, this.getName());
 
-                Syslog.debug('subscribing to destination: ' + sub.destination, this.getName());
+            // create a subscription payload and throw it on the bus.
+            this.subscribeToDestination(sub);
 
-                // create a subscription payload and throw it on the bus.
-                this.subscribeToDestination(sub);
-                break;
+        } else {
+            
+            Syslog.debug('unsubscribing from destination: ' + sub.destination, this.getName());
 
-            case StompClient.STOMP_UNSUBSCRIBE:
-
-                Syslog.debug('unsubscribing from destination: ' + sub.destination, this.getName());
-
-                // create an unsubscription payload and throw it on the bus.
-                this.unsubscribeFromDestination(sub);
-                break;
-
-            default:
-                break;
+            // create an unsubscription payload and throw it on the bus.
+            this.unsubscribeFromDestination(sub);
         }
+        
     }
 
     private processConnectionMessage(msg: Message): void {
