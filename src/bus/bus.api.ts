@@ -297,9 +297,10 @@ export interface EventBusLowApi {
      * @param {ChannelName} name the name of the channel you want.
      * @param {SentFrom} from optional  calling actor (for logging)
      * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
+     * @param {boolean} broadcast - choose to broadcast events to the monitor (defaults to true)
      * @returns {Channel}
      */
-    getChannelObject(name: ChannelName, from?: SentFrom, noRefCount?: boolean): Channel;
+    getChannelObject(name: ChannelName, from?: SentFrom, noRefCount?: boolean, broadcast?: boolean): Channel;
 
     /**
      * Get a subscribable stream from channel. If the channel doesn't exist, it will be created.

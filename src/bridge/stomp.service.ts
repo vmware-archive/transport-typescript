@@ -3,7 +3,7 @@
  */
 import { EventBus } from '../';
 import { StompClient } from './stomp.client';
-import { Observable, ReplaySubject, Subscription } from 'rxjs';
+import { Observable, ReplaySubject, Subscription, Subject } from 'rxjs';
 import {
     StompSession, StompChannel, StompBusCommand, StompSubscription, StompMessage,
     StompConfig
@@ -320,35 +320,28 @@ export class StompService implements MessageBusEnabled {
     private processConnectionMessage(msg: Message): void {
 
         if (!StompValidator.validateConnectionMessage(msg)) {
+            Syslog.warn('unable to validate connection message, invalid command');
             return;
         }
 
         let busCommand = StompParser.extractStompBusCommandFromMessage(msg);
 
         // handle connect, disconnect requests
+        if (busCommand.command === StompClient.STOMP_CONNECT) {
 
-        switch (busCommand.command) {
+            let config: StompConfig = busCommand.payload as StompConfig;
 
-            case StompClient.STOMP_CONNECT:
-                let config: StompConfig = busCommand.payload as StompConfig;
+            // let everyone know the configuration is good.
+            this.sendBusCommandResponse(StompClient.STOMP_CONFIGURED);
 
-                // let everyone know the configuration is good.
-                this.sendBusCommandResponse(StompClient.STOMP_CONFIGURED);
+            // connect, or re-use existing socket.
+            this.connectClient(config);
 
-                // connect, or re-use existing socket.
-                this.connectClient(config);
-                break;
+        } else {
+            this.sendBusCommandResponse(StompClient.STOMP_DISCONNECTING);
 
-            case StompClient.STOMP_DISCONNECT:
-                // let everyone know we're disconnecting
-                this.sendBusCommandResponse(StompClient.STOMP_DISCONNECTING);
-
-                // disconnect
-                this.disconnectClient(busCommand.session);
-                break;
-
-            default:
-                break;
+            // disconnect
+            this.disconnectClient(busCommand.session);
         }
     }
 
@@ -389,44 +382,50 @@ export class StompService implements MessageBusEnabled {
         let session = new StompSession(config);
 
         let connection = session.connect();
+        config.connectionSubjectRef = connection;
 
         connection.subscribe(
             () => {
                 session.connectionCount++;
+
+                if (session.connectionCount < session.config.brokerConnectCount) {
+                    Syslog.info('Connection message ' + 
+                        session.connectionCount + ' of ' + config.brokerConnectCount + ' received');
+                }
+
                 // this checks to see if the number of brokers configured send by the bus connectBroker() method
                 // has been hit yet for this session. The broker connect count is equivalent to how many CONNECTED
                 // events will be sent down the socket.
-                if (session.config.brokerConnectCount === session.connectionCount) {
+                if (!session.connected && (session.config.brokerConnectCount === session.connectionCount)) {
 
                     // Making sure any duplicate runs (just in case things go mad), only run once per session.
-                    if (!session.connected) {
-
-                        let message: StompBusCommand =
-                            StompParser.generateStompBusCommand(
-                                StompClient.STOMP_CONNECTED,    // not a command, but used for local notifications.
-                                session.id                      // each broker requires a session.
-                            );
-
-                        this.sendBusCommandResponseRaw(message, StompChannel.connection, true);
-
-                        // these are now available;
-                        this._errorObservable = session.client.socketErrorObserver;
-                        this._closeObservable = session.client.socketCloseObserver;
-
-                        // add session to map
-                        this._sessions.set(session.id, session);
-                        this.subscribeToClientObservables();
-
-                        // if we have pending galactic channels waiting, lets open the replay
-                        // and subscribe to those destinations
-                        this._galacticRequestSubscription = this._galacticRequests.subscribe(
-                            (channel: string) => {
-                                this.openGalacticChannel(channel);
-                            }
+                    let message: StompBusCommand =
+                        StompParser.generateStompBusCommand(
+                            StompClient.STOMP_CONNECTED,    // not a command, but used for local notifications.
+                            session.id                      // each broker requires a session.
                         );
-                        session.connected = true;
-                    }
-                } else if (session.config.brokerConnectCount > session.connectionCount) {
+
+                    this.sendBusCommandResponseRaw(message, StompChannel.connection, true);
+
+                    // these are now available;
+                    this._errorObservable = session.client.socketErrorObserver;
+                    this._closeObservable = session.client.socketCloseObserver;
+
+                    // add session to map
+                    this._sessions.set(session.id, session);
+                    this.subscribeToClientObservables();
+
+                    // if we have pending galactic channels waiting, lets open the replay
+                    // and subscribe to those destinations
+                    this._galacticRequestSubscription = this._galacticRequests.subscribe(
+                        (channel: string) => {
+                            this.openGalacticChannel(channel);
+                        }
+                    );
+                    session.connected = true;
+
+                } 
+                if (session.config.brokerConnectCount > session.connectionCount) {
                     // more connected messages than expected, ignore, but tell the bus duplicates came in beyond
                     // what we were expecting.
                     let message: StompBusCommand =
@@ -436,8 +435,7 @@ export class StompService implements MessageBusEnabled {
                         );
 
                     this.sendBusCommandResponseRaw(message, StompChannel.connection, true);
-                }
-
+                } 
             }
         );
     }
@@ -449,6 +447,8 @@ export class StompService implements MessageBusEnabled {
             session.disconnect();
             this._sessions.delete(sessionId);
             this._galacticRequestSubscription.unsubscribe();
+        } else {
+            Syslog.warn('unable to disconnect client, no active session with id: ' + sessionId);
         }
     }
 
@@ -459,9 +459,14 @@ export class StompService implements MessageBusEnabled {
 
             // wire in the local broker session id.
             if (!message.headers['session']) {
+                Syslog.debug('sendPacket(): adding local broker session ID to message: ' + data.session);
                 message.headers.session = data.session;
+            } else {
+                Syslog.debug('sendPacket(): message headers already contain sessionId');
             }
             session.send(data.destination, message.headers, message.body);
+        } else {
+            Syslog.warn('unable to send packet, session is empty');
         }
     }
 
@@ -504,7 +509,7 @@ export class StompService implements MessageBusEnabled {
 
             const chan: Observable<Message> =
                 this.bus.api.getRequestChannel(channel, this.getName());
-
+            
             const sub: Subscription = chan.subscribe(
                 (msg: Message) => {
                     const command: StompBusCommand = StompParser.generateStompBusCommand(

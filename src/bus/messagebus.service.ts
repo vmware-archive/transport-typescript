@@ -134,7 +134,7 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
 
     public listenGalacticStream<T>(cname: ChannelName, name: SentFrom = this.getName()): MessageHandler<T> {
 
-        this.api.getChannelObject(cname, name).setGalactic();
+        this.api.getChannelObject(cname, name, true, false).setGalactic();
 
         this.api.getMonitorStream().send(
             new Message().request(

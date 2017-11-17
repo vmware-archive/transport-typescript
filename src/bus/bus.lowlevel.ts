@@ -57,7 +57,12 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
             );
     }
 
-    getChannelObject(name: ChannelName, from?: SentFrom, noRefCount: boolean = false): Channel {
+    getChannelObject(
+        name: ChannelName, 
+        from?: SentFrom, 
+        noRefCount: boolean = false, 
+        broadcast: boolean = true): Channel {
+
         let channel: Channel;
         let symbol;
 
@@ -89,11 +94,11 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
             channel.increment();
         }
 
-        if (newChannel) {
+        if (newChannel && broadcast) { 
             newChannelCreated();
         }
 
-        if (!noRefCount) {
+        if (!noRefCount && broadcast) {
             monitorNewReference();
         }
 
@@ -644,7 +649,11 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
                     switch (mo.type) {
                         case MonitorType.MonitorNewChannel:
-                            this.log.info('✨ (channel created)-> ' + mo.data + mo.channel, mo.from);
+                            this.log.info('✨ (channel created)-> ' + mo.channel, mo.from);
+                            break;
+                        
+                        case MonitorType.MonitorNewGalacticChannel:
+                            this.log.info('🌌 (galactic channel mapped)-> ' + mo.channel, mo.from);
                             break;
 
                         case MonitorType.MonitorObserverJoinedChannel:

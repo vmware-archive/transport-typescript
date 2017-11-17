@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { StompClient } from './stomp.client';
 import { StompParser } from './stomp.parser';
 import { MockSocket } from './stomp.mocksocket';
+import { UUID } from '../bus/cache/cache.model';
 
 export class StompChannel {
 
@@ -54,6 +55,9 @@ export class StompSession {
         this._config = config;
         this._client = new StompClient();
         this._id = StompParser.genUUID();
+        if (config.sessionId) {
+            this._id = config.sessionId;
+        }
         this._subscriptions = new Map<String, Subject<StompMessage>>();
         this.galacticSubscriptions = new Map<string, Subscription>();
     }
@@ -141,6 +145,8 @@ export class StompConfig {
     private _topicLocation: string = '/topic';
     private _queueLocation: string = '/queue';
     private numBrokerConnect: number = 1;
+    public connectionSubjectRef: Subject<Boolean>; // used to manipulate multi connect messages from relays.
+    public sessionId: UUID;
 
     static generate(endpoint: string,
                     host?: string,

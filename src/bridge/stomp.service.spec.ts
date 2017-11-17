@@ -7,7 +7,7 @@ import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor
 import { Syslog } from '../log/syslog';
 import 'rxjs/add/operator/take';
 import { EventBus } from '../bus/bus.api';
-import { LogLevel } from '../log/index';
+import { LogLevel } from '../log/logger.model';
 
 /**
  * Main StompService tests.
@@ -19,10 +19,11 @@ describe('StompService [stomp.service]', () => {
     let ss: StompService;
     let config: StompConfig;
     let configNoTopics: StompConfig;
+    let configMultiBroker: StompConfig;
+    let configCustomId: StompConfig;
     let subId: string;
 
-    let topicA: string = '/topic/testA';
-
+    const topicA: string = '/topic/testA';
 
     afterEach(() => {
         bus.api.destroyAllChannels();
@@ -36,6 +37,9 @@ describe('StompService [stomp.service]', () => {
 
             config = createStandardConfig();
             configNoTopics = createStandardConfig(false); // no topics.
+            configMultiBroker = createStandardConfig(false, true); // multiple brokers.
+            configCustomId = createStandardConfig(false, false, 'puppy-love'); //custom forced Id for session.
+            
 
             subId = StompParser.genUUID();
 
@@ -1040,31 +1044,167 @@ describe('StompService [stomp.service]', () => {
                         }
                     });
                 StompService.fireConnectCommand(bus, config);
-
-
-
-
-                // /**
-                //  * Check that incoming messages for stomp comms are valid, no processing otherwise.
-                //  */
-                // bus.sendRequestMessage(StompChannel.messages, 'invalid msg');
-
-                // bus.api.tickEventLoop(
-                //     () => {
-
-                //         //Added galactic channel to broker subscription requests:
-
-                //         expect(Syslog.warn)
-                //             .toHaveBeenCalledWith(
-                //             'unable to valid inbound message, invalid: invalid msg');
-
-                //         expect(ss.subscribeToDestination).not.toHaveBeenCalled();
-                //         expect(ss.unsubscribeFromDestination).not.toHaveBeenCalled();
-                //         done();
-                //     }, 50
-                // );
             }
         );
+
+        it('check that a broker with multiple relays responds correctly.',
+        
+                    (done) => {
+        
+                        spyOn(Syslog, 'info').and.callThrough();
+                        
+                        bus.listenStream(StompChannel.status)
+                            .handle(
+                            (command: StompBusCommand) => {
+        
+                                switch (command.command) {
+                                    case StompClient.STOMP_CONNECTED:
+                                        done();
+                                        break;
+        
+                                    default:
+                                        break;
+                                }
+                            });
+                        StompService.fireConnectCommand(bus, configMultiBroker);
+                        bus.api.tickEventLoop(
+                            () => {
+                                expect(Syslog.info).toHaveBeenCalledWith('Connection message 1 of 2 received');
+                                
+                                // fire second connection from relay.
+                                configMultiBroker.connectionSubjectRef.next(true);
+                            }, 30
+                        );
+                    }
+                );
+
+        it('try disconnecting a client when there is no session.',
+
+            () => {
+
+                spyOn(Syslog, 'warn').and.callThrough();
+                ss.disconnectClient('ember-pup');
+                expect(Syslog.warn)
+                    .toHaveBeenCalledWith('unable to disconnect client, no active session with id: ember-pup');
+               
+            }
+        );
+
+        it('sendPacket() works with and without the correct headers and session properties.',
+
+            (done) => {
+
+                spyOn(Syslog, 'warn').and.callThrough();
+                spyOn(Syslog, 'debug').and.callThrough();
+                ss.sendPacket(
+                    {
+                        payload: {
+                            command: 'none',
+                            headers: null,
+                            body: 'nothing'
+                        },
+                        command: 'none',
+                        destination: 'nowhere',
+                        session: null
+                    }
+                );
+                expect(Syslog.warn)
+                    .toHaveBeenCalledWith('unable to send packet, session is empty');
+
+                bus.listenStream(StompChannel.status)
+                    .handle(
+                    (command: StompBusCommand) => {
+
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+
+
+
+                                ss.sendPacket(
+                                    {
+                                        payload: {
+                                            command: 'none',
+                                            headers: {},
+                                            body: 'nothing'
+                                        },
+                                        command: 'none',
+                                        destination: 'nowhere',
+                                        session: 'puppy-love'
+                                    }
+                                );
+                                expect(Syslog.debug)
+                                    .toHaveBeenCalledWith('sendPacket(): adding local broker session ' + 
+                                    'ID to message: puppy-love');
+
+                                ss.sendPacket(
+                                    {
+                                        payload: {
+                                            command: 'none',
+                                            headers: { session: 'pants' },
+                                            body: 'nothing'
+                                        },
+                                        command: 'none',
+                                        destination: 'nowhere',
+                                        session: 'puppy-love'
+                                    }
+                                );
+                                expect(Syslog.debug)
+                                    .toHaveBeenCalledWith('sendPacket(): message headers already contain sessionId');
+                                //
+                                done();
+                                break;
+
+                            default:
+                                break;
+                        }
+                    }
+                );
+                StompService.fireConnectCommand(bus, configCustomId);
+        
+            }
+        );
+
+        it('subscribeToDestination forwards any message sent on galatic channel',
+        
+                    (done) => {
+        
+                        spyOn(ss, 'sendPacket').and.callThrough();
+                
+                        bus.listenStream(StompChannel.status)
+                            .handle(
+                            (command: StompBusCommand) => {
+        
+                                switch (command.command) {
+                                    case StompClient.STOMP_CONNECTED:
+
+                                        bus.listenGalacticStream('space-dogs');
+                                    
+                                        bus.api.tickEventLoop(
+                                            () => {
+                                                bus.sendRequestMessage('space-dogs', 'astro-pups');
+                                              
+                                            }, 10
+                                        );
+
+                                        bus.api.tickEventLoop(
+                                            () => {
+                                                expect(ss.sendPacket).toHaveBeenCalled();
+                                                done();
+                                            }, 20
+                                        );
+        
+                                       
+                                        break;
+        
+                                    default:
+                                        break;
+                                }
+                            }
+                        );
+                        StompService.fireConnectCommand(bus, config);
+                
+                    }
+                );
 
     });
 });
@@ -1076,7 +1216,8 @@ function setTestMode(config: StompConfig): void {
 }
 
 // helper to create a standard mocked config
-function createStandardConfig(useTopics: boolean = true): StompConfig {
+function createStandardConfig(
+    useTopics: boolean = true, multiBroker: boolean = false, customSession?: string): StompConfig {
     let configuration = new StompConfig(
         'somwehere',
         'somehost',
@@ -1086,9 +1227,16 @@ function createStandardConfig(useTopics: boolean = true): StompConfig {
     );
 
     configuration.brokerConnectCount = 1;
+
+    if (multiBroker) {
+        configuration.brokerConnectCount = 2;
+    }
     configuration.topicLocation = '/topic';
     configuration.useTopics = useTopics;
-
+    if (customSession) {
+        configuration.sessionId = customSession;        
+    }
+    
     setTestMode(configuration);
     return configuration;
 }
