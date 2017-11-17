@@ -2,7 +2,8 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import {Message, MessageType} from './message.model';
+import { Message, MessageType } from './message.model';
+import { MessageSchema } from '../../index';
 
 describe('Stream Model [stream]', () => {
 
@@ -50,5 +51,13 @@ describe('Stream Model [stream]', () => {
                 .toBe('fake error');
         }
     );
+
+    it('check schema can be retrieved',
+        () => {
+            const msg = new Message().request(null, new MessageSchema());
+            expect(msg.messageSchema).not.toBeNull(msg);
+        }
+    );
+
 });
 

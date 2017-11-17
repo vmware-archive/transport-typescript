@@ -50,19 +50,19 @@ export class MessageSchema {
         this.title = title;
     }
 
-    protected get _description (): string {
+    public get _description (): string {
         return this.description;
     }
 
-    protected set _description (description: string) {
+    public set _description (description: string) {
         this.description = description;
     }
 
-    protected get _type (): string {
+    public get _type (): string {
         return this.type;
     }
 
-    protected set _type (type: string) {
+    public set _type (type: string) {
         this.type = type;
     }
 }
