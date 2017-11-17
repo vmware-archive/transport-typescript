@@ -2,10 +2,10 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import {Channel} from './channel.model';
-import {Syslog} from '../../log/syslog';
-import {LogUtil} from '../../log/util';
-import {Message} from './message.model';
+import { Channel } from './channel.model';
+import { Syslog } from '../../log/syslog';
+import { LogUtil } from '../../log/util';
+import { Message } from './message.model';
 
 /**
  * This is the unit test for the Stream model.
@@ -96,6 +96,34 @@ describe('Stream Model [stream]', () => {
         );
 
         channel.complete();
+    });
+
+    it('check subscribers and observers work correctly.', () => {
+        const uuidA = channel.createSubscriber();
+        expect(channel.getSubscriber(uuidA).id).toEqual(uuidA);
+
+        const uuidB = channel.createObserver();
+        expect(channel.getObserver(uuidB).id).toEqual(uuidB);
+
+        channel.removeObserver(uuidB);
+        expect(channel.getObserver(uuidB)).toBeUndefined();
+
+        channel.setGalactic();
+        expect(channel.galactic).toBeTruthy();
+
+        channel.setPrivate();
+        expect(channel.galactic).toBeFalsy();
+        
+    });
+
+    it('check galactic and private switches work.', () => {
+
+        channel.setGalactic();
+        expect(channel.galactic).toBeTruthy();
+
+        channel.setPrivate();
+        expect(channel.galactic).toBeFalsy();
+        
     });
 });
 

@@ -39,7 +39,7 @@ describe('StompService [stomp.service]', () => {
             configNoTopics = createStandardConfig(false); // no topics.
             configMultiBroker = createStandardConfig(false, true); // multiple brokers.
             configCustomId = createStandardConfig(false, false, 'puppy-love'); //custom forced Id for session.
-            
+
 
             subId = StompParser.genUUID();
 
@@ -986,7 +986,7 @@ describe('StompService [stomp.service]', () => {
 
                 spyOn(Syslog, 'warn').and.callThrough();
                 spyOn(ss, 'sendPacket').and.callThrough();
-               
+
                 /**
                  * Check that incoming messages for stomp comms are valid, no processing otherwise.
                  */
@@ -1013,7 +1013,7 @@ describe('StompService [stomp.service]', () => {
             (done) => {
 
                 spyOn(Syslog, 'warn').and.callThrough();
-                
+
                 bus.listenStream(StompChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
@@ -1027,7 +1027,7 @@ describe('StompService [stomp.service]', () => {
                                     'somewhere',
                                     '123456',
                                     StompClient.STOMP_ABORT);
-                            
+
 
                                 bus.api.tickEventLoop(
                                     () => {
@@ -1048,35 +1048,35 @@ describe('StompService [stomp.service]', () => {
         );
 
         it('check that a broker with multiple relays responds correctly.',
-        
-                    (done) => {
-        
-                        spyOn(Syslog, 'info').and.callThrough();
-                        
-                        bus.listenStream(StompChannel.status)
-                            .handle(
-                            (command: StompBusCommand) => {
-        
-                                switch (command.command) {
-                                    case StompClient.STOMP_CONNECTED:
-                                        done();
-                                        break;
-        
-                                    default:
-                                        break;
-                                }
-                            });
-                        StompService.fireConnectCommand(bus, configMultiBroker);
-                        bus.api.tickEventLoop(
-                            () => {
-                                expect(Syslog.info).toHaveBeenCalledWith('Connection message 1 of 2 received');
-                                
-                                // fire second connection from relay.
-                                configMultiBroker.connectionSubjectRef.next(true);
-                            }, 30
-                        );
-                    }
+
+            (done) => {
+
+                spyOn(Syslog, 'info').and.callThrough();
+
+                bus.listenStream(StompChannel.status)
+                    .handle(
+                    (command: StompBusCommand) => {
+
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+                                done();
+                                break;
+
+                            default:
+                                break;
+                        }
+                    });
+                StompService.fireConnectCommand(bus, configMultiBroker);
+                bus.api.tickEventLoop(
+                    () => {
+                        expect(Syslog.info).toHaveBeenCalledWith('Connection message 1 of 2 received');
+
+                        // fire second connection from relay.
+                        configMultiBroker.connectionSubjectRef.next(true);
+                    }, 30
                 );
+            }
+        );
 
         it('try disconnecting a client when there is no session.',
 
@@ -1086,7 +1086,7 @@ describe('StompService [stomp.service]', () => {
                 ss.disconnectClient('ember-pup');
                 expect(Syslog.warn)
                     .toHaveBeenCalledWith('unable to disconnect client, no active session with id: ember-pup');
-               
+
             }
         );
 
@@ -1133,7 +1133,7 @@ describe('StompService [stomp.service]', () => {
                                     }
                                 );
                                 expect(Syslog.debug)
-                                    .toHaveBeenCalledWith('sendPacket(): adding local broker session ' + 
+                                    .toHaveBeenCalledWith('sendPacket(): adding local broker session ' +
                                     'ID to message: puppy-love');
 
                                 ss.sendPacket(
@@ -1158,53 +1158,141 @@ describe('StompService [stomp.service]', () => {
                                 break;
                         }
                     }
-                );
+                    );
                 StompService.fireConnectCommand(bus, configCustomId);
-        
+
             }
         );
 
-        it('subscribeToDestination forwards any message sent on galatic channel',
-        
-                    (done) => {
-        
-                        spyOn(ss, 'sendPacket').and.callThrough();
-                
-                        bus.listenStream(StompChannel.status)
-                            .handle(
-                            (command: StompBusCommand) => {
-        
-                                switch (command.command) {
-                                    case StompClient.STOMP_CONNECTED:
+        it('subscribeToDestination() forwards any message sent on galatic channel',
 
-                                        bus.listenGalacticStream('space-dogs');
-                                    
-                                        bus.api.tickEventLoop(
-                                            () => {
-                                                bus.sendRequestMessage('space-dogs', 'astro-pups');
-                                              
-                                            }, 10
-                                        );
+            (done) => {
 
-                                        bus.api.tickEventLoop(
-                                            () => {
-                                                expect(ss.sendPacket).toHaveBeenCalled();
-                                                done();
-                                            }, 20
-                                        );
-        
-                                       
-                                        break;
-        
-                                    default:
-                                        break;
-                                }
-                            }
-                        );
-                        StompService.fireConnectCommand(bus, config);
-                
+                spyOn(ss, 'sendPacket').and.callThrough();
+
+                bus.listenStream(StompChannel.status)
+                    .handle(
+                    (command: StompBusCommand) => {
+
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+
+                                bus.listenGalacticStream('space-dogs');
+
+                                bus.api.tickEventLoop(
+                                    () => {
+                                        bus.sendRequestMessage('space-dogs', 'astro-pups');
+
+                                    }, 10
+                                );
+
+                                bus.api.tickEventLoop(
+                                    () => {
+                                        expect(ss.sendPacket).toHaveBeenCalled();
+                                        done();
+                                    }, 20
+                                );
+
+
+                                break;
+
+                            default:
+                                break;
+                        }
                     }
-                );
+                    );
+                StompService.fireConnectCommand(bus, config);
+
+            }
+        );
+
+        it('unsubscribeFromDestination() behaves correctly if incorrect session state exists.',
+
+            (done) => {
+
+                spyOn(Syslog, 'warn').and.callThrough();
+
+                bus.listenStream(StompChannel.status)
+                    .handle(
+                    (command: StompBusCommand) => {
+
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+
+                                ss.unsubscribeFromDestination({ session: 'none', destination: 'none', id: 'none' });
+
+                                bus.api.tickEventLoop(
+                                    () => {
+                                        bus.sendRequestMessage('space-dogs', 'astro-pups');
+
+                                    }, 10
+                                );
+
+                                bus.api.tickEventLoop(
+                                    () => {
+                                        expect(Syslog.warn)
+                                            .toHaveBeenCalledWith('unable to unsubscribe, ' +
+                                            'no session found for id: none');
+                                        done();
+                                    }, 20
+                                );
+
+
+                                break;
+
+                            default:
+                                break;
+                        }
+                    }
+                    );
+                StompService.fireConnectCommand(bus, config);
+            }
+        );
+
+        it('unsubscribeFromDestination() behaves correctly if no galatic subscriptions can be found.',
+
+            (done) => {
+
+                spyOn(Syslog, 'warn').and.callThrough();
+
+                bus.listenStream(StompChannel.status)
+                    .handle(
+                    (command: StompBusCommand) => {
+
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+
+                                ss.unsubscribeFromDestination(
+                                    { session: 'puppy-love', destination: 'none', id: 'none' }
+                                );
+
+                                bus.api.tickEventLoop(
+                                    () => {
+                                        bus.sendRequestMessage('space-dogs', 'astro-pups');
+
+                                    }, 10
+                                );
+
+                                bus.api.tickEventLoop(
+                                    () => {
+                                        expect(Syslog.warn)
+                                            .toHaveBeenCalledWith('unable to unsubscribe, ' +
+                                            'no galactic subscription found for id: puppy-love');
+                                        done();
+                                    }, 20
+                                );
+
+
+                                break;
+
+                            default:
+                                break;
+                        }
+                    }
+                    );
+                StompService.fireConnectCommand(bus, configCustomId);
+            }
+        );
 
     });
 });
@@ -1234,9 +1322,9 @@ function createStandardConfig(
     configuration.topicLocation = '/topic';
     configuration.useTopics = useTopics;
     if (customSession) {
-        configuration.sessionId = customSession;        
+        configuration.sessionId = customSession;
     }
-    
+
     setTestMode(configuration);
     return configuration;
 }

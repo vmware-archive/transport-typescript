@@ -56,10 +56,6 @@ export class Channel {
         return this._streamObject;
     }
 
-    set stream(stream: Subject<Message>) {
-        this._streamObject = stream;
-    }
-
     createSubscriber(): UUID {
         const id: UUID = StompParser.genUUIDShort();
         this.subscribers.set(id, {id: id, subscribed: new Date().getDate()});

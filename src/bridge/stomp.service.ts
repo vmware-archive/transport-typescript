@@ -597,7 +597,11 @@ export class StompService implements MessageBusEnabled {
                 sub.unsubscribe();
                 session.removeGalacticSubscription(channel);
                 this.bus.api.close(channel, this.getName());
+            } else {
+                Syslog.warn('unable to unsubscribe, no galactic subscription found for id: ' + data.session);
             }
+        } else {
+            Syslog.warn('unable to unsubscribe, no session found for id: ' + data.session);
         }
     }
 }
