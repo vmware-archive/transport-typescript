@@ -16,6 +16,7 @@ import { StompBusCommand } from '../bridge/stomp.model';
 import { Subject } from 'rxjs/Subject';
 import { LoggerService } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
+import { TransactionRequest } from './model/transaction.model';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -554,28 +555,52 @@ export interface EventBusLowApi {
 /**
  * Bus Transactions
  */
+export interface TransactionReceipt {
+    totalRequests: number;
+    requestsSent: number;
+    requestsCompleted: number;
+    complete: boolean;
+    aborted: boolean;
+    startedTime: number;
+    completedTime: number;
+    abortedTime: number;
+}
+
+/**
+ * Type of transaction? Sync or Async? Default is Async.
+ */
+export enum TransactionType {
+    ASYNC, // will send all requests at the same time and return when all are complete
+    SYNC // will send requests one at a time and only move on to the next one, once each request has completed.
+}
 export interface BusTransaction {
     
     /**
      * Create a request to a channel as a part of this transaction.
+     * @param {string} channel channel to send the request to
+     * @param {payload} any what ever you want to send.
      */
-    sendRequest(channel: string, payload: any): void;
+    sendRequest<ReqT>(channel: string, payload: ReqT): void;
     
     /**
      * Once all responses to requests have been received, the transaction is complete.
+     * The handler will return an array or all responses in the order the requests were sent.
+     * @param {MessageFunction<T>} completeHandler the closure you want to handle the completed payload.
      */
-    onComplete<T>(completeHandler: MessageFunction<T>): void;
+    onComplete<RespT>(completeHandler: MessageFunction<[RespT]>): void;
 
     /**
      * If an error is thrown by any of the responders, the transaction is aborted and the 
      * error sent to the errorHandler.
+     * @param {MessageFunction<T>} errorHandler the closure you want to handle any errors during the transaction.
      */
-    onError<T>(errorHandler: MessageFunction<T>): void;
+    onError<ErrT>(errorHandler: MessageFunction<ErrT>): void;
     
     /**
      * Commit the transaction, all requests will be sent and will wait for responses.
-     * Once all the responses are in, onComplete will be called with the responses.
+     * Once all the responses are in, onComplete will be called with the responses. 
+     * @returns {TransactionReceipt} allows observer to track state of the transaction for monitoring purposes.
      */
-    commit(): void;
+    commit(): TransactionReceipt;
 
 }
