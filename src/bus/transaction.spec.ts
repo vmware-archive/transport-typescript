@@ -6,7 +6,7 @@ import { MessagebusService } from '../';
 import { BusTransactionImpl } from './transaction';
 import { BusTransaction, EventBus } from './bus.api';
 
-describe('Bus Transactions [trasnaction.ts]', () => {
+xdescribe('Bus Transactions [trasnaction.ts]', () => {
     
     let transaction: BusTransaction;
     let bus: EventBus;
