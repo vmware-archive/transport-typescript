@@ -37,7 +37,7 @@ describe('Bus Transactions [trasnaction.ts]', () => {
                 expect(results[0]).toEqual('pong');
                 done();
             }
-        )
+        );
 
         transaction.sendRequest(chan, 'ping');
         transaction.commit();
@@ -61,7 +61,7 @@ describe('Bus Transactions [trasnaction.ts]', () => {
                 done();
                 
             }
-        )
+        );
 
         transaction.sendRequest(chan, 'ping');
         transaction.sendRequest(chan, 'ping');
@@ -92,7 +92,7 @@ describe('Bus Transactions [trasnaction.ts]', () => {
                 done();
                 
             }
-        )
+        );
 
         transaction.sendRequest(chanA, 'ping');
         transaction.sendRequest(chanB, 'ping');
@@ -122,7 +122,7 @@ describe('Bus Transactions [trasnaction.ts]', () => {
                 done();
                 
             }
-        )
+        );
 
         transaction.sendRequest(chanA, 'ping');
         transaction.sendRequest(chanB, 'ping');
@@ -138,14 +138,14 @@ describe('Bus Transactions [trasnaction.ts]', () => {
                 () => {
                     bus.sendErrorMessage(chan, 'error!');
                 }
-            )
+            );
             
         transaction.onError(
             (error: string) => {
                 expect(error).toEqual('error!');
                 done();
             }
-        )
+        );
         
         transaction.sendRequest(chan, 'ping');
         transaction.commit();
