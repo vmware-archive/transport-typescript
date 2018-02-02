@@ -22,6 +22,9 @@ import 'rxjs/add/operator/merge';
 import { EventBusLowLevelApiImpl } from './bus.lowlevel';
 import { LoggerService } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
+import { GalacticRequest } from './model/request.model';
+import { GalacticResponse } from './model/response.model';
+import { Observable } from 'rxjs/Observable';
 
 export abstract class MessageBusEnabled {
     abstract getName(): string;
@@ -41,8 +44,11 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         super();
         this.internalChannelMap = new Map<string, Channel>();
 
+        // logging
+        this.log = new LoggerService();
+
         // Low Level API.
-        this.api = new EventBusLowLevelApiImpl(this, this.internalChannelMap);
+        this.api = new EventBusLowLevelApiImpl(this, this.internalChannelMap, this.log);
 
         // Store map.
         this.internalStoreMap = new Map<StoreType, BusStore<any>>();
@@ -52,15 +58,18 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         window.AppBrokerConnector = new StompService();
         window.AppBrokerConnector.init(this);
         window.AppSyslog = Syslog;
-
-        // set up logging.
-        this.api.setLogLevel(logLevel);
+        
         if (!disableBootMessage) {
-            this.log = new LoggerService();
-            this.log.logLevel = logLevel;
             this.log.setStylingVisble(false);
             this.log.info('🌈 Bifröst ' + EventBus.version + ' Initialized', 'window.AppEventBus');
         }
+
+        // set up logging.
+        this.log.logLevel = logLevel;
+        this.api.setLogLevel(logLevel);
+        
+        // say hi to magnum.
+        this.easterEgg();
     }
 
     public createStore<T>(objectType: StoreType, map?: Map<UUID, T>): BusStore<T> {
@@ -294,5 +303,54 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         return this.api.close(cname, from);
     }
 
+    public requestGalactic<T, R>(
+        channel: string,
+        request: GalacticRequest<T>,
+        successHandler: MessageFunction<GalacticResponse<R>>,
+        errorHandler: MessageFunction<GalacticResponse<R>>,
+        from?: string): void {
+        
+        if (!channel || !request) {
+            this.log.error('Cannot send Galactic Request, payload or channel is empty.', this.getName());
+        }
 
+        const conversationId: UUID = request.id;
+
+        const stream: Observable<Message> = this.api.getGalacticChannel(channel);
+        stream.filter((message: Message) => {
+            return (message.isResponse());
+        }).filter((message: Message) => {
+            const resp: GalacticResponse<R> = message.payload as GalacticResponse<R>;
+            return conversationId === resp.id;
+        });
+
+        const sub = stream.subscribe(
+            (msg: Message) => {
+                const resp: GalacticResponse<R> = msg.payload;
+                if (resp.error) {
+                    errorHandler(resp);
+                } else {
+                    successHandler(resp);
+                }
+                sub.unsubscribe();
+                this.api.close(channel);
+            }
+        );
+
+        this.sendGalacticMessage(channel, request);
+
+    }
+
+    private easterEgg(): void {
+        
+        const chan = this.api.getRequestChannel('__maglingtonpuddles__', this.getName(), true);
+        chan.subscribe(
+            () => {
+                const msg = 'Maggie wags his little nubby tail at you, ' +
+                            'as he sits under his little yellow boat on the beach';
+                this.sendResponseMessage('__maglingtonpuddles__', msg);
+            }
+        );
+    
+    }
 }

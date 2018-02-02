@@ -27,7 +27,7 @@ describe('BusStore [cache/cache]', () => {
     Syslog.suppressFlag = true;
 
     beforeEach(() => {
-        bus = new MessagebusService(LogLevel.Error);
+        bus = new MessagebusService(LogLevel.Error, true);
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
         bus.createStore('string');

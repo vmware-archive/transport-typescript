@@ -32,7 +32,7 @@ describe('StompService [stomp.service]', () => {
     beforeEach(
         () => {
 
-            bus = new MessagebusService(LogLevel.Error);
+            bus = new MessagebusService(LogLevel.Error, true);
             ss = window.AppBrokerConnector;
 
             config = createStandardConfig();
@@ -40,11 +40,12 @@ describe('StompService [stomp.service]', () => {
             configMultiBroker = createStandardConfig(false, true); // multiple brokers.
             configCustomId = createStandardConfig(false, false, 'puppy-love'); //custom forced Id for session.
 
-
             subId = StompParser.genUUID();
 
-            bus.api.logger().silent(true);
-            Syslog.silent(false);
+            bus.api.silenceLog(true);
+            bus.api.suppressLog(true);
+            bus.api.enableMonitorDump(false);
+
         });
 
     describe('Service configuration and basic connect/disconnect', () => {

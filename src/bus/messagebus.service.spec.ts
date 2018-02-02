@@ -12,6 +12,9 @@ import { LoggerService } from '../log/logger.service';
 import { StompParser } from '../bridge/stomp.parser';
 import { StompClient } from '../bridge/stomp.client';
 import { MonitorObject, MonitorType } from './model/monitor.model';
+import { GalacticRequest } from './model/request.model';
+import { UUID } from './cache/cache.model';
+import { GalacticResponse } from './model/response.model';
 
 function makeCallCountCaller(done: any, targetCount: number): any {
     let count = 0;
@@ -1203,6 +1206,19 @@ describe('MessagebusService [messagebus.service]', () => {
             }
         );
 
+        it('Say hi to magnum <3',
+            (done) => {
+                bus.requestOnce('__maglingtonpuddles__', 'hi maggie!')
+                    .handle(
+                    (msg: string) => {
+                        expect(msg).toEqual('Maggie wags his little nubby tail at you, as ' +
+                            'he sits under his little yellow boat on the beach');
+                        done();
+                    });
+
+            }
+        );
+
         it('Should be able to get observable from message handler for errors',
             (done) => {
 
@@ -1610,6 +1626,40 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 bus.listenGalacticStream('space-dogs');
                 bus.sendGalacticMessage('space-dogs', 'off to the moon goes fox!');
+            });
+
+        it('galacticRequest() works correctly.',
+            (done) => {
+                const id: UUID = StompParser.genUUID();
+                const req: GalacticRequest<string> = GalacticRequest.build('testAPI', 'ember loves to play?', id);
+                bus.requestGalactic('ember-station', req,
+                    (resp: GalacticResponse<string>) => {
+                        expect(resp.id).toEqual(id);
+                        expect(resp.payload).toEqual('scooty butt chase jump');
+                        done();
+                    });
+                const monitor = bus.api.getMonitor()
+                    .subscribe(
+                    (message: Message) => {
+                        const mo = message.payload as MonitorObject;
+                        switch (mo.type) {
+                            case MonitorType.MonitorGalacticData:
+                                expect(mo.channel).toEqual('ember-station');
+
+                                const data: GalacticRequest<string> = mo.data as GalacticRequest<string>;
+                                expect(data.id).toEqual(id);
+
+                                const resp: GalacticResponse<string> =
+                                    GalacticResponse.build('scooty butt chase jump', id);
+                                bus.sendResponseMessage('ember-station', resp);
+                                break;
+
+                            default:
+                                break;
+                        }
+                    }
+                    );
+
             });
     });
 

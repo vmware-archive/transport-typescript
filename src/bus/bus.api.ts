@@ -17,6 +17,9 @@ import { Subject } from 'rxjs/Subject';
 import { LoggerService } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
 import { TransactionRequest } from './model/transaction.model';
+import { GalacticRequest } from './model/request.model';
+import { GalacticResponse } from './model/response.model';
+
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -151,7 +154,7 @@ export abstract class EventBus {
      * process incoming responses. The handler will stop processing any further responses after the first one.
      *
      * @param {ChannelName} sendChannel the channel to send the initial request to
-     * @param {T} requestPayload the paylaod to be sent as the request
+     * @param {T} requestPayload the payload to be sent as the request
      * @param {ChannelName} returnChannel the return channel to listen for responses on (defaults to sendChannel)
      * @param {SentFrom} from optional name of the actor implementing (for logging)
      * @param schema optional schema (not yet implemented)
@@ -159,6 +162,26 @@ export abstract class EventBus {
      */
     abstract requestOnce<T, R>(sendChannel: ChannelName, requestPayload: T, returnChannel?: ChannelName,
                                from?: SentFrom, schema?: any): MessageHandler<R>;
+    /**
+     * Send a request payload to Galactic channel and listen for response that matches UUID of Request.
+     * (defaults to sendChannel if left blank). The handle() method on the MessageHandler instance is used to
+     * process incoming responses. The handler will stop processing any further responses after the first one.
+     *
+     * @param {ChannelName} sendChannel the Galactic channel to send the request to
+     * @param {GalacticRequest} request GalacticRequest to be sent as the request
+     * @param {MessageFunction<GalacticResponse<R>>} successHandler for a successful response to your request
+     * @param {MessageFunction<GalacticResponse<R>>} errorHandler for an un-successful response to your request
+     * @param {SentFrom} from optional name of the actor implementing (for logging)
+     * @returns {MessageHandler<GalacticResponse>} reference to MessageHandler, handle() 
+     *                                             function receives any inbound response.
+     */
+    abstract requestGalactic<T, R>(
+        sendChannel: ChannelName, 
+        request: GalacticRequest<T>, 
+        successHandler: MessageFunction<GalacticResponse<R>>,
+        errorHandler?: MessageFunction<GalacticResponse<R>>,
+        from?: SentFrom): void;
+
 
     /**
      * Listen for a single response on a channel, process then automatically stop handling any more.
@@ -271,6 +294,8 @@ export abstract class EventBus {
      * @returns {boolean} true if channel can be closed or not.
      */
     abstract closeChannel(cname: ChannelName, from?: SentFrom): boolean;
+
+
 
 }
 

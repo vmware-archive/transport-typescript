@@ -4,7 +4,13 @@
 import { MessageBusEnabled } from './messagebus.service';
 import { ChannelName, EventBus, EventBusLowApi, SentFrom } from './bus.api';
 import { Channel } from './model/channel.model';
-import { Message, MessageHandler, MessageHandlerConfig, MessageResponder, MessageType } from './model/message.model';
+import { 
+    Message, 
+    MessageHandler, 
+    MessageHandlerConfig, 
+    MessageResponder, 
+    MessageType, 
+    MessageFunction } from './model/message.model';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { LoggerService } from '../log/logger.service';
@@ -13,6 +19,8 @@ import { MonitorChannel, MonitorObject, MonitorType } from './model/monitor.mode
 import { LogUtil } from '../log/util';
 import { Subscription } from 'rxjs/Subscription';
 import { UUID } from './cache/cache.model';
+import { GalacticRequest } from './model/request.model';
+import { GalacticResponse } from './model/response.model';
 
 export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
@@ -25,7 +33,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     public loggerInstance: LoggerService;
 
 
-    constructor(private eventBusRef: EventBus, channelMap: Map<string, Channel>) {
+    constructor(private eventBusRef: EventBus, channelMap: Map<string, Channel>, logger: LoggerService) {
         this.internalChannelMap = channelMap;
 
         // create monitor stream.
@@ -33,15 +41,15 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         this.internalChannelMap.set(this.monitorChannel, this.monitorStream);
 
         // set up logging.
-        this.log = new LoggerService();
-        this.log.logLevel = LogLevel.Info;
-
+        this.log = logger;
+    
         // disable monitor dump by default.
         this.enableMonitorDump(false);
         this.monitorBus();
 
         this.channelMap = this.internalChannelMap;
         this.loggerInstance = this.log;
+
     }
 
     getChannel(cname: ChannelName, from: SentFrom, noRefCount: boolean = false): Observable<Message> {
@@ -714,4 +722,4 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
             );
     }
 
-}//	💬
+}

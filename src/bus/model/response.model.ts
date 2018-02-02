@@ -3,11 +3,11 @@ import { UUID } from '../cache/cache.model';
 import { StompParser } from '../../bridge/stomp.parser';
 export class GalacticResponse<PayloadT> extends AbstractFrame {
 
-    public static build<PayloadT>(payload?: PayloadT, 
+    public static build<PayloadT>(payload?: PayloadT,
+                                  id: UUID = StompParser.genUUID(), 
                                   error: boolean = false,
                                   errorCode: number = 200,
                                   errorMessage: string = '',
-                                  id: UUID = StompParser.genUUID(), 
                                   version: number = 1) {
         return new GalacticResponse(payload, error, errorCode, errorMessage, id, version);
     }
@@ -24,6 +24,7 @@ export class GalacticResponse<PayloadT> extends AbstractFrame {
                 id: UUID, 
                 version: number) {
         super(id, version);
+        this.payload = payload;
         this.error = error;
         this.errorMessage = errorMessage;
         this.errorCode = errorCode; 
