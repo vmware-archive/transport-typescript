@@ -549,3 +549,33 @@ export interface EventBusLowApi {
     tickEventLoop(func: Function, delay?: number): void;
 
 }
+
+
+/**
+ * Bus Transactions
+ */
+export interface BusTransaction {
+    
+    /**
+     * Create a request to a channel as a part of this transaction.
+     */
+    sendRequest(channel: string, payload: any): void;
+    
+    /**
+     * Once all responses to requests have been received, the transaction is complete.
+     */
+    onComplete<T>(completeHandler: MessageFunction<T>): void;
+
+    /**
+     * If an error is thrown by any of the responders, the transaction is aborted and the 
+     * error sent to the errorHandler.
+     */
+    onError<T>(errorHandler: MessageFunction<T>): void;
+    
+    /**
+     * Commit the transaction, all requests will be sent and will wait for responses.
+     * Once all the responses are in, onComplete will be called with the responses.
+     */
+    commit(): void;
+
+}
