@@ -255,6 +255,8 @@ export abstract class EventBus {
      * @param {string} user username (if required)
      * @param {string} pass passwowrd (if required)
      * @param {boolean} useSSL run over WSS?
+     * @param {string} applicationDestinationPrefix set the prefix for app published (galactic) messages (i.e. /pub)
+     *                                              channels are postpended to this (i.e. /pub/mychannel)
      * @returns {MessageHandler<StompBusCommand>} connected commands will auto trigger the readyHandler().
      */
     abstract connectBridge(readyHandler: MessageFunction<string>,
@@ -264,6 +266,7 @@ export abstract class EventBus {
                            numBrokerRelays?: number,
                            host?: string,
                            port?: number,
+                           applicationDestinationPrefix?: string,
                            user?: string,
                            pass?: string,
                            useSSL?: boolean): MessageHandler<StompBusCommand>;

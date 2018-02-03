@@ -90,7 +90,6 @@ export class StompService implements MessageBusEnabled {
             new Message().request(command, new StompConfigSchema()), StompService.serviceName);
     }
 
-
     getName(): string {
         return (this as any).constructor.name;
     }
@@ -193,10 +192,14 @@ export class StompService implements MessageBusEnabled {
 
     private sendGalacticMessage(channel: string, payload: any): void {
 
-        const cleanedChannel = StompParser.convertChannelToSubscription(channel);
+        let cleanedChannel = StompParser.convertChannelToSubscription(channel);
 
         this._sessions.forEach(session => {
             const config = session.config;
+
+            if (session.applicationDestinationPrefix) {
+                cleanedChannel = session.applicationDestinationPrefix + '/' + cleanedChannel;
+            }
 
             if (config.useTopics) {
                 const command: StompBusCommand = StompParser.generateStompBusCommand(

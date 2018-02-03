@@ -60,7 +60,7 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         window.AppSyslog = Syslog;
         
         if (!disableBootMessage) {
-            this.log.setStylingVisble(false);
+            this.log.setStylingVisble(true);
             this.log.info('🌈 Bifröst ' + EventBus.version + ' Initialized', 'window.AppEventBus');
         }
 
@@ -109,6 +109,7 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         numBrokerRelays: number = 1,
         host?: string,
         port?: number,
+        applicationDestinationPrefix?: string,
         user?: string,
         pass?: string,
         useSSL?: boolean): MessageHandler<StompBusCommand> {
@@ -119,7 +120,8 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
             port,
             useSSL,
             user,
-            pass
+            pass,
+            applicationDestinationPrefix
         );
         config.topicLocation = topicLocation;
         config.queueLocation = queueLocation;
@@ -316,8 +318,8 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
 
         const conversationId: UUID = request.id;
 
-        const stream: Observable<Message> = this.api.getGalacticChannel(channel);
-        stream.filter((message: Message) => {
+        const stream: Observable<Message> = this.api.getGalacticChannel(channel)
+        .filter((message: Message) => {
             return (message.isResponse());
         }).filter((message: Message) => {
             const resp: GalacticResponse<R> = message.payload as GalacticResponse<R>;
@@ -333,7 +335,7 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
                     successHandler(resp);
                 }
                 sub.unsubscribe();
-                this.api.close(channel);
+                this.closeGalacticChannel(channel);
             }
         );
 

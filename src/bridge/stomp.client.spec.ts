@@ -24,6 +24,7 @@ describe('Stomp Client [stomp.client]', () => {
             'user',
             'password',
             false,
+            null,
             false
         );
         config.testMode = true;
@@ -402,6 +403,7 @@ describe('Stomp Client [stomp.client]', () => {
                     'user',
                     'password',
                     false,
+                    null,
                     true
                 );
                 config.testMode = true;
@@ -479,6 +481,7 @@ describe('Stomp Client [stomp.client]', () => {
                     'user',
                     'password',
                     false,
+                    null,
                     true
                 );
                 config.testMode = true;
@@ -621,6 +624,7 @@ describe('Stomp Client [stomp.client]', () => {
                     'user',
                     'password',
                     false,
+                    null,
                     true,
                     0,
                     150

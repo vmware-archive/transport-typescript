@@ -36,6 +36,7 @@ describe('Stomp Model [stomp.config]', () => {
                     'user',
                     'pass',
                     true,
+                    null,
                     true
                 );
 
@@ -80,6 +81,7 @@ describe('Stomp Model [stomp.config]', () => {
                     'user',
                     'pass',
                     true,
+                    null,
                     true,
                     50, 
                     50

@@ -18,7 +18,6 @@ export class StompChannel {
     static status: string = '#stomp-status';
 
 }
-
 export interface StompMessage {
     command: string;
     headers: any;
@@ -26,14 +25,12 @@ export interface StompMessage {
 
     toString(): string;
 }
-
 export interface StompBusCommand {
     destination: string;
     session: string;
     command: string;
     payload: any;
 }
-
 export interface StompSubscription {
     session: string;
     destination: string;
@@ -50,6 +47,7 @@ export class StompSession {
     private galacticSubscriptions: Map<string, Subscription>;
     private isConnected: boolean = false;
     private connCount: number = 0;
+    private _applicationDestinationPrefix: string;
 
     constructor(config: StompConfig) {
         this._config = config;
@@ -60,6 +58,9 @@ export class StompSession {
         }
         this._subscriptions = new Map<String, Subject<StompMessage>>();
         this.galacticSubscriptions = new Map<string, Subscription>();
+        if (config.applicationDestinationPrefix) {
+            this._applicationDestinationPrefix = config.applicationDestinationPrefix;
+        }
     }
 
     public get connected(): boolean {
@@ -88,6 +89,10 @@ export class StompSession {
 
     get id(): string {
         return this._id;
+    }
+
+    get applicationDestinationPrefix(): string {
+        return this._applicationDestinationPrefix;
     }
 
     connect(): Subject<Boolean> {
@@ -153,7 +158,8 @@ export class StompConfig {
                     port?: number,
                     useSSL?: boolean,
                     user?: string,
-                    pass?: string) {
+                    pass?: string,
+                    applicationDesintationPrefix?: string) {
 
         return new StompConfig(
             endpoint,
@@ -161,7 +167,8 @@ export class StompConfig {
             port,
             user,
             pass,
-            useSSL
+            useSSL,
+            applicationDesintationPrefix
         );
     }
 
@@ -173,16 +180,11 @@ export class StompConfig {
                 private _user?: string,
                 private _pass?: string,
                 private _useSSL?: boolean,
+                private _applicationDestinationPrefix?: string,
                 private _requireACK?: boolean,
-                private _heartbeatIn?: number,
-                private _heartbeatOut?: number) {
+                private _heartbeatIn: number = 0,
+                private _heartbeatOut: number = 30000) {
 
-        if (!_heartbeatIn) {
-            this._heartbeatIn = 0;
-        }
-        if (!_heartbeatOut) {
-            this._heartbeatOut = 30000;
-        }
     }
 
     set brokerConnectCount(count: number) {
@@ -272,7 +274,12 @@ export class StompConfig {
             useSSL: this._useSSL,
             heartbeatIn: this._heartbeatIn,
             heartbeatOut: this._heartbeatOut,
+            applicationDestinationPrefix: this._applicationDestinationPrefix
         };
+    }
+
+    public get applicationDestinationPrefix(): string {
+        return this._applicationDestinationPrefix;
     }
 
     /* same as getConfig() just cleaner */
