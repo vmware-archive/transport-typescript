@@ -82,8 +82,8 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
     remove<S>(id: UUID, state: S): boolean {
         if (this.cache.has(id)) {
             const obj = this.cache.get(id);
-            this.cache.delete(id);
             this.sendChangeBroadcast(state, id, obj);
+            this.cache.delete(id);
             this.bus.api.close(StoreImpl.getObjectChannel(id), this.getName());
             return true;
         }
@@ -140,12 +140,13 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
         };
 
         const compareObjects: Predicate<StoreStateChange<S, T>> = (state: StoreStateChange<S, T>) => {
-            const compareKeys = (a: T, b: T): boolean => {
-                const aKeys = Object.keys(a).sort();
-                const bKeys = Object.keys(b).sort();
-                return JSON.stringify(aKeys) === JSON.stringify(bKeys);
-            };
-            return compareKeys(objectType, state.value);
+            // const compareKeys = (a: T, b: T): boolean => {
+            //     const aKeys = Object.keys(a).sort();
+            //     const bKeys = Object.keys(b).sort();
+            //     return JSON.stringify(aKeys) === JSON.stringify(bKeys);
+            // };
+            // return compareKeys(objectType, state.value);
+            return objectType.constructor.name.trim() === state.value.constructor.name.trim();
         };
 
         return new StoreStreamImpl<T>(this.filterStream(stream, [stateChangeFilter, compareObjects]));

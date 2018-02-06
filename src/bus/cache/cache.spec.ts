@@ -134,18 +134,18 @@ describe('BusStore [cache/cache]', () => {
 
         let counter: number = 0;
 
-        interface Dog {
-            name: string;
-            age: number;
-            commonPhrase: string;
-        }
+        // interface Dog {
+        //     name: string;
+        //     age: number;
+        //     commonPhrase: string;
+        // }
 
         cache.onChange<State.Created>('magnum', State.Created)
             .subscribe(
             (d: Dog) => {
-                expect(d.name).toEqual('maggie');
-                expect(d.age).toEqual(12);
-                expect(d.commonPhrase).toEqual('get the kitty');
+                expect(d.dogName).toEqual('maggie');
+                expect(d.dogAge).toEqual(12);
+                expect(d.dogPhrase).toEqual('get the kitty');
                 counter++;
             }
             );
@@ -153,9 +153,9 @@ describe('BusStore [cache/cache]', () => {
         cache.onChange<State.Updated>('fox', State.Updated)
             .subscribe(
             (d: Dog) => {
-                expect(d.name).toEqual('foxy pop');
-                expect(d.age).toEqual(11);
-                expect(d.commonPhrase).toEqual('get out of the pantry');
+                expect(d.dogName).toEqual('foxy pop');
+                expect(d.dogAge).toEqual(11);
+                expect(d.dogPhrase).toEqual('get out of the pantry');
                 counter++;
             }
             );
@@ -163,9 +163,9 @@ describe('BusStore [cache/cache]', () => {
         cache.onChange<State.Deleted>('cotton', State.Deleted)
             .subscribe(
             (d: Dog) => {
-                expect(d.name).toEqual('chickie');
-                expect(d.age).toEqual(6);
-                expect(d.commonPhrase).toEqual('where is the kitty');
+                expect(d.dogName).toEqual('chickie');
+                expect(d.dogAge).toEqual(6);
+                expect(d.dogPhrase).toEqual('where is the kitty');
                 counter++;
                 if (counter === 3) {
                     done();
@@ -175,17 +175,17 @@ describe('BusStore [cache/cache]', () => {
 
         cache.put(
             'magnum',
-            { name: 'maggie', age: 12, commonPhrase: 'get the kitty' },
+            new Dog('maggie', 12, 'get the kitty'),
             State.Created
         );
         cache.put(
             'fox',
-            { name: 'foxy pop', age: 11, commonPhrase: 'get out of the pantry' },
+            new Dog('foxy pop', 11, 'get out of the pantry'),
             State.Updated
         );
         cache.put(
             'cotton',
-            { name: 'chickie', age: 6, commonPhrase: 'where is the kitty' },
+            new Dog('chickie', 6, 'where is the kitty'),
             State.Deleted
         );
 
@@ -311,7 +311,7 @@ describe('BusStore [cache/cache]', () => {
         );
         cache.put(
             'cotton',
-            { name: 'chickie', age: 6, commonPhrase: 'where is the kitty' },
+            new Dog('chickie', 6, 'where is the kitty'),
             State.Created
         );
         cache.put(
@@ -321,12 +321,12 @@ describe('BusStore [cache/cache]', () => {
         );
         cache.put(
             'fox',
-            { name: 'foxy pop', age: 11, commonPhrase: 'get off the couch!' },
+            new Dog('foxy pop', 11, 'get off the couch!'),
             State.Updated
         );
         cache.put(
             'cotton',
-            { name: 'chickie', age: 6, commonPhrase: 'want to go for a walk?' },
+            new Dog('chickie', 6, 'want to go for a walk?'),
             State.Updated
         );
 
@@ -671,6 +671,10 @@ class Dog {
 
     get dogName() {
         return this.name;
+    }
+
+    get dogAge() {
+        return this.age;
     }
 
     get dogPhrase() {
