@@ -19,6 +19,7 @@ import { StompClient } from '../bridge/stomp.client';
 import { StompParser } from '../bridge/stomp.parser';
 import { ChannelName, EventBus, EventBusLowApi, SentFrom } from './bus.api';
 import 'rxjs/add/operator/merge';
+import 'rxjs/add/observable/merge';
 import { EventBusLowLevelApiImpl } from './bus.lowlevel';
 import { LoggerService } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
