@@ -11,29 +11,38 @@ import {
     UUID
 } from './cache.model';
 import { BusStore, StoreStream, MutateStream } from '../cache.api';
+import { EventBus } from '../bus.api';
+import { Syslog } from '../../log/syslog';
 
 interface Predicate<T> {
     (value: T): boolean;
 }
 
 export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
-
+    
+    private uuid: string;
+    
     getName(): string {
         return 'BusStore';
     }
 
     private cache: Map<UUID, any>;
-    private cacheStreamChan: string = 'cache-change-' + StompParser.genUUID();
-    private cacheMutationChan: string = 'cache-mutation-' + StompParser.genUUID();
-    private cacheReadyChan: string = 'cache-ready-' + StompParser.genUUID();
+    private cacheStreamChan: string;
+    private cacheMutationChan: string;
+    private cacheReadyChan: string;
     private cacheInitialized = false;
-
-    public static getObjectChannel(id: UUID): UUID {
-        return 'cache-object-' + id;
+    
+    public getObjectChannel(id: UUID): UUID {
+        return 'store-' + this.uuid + '-object-' + id;
     }
 
-    constructor(private bus: MessagebusService) {
+    constructor(private bus: EventBus) {
         this.cache = new Map<UUID, any>();
+        this.uuid = StompParser.genUUID();
+        this.cacheStreamChan = 'cache-change-' + this.uuid;
+        this.cacheMutationChan = 'cache-mutation-' + this.uuid;
+        this.cacheReadyChan = 'cache-ready-' + this.uuid;
+
     }
 
     private sendChangeBroadcast<C>(changeType: C, id: UUID, value: T): void {
@@ -47,7 +56,7 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
         );
 
         this.bus.sendResponseMessage(
-            StoreImpl.getObjectChannel(id),
+            this.getObjectChannel(id),
             stateChange,
             this.getName()
         );
@@ -84,7 +93,7 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
             const obj = this.cache.get(id);
             this.sendChangeBroadcast(state, id, obj);
             this.cache.delete(id);
-            this.bus.api.close(StoreImpl.getObjectChannel(id), this.getName());
+            this.bus.api.close(this.getObjectChannel(id), this.getName());
             return true;
         }
         return false;
@@ -93,10 +102,10 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
     onChange<S>(id: UUID, ...stateChangeType: S[]): StoreStream<T> {
 
         const cacheStreamChan: Observable<Message> =
-            this.bus.api.getResponseChannel(StoreImpl.getObjectChannel(id), this.getName());
+            this.bus.api.getResponseChannel(this.getObjectChannel(id), this.getName());
 
         const cacheErrorCan: Observable<Message> =
-            this.bus.api.getErrorChannel(StoreImpl.getObjectChannel(id), this.getName());
+            this.bus.api.getErrorChannel(this.getObjectChannel(id), this.getName());
 
         const stream: Observable<StoreStateChange<S, T>> =
              Observable.merge(cacheStreamChan, cacheErrorCan)
@@ -146,7 +155,17 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
             //     return JSON.stringify(aKeys) === JSON.stringify(bKeys);
             // };
             // return compareKeys(objectType, state.value);
-            return objectType.constructor.name.trim() === state.value.constructor.name.trim();
+            // return objectType.constructor.name.trim() === state.value.constructor.name.trim();
+            
+            // Check that class names match. If not, just log, don't do anything.    
+            const match: boolean = objectType.constructor.name.trim() === state.value.constructor.name.trim();
+            if (!match) {
+                Syslog.warn('onAllChanges() stream handling mismatched object types [' +
+                    objectType.constructor.name.trim() + '] and [' + state.value.constructor.name.trim() + ']');
+            }
+            return true;
+
+
         };
 
         return new StoreStreamImpl<T>(this.filterStream(stream, [stateChangeFilter, compareObjects]));

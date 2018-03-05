@@ -30,27 +30,27 @@ describe('BusStore [cache/cache]', () => {
         bus = new MessagebusService(LogLevel.Error, true);
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
-        bus.createStore('string');
+        bus.stores.createStore('string');
     });
 
     afterEach(() => {
-        bus.getStore('string').reset();
+        bus.stores.getStore('string').reset();
         bus.api.destroyAllChannels();
     });
 
     it('Check cache has been set up correctly', () => {
-        expect(bus.getStore('string')).not.toBeNull();
-        expect(bus.getStore('string').populate(new Map<UUID, string>())).toBeTruthy();
+        expect(bus.stores.getStore('string')).not.toBeNull();
+        expect(bus.stores.getStore('string').populate(new Map<UUID, string>())).toBeTruthy();
     });
 
     it('check put() and retrive() work correctly', () => {
-        bus.getStore('string').put('123', 'chickie & fox', State.Created);
-        expect(bus.getStore('string').get('123')).toEqual('chickie & fox');
-        expect(bus.getStore('string').get('456')).toBeUndefined();
+        bus.stores.getStore('string').put('123', 'chickie & fox', State.Created);
+        expect(bus.stores.getStore('string').get('123')).toEqual('chickie & fox');
+        expect(bus.stores.getStore('string').get('456')).toBeUndefined();
     });
 
     it('check remove() works correctly', (done) => {
-        const cache: BusStore<string> = bus.getStore('string');
+        const cache: BusStore<string> = bus.stores.getStore('string');
 
         cache.onChange<State.Deleted>('123', State.Deleted)
             .subscribe(
@@ -68,7 +68,7 @@ describe('BusStore [cache/cache]', () => {
     });
 
     it('check populate() works correctly', () => {
-        const cache: BusStore<string> = bus.getStore('string');
+        const cache: BusStore<string> = bus.stores.getStore('string');
         const data: Map<UUID, string> = new Map<UUID, string>();
         data.set('123', 'miss you so much maggie pop');
         data.set('456', 'you were the best boy');
@@ -81,7 +81,7 @@ describe('BusStore [cache/cache]', () => {
     });
 
     it('check reset() works correctly', () => {
-        const cache: BusStore<string> = bus.getStore('string');
+        const cache: BusStore<string> = bus.stores.getStore('string');
 
         cache.put('123', 'chickie & fox', State.Created);
         expect(cache.get('123')).toEqual('chickie & fox');
@@ -93,7 +93,7 @@ describe('BusStore [cache/cache]', () => {
     });
 
     it('check allValues() works correctly', () => {
-        const cache: BusStore<string> = bus.getStore('string');
+        const cache: BusStore<string> = bus.stores.getStore('string');
 
         cache.put('123', 'pup pup pup', State.Created);
         cache.put('456', 'pop pop pop', State.Created);
@@ -109,7 +109,7 @@ describe('BusStore [cache/cache]', () => {
     });
 
     it('check allValuesAsMap() works correctly', () => {
-        const cache: BusStore<string> = bus.getStore('string');
+        const cache: BusStore<string> = bus.stores.getStore('string');
 
         cache.put('123', 'tip top', State.Created);
         cache.put('456', 'clip clop', State.Created);
@@ -130,7 +130,7 @@ describe('BusStore [cache/cache]', () => {
 
     it('check onChange() works correctly', (done) => {
 
-        const cache: BusStore<Dog> = bus.createStore('Dog');
+        const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         let counter: number = 0;
 
@@ -194,7 +194,7 @@ describe('BusStore [cache/cache]', () => {
     it('onChange() works with no success handler supplied', (done) => {
         spyOn(Syslog, 'error').and.callThrough();
 
-        const store: BusStore<string> = bus.createStore('dog');
+        const store: BusStore<string> = bus.stores.createStore('dog');
         store.onChange<State.Created>('magnum', State.Created)
             .subscribe(null);
 
@@ -213,7 +213,7 @@ describe('BusStore [cache/cache]', () => {
     it('onChange() works with all types', (done) => {
         
         let count = 0;
-        const store: BusStore<string> = bus.createStore('dog');
+        const store: BusStore<string> = bus.stores.createStore('dog');
         store.onChange<State.Created>('magnum')
             .subscribe(
                 () => {
@@ -233,7 +233,7 @@ describe('BusStore [cache/cache]', () => {
     it('onChange() works with unsubscriptions', (done) => {
 
         let counter = 0;
-        const store: BusStore<string> = bus.createStore('dog');
+        const store: BusStore<string> = bus.stores.createStore('dog');
         const sub = store.onChange<State.Updated>('magnum', State.Updated);
         sub.unsubscribe(); // nothing should happen because we're not subscribed yet.
         
@@ -272,7 +272,7 @@ describe('BusStore [cache/cache]', () => {
 
     it('check onAllChanges() works correctly', (done) => {
 
-        const cache = bus.createStore('Dog');
+        const cache = bus.stores.createStore('Dog');
 
         let counter: number = 0;
 
@@ -334,7 +334,7 @@ describe('BusStore [cache/cache]', () => {
 
     it('check onAllChanges() works correctly with multiple states', (done) => {
 
-        const cache: BusStore<Dog> = bus.createStore('Dog');
+        const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         let counter: number = 0;
 
@@ -363,7 +363,7 @@ describe('BusStore [cache/cache]', () => {
 
     it('check onAllChanges() works correctly with all states', (done) => {
 
-        const cache: BusStore<Dog> = bus.createStore('Dog');
+        const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         let counter: number = 0;
 
@@ -397,7 +397,7 @@ describe('BusStore [cache/cache]', () => {
 
     it('check mutate() works with correct success handling', (done) => {
 
-        const cache: BusStore<Dog> = bus.createStore('Dog');
+        const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
         cache.put('fox', d, State.Created);
@@ -424,7 +424,7 @@ describe('BusStore [cache/cache]', () => {
 
     it('check mutate() works with all mutation types', (done) => {
 
-        const cache: BusStore<Dog> = bus.createStore('Dog');
+        const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
         cache.put('fox', d, State.Created);
@@ -452,7 +452,7 @@ describe('BusStore [cache/cache]', () => {
     it('check mutate() works with correct logging, without success handler.', (done) => {
 
         spyOn(Syslog, 'error').and.callThrough();
-        const cache: BusStore<Dog> = bus.createStore('Dog');
+        const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
         cache.put('fox', d, State.Created);
@@ -484,7 +484,7 @@ describe('BusStore [cache/cache]', () => {
 
     it('check mutate() works without correct success handling', (done) => {
         spyOn(Syslog, 'error').and.callThrough();
-        const cache: BusStore<Dog> = bus.createStore('Dog');
+        const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
         cache.put('fox', d, State.Created);
@@ -505,7 +505,7 @@ describe('BusStore [cache/cache]', () => {
 
     it('check mutate() works with correct error handling', (done) => {
 
-        const cache: BusStore<Dog> = bus.createStore('Dog');
+        const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
         cache.put('fox', d, State.Created);
@@ -532,7 +532,7 @@ describe('BusStore [cache/cache]', () => {
     it('check mutate() works with correct error logging when no error handler provided', (done) => {
 
         spyOn(Syslog, 'error').and.callThrough();
-        const cache: BusStore<Dog> = bus.createStore('Dog');
+        const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
         cache.put('fox', d, State.Created);
@@ -562,7 +562,7 @@ describe('BusStore [cache/cache]', () => {
 
     it('check mutate() and notifyOnMutation() works correctly', (done) => {
 
-        const cache: BusStore<Dog> = bus.createStore('Dog');
+        const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         let d: Dog = new Dog('maggie', 12, 'get the kitty');
         cache.put('magnum', d, State.Created);
@@ -596,7 +596,7 @@ describe('BusStore [cache/cache]', () => {
 
     it('check mutatorErrorHandler works so mutator can send errors back to subscribers.', (done) => {
 
-        const cache: BusStore<Dog> = bus.createStore('Dog');
+        const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         let d: Dog = new Dog('chicken', 6, 'go find the kitty');
         cache.put('cotton', d, State.Created);
@@ -624,7 +624,7 @@ describe('BusStore [cache/cache]', () => {
 
     it('check whenReady() and initialize() work.', (done) => {
 
-        const cache: BusStore<Dog> = bus.createStore('Dog');
+        const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         cache.whenReady(
             () => {
@@ -641,7 +641,7 @@ describe('BusStore [cache/cache]', () => {
 
     it('check whenReady() and populate() work.', (done) => {
 
-        const cache: BusStore<Dog> = bus.createStore('Dog');
+        const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         cache.whenReady(
             () => {

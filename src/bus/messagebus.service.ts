@@ -12,7 +12,7 @@ import {
 } from './model/message.model';
 import { MessageSchema, ErrorSchema } from './model/message.schema';
 import { StoreImpl } from './cache/cache';
-import { BusStore } from './cache.api';
+import { BusStore, BusStoreApi } from './cache.api';
 import { StoreType, UUID } from './cache/cache.model';
 import { StompBusCommand, StompChannel, StompConfig } from '../bridge/stomp.model';
 import { StompClient } from '../bridge/stomp.client';
@@ -26,6 +26,7 @@ import { LogLevel } from '../log/logger.model';
 import { GalacticRequest } from './model/request.model';
 import { GalacticResponse } from './model/response.model';
 import { Observable } from 'rxjs/Observable';
+import { StoreManager } from './cache/store.manager';
 
 export abstract class MessageBusEnabled {
     abstract getName(): string;
@@ -34,12 +35,12 @@ export abstract class MessageBusEnabled {
 export class MessagebusService extends EventBus implements MessageBusEnabled {
 
     private internalChannelMap: Map<string, Channel>;
-    private internalStoreMap: Map<string, BusStore<any>>;
     private log: LoggerService;
 
 
     // low level API
     readonly api: EventBusLowApi;
+    readonly stores: BusStoreApi;
 
     constructor(logLevel: LogLevel = LogLevel.Info, disableBootMessage: boolean = false) {
         super();
@@ -51,9 +52,9 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         // Low Level API.
         this.api = new EventBusLowLevelApiImpl(this, this.internalChannelMap, this.log);
 
-        // Store map.
-        this.internalStoreMap = new Map<StoreType, BusStore<any>>();
-
+        // Store API
+        this.stores = new StoreManager(this);
+        
         // wire up singleton to the window object under a custom namespace.
         window.AppEventBus = this as EventBus;
         window.AppBrokerConnector = new StompService();
@@ -71,31 +72,6 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         
         // say hi to magnum.
         this.easterEgg();
-    }
-
-    public createStore<T>(objectType: StoreType, map?: Map<UUID, T>): BusStore<T> {
-        if (!this.getStore(objectType)) {
-            const cache: BusStore<T> = new StoreImpl<T>(this);
-            if (map) {
-                cache.populate(map);
-            }
-            this.internalStoreMap.set(objectType, cache);
-            return cache;
-        } else {
-            return this.getStore(objectType);
-        }
-    }
-
-    public getStore<T>(objectType: StoreType): BusStore<T> {
-        return this.internalStoreMap.get(objectType);
-    }
-
-    public destroyStore(objectType: StoreType): boolean {
-        if (this.internalStoreMap.has(objectType)) {
-            this.internalStoreMap.delete(objectType);
-            return true;
-        }
-        return false;
     }
 
     public getName() {

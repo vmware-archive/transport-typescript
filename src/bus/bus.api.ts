@@ -4,7 +4,7 @@
 import { Syslog } from '../log/syslog';
 import { StompService } from '../';
 import { StoreType, UUID } from './cache/cache.model';
-import { BusStore } from './cache.api';
+import { BusStore, BusStoreApi } from './cache.api';
 import { MessageSchema, ErrorSchema } from './model/message.schema';
 import {
     Message, MessageFunction,
@@ -43,32 +43,9 @@ export abstract class EventBus {
     readonly api: EventBusLowApi;
 
     /**
-     * BusStore Methods
+     * Reference to Store API.
      */
-
-    /**
-     * Create a new store, or return the store that exists with that name.
-     *
-     * @param {StoreType} storeType Name of the store you want to create/get
-     * @param {Map<UUID, T>} map optional map of values to prepopulate with
-     * @returns {BusStore<T>} reference to the store
-     */
-    abstract createStore<T>(storeType: StoreType, map?: Map<UUID, T>): BusStore<T>;
-
-    /**
-     * Get an existing store, will return null if not found or does not exist.
-     *
-     * @param {StoreType} storeType the name of the store you want to get
-     * @returns {BusStore<T>} a reference to the store of type <T>
-     */
-    abstract getStore<T>(storeType: StoreType): BusStore<T>;
-
-    /**
-     * Destroy all values inside a store, and the store its self.
-     *
-     * @param {StoreType} storeType the name of the store you want to destroy.
-     */
-    abstract destroyStore(storeType: StoreType): void;
+    readonly stores: BusStoreApi;
 
     /**
      * Simple API Methods

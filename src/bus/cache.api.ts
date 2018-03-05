@@ -4,7 +4,7 @@
 
 import { MessageFunction } from './model/message.model';
 import { Subscription } from 'rxjs/Subscription';
-import { UUID } from './cache/cache.model';
+import { UUID, StoreType } from './cache/cache.model';
 
 /**
  * StoreStream wraps an Observable, allowing for future underlying logic manipulation without
@@ -24,6 +24,17 @@ export interface StoreStream<T, E = any> {
     unsubscribe(): void;
 }
 
+/**
+ * StoreReadyResult is returned by a readyJoin call on a store.
+ */
+export interface StoreReadyResult {
+    
+    /**
+     * Called when all stores are ready.
+     * @param {Function} handler the handler function you to fire when all required stores are ready 
+     */
+    whenReady(handler: Function): void;
+}
 
 /**
  * MutateStream allows mutating services to send back success or failure events to requesting actors.
@@ -41,6 +52,40 @@ export interface MutateStream<T = any, E = any, S = any> extends StoreStream<T, 
      * @param {S} success value to pass back to mutator
      */
     success(success: S): void;
+}
+
+/** 
+ * BusStoreAPI is the interface exposed buy EventBus to allow interactions with Stores.
+ */
+export interface BusStoreApi {
+
+    /**
+     * Create a new Store, if the store already exists, then it will be returned, safe for async operations.
+     * @param {StoreType} objectType the string ID of the store you want to create (i.e. 'UserStore')
+     * @param {Map<UUID, T>} map pre-populate store with a map of id's to values.
+     * @returns {BusStore<T>} reference to the BusStore you have just created.
+     */
+    createStore<T>(objectType: StoreType, map?: Map<UUID, T>): BusStore<T>;
+    
+    /**
+     * Get a reference to the existing store. If the store does not exist, nothing will be returned. 
+     * @param {StoreType} objectType the string ID of the store you want a reference to (i.e. 'UserStore') 
+     */
+    getStore<T>(objectType: StoreType): BusStore<T>;
+
+    /**
+     * Destroy a store (destructive)
+     * @param {StoreType} objectType the string ID of the store you want to destroy (i.e. 'UserStore') 
+     */
+    destroyStore(objectType: StoreType): boolean;
+
+    /**
+     * When you need to wait for more than a single store to be ready, readyJoin takes an array of StoreTypes
+     * and returns a reference to StoreReadyResult, any function you pass to whenReady will be excuted once all
+     * stores have been initialized.
+     * @param {Array<StoreType>} caches array of StoreTypes you want to wait for initialization on. 
+     */
+    readyJoin(caches: Array<StoreType>): StoreReadyResult;
 }
 
 /**
@@ -83,7 +128,7 @@ export interface BusStore<T> {
      * @param {S} state you want to be sent to subscribers notifying cache deletion.
      * @return {boolean} true if it was removed, false if not.
      */
-    remove<S>(id: UUID,  state: S): boolean;
+    remove<S>(id: UUID, state: S): boolean;
 
     /**
      * Send a mutation request to any subscribers handling mutations.
@@ -94,9 +139,9 @@ export interface BusStore<T> {
      * @returns {boolean} true if mutation request was placed in stream
      */
     mutate<M, E>(
-        value: T, 
+        value: T,
         mutationType: M,
-        successHandler: MessageFunction<T>, 
+        successHandler: MessageFunction<T>,
         errorHandler?: MessageFunction<E>): boolean;
 
     /**
