@@ -22,7 +22,6 @@ export interface StompMessage {
     command: string;
     headers: any;
     body: string;
-
     toString(): string;
 }
 export interface StompBusCommand {
