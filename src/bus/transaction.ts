@@ -46,7 +46,7 @@ export class BusTransactionImpl implements BusTransaction {
         this.log.info('⏳ Transaction [' + this.id + '] Request Queued: [' + req.id + ']', this.name);
     }
     public onComplete<Resp>(completeHandler: MessageFunction<Resp[]>): void {
-        this.log.info('⌛ Transaction [' + this.id + '] Complete', this.name);
+        this.log.info('⌛ Transaction [' + this.id + '] Complete Handler Registered', this.name);
         this.completedHandler = completeHandler;
     }
 
@@ -93,14 +93,17 @@ export class BusTransactionImpl implements BusTransaction {
         /*sendChannel: ChannelName, requestPayload: T, returnChannel?: ChannelName,
                                from?: SentFrom, schema?: any): MessageHandler<R>;
                                */
-        this.log.info('🎬 Sending Request Async Transaction [' + this.id + ']', this.name);
-        const handler = this.bus.requestOnce(request.channel, request.payload, this.name);
+        this.log.info('➡️ Sending Request Async Transaction [' + this.id + '] to channel [' + request.channel + ']'
+                                                                                                        , this.name);
+        const handler = this.bus.listenOnce(request.channel, this.name);
         handler.handle(
             (response: any) => {
-                this.log.info('🎬 Sending Request Async Transaction [' + this.id + ']', this.name);
+                this.log.info('⬅️ Async Transaction Response [' + this.id + '] on channel [' + request.channel + ']'
+                                                                                                        , this.name);
                 doThing(request.id, response);
             }
         ); 
+        this.bus.sendRequestMessage(request.channel, request.payload);
 
     }
 

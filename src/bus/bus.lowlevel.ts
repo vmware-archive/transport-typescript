@@ -342,8 +342,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         const chanObject: Channel = this.getChannelObject(handlerConfig.returnChannel, name, true);
         const subscriberId: UUID = chanObject.createSubscriber();
         const latestObserver = chanObject.latestObserver;
-        this.sendSubscribedMonitorMessage(subscriberId, chanObject.name, name);
-
+        
         const killSubscription = () => { 
             sub.unsubscribe();
             this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
@@ -355,8 +354,8 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
         return {
             generate: (generateSuccessResponse: Function, generateErrorResponse: Function): Subscription => {
+                this.sendSubscribedMonitorMessage(subscriberId, chanObject.name, name);
                 const mergedStreams = Observable.merge(errorChannel, requestChannel);
-
                 sub = mergedStreams.subscribe(
                     (msg: Message) => {
                         let pl = msg.payload;
@@ -390,6 +389,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                             );
                         }
                         if (handlerConfig.singleResponse) {
+                            
                             killSubscription();
                         }
                     },
@@ -654,7 +654,11 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                     let mo = message.payload as MonitorObject;
                     let type: string = 'Response';
                     let pload: Message = mo.data as Message;
-
+                    
+                    // bypass easteregg.
+                    if (mo.channel === '__maglingtonpuddles__') {
+                        return;
+                    }
                     switch (mo.type) {
                         case MonitorType.MonitorNewChannel:
                             this.log.info('✨ (channel created)-> ' + mo.channel, mo.from);
