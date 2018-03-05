@@ -1,12 +1,11 @@
-/**
- * Copyright(c) VMware Inc. 2016-2017
- */
+import {Observable} from 'rxjs';
+import {Subject} from 'rxjs';
+import {StompParser} from './stomp.parser';
+import {Syslog} from '../log/syslog';
+import {StompMessage, StompConfig} from './stomp.model';
 
-import { Observable } from 'rxjs';
-import { Subject } from 'rxjs';
-import { StompParser } from './stomp.parser';
-import { Syslog } from '../log/syslog';
-import { StompMessage, StompConfig } from './stomp.model';
+import {fromEvent} from 'rxjs/observable/fromEvent';
+import { map } from 'rxjs/operator/map';
 
 const LOCATION: string = 'Bifröst: StompClient';
 
@@ -60,8 +59,8 @@ export class StompClient {
 
     constructor() {
 
-        this._transactionReceipts = new Map<string, Subject<StompMessage>>();
-        this._subscriptions = new Map<string, Subject<StompMessage>>();
+        this._transactionReceipts = new Map < string, Subject < StompMessage >>();
+        this._subscriptions = new Map < string, Subject < StompMessage >>();
 
         this._stompConnectedObserver = new Subject<Boolean>();
         this._ackObserver = new Subject<StompMessage>();
@@ -247,13 +246,12 @@ export class StompClient {
         } catch (e) {
             Syslog.info('Error is not STOMP packet, cannot be unmarshalled', LOCATION);
         }
-        Syslog.error('Error with WebSocket: ' + err, LOCATION);
+        Syslog.error('Error with WebSocket, Connection Failed', LOCATION);
         if (frame && frame.hasOwnProperty('headers')) {
             this.sendStompErrorToSubscribers(frame.headers, 'Error occurred with WebSocket');
         }
-    }
-
-    private onClose() {
+    };
+    private onClose(config: StompConfig) {
         setTimeout(() => {
             this._subscriptions.forEach((subscriber: Subject<StompMessage>, id: string) => {
 
@@ -262,7 +260,7 @@ export class StompClient {
                 this.deleteSubscription(id);
 
             });
-            Syslog.debug('WebSocket has been closed', LOCATION);
+            Syslog.info('WebSocket has been closed', LOCATION);
         });
         this._socketConnected = false;
         this._stompConnectedObserver = null;
@@ -275,7 +273,7 @@ export class StompClient {
         this._socket.send('\n');
     }
 
-    private onOpen() {
+    private onOpen(evt: Event) {
         this._socketConnected = true;
         Syslog.debug('WebSocket opened', LOCATION);
         this.transmit(StompClient.STOMP_CONNECT, {
@@ -436,8 +434,8 @@ export class StompClient {
             });
 
         this._socketCloseObserver = Observable.fromEvent(ws, 'close')
-            .map((response: CloseEvent): CloseEvent => {
-                return response;
+            .map((response: CloseEvent): any => { // refactor this into a type and define the API correctly.
+                return { event: response, config: config };
             });
 
         this._socketErrorObserver = Observable.fromEvent(ws, 'error')
@@ -452,13 +450,13 @@ export class StompClient {
             });
 
         this._socketOpenObserver
-            .subscribe((evt: Event) => this.onOpen());
+            .subscribe((evt: Event) => this.onOpen(evt));
 
         this._socketMessageObserver
             .subscribe((evt: MessageEvent) => this.onMessage(evt));
 
         this._socketCloseObserver
-            .subscribe((evt: CloseEvent) => this.onClose());
+            .subscribe((evt: CloseEvent) => this.onClose(config));
 
         this._socketErrorObserver
             .subscribe((err: Error) => this.onError(err));
