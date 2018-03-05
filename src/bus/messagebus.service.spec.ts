@@ -1672,23 +1672,23 @@ describe('MessagebusService [messagebus.service]', () => {
             () => {
 
                 // new store
-                let store = bus.createStore('pupStore');
+                let store = bus.stores.createStore('pupStore');
                 store.put('chicken', 'cotton', 'created');
-                expect(bus.getStore('pupStore')).not.toBeNull();
+                expect(bus.stores.getStore('pupStore')).not.toBeNull();
                 expect(store.get('chicken')).toEqual('cotton');
 
                 const map = new Map<string, string>();
                 map.set('maggie', 'magnum');
 
                 // check populating
-                const storePop = bus.createStore('pupStorePopulated', map);
-                expect(bus.getStore('pupStorePopulated')).not.toBeNull();
-                expect(bus.getStore('pupStorePopulated').allValues().length).toEqual(1);
+                const storePop = bus.stores.createStore('pupStorePopulated', map);
+                expect(bus.stores.getStore('pupStorePopulated')).not.toBeNull();
+                expect(bus.stores.getStore('pupStorePopulated').allValues().length).toEqual(1);
                 expect(storePop.get('maggie')).toEqual('magnum');
 
                 // create with existing store
-                store = bus.createStore('pupStore');
-                expect(bus.getStore('pupStore')).not.toBeNull();
+                store = bus.stores.createStore('pupStore');
+                expect(bus.stores.getStore('pupStore')).not.toBeNull();
                 expect(store.get('chicken')).toEqual('cotton');
 
             }
@@ -1698,11 +1698,11 @@ describe('MessagebusService [messagebus.service]', () => {
             () => {
 
                 // new store
-                let store = bus.createStore('pupStore');
-                expect(bus.getStore('pupStore')).not.toBeNull();
-                expect(bus.destroyStore('pupStore')).toBeTruthy();
-                expect(bus.destroyStore('pupStore')).toBeFalsy();
-                expect(bus.destroyStore('noSuchStore')).toBeFalsy();
+                let store = bus.stores.createStore('pupStore');
+                expect(bus.stores.getStore('pupStore')).not.toBeNull();
+                expect(bus.stores.destroyStore('pupStore')).toBeTruthy();
+                expect(bus.stores.destroyStore('pupStore')).toBeFalsy();
+                expect(bus.stores.destroyStore('noSuchStore')).toBeFalsy();
 
             }
         );

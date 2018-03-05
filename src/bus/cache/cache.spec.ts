@@ -288,7 +288,7 @@ describe('BusStore [cache/cache]', () => {
             .subscribe(
             () => {
                 counter++;
-                if (counter === 5) {
+                if (counter === 7) {
                     done();
                 }
             }
