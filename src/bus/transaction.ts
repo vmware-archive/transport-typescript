@@ -1,10 +1,11 @@
 import { UUID } from './cache/cache.model';
 import { MessageFunction, Message } from './model/message.model';
-import { BusTransaction, TransactionReceipt, TransactionType, EventBus } from './bus.api';
+import { BusTransaction, TransactionReceipt, TransactionType, EventBus, ChannelName } from './bus.api';
 import { TransactionRequest, TransactionRequestImpl, TransactionReceiptImpl } from './model/transaction.model';
 import { StompParser } from '../index';
 import { LoggerService } from '../log/index';
 import { MessageBusEnabled } from './messagebus.service';
+import { Syslog } from '../log/syslog';
 
 /**
  * Copyright(c) VMware Inc. 2016-2018
@@ -14,7 +15,6 @@ export class BusTransactionImpl implements BusTransaction {
     
     private requests: Array<TransactionRequest>;
     private transactionType: TransactionType;
-    private transactionCompleted: boolean;
     private transactionReceipt: TransactionReceipt;
     private transactionSession: any;
     private bus: EventBus;
@@ -22,6 +22,9 @@ export class BusTransactionImpl implements BusTransaction {
     private completedHandler: any;
     private log: LoggerService;
     private id: UUID;
+    private transactionErrorChannel: ChannelName;
+    private completed: boolean = false;
+    private transactionCompleteError: Error =  null;
 
     constructor(
             bus: EventBus,
@@ -32,35 +35,43 @@ export class BusTransactionImpl implements BusTransaction {
         this.bus = bus;
         this.log = logger;
         this.transactionType = transactionType;
-        this.transactionCompleted = false;
         this.requests = [];
         this.name = name;
         this.id = StompParser.genUUID();
-        this.log.info('🏦 Transaction Created: ' + this.id, this.name);
+        this.transactionErrorChannel = 'transaction-' + this.id + '-errors';
+        this.log.info('🏦 Transaction Created', this.transactionName());
     }
 
     //private requests
     public sendRequest<Req>(channel: string, payload: Req): void {
+        if (this.completed) {
+            this.transactionCompletedMessage('cannot queue a new request via sendRequest()');
+            throw this.transactionCompleteError;
+        }
         const req: TransactionRequest = new TransactionRequestImpl<Req>(channel, payload);
         this.requests.push(req);
         this.log.info('⏳ Transaction [' + this.id + '] Request Queued: [' + req.id + ']', this.name);
     }
     public onComplete<Resp>(completeHandler: MessageFunction<Resp[]>): void {
-        this.log.info('⌛ Transaction [' + this.id + '] Complete Handler Registered', this.name);
+        if (this.completed) {
+            this.transactionCompletedMessage('cannot register onComplete() handler');
+            throw this.transactionCompleteError;
+        }
+        this.log.info('👋 Transaction Complete Handler Registered', this.transactionName());
         this.completedHandler = completeHandler;
     }
 
     public commit(): TransactionReceipt {
+        if (this.completed) {
+            this.transactionCompletedMessage('cannot re-commit transaction via commit()');
+            throw this.transactionCompleteError;
+        }
         
         if (this.requests.length <= 0) {
             throw new Error('Transaction cannot be committed, no requests made.');
         }
         
-        if (this.transactionCompleted) {
-            throw new Error('Transaction has already been completed, cannot recommit.');
-        }
-
-        this.transactionReceipt = new TransactionReceiptImpl(this.requests.length);
+        this.transactionReceipt = new TransactionReceiptImpl(this.requests.length, this.id);
         switch (this.transactionType) {
 
             case TransactionType.ASYNC:
@@ -79,28 +90,31 @@ export class BusTransactionImpl implements BusTransaction {
     }
 
     public onError<T>(errorHandler: MessageFunction<T>): void {
-        throw new Error('Not implemented yet.');
+        if (this.completed) {
+            this.transactionCompletedMessage('cannot register new error handler via onError()');
+            throw this.transactionCompleteError;
+        }
+        this.bus.listenOnce(this.transactionErrorChannel)
+            .handle(
+                (error: any) => {
+                    this.log.error('Transaction [' + this.id + ']', error);
+                    errorHandler(error);
+                }
+            );
     }
 
-    // private createAsyncListener(): void {
-
-
-
-    // }
-
-    private sendRequestAndListen(request: TransactionRequest, doThing: any) {
-        //let returnChan = request.channel + '-tran-' + StompParser.genUUIDShort();
-        /*sendChannel: ChannelName, requestPayload: T, returnChannel?: ChannelName,
-                               from?: SentFrom, schema?: any): MessageHandler<R>;
-                               */
-        this.log.info('➡️ Sending Request Async Transaction [' + this.id + '] to channel [' + request.channel + ']'
-                                                                                                        , this.name);
+    private sendRequestAndListen(request: TransactionRequest, responseHandler: Function) {
+        this.log.info('➡️ Sending Request Async Transaction to channel: ' + request.channel, this.transactionName());
         const handler = this.bus.listenOnce(request.channel, this.name);
         handler.handle(
             (response: any) => {
-                this.log.info('⬅️ Async Transaction Response [' + this.id + '] on channel [' + request.channel + ']'
-                                                                                                        , this.name);
-                doThing(request.id, response);
+                this.log.info('⬅️ Async Transaction Response on channel: ' + request.channel, this.transactionName());
+                responseHandler(response);
+            }, 
+            (error: any) => {
+                
+                // send to onError handler.
+                this.bus.sendResponseMessage(this.transactionErrorChannel, error);
             }
         ); 
         this.bus.sendRequestMessage(request.channel, request.payload);
@@ -109,43 +123,53 @@ export class BusTransactionImpl implements BusTransaction {
 
 
     private startAsyncTransaction(): void {
-        this.log.info('🎬 Starting Async Transaction [' + this.id + ']', this.name);
+        this.log.info('🎬 Starting Async Transaction', this.transactionName());
         let responses = new Array<any>();
         const requestList: Array<TransactionRequest> = this.requests.slice();
         let counter: number = 0;
-        let thingy = (id: UUID, response: any) => {
-            console.log('got back and ID ' + id + ' and something', response);
+        
+        // create async response handler.
+        const responseHandler = (response: any) => {
             counter++;
             responses.push(response);
+            this.transactionReceipt.requestsCompleted++;
             if (counter >= this.requests.length) {
+                this.transactionReceipt.complete = true;
+                this.transactionReceipt.completedTime = new Date();
+                this.transactionCompleted();
                 this.completedHandler(responses);
                 return;
             }
         };
 
+        // started transaction
+        this.transactionReceipt.startedTime = new Date();
+        
         requestList.forEach(
             (request: TransactionRequest) => {
-                this.sendRequestAndListen(request, thingy);
+                this.sendRequestAndListen(request, responseHandler);
+                this.transactionReceipt.requestsSent++;
             }
         );
 
+    }
 
-        // const session = {
-        //         complete: false,
-        //         requestsPending: this.requests.slice(),
-        //         requestsCompleted: [],
-
-
-        // };
-
-
-
-        // do nothing;
-
+    private transactionName(): string {
+        return this.name + '.' + this.id;
     }
 
     private startSyncTransaction(): void {
         // do nothing;
         
     }
-}
+
+    private transactionCompleted(): void {
+        this.completed = true;
+        this.transactionCompleteError = new Error('transaction ' + this.id + ' has already completed');
+        this.log.info('🎉 Transaction Completed', this.transactionName());
+    }
+
+    private transactionCompletedMessage(msg: string): void {
+        this.log.warn('Transaction Complete: ' + msg, this.transactionName());
+    }
+ }

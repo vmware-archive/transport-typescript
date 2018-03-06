@@ -8,9 +8,9 @@ export interface TransactionRequest {
     payload: any;
     complete: boolean;
     aborted: boolean;
-    startedTime: number;
-    completedTime: number;
-    abortedTime: number;
+    startedTime: Date;
+    completedTime: Date;
+    abortedTime: Date;
 }
 
 export class TransactionRequestImpl<T> implements TransactionRequest {
@@ -19,9 +19,9 @@ export class TransactionRequestImpl<T> implements TransactionRequest {
     public payload: any;
     public complete: boolean;
     public aborted: boolean;
-    public startedTime: number;
-    public completedTime: number;
-    public abortedTime: number;
+    public startedTime: Date;
+    public completedTime: Date;
+    public abortedTime: Date;
 
     constructor(channel: string, payload: any) {
         this.channel = channel;
@@ -38,15 +38,17 @@ export class TransactionReceiptImpl implements TransactionReceipt {
     public requestsCompleted: number;
     public complete: boolean;
     public aborted: boolean;
-    public startedTime: number;
-    public completedTime: number;
-    public abortedTime: number;
+    public startedTime: Date;
+    public completedTime: Date;
+    public abortedTime: Date;
+    public id: UUID;
 
-    constructor(totalRequests: number) {
+    constructor(totalRequests: number, id: UUID) {
         this.totalRequests = totalRequests;
         this.requestsSent = 0;
         this.requestsCompleted = 0;
         this.aborted = false;
         this.complete = false;
+        this.id = id;
     }
 }

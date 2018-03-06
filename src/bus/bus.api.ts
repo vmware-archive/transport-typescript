@@ -275,7 +275,7 @@ export abstract class EventBus {
      */
     abstract closeChannel(cname: ChannelName, from?: SentFrom): boolean;
 
-
+    //abstract createTransaction()
 
 }
 
@@ -566,9 +566,9 @@ export interface TransactionReceipt {
     requestsCompleted: number;
     complete: boolean;
     aborted: boolean;
-    startedTime: number;
-    completedTime: number;
-    abortedTime: number;
+    startedTime: Date;
+    completedTime: Date;
+    abortedTime: Date;
 }
 
 /**
