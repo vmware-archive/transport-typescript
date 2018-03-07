@@ -275,7 +275,15 @@ export abstract class EventBus {
      */
     abstract closeChannel(cname: ChannelName, from?: SentFrom): boolean;
 
-    //abstract createTransaction()
+    /**
+     * Create a new transaction that can be composed of bus requests, cache initializations or both. Asynchronous
+     * transactions will all fire at once and return once all requests return. Syrnchonrous transactions will 
+     * fire in sequence and only proceed to the next transaction event once the preceeding response has returned.
+     * 
+     * @param {TransactionType} type type of transaction you want, synchonrous or asynchronous (default).
+     * @param {string} name the name of the transaction, helps you track progress in the console (if enabled)
+     */
+    abstract createTransaction(type?: TransactionType, name?: string): BusTransaction;
 
 }
 

@@ -2,7 +2,6 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 import { EventBus, MessagebusService, StompChannel } from '../';
-
 import { Syslog } from '../log/syslog';
 import { LogLevel } from '../log/logger.model';
 import { Message, MessageHandler, MessageResponder, MessageType } from './model/message.model';
@@ -1208,6 +1207,9 @@ describe('MessagebusService [messagebus.service]', () => {
 
         it('Say hi to magnum <3',
             (done) => {
+                // enable the easter egg and test it.
+                const castBus = bus as MessagebusService;
+                castBus.easterEgg();
                 bus.requestOnce('__maglingtonpuddles__', 'hi maggie!')
                     .handle(
                     (msg: string) => {

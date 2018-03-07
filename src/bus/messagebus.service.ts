@@ -17,7 +17,7 @@ import { StoreType, UUID } from './cache/cache.model';
 import { StompBusCommand, StompChannel, StompConfig } from '../bridge/stomp.model';
 import { StompClient } from '../bridge/stomp.client';
 import { StompParser } from '../bridge/stomp.parser';
-import { ChannelName, EventBus, EventBusLowApi, SentFrom } from './bus.api';
+import { ChannelName, EventBus, EventBusLowApi, SentFrom, TransactionType, BusTransaction } from './bus.api';
 import 'rxjs/add/operator/merge';
 import 'rxjs/add/observable/merge';
 import { EventBusLowLevelApiImpl } from './bus.lowlevel';
@@ -27,6 +27,7 @@ import { GalacticRequest } from './model/request.model';
 import { GalacticResponse } from './model/response.model';
 import { Observable } from 'rxjs/Observable';
 import { StoreManager } from './cache/store.manager';
+import { BusTransactionImpl } from './transaction';
 
 export abstract class MessageBusEnabled {
     abstract getName(): string;
@@ -71,7 +72,7 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         this.api.setLogLevel(logLevel);
         
         // say hi to magnum.
-        this.easterEgg();
+        // this.easterEgg();
     }
 
     public getName() {
@@ -320,7 +321,12 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
 
     }
 
-    private easterEgg(): void {
+    public createTransaction(type: TransactionType = TransactionType.ASYNC, 
+                             name: string = 'Transaction' + StompParser.genUUID()): BusTransaction {
+        return new BusTransactionImpl(this, this.log, type, name);
+    }
+
+    public easterEgg(): void {
         
         const chan = this.api.getRequestChannel('__maglingtonpuddles__', this.getName(), true);
         chan.subscribe(
@@ -330,6 +336,5 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
                 this.sendResponseMessage('__maglingtonpuddles__', msg);
             }
         );
-    
     }
 }

@@ -6,6 +6,7 @@ import { StompParser } from '../index';
 import { LoggerService } from '../log/index';
 import { MessageBusEnabled } from './messagebus.service';
 import { Syslog } from '../log/syslog';
+import { Observable } from 'rxjs/Observable';
 
 /**
  * Copyright(c) VMware Inc. 2016-2018
@@ -44,6 +45,7 @@ export class BusTransactionImpl implements BusTransaction {
 
     //private requests
     public sendRequest<Req>(channel: string, payload: Req): void {
+      
         if (this.completed) {
             this.transactionCompletedMessage('cannot queue a new request via sendRequest()');
             throw this.transactionCompleteError;
@@ -53,6 +55,7 @@ export class BusTransactionImpl implements BusTransaction {
         this.log.info('⏳ Transaction [' + this.id + '] Request Queued: [' + req.id + ']', this.name);
     }
     public onComplete<Resp>(completeHandler: MessageFunction<Resp[]>): void {
+       
         if (this.completed) {
             this.transactionCompletedMessage('cannot register onComplete() handler');
             throw this.transactionCompleteError;
@@ -62,6 +65,7 @@ export class BusTransactionImpl implements BusTransaction {
     }
 
     public commit(): TransactionReceipt {
+       
         if (this.completed) {
             this.transactionCompletedMessage('cannot re-commit transaction via commit()');
             throw this.transactionCompleteError;
@@ -104,6 +108,7 @@ export class BusTransactionImpl implements BusTransaction {
     }
 
     private sendRequestAndListen(request: TransactionRequest, responseHandler: Function) {
+       
         this.log.info('➡️ Sending Request Async Transaction to channel: ' + request.channel, this.transactionName());
         const handler = this.bus.listenOnce(request.channel, this.name);
         handler.handle(
@@ -118,11 +123,10 @@ export class BusTransactionImpl implements BusTransaction {
             }
         ); 
         this.bus.sendRequestMessage(request.channel, request.payload);
-
     }
 
-
     private startAsyncTransaction(): void {
+     
         this.log.info('🎬 Starting Async Transaction', this.transactionName());
         let responses = new Array<any>();
         const requestList: Array<TransactionRequest> = this.requests.slice();
@@ -159,7 +163,64 @@ export class BusTransactionImpl implements BusTransaction {
     }
 
     private startSyncTransaction(): void {
-        // do nothing;
+        
+        this.log.info('🎬 Starting Sync Transaction', this.transactionName());
+        let responses = new Array<any>();
+        const requestList: Array<TransactionRequest> = this.requests.slice();
+        let counter: number = 0;
+        
+        const requestStream: Observable<TransactionRequest[]> = Observable.of(requestList);
+        for (let x = 0; x < requestList.length; x++) {
+            if (x >= 0 && x < requestList.length ) {
+                requestList[x].nextRequest = requestList[x + 1];
+            }
+        }
+        console.log(requestList);
+
+        // pick up here tomorrow.
+        const responseHandler = (response: any) => {
+                counter++;
+                responses.push(response);
+                this.transactionReceipt.requestsCompleted++;
+                if (counter >= this.requests.length) {
+                    // this.transactionReceipt.complete = true;
+                    // this.transactionReceipt.completedTime = new Date();
+                    // this.transactionCompleted();
+                    // this.completedHandler(responses);
+                    // return;
+                }
+        };
+
+
+        this.sendRequestAndListen(requestList[0], responseHandler);
+
+
+
+        // // create async response handler.
+        // const responseHandler = (response: any) => {
+        //     counter++;
+        //     responses.push(response);
+        //     this.transactionReceipt.requestsCompleted++;
+        //     if (counter >= this.requests.length) {
+        //         this.transactionReceipt.complete = true;
+        //         this.transactionReceipt.completedTime = new Date();
+        //         this.transactionCompleted();
+        //         this.completedHandler(responses);
+        //         return;
+        //     }
+        // };
+
+        // started transaction
+        //this.transactionReceipt.startedTime = new Date();
+        
+        requestStream.subscribe(
+            (req: TransactionRequest[]) => {
+                console.log('Yep we got a request', req);
+            }
+        );
+
+
+
         
     }
 

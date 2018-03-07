@@ -11,6 +11,7 @@ export interface TransactionRequest {
     startedTime: Date;
     completedTime: Date;
     abortedTime: Date;
+    nextRequest: TransactionRequest;
 }
 
 export class TransactionRequestImpl<T> implements TransactionRequest {
@@ -22,6 +23,7 @@ export class TransactionRequestImpl<T> implements TransactionRequest {
     public startedTime: Date;
     public completedTime: Date;
     public abortedTime: Date;
+    public nextRequest: TransactionRequest;
 
     constructor(channel: string, payload: any) {
         this.channel = channel;

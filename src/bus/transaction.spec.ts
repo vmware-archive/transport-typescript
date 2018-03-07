@@ -4,8 +4,9 @@
 import { MessagebusService } from '../';
 
 import { BusTransactionImpl } from './transaction';
-import { BusTransaction, EventBus, TransactionReceipt } from './bus.api';
+import { BusTransaction, EventBus, TransactionReceipt, TransactionType } from './bus.api';
 import { LogLevel } from '../log';
+import { StompParser } from '../bridge/stomp.parser';
 
 describe('Bus Transactions [transaction.ts]', () => {
 
@@ -17,7 +18,7 @@ describe('Bus Transactions [transaction.ts]', () => {
             bus = new MessagebusService(LogLevel.Error, true);
             bus.api.loggerInstance.setStylingVisble(false);
             //bus.api.enableMonitorDump(true);
-            transaction = new BusTransactionImpl(bus, bus.api.logger());
+            transaction = bus.createTransaction();
         }
     );
 
@@ -201,6 +202,29 @@ describe('Bus Transactions [transaction.ts]', () => {
         expect(transRecipt.completedTime).toBeUndefined();
         expect(transRecipt.startedTime).toBeLessThanOrEqual(startNow);
 
+
+    });
+
+    xit('Should be able run a simple synchonrous transaction', (done) => {
+        const chan = '#somechannel';
+        transaction = bus.createTransaction(TransactionType.SYNC);
+
+        bus.respondStream(chan)
+            .generate(
+                () => 'pong'
+            );
+
+        transaction.onComplete(
+            (results: string[]) => {
+                expect(results.length).toEqual(1);
+                expect(results[0]).toEqual('pong');
+                done();
+            }
+        );
+
+        transaction.sendRequest(chan, 'ping');
+        transaction.sendRequest(chan, 'ting');
+        transaction.commit();
 
     });
 
