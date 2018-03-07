@@ -7,6 +7,7 @@ import { LoggerService } from '../log/index';
 import { MessageBusEnabled } from './messagebus.service';
 import { Syslog } from '../log/syslog';
 import { Observable } from 'rxjs/Observable';
+import { Subject } from 'rxjs/Subject';
 
 /**
  * Copyright(c) VMware Inc. 2016-2018
@@ -26,6 +27,7 @@ export class BusTransactionImpl implements BusTransaction {
     private transactionErrorChannel: ChannelName;
     private completed: boolean = false;
     private transactionCompleteError: Error =  null;
+    private syncStream: Subject<TransactionRequest>;
 
     constructor(
             bus: EventBus,
@@ -163,6 +165,7 @@ export class BusTransactionImpl implements BusTransaction {
     }
 
     private startSyncTransaction(): void {
+        this.syncStream = new Subject<TransactionRequest>();
         
         this.log.info('🎬 Starting Sync Transaction', this.transactionName());
         let responses = new Array<any>();
@@ -192,7 +195,7 @@ export class BusTransactionImpl implements BusTransaction {
         };
 
 
-        this.sendRequestAndListen(requestList[0], responseHandler);
+        //this.sendRequestAndListen(requestList[0], responseHandler);
 
 
 
