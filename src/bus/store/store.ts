@@ -8,11 +8,13 @@ import { StompParser } from '../../bridge/stomp.parser';
 import { Observable } from 'rxjs/Observable';
 import {
     StoreStateChange, StoreStateMutation, StoreStreamImpl, MutateStreamImpl, MutationRequestWrapper,
-    UUID
+    UUID,
+    StoreType
 } from './store.model';
 import { BusStore, StoreStream, MutateStream } from '../store.api';
 import { EventBus } from '../bus.api';
 import { Syslog } from '../../log/syslog';
+import { LoggerService } from '../../log/logger.service';
 
 interface Predicate<T> {
     (value: T): boolean;
@@ -36,13 +38,13 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
         return 'store-' + this.uuid + '-object-' + id;
     }
 
-    constructor(private bus: EventBus) {
+    constructor(private bus: EventBus, private log: LoggerService, private type: StoreType) {
         this.cache = new Map<UUID, any>();
-        this.uuid = StompParser.genUUID();
+        this.uuid = StompParser.genUUIDShort();
         this.cacheStreamChan = 'cache-change-' + this.uuid;
         this.cacheMutationChan = 'cache-mutation-' + this.uuid;
         this.cacheReadyChan = 'cache-ready-' + this.uuid;
-
+        this.log.info('🗄️ Store: New Store [' + type + '] was created with id ' + this.uuid, type);
     }
 
     private sendChangeBroadcast<C>(changeType: C, id: UUID, value: T): void {
@@ -73,6 +75,7 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
     populate(items: Map<UUID, T>): boolean {
         if (this.cache.size === 0) {
             this.cache = new Map(items.entries());
+            this.log.info('🗄️ Store: Populated with  ' + this.cache.size + ' values', this.type);
             this.initialize();
             return true;
         }
@@ -82,6 +85,7 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
     put<S>(id: UUID, value: T, state: S): void {
         this.cache.set(id, value);
         this.sendChangeBroadcast(state, id, value);
+        this.log.info('🗄️ Store: Added new object with id: ' + id, this.type);
     }
 
     get(id: UUID): T {
@@ -94,6 +98,7 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
             this.sendChangeBroadcast(state, id, obj);
             this.cache.delete(id);
             this.bus.api.close(this.getObjectChannel(id), this.getName());
+            this.log.info('🗄️ Store: Removed object with id ' + id, this.type);
             return true;
         }
         return false;
@@ -202,6 +207,8 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
             mutation,
             this.getName()
         );
+
+        this.log.debug('🗄️ Store: Fired mutation request', this.type);
         return true;
     }
 
@@ -247,6 +254,9 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
         setTimeout(
             () => {
                 if (this.cacheInitialized) {
+                    this.log.debug('🗄️ Store: [' + this.type + '] Ready! Contains ' 
+                        + this.allValuesAsMap().size + ' values', this.type);
+                    
                     this.bus.sendResponseMessage(this.cacheReadyChan, this.allValuesAsMap());
                 }
             }
@@ -256,7 +266,8 @@ export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
     initialize(): void {
         if (!this.cacheInitialized) {
             this.cacheInitialized = true;
-            this.bus.sendResponseMessage(this.cacheReadyChan, true);
+            this.log.info('🗄️ Store: [' + this.type + '] Initialized!', this.type);
+            this.bus.sendResponseMessage(this.cacheReadyChan, this.allValuesAsMap());
         }
     }
 }

@@ -8,12 +8,12 @@
 
 import {LogUtil} from './util';
 export enum LogLevel {
-    Verbose,
-    Debug,
-    Info,
-    Warn,
-    Error,
-    Off
+    Verbose = 'Ver',
+    Debug = 'Deb',
+    Info = 'Inf',
+    Warn = 'War',
+    Error = 'Err',
+    Off = 'Off'
 }
 
 export class LogChannel {

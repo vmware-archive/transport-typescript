@@ -22,12 +22,12 @@ enum Mutate {
     RemoveStuff = 'RemoveStuff'
 }
 
-describe('BusStore [cache/cache]', () => {
+describe('BusStore [store/store.model]', () => {
     let bus: EventBus;
     Syslog.suppressFlag = true;
 
     beforeEach(() => {
-        bus = new MessagebusService(LogLevel.Error, true);
+        bus = new MessagebusService(LogLevel.Off, true);
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
         bus.stores.createStore('string');

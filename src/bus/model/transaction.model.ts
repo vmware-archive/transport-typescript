@@ -30,7 +30,7 @@ export class TransactionRequestImpl<T> implements TransactionRequest {
 
     constructor(channel?: string, payload?: any, store?: StoreType) {
         this.channel = channel;
-        this.id = StompParser.genUUID();
+        this.id = StompParser.genUUIDShort();
         this.payload = payload;
         this.complete = false;
         this.aborted = false;

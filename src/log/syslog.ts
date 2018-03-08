@@ -50,7 +50,7 @@ export class Syslog {
     public static getSavedLogLevel () {
         let saved = localStorage.getItem(Syslog.LOG_LEVEL);
         if (saved) {
-            return +saved;
+            return saved;
         }
 
         Syslog.createLogger();

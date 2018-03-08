@@ -10,11 +10,11 @@ import { EventBus } from '../bus.api';
 import { LogLevel } from '../../log/index';
 
 
-describe('BusStore [cache/cache]', () => {
+describe('BusStore Model [store/store.model]', () => {
     let bus: EventBus;
 
     beforeEach(() => {
-        bus = new MessagebusService(LogLevel.Error);
+        bus = new MessagebusService(LogLevel.Error, true);
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
         //bus.createStore('string');

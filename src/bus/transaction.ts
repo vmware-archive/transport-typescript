@@ -41,7 +41,7 @@ export class BusTransactionImpl implements BusTransaction {
         this.transactionType = transactionType;
         this.requests = [];
         this.name = name;
-        this.id = StompParser.genUUID();
+        this.id = StompParser.genUUIDShort();
         this.transactionErrorChannel = 'transaction-' + this.id + '-errors';
         this.log.info('🏦 Transaction Created', this.transactionName());
     }
@@ -53,7 +53,8 @@ export class BusTransactionImpl implements BusTransaction {
         }
         const req: TransactionRequest = new TransactionRequestImpl(null, null, store);
         this.requests.push(req);
-        this.log.info('⏳ Transaction [' + this.id + '] Store Ready Request Queued: [' + req.id + ']', this.name);
+        this.log.debug('⏳ Transaction: Store Request Queued: [' + req.id + ']', this.transactionName());
+       
     }
 
     //private requests
@@ -65,7 +66,7 @@ export class BusTransactionImpl implements BusTransaction {
         }
         const req: TransactionRequest = new TransactionRequestImpl<Req>(channel, payload);
         this.requests.push(req);
-        this.log.info('⏳ Transaction [' + this.id + '] Request Queued: [' + req.id + ']', this.name);
+        this.log.debug('⏳ Transaction: Bus Request Queued: [' + req.id + ']', this.transactionName());
     }
     public onComplete<Resp>(completeHandler: MessageFunction<Resp[]>): void {
        
@@ -73,7 +74,7 @@ export class BusTransactionImpl implements BusTransaction {
             this.transactionCompletedMessage('cannot register onComplete() handler');
             throw this.transactionCompleteError;
         }
-        this.log.info('👋 Transaction Complete Handler Registered', this.transactionName());
+        this.log.debug('👋 Transaction: Completed Handler Registered', this.transactionName());
         this.completedHandler = completeHandler;
     }
 
@@ -122,14 +123,14 @@ export class BusTransactionImpl implements BusTransaction {
 
     private sendRequestAndListen(request: TransactionRequest, responseHandler: Function, type: TransactionType) {
        
-        this.log.info('➡️ ' + type + ' Sending Request Transaction to channel: ' 
+        this.log.debug('➡️ Transaction: Sending ' + type + ' Request to channel: ' 
                         + request.channel, this.transactionName());
 
-        const mId = StompParser.genUUID(); // use message ID's to make sure we only react to each explicit response
+        const mId = StompParser.genUUIDShort(); // use message ID's to make sure we only react to each explicit response
         const handler = this.bus.listenStream(request.channel, this.name, mId);
         handler.handle(
             (response: any) => {
-                this.log.info('⬅️ ' + type + ' Transaction Response on channel: ' 
+                this.log.debug('⬅️ Transaction: Received ' + type + ' Response on channel: ' 
                                 + request.channel + ' - ' + response, this.transactionName());
                 responseHandler(response);
                 handler.close();
@@ -152,24 +153,13 @@ export class BusTransactionImpl implements BusTransaction {
 
     private startAsyncTransaction(): void {
      
-        this.log.info('🎬 Starting Async Transaction', this.transactionName());
+        this.log.info('🏦 Transaction: Starting Asynchronous', this.transactionName());
         let responses = new Array<any>();
         const requestList: Array<TransactionRequest> = this.requests.slice();
         let counter: number = 0;
         
         // create async response handler for requests/responses.
-        const responseHandler = (response: any) => {
-            counter++;
-            responses.push(response);
-            this.transactionReceipt.requestsCompleted++;
-            if (counter >= this.requests.length) {
-                this.transactionCompleteHandler(responses);
-                return;
-            }
-        };
-
-        // create async response handler for stores
-        const storeHandler = (response: Map<UUID, any>) => {
+        const handler = (response: any) => {
             counter++;
             responses.push(response);
             this.transactionReceipt.requestsCompleted++;
@@ -186,10 +176,10 @@ export class BusTransactionImpl implements BusTransaction {
             (request: TransactionRequest) => {
                 this.transactionReceipt.requestsSent++;  
                 if (!request.store) {
-                    this.sendRequestAndListen(request, responseHandler, TransactionType.ASYNC);
+                    this.sendRequestAndListen(request, handler, TransactionType.ASYNC);
                 } else {
-                    this.log.info('⏱️ Waiting for Store to be ready: ' + request.store, this.transactionName());
-                    this.bus.stores.createStore(request.store).whenReady(storeHandler);
+                    this.log.info('⏱️ Transaction: Waiting for Store: ' + request.store, this.transactionName());
+                    this.bus.stores.createStore(request.store).whenReady(handler);
                 }
             }
         );
@@ -203,7 +193,7 @@ export class BusTransactionImpl implements BusTransaction {
     private startSyncTransaction(): void {
         this.syncStream = new Subject<TransactionRequest>();
         
-        this.log.info('🎬 Starting Sync Transaction', this.transactionName());
+        this.log.info('🏦 Transaction: Starting Synchronous', this.transactionName());
         let responses = new Array<any>();
         const requestList: Array<TransactionRequest> = this.requests.slice();
         let counter: number = 0;
@@ -228,8 +218,14 @@ export class BusTransactionImpl implements BusTransaction {
                         this.syncStream.complete();
                     }
                 };
-                this.sendRequestAndListen(req, responseHandler, TransactionType.SYNC);
+
                 this.transactionReceipt.requestsSent++;
+                if (!req.store) {
+                    this.sendRequestAndListen(req, responseHandler, TransactionType.ASYNC);
+                } else {
+                    this.log.info('⏱️ Transaction: Waiting for Store: ' + req.store, this.transactionName());
+                    this.bus.stores.createStore(req.store).whenReady(responseHandler);
+                }
             }, 
             (error) => {
                     // send to onError handler.

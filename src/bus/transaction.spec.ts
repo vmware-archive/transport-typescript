@@ -12,10 +12,11 @@ describe('Bus Transactions [transaction.ts]', () => {
 
     let transaction: BusTransaction;
     let bus: EventBus;
+    const chan = '#some-test-channel';
 
     beforeEach(
         () => {
-            bus = new MessagebusService(LogLevel.Error, true);
+            bus = new MessagebusService(LogLevel.Off, true);
             bus.api.loggerInstance.setStylingVisble(false);
             //bus.api.enableMonitorDump(true);
             transaction = bus.createTransaction();
@@ -27,8 +28,6 @@ describe('Bus Transactions [transaction.ts]', () => {
     });
 
     it('Should be able to run a single request and trigger onComplete', (done) => {
-        const chan = '#somechannel';
-
         bus.respondStream(chan)
             .generate(
                 () => 'pong'
@@ -48,8 +47,6 @@ describe('Bus Transactions [transaction.ts]', () => {
     });
 
     it('Should be able to run a multiple requests on same channel and trigger onComplete', (done) => {
-        const chan = '#somechannel';
-
         bus.respondStream(chan)
             .generate(
                 () => 'pong'
@@ -147,8 +144,6 @@ describe('Bus Transactions [transaction.ts]', () => {
     });
 
     it('Should be able to handle errors mid async transaction', (done) => {
-        const chan = '#somechannel';
-
         transaction.onError(
             (error: string) => {
                 expect(error).toEqual('error!');
@@ -169,7 +164,6 @@ describe('Bus Transactions [transaction.ts]', () => {
     });
 
     it('Transaction start and end times should be valid', (done) => {
-        const chan = '#somechannel';
         let transRecipt: TransactionReceipt;
 
         bus.respondOnce(chan)
@@ -206,7 +200,6 @@ describe('Bus Transactions [transaction.ts]', () => {
     });
 
     it('Should be able run a simple synchonrous transaction', (done) => {
-        const chan = '#somechannel';
         transaction = bus.createTransaction(TransactionType.SYNC);
         let count = 0;
         bus.respondStream(chan)
@@ -276,8 +269,7 @@ describe('Bus Transactions [transaction.ts]', () => {
 
     it('Should be able to handle errors mid sync transaction', (done) => {
         transaction = bus.createTransaction(TransactionType.SYNC);
-        const chan = '#somechannel';
-
+       
         transaction.onError(
             (error: string) => {
                 expect(error).toEqual('error!');
@@ -294,12 +286,9 @@ describe('Bus Transactions [transaction.ts]', () => {
 
         transaction.sendRequest(chan, 'ping');
         transaction.commit();
-
     });
 
     it('Should be able wait for multiple stores to be ready asychronously before completing transaction', (done) => {
-        const chan = '#somechannel';
-
         transaction.onComplete(
             (results: string[]) => {
                 expect(results.length).toEqual(3);
@@ -319,13 +308,9 @@ describe('Bus Transactions [transaction.ts]', () => {
         store1.initialize();
         store2.initialize();
         store3.initialize();
-        
-
-
     });
 
     it('Should be able wait for multiple stores and requests to be completed asynchronously', (done) => {
-        const chan = '#somechannel';
         let count = 0;
 
         bus.respondStream(chan)
@@ -336,7 +321,6 @@ describe('Bus Transactions [transaction.ts]', () => {
         transaction.onComplete(
             (results: any[]) => {
                 
-                //console.log(' spec... DONE', results);
                 expect(results.length).toEqual(6);
                 done();
             }
@@ -358,9 +342,57 @@ describe('Bus Transactions [transaction.ts]', () => {
         store1.initialize();
         store2.initialize();
         store3.initialize();
+    });
+
+    it('Should be able wait for multiple stores and requests to be completed synchronously', (done) => {
+    
+        transaction = bus.createTransaction(TransactionType.SYNC, 'mixed-sync-store');
+        let count = 0;
+
+        bus.respondStream(chan)
+            .generate(
+               () => 'pong-' + count++
+             );
+
+        transaction.onComplete(
+            (results: any[]) => {
+                expect(results.length).toEqual(6);
+                expect(results[0] instanceof Map).toBeTruthy();
+                expect(results[0].get('ember')).toEqual('chomp');
+                expect(results[1]).toEqual('pong-0');
+                expect(results[2] instanceof Map).toBeTruthy();
+                expect(results[2].get('fox')).toEqual('honk');
+                expect(results[3]).toEqual('pong-1');
+                expect(results[4] instanceof Map).toBeTruthy();
+                expect(results[4].get('cotton')).toEqual('stomp');
+                expect(results[5]).toEqual('pong-2');
+                done();
+            }
+        );
+
+        transaction.waitForStoreReady('store1');
+        transaction.sendRequest(chan, 'ping1');
+        transaction.waitForStoreReady('store2');
+        transaction.sendRequest(chan, 'ping2');
+        transaction.waitForStoreReady('store3');
+        transaction.sendRequest(chan, 'ping3');
+
+        transaction.commit();
+
+        const store1 = bus.stores.createStore('store1');
+        const store2 = bus.stores.createStore('store2');
+        const store3 = bus.stores.createStore('store3');
         
+        store1.put('ember', 'chomp', null);
+        store1.initialize();
 
+        store2.put('fox', 'honk', null);
+        store2.initialize();
 
+        store3.put('cotton', 'stomp', null);
+        store3.initialize();
+    
+    
     });
 
 

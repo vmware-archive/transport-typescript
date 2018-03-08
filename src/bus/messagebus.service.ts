@@ -54,7 +54,7 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         this.api = new EventBusLowLevelApiImpl(this, this.internalChannelMap, this.log);
 
         // Store API
-        this.stores = new StoreManager(this);
+        this.stores = new StoreManager(this, this.log);
         
         // wire up singleton to the window object under a custom namespace.
         window.AppEventBus = this as EventBus;
@@ -391,7 +391,7 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
     }
 
     public createTransaction(type: TransactionType = TransactionType.ASYNC, 
-                             name: string = 'Transaction' + StompParser.genUUID()): BusTransaction {
+                             name: string = 'Transaction' + StompParser.genUUIDShort()): BusTransaction {
         return new BusTransactionImpl(this, this.log, type, name);
     }
 

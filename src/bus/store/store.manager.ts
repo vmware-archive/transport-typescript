@@ -2,6 +2,7 @@ import { BusStoreApi, BusStore, StoreReadyResult } from '../store.api';
 import { StoreType, UUID } from './store.model';
 import { StoreImpl } from './store';
 import { EventBus } from '../bus.api';
+import { LoggerService } from '../../log/logger.service';
 
 /**
  * Copyright(c) VMware Inc. 2016-2018
@@ -10,7 +11,7 @@ export class StoreManager implements BusStoreApi {
     
     private internalStoreMap: Map<string, BusStore<any>>;
     
-    constructor(private bus: EventBus) {
+    constructor(private bus: EventBus, private log: LoggerService) {
        
         // Store map.
         this.internalStoreMap = new Map<StoreType, BusStore<any>>();
@@ -18,7 +19,7 @@ export class StoreManager implements BusStoreApi {
     
     public createStore<T>(objectType: StoreType, map?: Map<UUID, T>): BusStore<T> {
         if (!this.getStore(objectType)) {
-            const cache: BusStore<T> = new StoreImpl<T>(this.bus);
+            const cache: BusStore<T> = new StoreImpl<T>(this.bus, this.log, objectType);
             if (map) {
                 cache.populate(map);
             }
