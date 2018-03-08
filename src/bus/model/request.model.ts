@@ -1,5 +1,5 @@
 import { AbstractFrame } from './abstractframe.model';
-import { UUID } from '../cache/cache.model';
+import { UUID } from '../store/store.model';
 import { StompParser } from '../../bridge/stomp.parser';
 export class GalacticRequest<PayloadT> extends AbstractFrame {
 

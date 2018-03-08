@@ -1,4 +1,4 @@
-import { UUID } from '../cache/cache.model';
+import { UUID } from '../store/store.model';
 import { StompParser } from '../../bridge/stomp.parser';
 
 export abstract class AbstractFrame {

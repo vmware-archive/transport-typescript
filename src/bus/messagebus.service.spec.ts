@@ -12,7 +12,7 @@ import { StompParser } from '../bridge/stomp.parser';
 import { StompClient } from '../bridge/stomp.client';
 import { MonitorObject, MonitorType } from './model/monitor.model';
 import { GalacticRequest } from './model/request.model';
-import { UUID } from './cache/cache.model';
+import { UUID } from './store/store.model';
 import { GalacticResponse } from './model/response.model';
 
 function makeCallCountCaller(done: any, targetCount: number): any {

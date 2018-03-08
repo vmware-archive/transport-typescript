@@ -4,7 +4,7 @@
 
 import { MessageFunction } from './model/message.model';
 import { Subscription } from 'rxjs/Subscription';
-import { UUID, StoreType } from './cache/cache.model';
+import { UUID, StoreType } from './store/store.model';
 
 /**
  * StoreStream wraps an Observable, allowing for future underlying logic manipulation without

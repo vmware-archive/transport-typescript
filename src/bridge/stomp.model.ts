@@ -7,7 +7,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { StompClient } from './stomp.client';
 import { StompParser } from './stomp.parser';
 import { MockSocket } from './stomp.mocksocket';
-import { UUID } from '../bus/cache/cache.model';
+import { UUID } from '../bus/store/store.model';
 
 export class StompChannel {
 

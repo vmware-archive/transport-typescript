@@ -3,8 +3,8 @@
  */
 import { Syslog } from '../log/syslog';
 import { StompService } from '../';
-import { StoreType, UUID } from './cache/cache.model';
-import { BusStore, BusStoreApi } from './cache.api';
+import { StoreType, UUID } from './store/store.model';
+import { BusStore, BusStoreApi } from './store.api';
 import { MessageSchema, ErrorSchema } from './model/message.schema';
 import {
     Message, MessageFunction,
@@ -62,6 +62,31 @@ export abstract class EventBus {
     abstract sendRequestMessage<R>(cname: ChannelName, payload: R, from?: SentFrom, schema?: MessageSchema): void;
 
     /**
+     * Send a request payload to a channel with a supplied ID in the request
+     * 
+     * @param {ChannelName} cname channel to send the payload to
+     * @param {R} payload the payload to be sent
+     * @param {UUID} id the ID you want to attach to your request
+     * @param {SentFrom} from  optional name of the sending actor (for logging)
+     * @param {MessageSchema} schema optional schema (not yet enabled)
+     */
+    abstract sendRequestMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, 
+                                         from?: SentFrom, schema?: MessageSchema): void;
+    
+    /**
+     * Send a request payload to a channel with a supplied ID in the request
+     * 
+     * @param {ChannelName} cname channel to send the payload to
+     * @param {R} payload the payload to be sent
+     * @param {UUID} id the ID you want to attach to your request
+     * @param {number} version version of request you want to sent (defaults to 1)
+     * @param {SentFrom} from  optional name of the sending actor (for logging)
+     * @param {MessageSchema} schema optional schema (not yet enabled)
+     */                                     
+    abstract sendRequestMessageWithIdAndVersion<R>(cname: ChannelName, payload: R, id: UUID, version: number,
+                                                   from?: SentFrom, schema?: MessageSchema): void;
+
+    /**
      * Send response payload to a channel.
      *
      * @param {ChannelName} cname channel name to send payload to
@@ -71,6 +96,29 @@ export abstract class EventBus {
      */
     abstract sendResponseMessage<R>(cname: ChannelName, payload: R, from?: SentFrom, schema?: MessageSchema): void;
 
+    /**
+     * Send a response payload to a channel with a supplied ID in the response.
+     * @param {ChannelName} cname the channel name to send the response payload to
+     * @param {R} payload the payload you want to send in response 
+     * @param {UUID} id the ID you want to attach to your response
+     * @param {SentFrom} from optional name of the sending actor (for logging) 
+     * @param {MessageSchema} schema optional schema (not yet implemented) 
+     */
+    abstract sendResponseMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, 
+                                          from?: SentFrom, schema?: MessageSchema): void;
+
+    
+    /**
+     * Send a response payload to a channel with a supplied ID in the response.
+     * @param {ChannelName} cname the channel name to send the response payload to
+     * @param {R} payload the payload you want to send in response
+     * @param {UUID} id the ID you want to attach to your response
+     * @param {number} version version of request you want to sent (defaults to 1) 
+     * @param {SentFrom} from optional name of the sending actor (for logging) 
+     * @param {MessageSchema} schema optional schema (not yet implemented) 
+     */                                      
+    abstract sendResponseMessageWithIdAndVersion<R>(cname: ChannelName, payload: R, id: UUID, version: number, 
+                                                    from?: SentFrom, schema?: MessageSchema): void; 
     /**
      * Send error payload to channel.
      *
@@ -165,19 +213,21 @@ export abstract class EventBus {
      *
      * @param {ChannelName} channel channel to listen to for responses.
      * @param {SentFrom} from optional name of actor implementing (for logging)
+     * @param {UUID} id optional ID of message you're looking for, will filter out all other messages
      * @returns {MessageHandler<R> reference to MessageHandler, the handle() function will process a single response.
      */
-    abstract listenOnce<R>(channel: ChannelName, from?: SentFrom): MessageHandler<R>;
+    abstract listenOnce<R>(channel: ChannelName, from?: SentFrom, id?: UUID): MessageHandler<R>;
 
     /**
      * Listen for all responses on a channel. Continue to handle until the stream is closed via the handler.
      *
      * @param {ChannelName} channel the channel to listen to for responses.
      * @param {SentFrom} from optional name of the actor implementing (for logging)
+     * @param {UUID} id optional ID of message you're looking for, will filter out all other messages
      * @returns {MessageHandler<R>} reference to MessageHandler. the handle() function will process all responses
      * until closed.
      */
-    abstract listenStream<R>(channel: ChannelName, from?: SentFrom): MessageHandler<R>;
+    abstract listenStream<R>(channel: ChannelName, from?: SentFrom, id?: UUID): MessageHandler<R>;
 
 
     /**
@@ -185,19 +235,21 @@ export abstract class EventBus {
      *
      * @param {ChannelName} channel the channel to listen to for requests
      * @param {SentFrom} from optional name of actor implementing (for logging)
+     * @param {UUID} id optional ID of message you're looking for, will filter out all other messages
      * @returns {MessageHandler<R>} reference to MessageHandler, then handle() function will only fire once.
      */
-    abstract listenRequestOnce<R>(channel: ChannelName, from?: SentFrom): MessageHandler<R>;
+    abstract listenRequestOnce<R>(channel: ChannelName, from?: SentFrom, id?: UUID): MessageHandler<R>;
 
     /**
      * Listen to a channel for all requests, continue handling requests until the handler is closed.
      *
      * @param {ChannelName} channel the channel to listen to for requests
      * @param {SentFrom} from optional name of actor implementing (for logging)
+     * @param {UUID} id optional ID of message you're looking for, will filter out all other messages
      * @returns {MessageHandler<R>} reference to MessageHandler, then handle() function will continue to fire until
      * closed.
      */
-    abstract listenRequestStream<R>(channel: ChannelName, from?: SentFrom): MessageHandler<R>;
+    abstract listenRequestStream<R>(channel: ChannelName, from?: SentFrom, id?: UUID): MessageHandler<R>;
 
     /**
      * Galactic Methods
@@ -393,9 +445,10 @@ export interface EventBusLowApi {
      * @param {MessageHandlerConfig} handlerConfig message handler configuration object.
      * @param {SentFrom} name optional calling actor (for logging)
      * @param schema optional schema (not currently used)
+     * @param {UUID} id enable message tracking if this is supplied
      * @returns {MessageHandler<R>} reference to MessageHandler<R>
      */
-    request<R>(handlerConfig: MessageHandlerConfig, name?: SentFrom, schema?: any): MessageHandler<R>;
+    request<R>(handlerConfig: MessageHandlerConfig, name?: SentFrom, schema?: any, id?: UUID): MessageHandler<R>;
 
     /**
      * Used internally to send messages to simple API's in main event bus.
@@ -403,9 +456,11 @@ export interface EventBusLowApi {
      * @param {MessageHandlerConfig} handlerConfig message handler configuration object.
      * @param {SentFrom} name optional calling actor (for logging)
      * @param schema optional schema (not currently used)
+     * @param {UUID} id enable message tracking if this is supplied
      * @returns {MessageHandler<R>} reference to MessageResponder<R>
      */
-    respond<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, schema?: any): MessageResponder<R, E>;
+    respond<R, E = any>(handlerConfig: MessageHandlerConfig, 
+                        name?: SentFrom, schema?: any, id?: UUID): MessageResponder<R, E>;
 
     /**
      * Used internally to interact with simpler API's in main event bus.
@@ -413,9 +468,11 @@ export interface EventBusLowApi {
      * @param {MessageHandlerConfig} handlerConfig message handler configuration object.
      * @param {boolean} requestStream listen to requests? defaults to responses only.
      * @param {SentFrom} name optional calling actor (for logging)
+     * @param {UUID} id enable message tracking if this is supplied 
      * @returns {MessageHandler<R>} reference to MessageHandler<R>
      */
-    listen<R>(handlerConfig: MessageHandlerConfig, requestStream?: boolean, name?: SentFrom): MessageHandler<R>;
+    listen<R>(handlerConfig: MessageHandlerConfig, 
+              requestStream?: boolean, name?: SentFrom, id?: UUID): MessageHandler<R>;
 
     /**
      * Close a channel. If the closer is the last subscriber, then the channel is destroyed.
@@ -583,8 +640,8 @@ export interface TransactionReceipt {
  * Type of transaction? Sync or Async? Default is Async.
  */
 export enum TransactionType {
-    ASYNC, // will send all requests at the same time and return when all are complete
-    SYNC // will send requests one at a time and only move on to the next one, once each request has completed.
+    ASYNC = 'Async', // will send all requests at the same time and return when all are complete
+    SYNC  = 'Sync'   // will send requests one at a time and move on after each request is completed in sequence.
 }
 export interface BusTransaction {
     
@@ -594,6 +651,12 @@ export interface BusTransaction {
      * @param {payload} any what ever you want to send.
      */
     sendRequest<ReqT>(channel: string, payload: ReqT): void;
+
+    /**
+     * Wait for a store to be ready / initialzed as a part of this transaction.
+     * @param {StoreType} channel channel to send the request to
+     */
+    waitForStoreReady<ReqT>(storeType: StoreType): void;
     
     /**
      * Once all responses to requests have been received, the transaction is complete.

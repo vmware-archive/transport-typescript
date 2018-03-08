@@ -3,7 +3,7 @@
  */
 import { Subject } from 'rxjs';
 import { Message } from './message.model';
-import { UUID } from '../cache/cache.model';
+import { UUID } from '../store/store.model';
 import { StompParser } from '../../index';
 
 /**

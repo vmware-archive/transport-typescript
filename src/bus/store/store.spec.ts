@@ -3,8 +3,8 @@
  */
 
 import { MessagebusService } from '../index';
-import { UUID } from './cache.model';
-import { BusStore, StoreStream, MutateStream } from '../cache.api';
+import { UUID } from './store.model';
+import { BusStore, StoreStream, MutateStream } from '../store.api';
 import { MessageFunction } from '../model/message.model';
 import { EventBus } from '../bus.api';
 import { LogLevel } from '../../log/index';

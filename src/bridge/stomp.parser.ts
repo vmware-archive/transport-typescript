@@ -5,6 +5,7 @@
 import { StompClient } from './stomp.client';
 import { StompMessage, StompBusCommand, StompSubscription } from './stomp.model';
 import { Message } from '../bus/model/message.model';
+import { GeneralUtil } from '../util/util';
 
 export class StompParser {
 
@@ -112,20 +113,18 @@ export class StompParser {
         return str.replace(/^\s+/g, '').replace(/\s+$/g, '');
     }
 
+    /** 
+     * @deprecated Use GeneraUtil
+     */
     public static genUUID(): string {
-        let uuid: string = '', i: number, random: number;
-        for (i = 0; i < 32; i++) {
-            random = Math.random() * 16 | 0;
-            if (i === 8 || i === 12 || i === 16 || i === 20) {
-                uuid += '-';
-            }
-            uuid += (i === 12 ? 4 : (i === 16 ? (random & 3 | 8) : random)).toString(16);
-        }
-        return uuid;
+        return GeneralUtil.genUUID();
     }
 
+    /** 
+     * @deprecated Use GeneraUtil
+     */
     public static genUUIDShort(): string {
-        return StompParser.genUUID().substr(0, 8);
+       return GeneralUtil.genUUIDShort();
     }
 
 

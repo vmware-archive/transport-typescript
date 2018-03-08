@@ -1,6 +1,6 @@
-import { BusStoreApi, BusStore, StoreReadyResult } from '../cache.api';
-import { StoreType, UUID } from './cache.model';
-import { StoreImpl } from './cache';
+import { BusStoreApi, BusStore, StoreReadyResult } from '../store.api';
+import { StoreType, UUID } from './store.model';
+import { StoreImpl } from './store';
 import { EventBus } from '../bus.api';
 
 /**
@@ -41,7 +41,22 @@ export class StoreManager implements BusStoreApi {
         return false;
     }
 
-    public readyJoin(caches: string[]): StoreReadyResult {
-        throw new Error('Method not implemented.');
+    public readyJoin(stores: StoreType[]): StoreReadyResult {
+       
+        return {
+            whenReady: (handler: Function) => {
+                let storesReady = 0;
+
+                for (let store of stores) {
+                    this.getStore(store).whenReady(() => {
+                        storesReady++;
+
+                        if (storesReady === stores.length) {
+                            handler();
+                        }
+                    });
+                }
+            }
+        };
     }
 }

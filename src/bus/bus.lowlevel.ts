@@ -18,9 +18,11 @@ import { LogLevel } from '../log/logger.model';
 import { MonitorChannel, MonitorObject, MonitorType } from './model/monitor.model';
 import { LogUtil } from '../log/util';
 import { Subscription } from 'rxjs/Subscription';
-import { UUID } from './cache/cache.model';
+import { UUID } from './store/store.model';
 import { GalacticRequest } from './model/request.model';
 import { GalacticResponse } from './model/response.model';
+import { StompParser } from '../bridge/stomp.parser';
+import { GeneralUtil } from '../util/util';
 
 export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
@@ -302,11 +304,12 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         setTimeout(func, delay);
     }
 
-    request<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, schema?: any): MessageHandler<R, E> {
+    request<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom,
+                        schema?: any, id?: UUID): MessageHandler<R, E> {
 
         // ignore schema for now.
-        const handler: MessageHandler<R, E> = this.createMessageHandler(handlerConfig, false, name);
-        this.send(handlerConfig.sendChannel, new Message().request(handlerConfig, schema), name);
+        const handler: MessageHandler<R, E> = this.createMessageHandler(handlerConfig, false, name, id);
+        this.send(handlerConfig.sendChannel, new Message(null, id).request(handlerConfig, schema), name);
         return handler;
     }
 
@@ -315,8 +318,9 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         return this.createMessageResponder(handlerConfig, name, schema);
     }
 
-    listen<R>(handlerConfig: MessageHandlerConfig, requestStream?: boolean, name?: SentFrom): MessageHandler<R> {
-        return this.createMessageHandler(handlerConfig, requestStream, name);
+    listen<R>(handlerConfig: MessageHandlerConfig, requestStream?: boolean, 
+              name?: SentFrom, id?: UUID): MessageHandler<R> {
+        return this.createMessageHandler(handlerConfig, requestStream, name, id);
     }
 
     /**
@@ -362,9 +366,10 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                         if (!msg.isError()) {
                             this.tickEventLoop(
                                 () => {
-                                    this.eventBusRef.sendResponseMessage(
+                                    this.eventBusRef.sendResponseMessageWithId(
                                         handlerConfig.returnChannel,
                                         generateSuccessResponse(pl),
+                                        msg.id,
                                         name,
                                         schemaRef,
                                     );
@@ -464,7 +469,10 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
      * @returns {MessageHandler<any>}
      */
     private createMessageHandler(
-        handlerConfig: MessageHandlerConfig, requestStream: boolean = false, name?: string): MessageHandler<any> {
+        handlerConfig: MessageHandlerConfig, 
+        requestStream: boolean = false,
+        name?: string, 
+        messageId?: UUID): MessageHandler<any> {
 
         let sub: Subscription;
         const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.returnChannel, name, true);
@@ -476,6 +484,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         const latestObserver = chanObject.latestObserver;
         this.sendSubscribedMonitorMessage(subscriberId, chanObject.name, name);
         let closed: boolean = false;
+        const registeredId = messageId;
 
         const killSubscription = () => { 
             sub.unsubscribe();
@@ -498,23 +507,44 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                 const mergedStreams = Observable.merge(errorChannel, _chan);
                 sub = mergedStreams.subscribe(
                     (msg: Message) => {
-                        let _pl = msg.payload;
-                        if (msg.isError()) {
-                            if (error) {
-                                error(_pl);
+                        
+                        // If you have registered your handler with a message ID, this will check and
+                        // and in some more checks to ensure only messages with a matching ID will proceed.
+                        // this logic will only kick in if the response (inbound) message has an ID, if no ID is
+                        // found on the inbound, then validation is bypassed and the gates open regardless.
+
+                        let validateId: boolean = false;
+                        let proceedToHandle: boolean = true;
+                        
+                        if (registeredId && msg.id) {
+                            validateId = true;
+                        }
+                        if(validateId && msg.id && registeredId !== msg.id) {
+                            proceedToHandle = false;
+                        }
+
+                        if (proceedToHandle) {
+                            let _pl = msg.payload;
+                            if (msg.isError()) {
+                                if (error) {
+                                    error(_pl);
+                                }
+                            } else {
+                                if (success) {
+                                    success(_pl);
+                                } else {
+                                    this.log.error('unable to handle response, no handler function supplied', name);
+                                }
+                            }
+                            if (handlerConfig.singleResponse) {
+                                if (sub) {
+                                    killSubscription();
+                                }
                             }
                         } else {
-                            if (success) {
-                                success(_pl);
-                            } else {
-                                this.log.error('unable to handle response, no handler function supplied', name);
-                            }
-                        }
-                        if (handlerConfig.singleResponse) {
-                            if (sub) {
-                                killSubscription();
-                            }
-                        }
+                            this.log.debug('* Dropping Message ' + msg.id 
+                                            + ', handler only listening for ' + registeredId, name);
+                        }     
                     },
                     (errorData: any) => {
                         if (error) {
@@ -531,7 +561,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
             },
             tick: (payload: any): void => {
                 if (!closed) {
-                    this.eventBusRef.sendRequestMessage(handlerConfig.sendChannel, payload);
+                    this.eventBusRef.sendRequestMessageWithId(handlerConfig.sendChannel, payload, messageId);
                 }
             },
             error: (payload: any): void => {

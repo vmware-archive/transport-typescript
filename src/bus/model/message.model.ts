@@ -5,6 +5,9 @@
 import { MessageSchema } from './message.schema';
 import { Subscription } from 'rxjs';
 import { Observable } from 'rxjs/Observable';
+import { UUID } from '../store/store.model';
+import { StompParser } from '../..';
+import { GeneralUtil } from '../../util/util';
 
 /**
  * A Message object represents a single message on the message bus.
@@ -139,9 +142,13 @@ export class Message {
     private _payload: any;
     private _isError: boolean = false;
     private _messageSchema: MessageSchema;
+    private versionNumber: number;
+    private mId: UUID;  
 
-    constructor(messageSchema?: MessageSchema) {
+    constructor(messageSchema?: MessageSchema, id?: UUID, version: number = 1) {
         this._messageSchema = messageSchema;
+        this.mId = id;
+        this.versionNumber = version;
     }
 
     private build(type?: MessageType, payload?: any, messageSchema: MessageSchema = undefined, error = false) {
@@ -190,5 +197,13 @@ export class Message {
 
     get messageSchema(): MessageSchema {
         return this._messageSchema;
+    }
+
+    get id(): UUID {
+        return this.mId;
+    }
+    
+    get version(): number {
+        return this.versionNumber;
     }
 }

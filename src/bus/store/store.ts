@@ -9,8 +9,8 @@ import { Observable } from 'rxjs/Observable';
 import {
     StoreStateChange, StoreStateMutation, StoreStreamImpl, MutateStreamImpl, MutationRequestWrapper,
     UUID
-} from './cache.model';
-import { BusStore, StoreStream, MutateStream } from '../cache.api';
+} from './store.model';
+import { BusStore, StoreStream, MutateStream } from '../store.api';
 import { EventBus } from '../bus.api';
 import { Syslog } from '../../log/syslog';
 

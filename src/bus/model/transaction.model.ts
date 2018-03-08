@@ -1,6 +1,7 @@
-import { UUID } from '../cache/cache.model';
+import { UUID, StoreType } from '../store/store.model';
 import { BusTransactionImpl } from '../transaction';
 import { StompParser, TransactionReceipt } from '../../index';
+import { StoreReadyResult, BusStore } from '../store.api';
 
 export interface TransactionRequest {
     channel: string;
@@ -12,6 +13,7 @@ export interface TransactionRequest {
     completedTime: Date;
     abortedTime: Date;
     nextRequest: TransactionRequest;
+    store: StoreType;
 }
 
 export class TransactionRequestImpl<T> implements TransactionRequest {
@@ -24,13 +26,15 @@ export class TransactionRequestImpl<T> implements TransactionRequest {
     public completedTime: Date;
     public abortedTime: Date;
     public nextRequest: TransactionRequest;
+    public store: StoreType;
 
-    constructor(channel: string, payload: any) {
+    constructor(channel?: string, payload?: any, store?: StoreType) {
         this.channel = channel;
         this.id = StompParser.genUUID();
         this.payload = payload;
         this.complete = false;
         this.aborted = false;
+        this.store = store;
     }
 }
 

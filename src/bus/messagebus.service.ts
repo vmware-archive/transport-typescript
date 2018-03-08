@@ -11,9 +11,9 @@ import {
     MessageFunction
 } from './model/message.model';
 import { MessageSchema, ErrorSchema } from './model/message.schema';
-import { StoreImpl } from './cache/cache';
-import { BusStore, BusStoreApi } from './cache.api';
-import { StoreType, UUID } from './cache/cache.model';
+import { StoreImpl } from './store/store';
+import { BusStore, BusStoreApi } from './store.api';
+import { StoreType, UUID } from './store/store.model';
 import { StompBusCommand, StompChannel, StompConfig } from '../bridge/stomp.model';
 import { StompClient } from '../bridge/stomp.client';
 import { StompParser } from '../bridge/stomp.parser';
@@ -26,7 +26,7 @@ import { LogLevel } from '../log/logger.model';
 import { GalacticRequest } from './model/request.model';
 import { GalacticResponse } from './model/response.model';
 import { Observable } from 'rxjs/Observable';
-import { StoreManager } from './cache/store.manager';
+import { StoreManager } from './store/store.manager';
 import { BusTransactionImpl } from './transaction';
 
 export abstract class MessageBusEnabled {
@@ -160,12 +160,38 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
     }
 
     public sendRequestMessage(
-        cname: ChannelName, payload: any,
+        cname: ChannelName,
+        payload: any,
         name = this.getName(), 
         schema = new MessageSchema()): void {
 
         this.api.send(cname, new Message().request(payload, schema), name);
     }
+
+    public sendRequestMessageWithId<R>(
+        cname: string, 
+        payload: R, 
+        id: UUID, 
+        from?: string, 
+        schema?: MessageSchema): void {
+       
+            this.api.send(cname, new Message(null, id).request(payload, schema), name);
+    }
+
+    public sendRequestMessageWithIdAndVersion<R>(
+        cname: string, 
+        payload: R, 
+        id: UUID, 
+        version: number, 
+        from?: string, 
+        schema?: MessageSchema): void {
+            this.api.send(
+                cname, 
+                new Message(null, id, version).request(payload, schema), 
+                name
+            );
+    }
+
 
     public sendResponseMessage(
         cname: ChannelName, 
@@ -175,11 +201,51 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
 
         this.api.tickEventLoop(
             () => {
-                this.api.send(cname, new Message().response(payload, schema), name);
+                this.api.send(
+                    cname, 
+                    new Message().response(payload, schema), 
+                    name
+                );
             }
         );
         return true;
     }
+
+    sendResponseMessageWithId<R>(
+        cname: string, 
+        payload: R, 
+        id: UUID, 
+        from?: string, 
+        schema?: MessageSchema): void {
+            this.api.tickEventLoop(
+                () => {
+                    this.api.send(
+                        cname, 
+                        new Message(null, id).response(payload, schema), 
+                        name
+                    );
+                }
+            );
+    }
+   
+    sendResponseMessageWithIdAndVersion<R>(
+        cname: string,
+        payload: R, 
+        id: UUID,
+        version: number, 
+        from?: string, 
+        schema?: MessageSchema): void {
+            this.api.tickEventLoop(
+                () => {
+                    this.api.send(
+                        cname, 
+                        new Message(null, id, version).response(payload, schema), 
+                        name
+                    );
+                }
+            );
+    }
+
 
     public sendErrorMessage(
         cname: ChannelName, 
@@ -247,7 +313,7 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         );
     }
 
-    public listenOnce<R>(channel: ChannelName, name = this.getName()): MessageHandler<R> {
+    public listenOnce<R>(channel: ChannelName, name = this.getName(), id?: UUID): MessageHandler<R> {
         return this.api.listen(
             new MessageHandlerConfig(channel, null, true, channel),
             false,
@@ -255,27 +321,30 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         );
     }
 
-    public listenStream<R>(channel: ChannelName, name = this.getName()): MessageHandler<R> {
+    public listenStream<R>(channel: ChannelName, name = this.getName(), id?: UUID): MessageHandler<R> {
         return this.api.listen(
             new MessageHandlerConfig(channel, null, false, channel),
             false,
-            name
+            name,
+            id
         );
     }
 
-    public listenRequestOnce<R>(channel: ChannelName, name = this.getName()): MessageHandler<R> {
+    public listenRequestOnce<R>(channel: ChannelName, name = this.getName(), id?: UUID): MessageHandler<R> {
         return this.api.listen(
             new MessageHandlerConfig(channel, null, true, channel),
             true,
-            name
+            name,
+            id
         );
     }
 
-    public listenRequestStream<R>(channel: ChannelName, name = this.getName()): MessageHandler<R> {
+    public listenRequestStream<R>(channel: ChannelName, name = this.getName(), id?: UUID): MessageHandler<R> {
         return this.api.listen(
             new MessageHandlerConfig(channel, null, false, channel),
             true,
-            name
+            name,
+            id
         );
     }
 
