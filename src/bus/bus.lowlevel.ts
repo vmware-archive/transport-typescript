@@ -519,7 +519,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                         if (registeredId && msg.id) {
                             validateId = true;
                         }
-                        if(validateId && msg.id && registeredId !== msg.id) {
+                        if (validateId && msg.id && registeredId !== msg.id) {
                             proceedToHandle = false;
                         }
 

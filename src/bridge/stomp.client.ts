@@ -250,7 +250,8 @@ export class StompClient {
         if (frame && frame.hasOwnProperty('headers')) {
             this.sendStompErrorToSubscribers(frame.headers, 'Error occurred with WebSocket');
         }
-    };
+    }
+    
     private onClose(config: StompConfig) {
         setTimeout(() => {
             this._subscriptions.forEach((subscriber: Subject<StompMessage>, id: string) => {
