@@ -64,7 +64,6 @@ export abstract class EventBus {
      * @param {R} payload the payload to be sent
      * @param {UUID} id the ID you want to attach to your request
      * @param {SentFrom} from  optional name of the sending actor (for logging)
-
      */
     abstract sendRequestMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, from?: SentFrom): void;
     

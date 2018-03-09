@@ -2,11 +2,10 @@ import { UUID, StoreType } from './store/store.model';
 import { MessageFunction } from './model/message.model';
 import { BusTransaction, TransactionReceipt, TransactionType, EventBus, ChannelName } from './bus.api';
 import { TransactionRequest, TransactionRequestImpl, TransactionReceiptImpl } from './model/transaction.model';
-import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { GeneralUtil } from '../util/util';
 import { LoggerService } from '../log/logger.service';
-import 'rxjs/add/observable/of';
+
 /**
  * Copyright(c) VMware Inc. 2016-2018
  */
@@ -194,7 +193,6 @@ export class BusTransactionImpl implements BusTransaction {
         const requestList: Array<TransactionRequest> = this.requests.slice();
         let counter: number = 0;
         
-        const requestStream: Observable<TransactionRequest[]> = Observable.of(requestList);
         for (let x = 0; x < requestList.length; x++) {
             if (x >= 0 && x < requestList.length ) {
                 requestList[x].nextRequest = requestList[x + 1];
