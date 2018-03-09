@@ -9,7 +9,7 @@ import { Subject } from 'rxjs/Subject';
 import { GeneralUtil } from '../util/util';
 import { LoggerService } from '../log/logger.service';
 import { StompParser } from '../bridge/stomp.parser';
-
+import 'rxjs/add/observable/of';
 /**
  * Copyright(c) VMware Inc. 2016-2018
  */

@@ -5,7 +5,10 @@ import {Syslog} from '../log/syslog';
 import {StompMessage, StompConfig} from './stomp.model';
 
 import {fromEvent} from 'rxjs/observable/fromEvent';
-import { map } from 'rxjs/operator/map';
+import {map} from 'rxjs/operator/map';
+import {mergeMap} from 'rxjs/operator/mergeMap';
+
+
 
 const LOCATION: string = 'Bifröst: StompClient';
 
@@ -429,23 +432,23 @@ export class StompClient {
         ws.binaryType = 'arraybuffer';
 
         // create local observers for socket events
-        this._socketOpenObserver = Observable.fromEvent(ws, 'open')
+        this._socketOpenObserver = fromEvent(ws, 'open')
             .map((response: Event): Event => {
                 return response;
             });
 
-        this._socketCloseObserver = Observable.fromEvent(ws, 'close')
+        this._socketCloseObserver = fromEvent(ws, 'close')
             .map((response: CloseEvent): any => { // refactor this into a type and define the API correctly.
                 return { event: response, config: config };
             });
 
-        this._socketErrorObserver = Observable.fromEvent(ws, 'error')
+        this._socketErrorObserver = fromEvent(ws, 'error')
             .map((response: Error): Error => {
                 return response;
             });
 
         // wire observers.
-        this._socketMessageObserver = Observable.fromEvent(ws, 'message')
+        this._socketMessageObserver = fromEvent(ws, 'message')
             .map((response: MessageEvent): MessageEvent => {
                 return response;
             });
