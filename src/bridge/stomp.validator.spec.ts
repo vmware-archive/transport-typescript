@@ -5,17 +5,17 @@
 import { StompParser } from './stomp.parser';
 import { StompClient } from './stomp.client';
 import { StompMessage, StompBusCommand } from './stomp.model';
-import { StompCommandSchema } from './stomp.schema';
 import { StompValidator } from './stomp.validator';
 import { MonitorObject, MonitorType } from '../bus/model/monitor.model';
 import { Message } from '../bus/model/message.model';
+import { GeneralUtil } from '../util/util';
 
 describe('Stomp Validator [stomp.validator]', () => {
 
     it('Check that connection messages can be validated',
         () => {
 
-            let id = StompParser.genUUID();
+            let id = GeneralUtil.genUUID();
 
             //missing payload.
             let stompMessage = StompParser.frame(StompClient.STOMP_CONNECT);
@@ -40,7 +40,7 @@ describe('Stomp Validator [stomp.validator]', () => {
     it('Check that subscription messages can be validated',
         () => {
 
-            let id = StompParser.genUUID();
+            let id = GeneralUtil.genUUID();
 
             //missing payload.
             let message = packageStompMessage(StompClient.STOMP_SUBSCRIBE, id, null);
@@ -79,7 +79,7 @@ describe('Stomp Validator [stomp.validator]', () => {
     it('Check that inbound messages (outbound requests) can be validated',
         () => {
 
-            let id = StompParser.genUUID();
+            let id = GeneralUtil.genUUID();
 
 
             //missing session.
@@ -131,5 +131,5 @@ function generateBusCommand(cmd: string,
 }
 
 function packageStompMessage(cmd: string, id: string, msg: StompMessage): Message {
-    return new Message().request(generateBusCommand(cmd, id, msg), new StompCommandSchema());
+    return new Message().request(generateBusCommand(cmd, id, msg));
 }

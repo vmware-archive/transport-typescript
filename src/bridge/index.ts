@@ -7,4 +7,3 @@ export * from './stomp.parser';
 export * from './stomp.service';
 export * from './stomp.validator';
 export * from './stomp.model';
-export * from './stomp.schema';

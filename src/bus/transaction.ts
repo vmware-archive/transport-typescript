@@ -1,14 +1,11 @@
 import { UUID, StoreType } from './store/store.model';
-import { MessageFunction, Message } from './model/message.model';
+import { MessageFunction } from './model/message.model';
 import { BusTransaction, TransactionReceipt, TransactionType, EventBus, ChannelName } from './bus.api';
 import { TransactionRequest, TransactionRequestImpl, TransactionReceiptImpl } from './model/transaction.model';
-import { MessageBusEnabled } from './messagebus.service';
-import { Syslog } from '../log/syslog';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { GeneralUtil } from '../util/util';
 import { LoggerService } from '../log/logger.service';
-import { StompParser } from '../bridge/stomp.parser';
 import 'rxjs/add/observable/of';
 /**
  * Copyright(c) VMware Inc. 2016-2018
@@ -19,7 +16,6 @@ export class BusTransactionImpl implements BusTransaction {
     private requests: Array<TransactionRequest>;
     private transactionType: TransactionType;
     private transactionReceipt: TransactionReceipt;
-    private transactionSession: any;
     private bus: EventBus;
     private name: string;
     private completedHandler: any;
@@ -41,7 +37,7 @@ export class BusTransactionImpl implements BusTransaction {
         this.transactionType = transactionType;
         this.requests = [];
         this.name = name;
-        this.id = StompParser.genUUIDShort();
+        this.id = GeneralUtil.genUUIDShort();
         this.transactionErrorChannel = 'transaction-' + this.id + '-errors';
         this.log.info('🏦 Transaction Created', this.transactionName());
     }
@@ -126,7 +122,7 @@ export class BusTransactionImpl implements BusTransaction {
         this.log.debug('➡️ Transaction: Sending ' + type + ' Request to channel: ' 
                         + request.channel, this.transactionName());
 
-        const mId = StompParser.genUUIDShort(); // use message ID's to make sure we only react to each explicit response
+        const mId = GeneralUtil.genUUIDShort(); // use message ID's to make sure we only react to each explicit response
         const handler = this.bus.listenStream(request.channel, this.name, mId);
         handler.handle(
             (response: any) => {

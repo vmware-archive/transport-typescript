@@ -3,7 +3,6 @@
  */
 
 import { Message, MessageType } from './message.model';
-import { MessageSchema } from '../../index';
 
 describe('Stream Model [stream]', () => {
 
@@ -49,13 +48,6 @@ describe('Stream Model [stream]', () => {
                 .toBeTruthy();
             expect(message.payload.error)
                 .toBe('fake error');
-        }
-    );
-
-    it('check schema can be retrieved',
-        () => {
-            const msg = new Message().request(null, new MessageSchema());
-            expect(msg.messageSchema).not.toBeNull(msg);
         }
     );
 

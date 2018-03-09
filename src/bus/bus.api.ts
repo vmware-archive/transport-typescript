@@ -4,8 +4,7 @@
 import { Syslog } from '../log/syslog';
 import { StompService } from '../';
 import { StoreType, UUID } from './store/store.model';
-import { BusStore, BusStoreApi } from './store.api';
-import { MessageSchema, ErrorSchema } from './model/message.schema';
+import { BusStoreApi } from './store.api';
 import {
     Message, MessageFunction,
     MessageHandler, MessageHandlerConfig, MessageResponder
@@ -16,10 +15,8 @@ import { StompBusCommand } from '../bridge/stomp.model';
 import { Subject } from 'rxjs/Subject';
 import { LoggerService } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
-import { TransactionRequest } from './model/transaction.model';
 import { GalacticRequest } from './model/request.model';
 import { GalacticResponse } from './model/response.model';
-
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -57,9 +54,8 @@ export abstract class EventBus {
      * @param {ChannelName} cname channel name to send payload to
      * @param {R} payload the payload to be sent
      * @param {SentFrom} from option name of sending actor (for logging)
-     * @param {MessageSchema} schema optional schema (not yet enabled)
      */
-    abstract sendRequestMessage<R>(cname: ChannelName, payload: R, from?: SentFrom, schema?: MessageSchema): void;
+    abstract sendRequestMessage<R>(cname: ChannelName, payload: R, from?: SentFrom): void;
 
     /**
      * Send a request payload to a channel with a supplied ID in the request
@@ -68,10 +64,9 @@ export abstract class EventBus {
      * @param {R} payload the payload to be sent
      * @param {UUID} id the ID you want to attach to your request
      * @param {SentFrom} from  optional name of the sending actor (for logging)
-     * @param {MessageSchema} schema optional schema (not yet enabled)
+
      */
-    abstract sendRequestMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, 
-                                         from?: SentFrom, schema?: MessageSchema): void;
+    abstract sendRequestMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, from?: SentFrom): void;
     
     /**
      * Send a request payload to a channel with a supplied ID in the request
@@ -81,10 +76,9 @@ export abstract class EventBus {
      * @param {UUID} id the ID you want to attach to your request
      * @param {number} version version of request you want to sent (defaults to 1)
      * @param {SentFrom} from  optional name of the sending actor (for logging)
-     * @param {MessageSchema} schema optional schema (not yet enabled)
      */                                     
     abstract sendRequestMessageWithIdAndVersion<R>(cname: ChannelName, payload: R, id: UUID, version: number,
-                                                   from?: SentFrom, schema?: MessageSchema): void;
+                                                   from?: SentFrom): void;
 
     /**
      * Send response payload to a channel.
@@ -92,20 +86,17 @@ export abstract class EventBus {
      * @param {ChannelName} cname channel name to send payload to
      * @param {R} payload the payload to be sent
      * @param {SentFrom} from optional name of sending actor (for logging)
-     * @param {MessageSchema} schema optional schema (not yet enabled)
      */
-    abstract sendResponseMessage<R>(cname: ChannelName, payload: R, from?: SentFrom, schema?: MessageSchema): void;
+    abstract sendResponseMessage<R>(cname: ChannelName, payload: R, from?: SentFrom): void;
 
     /**
      * Send a response payload to a channel with a supplied ID in the response.
      * @param {ChannelName} cname the channel name to send the response payload to
      * @param {R} payload the payload you want to send in response 
      * @param {UUID} id the ID you want to attach to your response
-     * @param {SentFrom} from optional name of the sending actor (for logging) 
-     * @param {MessageSchema} schema optional schema (not yet implemented) 
+     * @param {SentFrom} from optional name of the sending actor (for logging)
      */
-    abstract sendResponseMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, 
-                                          from?: SentFrom, schema?: MessageSchema): void;
+    abstract sendResponseMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, from?: SentFrom): void;
 
     
     /**
@@ -114,20 +105,18 @@ export abstract class EventBus {
      * @param {R} payload the payload you want to send in response
      * @param {UUID} id the ID you want to attach to your response
      * @param {number} version version of request you want to sent (defaults to 1) 
-     * @param {SentFrom} from optional name of the sending actor (for logging) 
-     * @param {MessageSchema} schema optional schema (not yet implemented) 
+     * @param {SentFrom} from optional name of the sending actor (for logging)
      */                                      
     abstract sendResponseMessageWithIdAndVersion<R>(cname: ChannelName, payload: R, id: UUID, version: number, 
-                                                    from?: SentFrom, schema?: MessageSchema): void; 
+                                                    from?: SentFrom): void;
     /**
      * Send error payload to channel.
      *
      * @param {ChannelName} cname the channel to send the payload to
      * @param {E} payload the payload to be send
      * @param {SentFrom} from optional name of sending actor (for logging)
-     * @param {ErrorSchema} schema optional schema (not yet enabled)
      */
-    abstract sendErrorMessage<E>(cname: ChannelName, payload: E, from?: SentFrom, schema?: ErrorSchema): void;
+    abstract sendErrorMessage<E>(cname: ChannelName, payload: E, from?: SentFrom): void;
 
     /**
      * Listen for a request on sendChannel and return a single response via the generate() method on MessageResponder.
@@ -425,9 +414,8 @@ export interface EventBusLowApi {
      * @param {ChannelName} cname
      * @param payload
      * @param {SentFrom} name
-     * @param schema
      */
-    sendRequest(cname: ChannelName, payload: any, name?: SentFrom, schema?: any): void;
+    sendRequest(cname: ChannelName, payload: any, name?: SentFrom): void;
 
     /**
      * Send simple API message to MessageResponder enabled calls. (non low-level API's)
@@ -435,32 +423,28 @@ export interface EventBusLowApi {
      * @param {ChannelName} cname channel name to send response to.
      * @param payload payload to send to simple API.
      * @param {SentFrom} name option name of calling actor (for logging)
-     * @param schema optional schema (not yet in use).
      */
-    sendResponse(cname: ChannelName, payload: any, name?: SentFrom, schema?: any): void;
+    sendResponse(cname: ChannelName, payload: any, name?: SentFrom): void;
 
     /**
      *  Used internally to send messages to simpler API's in main event bus.
      *
      * @param {MessageHandlerConfig} handlerConfig message handler configuration object.
      * @param {SentFrom} name optional calling actor (for logging)
-     * @param schema optional schema (not currently used)
      * @param {UUID} id enable message tracking if this is supplied
      * @returns {MessageHandler<R>} reference to MessageHandler<R>
      */
-    request<R>(handlerConfig: MessageHandlerConfig, name?: SentFrom, schema?: any, id?: UUID): MessageHandler<R>;
+    request<R>(handlerConfig: MessageHandlerConfig, name?: SentFrom, id?: UUID): MessageHandler<R>;
 
     /**
      * Used internally to send messages to simple API's in main event bus.
      *
      * @param {MessageHandlerConfig} handlerConfig message handler configuration object.
      * @param {SentFrom} name optional calling actor (for logging)
-     * @param schema optional schema (not currently used)
      * @param {UUID} id enable message tracking if this is supplied
      * @returns {MessageHandler<R>} reference to MessageResponder<R>
      */
-    respond<R, E = any>(handlerConfig: MessageHandlerConfig, 
-                        name?: SentFrom, schema?: any, id?: UUID): MessageResponder<R, E>;
+    respond<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, id?: UUID): MessageResponder<R, E>;
 
     /**
      * Used internally to interact with simpler API's in main event bus.

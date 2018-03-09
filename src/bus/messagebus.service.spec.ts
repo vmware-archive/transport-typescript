@@ -1427,7 +1427,7 @@ describe('MessagebusService [messagebus.service]', () => {
 
         it('Responder should do nothing if there is an error thrown.',
             (done) => {
-                spyOn(bus.api.loggerInstance, 'warn').and.callThrough();
+                spyOn(bus.api.loggerInstance, 'error').and.callThrough();
                 bus.api.enableMonitorDump(true);
                 bus.api.silenceLog(false);
                 bus.api.setLogLevel(LogLevel.Error);
@@ -1442,7 +1442,7 @@ describe('MessagebusService [messagebus.service]', () => {
                 bus.api.error('puppy-dinner-talk', 'oh no! the steak is all gone!');
                 bus.api.tickEventLoop(
                     () => {
-                        expect(bus.api.loggerInstance.warn)
+                        expect(bus.api.loggerInstance.error)
                             .toHaveBeenCalledWith('responder caught error, discarding.',
                             'MessagebusService');
                         done();

@@ -1,7 +1,7 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { MessageBusEnabled } from './messagebus.service';
+
 import { ChannelName, EventBus, EventBusLowApi, SentFrom } from './bus.api';
 import { Channel } from './model/channel.model';
 import { 
@@ -9,8 +9,8 @@ import {
     MessageHandler, 
     MessageHandlerConfig, 
     MessageResponder, 
-    MessageType, 
-    MessageFunction } from './model/message.model';
+    MessageType
+} from './model/message.model';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { LoggerService } from '../log/logger.service';
@@ -19,10 +19,6 @@ import { MonitorChannel, MonitorObject, MonitorType } from './model/monitor.mode
 import { LogUtil } from '../log/util';
 import { Subscription } from 'rxjs/Subscription';
 import { UUID } from './store/store.model';
-import { GalacticRequest } from './model/request.model';
-import { GalacticResponse } from './model/response.model';
-import { StompParser } from '../bridge/stomp.parser';
-import { GeneralUtil } from '../util/util';
 
 export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
@@ -157,16 +153,16 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
             );
     }
 
-    sendRequest(cname: string, payload: any, name?: string, schema?: any): void {
+    sendRequest(cname: string, payload: any, name?: string): void {
         let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
-        this.send(mh.sendChannel, new Message().request(mh, schema), name);
+        this.send(mh.sendChannel, new Message().request(mh), name);
     }
 
-    sendResponse(cname: string, payload: any, name?: string, schema?: any): void {
+    sendResponse(cname: string, payload: any, name?: string): void {
         let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
         this.tickEventLoop(
             () => {
-                this.send(mh.sendChannel, new Message().response(mh, schema), name);
+                this.send(mh.sendChannel, new Message().response(mh), name);
             }
         );
     }
@@ -309,13 +305,13 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
         // ignore schema for now.
         const handler: MessageHandler<R, E> = this.createMessageHandler(handlerConfig, false, name, id);
-        this.send(handlerConfig.sendChannel, new Message(null, id).request(handlerConfig, schema), name);
+        this.send(handlerConfig.sendChannel, new Message(id).request(handlerConfig), name);
         return handler;
     }
 
     respond<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, schema?: any): MessageResponder<R, E> {
 
-        return this.createMessageResponder(handlerConfig, name, schema);
+        return this.createMessageResponder(handlerConfig, name);
     }
 
     listen<R>(handlerConfig: MessageHandlerConfig, requestStream?: boolean, 
@@ -336,9 +332,9 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
      * @returns {MessageResponder<T, E>}
      */
     private createMessageResponder<T, E = any>(
-        handlerConfig: MessageHandlerConfig, name?: string, schema?: any): MessageResponder<T, E> {
+        handlerConfig: MessageHandlerConfig, name?: string): MessageResponder<T, E> {
 
-        let schemaRef = schema;
+
         let sub: Subscription;
         const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.sendChannel, name, true);
         const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.sendChannel, name);
@@ -370,8 +366,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                                         handlerConfig.returnChannel,
                                         generateSuccessResponse(pl),
                                         msg.id,
-                                        name,
-                                        schemaRef,
+                                        name
                                     );
                                 }
                             );
@@ -387,8 +382,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                                     this.eventBusRef.sendErrorMessage(
                                         handlerConfig.returnChannel,
                                         err(pl),
-                                        name,
-                                        schemaRef,
+                                        name
                                     );
                                 }
                             );
@@ -400,7 +394,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                     },
                     (errorData: any) => {
 
-                        this.log.warn('responder caught error, discarding.', name);
+                        this.log.error('responder caught error, discarding.', name);
                         if (sub) {
                             killSubscription();
                         }
@@ -659,14 +653,6 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
         this.log.info(LogUtil.pretty(message.payload), null);
         this.log.groupEnd(LogLevel.Info);
-
-        // this is disabled for now.
-        // if (message.messageSchema) {
-        //     this.log.group(LogLevel.Info, 'Schema: ' + message.messageSchema._title);
-        //     this.log.info(LogUtil.pretty(message.messageSchema), 'Schema');
-        //     this.log.groupEnd(LogLevel.Info);
-        // }
-
         this.log.groupEnd(LogLevel.Info);
     }
 

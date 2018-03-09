@@ -14,3 +14,5 @@ tmp
 /.gradle
 /node_modules
 coverage
+/bifrost-gitlab.iml
+/.vscode/

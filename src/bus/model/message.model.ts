@@ -2,12 +2,9 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import { MessageSchema } from './message.schema';
 import { Subscription } from 'rxjs';
 import { Observable } from 'rxjs/Observable';
 import { UUID } from '../store/store.model';
-import { StompParser } from '../..';
-import { GeneralUtil } from '../../util/util';
 
 /**
  * A Message object represents a single message on the message bus.
@@ -141,34 +138,31 @@ export class Message {
     private _type: MessageType;
     private _payload: any;
     private _isError: boolean = false;
-    private _messageSchema: MessageSchema;
     private versionNumber: number;
     private mId: UUID;  
 
-    constructor(messageSchema?: MessageSchema, id?: UUID, version: number = 1) {
-        this._messageSchema = messageSchema;
+    constructor(id?: UUID, version: number = 1) {
         this.mId = id;
         this.versionNumber = version;
     }
 
-    private build(type?: MessageType, payload?: any, messageSchema: MessageSchema = undefined, error = false) {
+    private build(type?: MessageType, payload?: any, error = false) {
         this._isError = error;
         this._payload = payload;
         this._type = type;
-        this._messageSchema = messageSchema;
         return this;
     }
 
-    request(payload: any, messageSchema?: MessageSchema) {
-        return this.build(MessageType.MessageTypeRequest, payload, messageSchema);
+    request(payload: any) {
+        return this.build(MessageType.MessageTypeRequest, payload);
     }
 
-    response(payload: any, messageSchema?: MessageSchema) {
-        return this.build(MessageType.MessageTypeResponse, payload, messageSchema);
+    response(payload: any) {
+        return this.build(MessageType.MessageTypeResponse, payload);
     }
 
-    error(error: any, messageSchema?: MessageSchema) {
-        return this.build(MessageType.MessageTypeError, error, messageSchema, true);
+    error(error: any) {
+        return this.build(MessageType.MessageTypeError, error, true);
     }
 
     isRequest(): boolean {
@@ -193,10 +187,6 @@ export class Message {
 
     get type(): MessageType {
         return this._type;
-    }
-
-    get messageSchema(): MessageSchema {
-        return this._messageSchema;
     }
 
     get id(): UUID {

@@ -1,17 +1,15 @@
 import { StompClient } from './stomp.client';
-import { Observable, ReplaySubject, Subscription } from 'rxjs';
+import { Observable,  Subscription } from 'rxjs';
 import {
     StompSession, StompChannel, StompBusCommand, StompSubscription, StompMessage,
     StompConfig
 } from '../bridge/stomp.model';
-import { StompCommandSchema, StompConfigSchema } from './stomp.schema';
 import { StompParser } from '../bridge/stomp.parser';
 import { StompValidator } from './stomp.validator';
 import { Syslog } from '../log/syslog';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
 import { Message } from '../bus/model/message.model';
 import { MessagebusService, MessageBusEnabled } from '../bus/messagebus.service';
-import { LogLevel } from '../log/logger.model';
 import { EventBus } from '../bus/bus.api';
 
 /**
@@ -43,7 +41,7 @@ export class StompService implements MessageBusEnabled {
                 subscription
             );
         bus.api.send(StompChannel.subscription,
-            new Message().request(command, new StompConfigSchema()), StompService.serviceName);
+            new Message().request(command), StompService.serviceName);
 
     }
 
@@ -78,7 +76,7 @@ export class StompService implements MessageBusEnabled {
 
         let command = StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, null, null, config);
         bus.api.send(StompChannel.connection,
-            new Message().request(command, new StompConfigSchema()), StompService.serviceName);
+            new Message().request(command), StompService.serviceName);
     }
 
     // helper function for disconnecting
@@ -86,7 +84,7 @@ export class StompService implements MessageBusEnabled {
 
         let command = StompParser.generateStompBusCommand(StompClient.STOMP_DISCONNECT, sessionId);
         bus.api.send(StompChannel.connection,
-            new Message().request(command, new StompConfigSchema()), StompService.serviceName);
+            new Message().request(command), StompService.serviceName);
     }
 
 
@@ -365,10 +363,10 @@ export class StompService implements MessageBusEnabled {
                                       error: boolean = false): void {
 
         let messageType: Message =
-            new Message().response(command, new StompCommandSchema());
+            new Message().response(command);
         if (error) {
             messageType =
-                new Message().error(command, new StompCommandSchema());
+                new Message().error(command);
         }
         this.bus.api.send(
             channel,
@@ -582,7 +580,7 @@ export class StompService implements MessageBusEnabled {
 
                     // duplicate to stomp messages.
                     this.bus.api.send(StompChannel.messages,
-                        new Message().response(busResponse, new StompCommandSchema()),
+                        new Message().response(busResponse),
                         this.getName()
                     );
                 }

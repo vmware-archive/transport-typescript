@@ -39,7 +39,6 @@
     "karma-spec-reporter": "0.0.31",
     "karma-typescript": "3.0.8",
     "merge-stream": "^1.0.0",
-    "reflect-metadata": "^0.1.12",
     "require-dir": "^0.3.0",
     "run-sequence": "^1.1.5",
     "systemjs": "0.19.27",
@@ -52,7 +51,6 @@
   },
   "scripts": {
     "build": "gulp build",
-    "coverage": "gulp coverage",
     "test": "gulp test",
     "test:debug": "gulp test:debug",
     "prepare:all": "gulp npm:prepare --version $npm_package_version",
