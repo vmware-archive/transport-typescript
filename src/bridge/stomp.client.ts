@@ -1,5 +1,5 @@
-import {Observable} from 'rxjs';
-import {Subject} from 'rxjs';
+import {Observable} from 'rxjs/Observable';
+import {Subject} from 'rxjs/Subject';
 import {StompParser} from './stomp.parser';
 import {Syslog} from '../log/syslog';
 import {StompMessage, StompConfig} from './stomp.model';

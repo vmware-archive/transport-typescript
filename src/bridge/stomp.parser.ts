@@ -2,7 +2,7 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import { StompClient } from './stomp.client';
+//import { StompClient } from './stomp.client';
 import { StompMessage, StompBusCommand, StompSubscription } from './stomp.model';
 import { Message } from '../bus/model/message.model';
 import { GeneralUtil } from '../util/util';
@@ -95,7 +95,7 @@ export class StompParser {
                 }
                 if (body) {
                     // build content-length not implemtened in original library
-                    if (command === StompClient.STOMP_SEND) {
+                    if (command === 'SEND') {
                         //out = out + 'content-length: ' +
                         //StompParser.byteCount(parsedBody.trim())  + '\n';
                     }
@@ -182,7 +182,7 @@ export class StompParser {
     public static generateStompReadyMessage(message: string, headers?: Object): StompMessage {
         let header = headers || {};
         return StompParser.frame(
-            StompClient.STOMP_SEND,
+            'SEND',
             header,
             message
         );

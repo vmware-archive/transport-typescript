@@ -3,7 +3,6 @@
  */
 import { Syslog } from '../log/syslog';
 
-import { StompService } from '../';
 import { Channel } from './model/channel.model';
 import { MonitorObject, MonitorType } from './model/monitor.model';
 import {
@@ -28,6 +27,7 @@ import { GalacticResponse } from './model/response.model';
 import { Observable } from 'rxjs/Observable';
 import { StoreManager } from './store/store.manager';
 import { BusTransactionImpl } from './transaction';
+import { StompService } from '../bridge/stomp.service';
 
 export abstract class MessageBusEnabled {
     abstract getName(): string;

@@ -1,10 +1,10 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { Subject } from 'rxjs';
+import { Subject } from 'rxjs/Subject';
 import { Message } from './message.model';
 import { UUID } from '../store/store.model';
-import { StompParser } from '../../index';
+import { StompParser } from '../../bridge/stomp.parser';
 
 /**
  * A Channel object represents a single channel on the message bus.

@@ -4,13 +4,15 @@ module.exports = function (config) {
       frameworks: ['jasmine', 'karma-typescript'],
       files: [
         { pattern: "src/**/*.ts" },
+        'node_modules/reflect-metadata/Reflect.js',
       ],
       preprocessors: {
         "**/*.ts": ["karma-typescript"]
       },
       reporters: ["spec", "karma-typescript"],
       exclude: [
-        'node_modules/**/*spec.js'
+        'node_modules/**/*spec.js',
+        //'src/ng/bifrost.module.ts'
       ],
       plugins: [
         require('karma-jasmine'),

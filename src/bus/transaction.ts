@@ -2,13 +2,13 @@ import { UUID, StoreType } from './store/store.model';
 import { MessageFunction, Message } from './model/message.model';
 import { BusTransaction, TransactionReceipt, TransactionType, EventBus, ChannelName } from './bus.api';
 import { TransactionRequest, TransactionRequestImpl, TransactionReceiptImpl } from './model/transaction.model';
-import { StompParser } from '../index';
-import { LoggerService } from '../log/index';
 import { MessageBusEnabled } from './messagebus.service';
 import { Syslog } from '../log/syslog';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { GeneralUtil } from '../util/util';
+import { LoggerService } from '../log/logger.service';
+import { StompParser } from '../bridge/stomp.parser';
 
 /**
  * Copyright(c) VMware Inc. 2016-2018
