@@ -53,7 +53,7 @@
     "build": "gulp build",
     "test": "gulp test",
     "test:debug": "gulp test:debug",
-    "prepare:all": "gulp npm:prepare --version $npm_package_version",
-    "publish:all": "npm publish dist/npm/bifrost"
+    "prepare": "gulp npm:prepare --version $npm_package_version",
+    "publish": "npm publish dist/npm/bifrost"
   }
 }
