@@ -2,7 +2,7 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import { StoreStream, MutateStream } from '../store.api';
+import { StoreStream, MutateStream } from '../../store.api';
 import { Subscription } from 'rxjs/Subscription';
 import { Observable } from 'rxjs/Observable';
 import { MessageFunction } from '../model/message.model';

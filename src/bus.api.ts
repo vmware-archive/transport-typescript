@@ -1,22 +1,22 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { Syslog } from '../log/syslog';
-import { StompService } from '../';
-import { StoreType, UUID } from './store/store.model';
+import { Syslog } from './log/syslog';
+import { BrokerConnector } from './index';
+import { StoreType, UUID } from './bus/store/store.model';
 import { BusStoreApi } from './store.api';
 import {
     Message, MessageFunction,
     MessageHandler, MessageHandlerConfig, MessageResponder
-} from './model/message.model';
-import { Channel } from './model/channel.model';
+} from './bus/model/message.model';
+import { Channel } from './bus/model/channel.model';
 import { Observable } from 'rxjs/Observable';
-import { StompBusCommand } from '../bridge/stomp.model';
+import { StompBusCommand } from './bridge/stomp.model';
 import { Subject } from 'rxjs/Subject';
-import { LoggerService } from '../log/logger.service';
-import { LogLevel } from '../log/logger.model';
-import { GalacticRequest } from './model/request.model';
-import { GalacticResponse } from './model/response.model';
+import { LoggerService } from './log/logger.service';
+import { LogLevel } from './log/logger.model';
+import { GalacticRequest } from './bus/model/request.model';
+import { GalacticResponse } from './bus/model/response.model';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -25,7 +25,7 @@ declare global {
     interface Window { 
     
         AppEventBus: EventBus;
-        AppBrokerConnector: StompService;
+        AppBrokerConnector: BrokerConnector;
         AppSyslog: Syslog;
     }
 }

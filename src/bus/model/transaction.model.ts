@@ -1,8 +1,8 @@
 import { UUID, StoreType } from '../store/store.model';
 import { BusTransactionImpl } from '../transaction';
-import { StoreReadyResult, BusStore } from '../store.api';
+import { StoreReadyResult, BusStore } from '../../store.api';
 import { StompParser } from '../../bridge/stomp.parser';
-import { TransactionReceipt } from '../bus.api';
+import { TransactionReceipt } from '../../bus.api';
 
 export interface TransactionRequest {
     channel: string;

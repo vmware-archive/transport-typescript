@@ -9,12 +9,12 @@ import {
     Message, MessageHandlerConfig, MessageResponder, MessageHandler,
     MessageFunction
 } from './model/message.model';
-import { BusStoreApi } from './store.api';
+import { BusStoreApi } from '../store.api';
 import { UUID } from './store/store.model';
 import { StompBusCommand, StompChannel, StompConfig } from '../bridge/stomp.model';
 import { StompClient } from '../bridge/stomp.client';
 import { StompParser } from '../bridge/stomp.parser';
-import { ChannelName, EventBus, EventBusLowApi, SentFrom, TransactionType, BusTransaction } from './bus.api';
+import { ChannelName, EventBus, EventBusLowApi, SentFrom, TransactionType, BusTransaction } from '../bus.api';
 import 'rxjs/add/operator/merge';
 import 'rxjs/add/observable/merge';
 import { EventBusLowLevelApiImpl } from './bus.lowlevel';
@@ -25,14 +25,14 @@ import { GalacticResponse } from './model/response.model';
 import { Observable } from 'rxjs/Observable';
 import { StoreManager } from './store/store.manager';
 import { BusTransactionImpl } from './transaction';
-import { StompService } from '../bridge/stomp.service';
+import { BrokerConnector } from '../bridge/broker-connector';
 import { GeneralUtil } from '../util/util';
 
-export abstract class MessageBusEnabled {
+export abstract class BifrostEventBusEnabled {
     abstract getName(): string;
 }
 
-export class MessagebusService extends EventBus implements MessageBusEnabled {
+export class BifrostEventBus extends EventBus implements BifrostEventBusEnabled {
 
     private internalChannelMap: Map<string, Channel>;
     private log: LoggerService;
@@ -57,7 +57,7 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
         
         // wire up singleton to the window object under a custom namespace.
         window.AppEventBus = this as EventBus;
-        window.AppBrokerConnector = new StompService();
+        window.AppBrokerConnector = new BrokerConnector(this.log);
         window.AppBrokerConnector.init(this);
         window.AppSyslog = Syslog;
         
@@ -75,7 +75,7 @@ export class MessagebusService extends EventBus implements MessageBusEnabled {
     }
 
     public getName() {
-        return 'MessagebusService';
+        return 'BifrostEventBus';
     }
 
     public connectBridge(

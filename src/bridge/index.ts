@@ -4,6 +4,6 @@
 
 export * from './stomp.client';
 export * from './stomp.parser';
-export * from './stomp.service';
+export * from './broker-connector';
 export * from './stomp.validator';
 export * from './stomp.model';

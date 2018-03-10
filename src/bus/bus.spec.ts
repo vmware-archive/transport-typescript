@@ -1,7 +1,7 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { EventBus, MessagebusService, StompChannel } from '../';
+import { EventBus, BifrostEventBus, StompChannel } from '../';
 import { Syslog } from '../log/syslog';
 import { LogLevel } from '../log/logger.model';
 import { Message, MessageHandler, MessageResponder, MessageType } from './model/message.model';
@@ -25,7 +25,7 @@ function makeCallCountCaller(done: any, targetCount: number): any {
     };
 }
 
-describe('MessagebusService [messagebus.service]', () => {
+describe('BifrostEventBus [bus/bus.ts]', () => {
     const testChannel = '#local-channel';
     const testData = {
         name: 'test-name'
@@ -35,13 +35,13 @@ describe('MessagebusService [messagebus.service]', () => {
     let bus: EventBus;
 
     beforeEach(() => {
-        bus = new MessagebusService(LogLevel.Error, true);
+        bus = new BifrostEventBus(LogLevel.Error, true);
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
         bus.api.enableMonitorDump(false);
     });
     it('Check logging settings', () => {
-        bus = new MessagebusService(LogLevel.Info, true);
+        bus = new BifrostEventBus(LogLevel.Info, true);
         bus.api.silenceLog(false);
         bus.api.suppressLog(true);
         bus.api.enableMonitorDump(false);
@@ -256,26 +256,25 @@ describe('MessagebusService [messagebus.service]', () => {
 
     it('Check countListeners() is accurate against high level API (single response)', (done) => {
 
-        /* the default number of channels open is 4, these are core and low-level channels
+        /* the default number of channels open is 3, these are core and low-level channels
            used by the bus and broker connector.
             #messagebus-monitor
             #stomp-connection
             #stomp-subscription
-            #stomp-messages
         */
 
-        expect(bus.api.countListeners()).toEqual(4);
+        expect(bus.api.countListeners()).toEqual(3);
 
         const handlerOnce: MessageHandler = bus.listenOnce('puppers');
 
-        expect(bus.api.countListeners()).toEqual(5);
+        expect(bus.api.countListeners()).toEqual(4);
 
         handlerOnce.handle(
             (msg: string) => {
 
                 // there should now be five listeners!
                 // the handler listens for a single event.
-                expect(bus.api.countListeners()).toEqual(5);
+                expect(bus.api.countListeners()).toEqual(4);
                 expect(msg).toEqual('chicken');
             }
         );
@@ -287,7 +286,7 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 // handlerOnce should have closed the channel
                 // so we should be at 4 listeners again!
-                expect(bus.api.countListeners()).toEqual(4);
+                expect(bus.api.countListeners()).toEqual(3);
                 done();
             }
             , 10);
@@ -295,19 +294,18 @@ describe('MessagebusService [messagebus.service]', () => {
 
     it('Check countListeners() is accurate against high level API (stream response)', (done) => {
 
-        /* the default number of channels open is 4, these are core and low-level channels
+        /* the default number of channels open is 3, these are core and low-level channels
            used by the bus and broker connector.
             #messagebus-monitor
             #stomp-connection
             #stomp-subscription
-            #stomp-messages
         */
 
-        expect(bus.api.countListeners()).toEqual(4);
+        expect(bus.api.countListeners()).toEqual(3);
 
         const handler: MessageHandler = bus.listenStream('puppers');
 
-        expect(bus.api.countListeners()).toEqual(5);
+        expect(bus.api.countListeners()).toEqual(4);
 
         let count = 0;
 
@@ -316,7 +314,7 @@ describe('MessagebusService [messagebus.service]', () => {
 
                 // there should now be five listeners!
                 // the handler listens for a single event.
-                expect(bus.api.countListeners()).toEqual(5);
+                expect(bus.api.countListeners()).toEqual(4);
                 expect(msg).toEqual('chicken');
                 count++;
             }
@@ -336,7 +334,7 @@ describe('MessagebusService [messagebus.service]', () => {
         bus.api.tickEventLoop(
             () => {
 
-                expect(bus.api.countListeners()).toEqual(4);
+                expect(bus.api.countListeners()).toEqual(3);
                 expect(count).toEqual(4);
                 done();
             }
@@ -345,7 +343,7 @@ describe('MessagebusService [messagebus.service]', () => {
 
     it('Check createResponder() handles errors with error handler', (done) => {
 
-        expect(bus.api.countListeners()).toEqual(4);
+        expect(bus.api.countListeners()).toEqual(3);
         const responder: MessageResponder<string> = bus.respondOnce('puppers');
         responder.generate(
             null,
@@ -360,7 +358,7 @@ describe('MessagebusService [messagebus.service]', () => {
         // should have settled 
         bus.api.tickEventLoop(
             () => {
-                expect(bus.api.countListeners()).toEqual(4);
+                expect(bus.api.countListeners()).toEqual(3);
                 done();
             }
             , 1);
@@ -368,7 +366,7 @@ describe('MessagebusService [messagebus.service]', () => {
 
     it('Check createResponder() handles errors with no error handler (negative testing)', (done) => {
 
-        expect(bus.api.countListeners()).toEqual(4);
+        expect(bus.api.countListeners()).toEqual(3);
         const responder: MessageResponder<string> = bus.respondOnce('puppers');
         responder.generate(
             (msg: string) => {
@@ -382,7 +380,7 @@ describe('MessagebusService [messagebus.service]', () => {
         // should have settled 
         bus.api.tickEventLoop(
             () => {
-                expect(bus.api.countListeners()).toEqual(4);
+                expect(bus.api.countListeners()).toEqual(3);
                 done();
             }
             , 1);
@@ -1208,7 +1206,7 @@ describe('MessagebusService [messagebus.service]', () => {
         it('Say hi to magnum <3',
             (done) => {
                 // enable the easter egg and test it.
-                const castBus = bus as MessagebusService;
+                const castBus = bus as BifrostEventBus;
                 castBus.easterEgg();
                 bus.requestOnce('__maglingtonpuddles__', 'hi maggie!')
                     .handle(
@@ -1444,7 +1442,7 @@ describe('MessagebusService [messagebus.service]', () => {
                     () => {
                         expect(bus.api.loggerInstance.error)
                             .toHaveBeenCalledWith('responder caught error, discarding.',
-                            'MessagebusService');
+                            'BifrostEventBus');
                         done();
                     },
                     10
@@ -1467,7 +1465,7 @@ describe('MessagebusService [messagebus.service]', () => {
                     () => {
                         expect(bus.api.loggerInstance.error)
                             .toHaveBeenCalledWith('unable to handle response, no handler function supplied',
-                            'MessagebusService');
+                            'BifrostEventBus');
                         done();
                     },
                     50
@@ -1491,7 +1489,7 @@ describe('MessagebusService [messagebus.service]', () => {
                     () => {
                         expect(bus.api.loggerInstance.error)
                             .toHaveBeenCalledWith('unable to handle error, no error handler function supplied',
-                            'MessagebusService');
+                            'BifrostEventBus');
                         done();
                     },
                     50
@@ -1567,7 +1565,7 @@ describe('MessagebusService [messagebus.service]', () => {
                     () => {
                         expect(bus.api.loggerInstance.info)
                             .toHaveBeenCalledWith('connection handler received command message: ABORT',
-                            'MessagebusService');
+                            'BifrostEventBus');
                         readyHandler();
                     },
                     50

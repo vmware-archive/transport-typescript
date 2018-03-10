@@ -1,10 +1,10 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { MessagebusService } from '../';
+import { BifrostEventBus } from '../';
 
 import { BusTransactionImpl } from './transaction';
-import { BusTransaction, EventBus, TransactionReceipt, TransactionType } from './bus.api';
+import { BusTransaction, EventBus, TransactionReceipt, TransactionType } from '../bus.api';
 import { LogLevel } from '../log';
 import { StompParser } from '../bridge/stomp.parser';
 
@@ -16,7 +16,7 @@ describe('Bus Transactions [transaction.ts]', () => {
 
     beforeEach(
         () => {
-            bus = new MessagebusService(LogLevel.Off, true);
+            bus = new BifrostEventBus(LogLevel.Off, true);
             bus.api.loggerInstance.setStylingVisble(false);
             //bus.api.enableMonitorDump(true);
             transaction = bus.createTransaction();

@@ -2,7 +2,7 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import { ChannelName, EventBus, EventBusLowApi, SentFrom } from './bus.api';
+import { ChannelName, EventBus, EventBusLowApi, SentFrom } from '../bus.api';
 import { Channel } from './model/channel.model';
 import { 
     Message, 

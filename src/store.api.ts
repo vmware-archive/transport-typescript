@@ -2,9 +2,9 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import { MessageFunction } from './model/message.model';
+import { MessageFunction } from './bus/model/message.model';
 import { Subscription } from 'rxjs/Subscription';
-import { UUID, StoreType } from './store/store.model';
+import { UUID, StoreType } from './bus/store/store.model';
 
 /**
  * StoreStream wraps an Observable, allowing for future underlying logic manipulation without

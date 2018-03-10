@@ -2,11 +2,11 @@
  * Copyright(c) VMware Inc. 2017
  */
 
-import { MessagebusService } from '../index';
+import { BifrostEventBus } from '../index';
 import { UUID } from './store.model';
-import { BusStore, StoreStream, MutateStream } from '../store.api';
+import { BusStore, StoreStream, MutateStream } from '../../store.api';
 import { MessageFunction } from '../model/message.model';
-import { EventBus } from '../bus.api';
+import { EventBus } from '../../bus.api';
 import { LogLevel } from '../../log/index';
 import { Syslog } from '../../log/syslog';
 
@@ -27,7 +27,7 @@ describe('BusStore [store/store.model]', () => {
     Syslog.suppressFlag = true;
 
     beforeEach(() => {
-        bus = new MessagebusService(LogLevel.Off, true);
+        bus = new BifrostEventBus(LogLevel.Off, true);
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
         bus.stores.createStore('string');

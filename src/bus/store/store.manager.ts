@@ -1,7 +1,7 @@
-import { BusStoreApi, BusStore, StoreReadyResult } from '../store.api';
+import { BusStoreApi, BusStore, StoreReadyResult } from '../../store.api';
 import { StoreType, UUID } from './store.model';
 import { StoreImpl } from './store';
-import { EventBus } from '../bus.api';
+import { EventBus } from '../../bus.api';
 import { LoggerService } from '../../log/logger.service';
 
 /**

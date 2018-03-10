@@ -1,26 +1,29 @@
-import { Message, MessagebusService } from '../';
-import { StompService } from './stomp.service';
+import { Message, BifrostEventBus } from '../';
+import { BrokerConnector } from './broker-connector';
 import { StompChannel, StompBusCommand, StompConfig, StompSession } from './stomp.model';
 import { StompParser } from './stomp.parser';
 import { StompClient } from './stomp.client';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
 import { Syslog } from '../log/syslog';
 import 'rxjs/add/operator/take';
-import { EventBus } from '../bus/bus.api';
+import { EventBus } from '../bus.api';
 import { LogLevel } from '../log/logger.model';
+import { GeneralUtil } from '../util/util';
 
 /**
- * Main StompService tests.
+ * Main BrokerConnector tests.
  */
 
-describe('StompService [stomp.service]', () => {
+describe('BrokerConnector [broker-connector.ts]', () => {
 
     let bus: EventBus;
-    let ss: StompService;
+    let ss: BrokerConnector;
     let config: StompConfig;
     let configNoTopics: StompConfig;
     let configMultiBroker: StompConfig;
     let configCustomId: StompConfig;
+    let configApplicationPrefix: StompConfig;
+
     let subId: string;
 
     const topicA: string = '/topic/testA';
@@ -32,15 +35,16 @@ describe('StompService [stomp.service]', () => {
     beforeEach(
         () => {
 
-            bus = new MessagebusService(LogLevel.Error, true);
+            bus = new BifrostEventBus(LogLevel.Error, true);
             ss = window.AppBrokerConnector;
 
             config = createStandardConfig();
             configNoTopics = createStandardConfig(false); // no topics.
             configMultiBroker = createStandardConfig(false, true); // multiple brokers.
             configCustomId = createStandardConfig(false, false, 'puppy-love'); //custom forced Id for session.
+            configApplicationPrefix = createStandardConfig(true, false, 'anything', '/dogs'); // custom check for application prefix.
 
-            subId = StompParser.genUUID();
+            subId = GeneralUtil.genUUIDShort();
 
             bus.api.silenceLog(true);
             bus.api.suppressLog(true);
@@ -66,8 +70,7 @@ describe('StompService [stomp.service]', () => {
                                 break;
                         }
                     });
-
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
 
@@ -88,7 +91,7 @@ describe('StompService [stomp.service]', () => {
                         }
                     });
 
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
 
@@ -100,7 +103,7 @@ describe('StompService [stomp.service]', () => {
                     (command: StompBusCommand) => {
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
-                                StompService.fireDisconnectCommand(bus, command.session);
+                                BrokerConnector.fireDisconnectCommand(bus, command.session);
                                 break;
 
                             case StompClient.STOMP_DISCONNECTED:
@@ -111,7 +114,7 @@ describe('StompService [stomp.service]', () => {
                                 break;
                         }
                     });
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
     });
@@ -128,7 +131,7 @@ describe('StompService [stomp.service]', () => {
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
 
-                                StompService.fireSubscribeCommand(
+                                BrokerConnector.fireSubscribeCommand(
                                     bus,
                                     command.session,
                                     topicA,
@@ -147,7 +150,7 @@ describe('StompService [stomp.service]', () => {
                         }
                     });
 
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
 
@@ -167,7 +170,7 @@ describe('StompService [stomp.service]', () => {
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
 
-                                StompService.fireSubscribeCommand(
+                                BrokerConnector.fireSubscribeCommand(
                                     bus,
                                     command.session,
                                     topicA,
@@ -201,7 +204,7 @@ describe('StompService [stomp.service]', () => {
                         done();
                     });
 
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
 
@@ -219,7 +222,7 @@ describe('StompService [stomp.service]', () => {
                             case StompClient.STOMP_CONNECTED:
 
                                 sessId = command.session;
-                                StompService.fireSubscribeCommand(
+                                BrokerConnector.fireSubscribeCommand(
                                     bus,
                                     command.session,
                                     topicA,
@@ -231,7 +234,7 @@ describe('StompService [stomp.service]', () => {
                             case StompClient.STOMP_SUBSCRIBED:
 
                                 expect(command.destination).toEqual(topicA);
-                                StompService.fireUnSubscribeCommand(
+                                BrokerConnector.fireUnSubscribeCommand(
                                     bus,
                                     command.session,
                                     topicA,
@@ -250,7 +253,7 @@ describe('StompService [stomp.service]', () => {
                         }
                     });
 
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
 
@@ -331,7 +334,7 @@ describe('StompService [stomp.service]', () => {
                                 break;
                         }
                     });
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
 
@@ -390,7 +393,7 @@ describe('StompService [stomp.service]', () => {
                                 break;
                         }
                     });
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
 
@@ -411,7 +414,7 @@ describe('StompService [stomp.service]', () => {
                             case StompClient.STOMP_CONNECTED:
 
                                 sessId = command.session;
-                                StompService.fireSubscribeCommand(
+                                BrokerConnector.fireSubscribeCommand(
                                     bus,
                                     command.session,
                                     topicA,
@@ -466,7 +469,7 @@ describe('StompService [stomp.service]', () => {
 
                         }
                     });
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
 
@@ -489,7 +492,7 @@ describe('StompService [stomp.service]', () => {
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
 
-                                StompService.fireSubscribeCommand(
+                                BrokerConnector.fireSubscribeCommand(
                                     bus,
                                     command.session,
                                     topicA,
@@ -551,7 +554,7 @@ describe('StompService [stomp.service]', () => {
                         done();
                     }
                     );
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
     });
@@ -588,7 +591,7 @@ describe('StompService [stomp.service]', () => {
                         done();
                     });
 
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
 
@@ -604,7 +607,7 @@ describe('StompService [stomp.service]', () => {
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
 
-                                StompService.fireSubscribeCommand(
+                                BrokerConnector.fireSubscribeCommand(
                                     bus,
                                     'bee-doh-bee-doh-bee-doh',
                                     topicA,
@@ -628,7 +631,7 @@ describe('StompService [stomp.service]', () => {
                         done();
                     });
 
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
 
@@ -684,7 +687,7 @@ describe('StompService [stomp.service]', () => {
 
                     });
 
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
 
@@ -754,7 +757,7 @@ describe('StompService [stomp.service]', () => {
                             case StompClient.STOMP_UNSUBSCRIBED:
                                 ss.sessions.forEach(
                                     (session: StompSession) => {
-                                        StompService.fireDisconnectCommand(bus, session.id);
+                                        BrokerConnector.fireDisconnectCommand(bus, session.id);
                                     }
                                 );
                                 break;
@@ -772,7 +775,7 @@ describe('StompService [stomp.service]', () => {
                 bus.api.getGalacticChannel('happy-puppers', getName());
                 bus.api.getGalacticChannel('naughty-kitties', getName());
 
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
 
             }
         );
@@ -835,15 +838,56 @@ describe('StompService [stomp.service]', () => {
                                 break;
                         }
                     });
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
+
+
+        it('check galactic messages are sent with or without application prefix ',
+
+            (done) => {
+                const logger = bus.api.logger();
+                spyOn(logger, 'debug').and.callThrough();
+
+                /**
+                 * Will check that application prefix is applied if part of config
+                 */
+
+                bus.listenStream(StompChannel.status)
+                    .handle(
+                        (command: StompBusCommand) => {
+
+                            switch (command.command) {
+                                case StompClient.STOMP_CONNECTED:
+                                    bus.sendGalacticMessage('sometopic', 'hello!');
+
+                                    bus.api.tickEventLoop(
+                                        () => {
+                                            expect(logger.debug).toHaveBeenCalledWith(
+                                                'Sending Galactic Message for session anything to ' +
+                                                'destination /dogs/sometopic', 'BrokerConnector');
+                                            done();
+                                        }
+                                    );
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                        });
+
+
+                BrokerConnector.fireConnectCommand(bus, configApplicationPrefix);
+            }
+        );
+
 
         it('check galactic messages are sent when sessions are in play and no topics are configured',
 
             (done) => {
 
-                spyOn(Syslog, 'warn').and.callThrough();
+                const logger = bus.api.logger();
+                spyOn(logger, 'warn').and.callThrough();
 
                 /**
                  * Will check that sendPacket is fired when valid connection sessions exist.
@@ -860,10 +904,10 @@ describe('StompService [stomp.service]', () => {
 
                                 bus.api.tickEventLoop(
                                     () => {
-                                        expect(Syslog.warn)
+                                        expect(logger.warn)
                                             .toHaveBeenCalledWith(
                                             'Cannot send galactic message, topics not ' +
-                                            'enabled for broker, queues not implemented yet.');
+                                            'enabled for broker, queues not implemented yet.', 'BrokerConnector');
                                         done();
                                     }
                                 );
@@ -873,7 +917,7 @@ describe('StompService [stomp.service]', () => {
                                 break;
                         }
                     });
-                StompService.fireConnectCommand(bus, configNoTopics);
+                BrokerConnector.fireConnectCommand(bus, configNoTopics);
             }
         );
 
@@ -881,7 +925,8 @@ describe('StompService [stomp.service]', () => {
 
             (done) => {
 
-                spyOn(Syslog, 'warn').and.callThrough();
+                const logger = bus.api.logger();
+                spyOn(logger, 'warn').and.callThrough();
 
                 /**
                  * check galactic channels cannot be opened if topics are no configured for the broker.
@@ -897,10 +942,10 @@ describe('StompService [stomp.service]', () => {
 
                                 bus.api.tickEventLoop(
                                     () => {
-                                        expect(Syslog.warn)
+                                        expect(logger.warn)
                                             .toHaveBeenCalledWith(
-                                            'unable to open galactic channel, ' +
-                                            'topics not configured and queues not supported yet.');
+                                            'Unable to open galactic channel, ' +
+                                            'topics not configured and queues not supported yet.', 'BrokerConnector');
                                         done();
                                     }
                                 );
@@ -910,7 +955,7 @@ describe('StompService [stomp.service]', () => {
                                 break;
                         }
                     });
-                StompService.fireConnectCommand(bus, configNoTopics);
+                BrokerConnector.fireConnectCommand(bus, configNoTopics);
             }
         );
 
@@ -918,7 +963,8 @@ describe('StompService [stomp.service]', () => {
 
             (done) => {
 
-                spyOn(Syslog, 'warn').and.callThrough();
+                const logger = bus.api.logger();
+                spyOn(logger, 'warn').and.callThrough();
 
                 /**
                  * Check that galactic channels cannot be closed if topics are no configured
@@ -935,10 +981,8 @@ describe('StompService [stomp.service]', () => {
 
                                 bus.api.tickEventLoop(
                                     () => {
-                                        expect(Syslog.warn)
-                                            .toHaveBeenCalledWith(
-                                            'unable to close galactic channel, ' +
-                                            'topics not configured, queues not supported yet.');
+                                        expect(logger.warn)
+                                            .toHaveBeenCalledTimes(2);
                                         done();
                                     }
                                 );
@@ -948,7 +992,7 @@ describe('StompService [stomp.service]', () => {
                                 break;
                         }
                     });
-                StompService.fireConnectCommand(bus, configNoTopics);
+                BrokerConnector.fireConnectCommand(bus, configNoTopics);
             }
         );
 
@@ -1020,7 +1064,7 @@ describe('StompService [stomp.service]', () => {
                             case StompClient.STOMP_CONNECTED:
                                 bus.listenGalacticStream('pop');
 
-                                StompService.fireSubscriptionCommand(bus,
+                                BrokerConnector.fireSubscriptionCommand(bus,
                                     '123',
                                     'somewhere',
                                     '123456',
@@ -1041,7 +1085,7 @@ describe('StompService [stomp.service]', () => {
                                 break;
                         }
                     });
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
 
@@ -1064,7 +1108,7 @@ describe('StompService [stomp.service]', () => {
                                 break;
                         }
                     });
-                StompService.fireConnectCommand(bus, configMultiBroker);
+                BrokerConnector.fireConnectCommand(bus, configMultiBroker);
                 bus.api.tickEventLoop(
                     () => {
                         expect(Syslog.info).toHaveBeenCalledWith('Connection message 1 of 2 received');
@@ -1157,7 +1201,7 @@ describe('StompService [stomp.service]', () => {
                         }
                     }
                     );
-                StompService.fireConnectCommand(bus, configCustomId);
+                BrokerConnector.fireConnectCommand(bus, configCustomId);
 
             }
         );
@@ -1199,7 +1243,7 @@ describe('StompService [stomp.service]', () => {
                         }
                     }
                     );
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
 
             }
         );
@@ -1243,7 +1287,7 @@ describe('StompService [stomp.service]', () => {
                         }
                     }
                     );
-                StompService.fireConnectCommand(bus, config);
+                BrokerConnector.fireConnectCommand(bus, config);
             }
         );
 
@@ -1288,7 +1332,7 @@ describe('StompService [stomp.service]', () => {
                         }
                     }
                     );
-                StompService.fireConnectCommand(bus, configCustomId);
+                BrokerConnector.fireConnectCommand(bus, configCustomId);
             }
         );
 
@@ -1303,13 +1347,18 @@ function setTestMode(config: StompConfig): void {
 
 // helper to create a standard mocked config
 function createStandardConfig(
-    useTopics: boolean = true, multiBroker: boolean = false, customSession?: string): StompConfig {
+    useTopics: boolean = true,
+    multiBroker: boolean = false,
+    customSession?: string,
+    applicationPrefix?: string): StompConfig {
     let configuration = new StompConfig(
         'somwehere',
         'somehost',
         12345,
         '',
-        ''
+        '',
+        false,
+        applicationPrefix
     );
 
     configuration.brokerConnectCount = 1;

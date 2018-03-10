@@ -3,7 +3,7 @@
  */
 
 import { Message, MessageFunction } from '../model/message.model';
-import { MessageBusEnabled, MessagebusService } from '../messagebus.service';
+import { BifrostEventBusEnabled, BifrostEventBus } from '../bus';
 import { StompParser } from '../../bridge/stomp.parser';
 import { Observable } from 'rxjs/Observable';
 import {
@@ -11,8 +11,8 @@ import {
     UUID,
     StoreType
 } from './store.model';
-import { BusStore, StoreStream, MutateStream } from '../store.api';
-import { EventBus } from '../bus.api';
+import { BusStore, StoreStream, MutateStream } from '../../store.api';
+import { EventBus } from '../../bus.api';
 import { Syslog } from '../../log/syslog';
 import { LoggerService } from '../../log/logger.service';
 
@@ -20,7 +20,7 @@ interface Predicate<T> {
     (value: T): boolean;
 }
 
-export class StoreImpl<T> implements BusStore<T>, MessageBusEnabled {
+export class StoreImpl<T> implements BusStore<T>, BifrostEventBusEnabled {
     
     private uuid: string;
     

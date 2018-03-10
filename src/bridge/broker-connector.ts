@@ -9,14 +9,15 @@ import { StompValidator } from './stomp.validator';
 import { Syslog } from '../log/syslog';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
 import { Message } from '../bus/model/message.model';
-import { MessagebusService, MessageBusEnabled } from '../bus/messagebus.service';
-import { EventBus } from '../bus/bus.api';
+import { BifrostEventBus, BifrostEventBusEnabled } from '../bus/bus';
+import { EventBus } from '../bus.api';
+import { LoggerService } from '../log';
 
 /**
  * Service is responsible for handling all STOMP communications over a socket.
  */
 
-export class StompService implements MessageBusEnabled {
+export class BrokerConnector implements BifrostEventBusEnabled {
 
     static serviceName: string = 'stomp.service';
     public reconnectDelay: number = 5000;
@@ -41,7 +42,7 @@ export class StompService implements MessageBusEnabled {
                 subscription
             );
         bus.api.send(StompChannel.subscription,
-            new Message().request(command), StompService.serviceName);
+            new Message().request(command), BrokerConnector.serviceName);
 
     }
 
@@ -51,7 +52,7 @@ export class StompService implements MessageBusEnabled {
                                 destination: string,
                                 subscriptionId: string): void {
 
-        StompService.fireSubscriptionCommand(bus,
+        BrokerConnector.fireSubscriptionCommand(bus,
             sessionId,
             destination,
             subscriptionId,
@@ -64,7 +65,7 @@ export class StompService implements MessageBusEnabled {
                                   destination: string,
                                   subscriptionId: string): void {
 
-        StompService.fireSubscriptionCommand(bus,
+        BrokerConnector.fireSubscriptionCommand(bus,
             sessionId,
             destination,
             subscriptionId,
@@ -76,7 +77,7 @@ export class StompService implements MessageBusEnabled {
 
         let command = StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, null, null, config);
         bus.api.send(StompChannel.connection,
-            new Message().request(command), StompService.serviceName);
+            new Message().request(command), BrokerConnector.serviceName);
     }
 
     // helper function for disconnecting
@@ -84,9 +85,12 @@ export class StompService implements MessageBusEnabled {
 
         let command = StompParser.generateStompBusCommand(StompClient.STOMP_DISCONNECT, sessionId);
         bus.api.send(StompChannel.connection,
-            new Message().request(command), StompService.serviceName);
+            new Message().request(command), BrokerConnector.serviceName);
     }
 
+    constructor(private log: LoggerService) {
+
+    }
 
     getName(): string {
         return (this as any).constructor.name;
@@ -96,15 +100,15 @@ export class StompService implements MessageBusEnabled {
     private _closeObservable: Observable<CloseEvent>;
     private _sessions: Map<string, StompSession>;
     private _galaticChannels: Map<string, boolean>;
-    private bus: MessagebusService;
+    private bus: BifrostEventBus;
     private reconnectTimerInstance: any;
     private reconnecting: boolean = false;
 
-    setBus(bus: MessagebusService) {
+    setBus(bus: BifrostEventBus) {
         this.bus = bus;
     }
 
-    init(bus: MessagebusService) {
+    init(bus: BifrostEventBus) {
 
         this.setBus(bus);
 
@@ -113,9 +117,6 @@ export class StompService implements MessageBusEnabled {
 
         let subscriptionChannel =
             this.bus.api.getRequestChannel(StompChannel.subscription, this.getName());
-
-        let inboundChannel =
-            this.bus.api.getRequestChannel(StompChannel.messages, this.getName());
 
         let monitorChannel =
             this.bus.api.getRequestChannel(MonitorChannel.stream, this.getName());
@@ -131,13 +132,6 @@ export class StompService implements MessageBusEnabled {
                 this.processSubscriptionMessage(msg);
             }
         );
-
-        // deprecating this concept, this is now how messages should be published.
-        // inboundChannel.subscribe(
-        //     (msg: Message) => {
-        //         this.processInboundMessage(msg);
-        //     }
-        // );
 
         monitorChannel.subscribe(
             (msg: Message) => {
@@ -200,19 +194,18 @@ export class StompService implements MessageBusEnabled {
 
             if (config.useTopics) {
                 const destination = cleanedChannel;
-                if (session.applicationDestinationPrefix) {
-                    cleanedChannel = session.applicationDestinationPrefix + '/' + cleanedChannel;
-                }
                 const command: StompBusCommand = StompParser.generateStompBusCommand(
                     StompClient.STOMP_MESSAGE,
                     session.id,
                     destination,
                     StompParser.generateStompReadyMessage(payload)
                 );
-
+                this.log.debug('Sending Galactic Message for session ' + session.id +
+                    ' to destination ' + destination, this.getName());
                 this.sendPacket(command);
             } else {
-                Syslog.warn('Cannot send galactic message, topics not enabled for broker, queues not implemented yet.');
+                this.log.warn('Cannot send galactic message, topics not enabled for ' +
+                      'broker, queues not implemented yet.', this.getName());
             }
         });
     }
@@ -241,7 +234,8 @@ export class StompService implements MessageBusEnabled {
                         );
                     this.subscribeToDestination(subscription);
                 } else {
-                    Syslog.warn('unable to open galactic channel, topics not configured and queues not supported yet.');
+                    this.log.warn('Unable to open galactic channel, topics not ' +
+                        'configured and queues not supported yet.', this.getName());
                 }
             });
         }
@@ -267,7 +261,8 @@ export class StompService implements MessageBusEnabled {
 
                     this.unsubscribeFromDestination(subscription);
                 } else {
-                    Syslog.warn('unable to close galactic channel, topics not configured, queues not supported yet.');
+                    this.log.warn('Unable to close galactic channel, topics not ' +
+                        'configured and queues not supported yet.', this.getName());
                 }
 
             });
@@ -277,17 +272,6 @@ export class StompService implements MessageBusEnabled {
             Syslog.warn('unable to close galactic channel, no open sessions.');
         }
     }
-
-    // private processInboundMessage(msg: Message): void {
-
-    //     if (!StompValidator.validateInboundMessage(msg)) {
-    //         Syslog.warn('unable to validate inbound message, invalid: ' + msg.payload);
-    //         return;
-    //     }
-    //     let busCommand = StompParser.extractStompBusCommandFromMessage(msg);
-
-    //     this.sendPacket(busCommand);
-    // }
 
     private processSubscriptionMessage(msg: Message): void {
         if (!StompValidator.validateSubscriptionMessage(msg)) {
