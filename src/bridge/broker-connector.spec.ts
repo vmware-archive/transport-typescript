@@ -1,6 +1,6 @@
 
 import { BrokerConnector } from './broker-connector';
-import { StompChannel, StompBusCommand, StompConfig, StompSession, BifrostSocket } from './stomp.model';
+import { BrokerConnectorChannel, StompBusCommand, StompConfig, StompSession, BifrostSocket } from './stomp.model';
 import { StompParser } from './stomp.parser';
 import { StompClient } from './stomp.client';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
@@ -61,7 +61,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
         it('We should be able to set the configuration',
             (done) => {
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
                         switch (command.command) {
@@ -81,7 +81,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
         it('We should be able to determine that we\'re connected',
             (done) => {
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -102,7 +102,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
         it('We should be able to determine that we\'re disconnected',
             (done) => {
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
                         switch (command.command) {
@@ -128,7 +128,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
         it('We should be able to subscribe to a broker destination',
             (done) => {
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -167,7 +167,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                 let mId: string = GeneralUtil.genUUIDShort();
                 let headers: any = { id: mId, subscription: subId };
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -191,7 +191,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                     StompParser.generateStompReadyMessage(outboundMessage, headers)
                                 );
 
-                                bus.sendResponseMessage(StompChannel.messages, message);
+                                bus.sendResponseMessage(BrokerConnectorChannel.messages, message);
                                 break;
 
                             default:
@@ -199,7 +199,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                         }
                     });
 
-                bus.listenStream(StompChannel.messages)
+                bus.listenStream(BrokerConnectorChannel.messages)
                     .handle(
                     (command: StompBusCommand) => {
                         const stompMessage = StompParser.extractStompMessageFromBusCommand(command);
@@ -218,7 +218,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                 let sessId: string;
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -273,11 +273,11 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                 // create a bad command message
                 const badCommand = StompParser.generateStompBusCommand('CARROT', '', '', config);
-                bus.sendRequestMessage(StompChannel.connection, badCommand);
+                bus.sendRequestMessage(BrokerConnectorChannel.connection, badCommand);
 
                 expect(bc.connectClient).not.toHaveBeenCalled();
 
-                bus.sendRequestMessage(StompChannel.connection, 'CAMELOT');
+                bus.sendRequestMessage(BrokerConnectorChannel.connection, 'CAMELOT');
 
                 expect(bc.connectClient).not.toHaveBeenCalled();
 
@@ -285,7 +285,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                 let wrongCommand =
                     StompParser.generateStompBusCommand(StompClient.STOMP_CONNECTED, '', '', config);
 
-                bus.sendRequestMessage(StompChannel.connection, wrongCommand);
+                bus.sendRequestMessage(BrokerConnectorChannel.connection, wrongCommand);
 
                 expect(bc.connectClient).not.toHaveBeenCalled();
 
@@ -300,7 +300,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                     .and
                     .callThrough();
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -309,12 +309,12 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                 // create a bad command message
                                 let badCommand = StompParser.generateStompBusCommand('DISCOMMAND', '', '', config);
-                                bus.sendRequestMessage(StompChannel.connection, badCommand);
+                                bus.sendRequestMessage(BrokerConnectorChannel.connection, badCommand);
 
                                 expect(bc.disconnectClient).not.toHaveBeenCalled();
 
                                 // create a bad bus message
-                                bus.sendRequestMessage(StompChannel.connection, 'DISCONACRT');
+                                bus.sendRequestMessage(BrokerConnectorChannel.connection, 'DISCONACRT');
 
                                 expect(bc.disconnectClient).not.toHaveBeenCalled();
 
@@ -327,7 +327,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                         config
                                     );
 
-                                bus.sendRequestMessage(StompChannel.connection, wrongCommand);
+                                bus.sendRequestMessage(BrokerConnectorChannel.connection, wrongCommand);
 
                                 expect(bc.disconnectClient).not.toHaveBeenCalled();
                                 done();
@@ -349,7 +349,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                     .and
                     .callThrough();
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -366,12 +366,12 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                         )
                                     );
 
-                                bus.sendRequestMessage(StompChannel.subscription, missingProperties);
+                                bus.sendRequestMessage(BrokerConnectorChannel.subscription, missingProperties);
 
                                 expect(bc.subscribeToDestination).not.toHaveBeenCalled();
 
                                 // create a bad bus message
-                                bus.sendRequestMessage(StompChannel.connection, StompClient.STOMP_SUBSCRIBE);
+                                bus.sendRequestMessage(BrokerConnectorChannel.connection, StompClient.STOMP_SUBSCRIBE);
 
                                 expect(bc.subscribeToDestination).not.toHaveBeenCalled();
 
@@ -386,7 +386,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                     );
 
                                 // send wrong command
-                                bus.sendRequestMessage(StompChannel.subscription, wrongCommand);
+                                bus.sendRequestMessage(BrokerConnectorChannel.subscription, wrongCommand);
 
                                 done();
                                 break;
@@ -408,7 +408,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                 let sessId: string;
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -430,7 +430,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                 expect(command.destination).toEqual(topicA);
 
                                 // create a bad bus message
-                                bus.sendRequestMessage(StompChannel.connection, StompClient.STOMP_UNSUBSCRIBE);
+                                bus.sendRequestMessage(BrokerConnectorChannel.connection, StompClient.STOMP_UNSUBSCRIBE);
 
                                 expect(bc.unsubscribeFromDestination).not.toHaveBeenCalled();
 
@@ -446,7 +446,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
 
                                 // send wrong command
-                                bus.sendRequestMessage(StompChannel.subscription, wrongCommand);
+                                bus.sendRequestMessage(BrokerConnectorChannel.subscription, wrongCommand);
 
                                 expect(bc.unsubscribeFromDestination).not.toHaveBeenCalled();
 
@@ -459,7 +459,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                     );
 
                                 // send missing payload and distribution
-                                bus.sendRequestMessage(StompChannel.subscription, missingPayload);
+                                bus.sendRequestMessage(BrokerConnectorChannel.subscription, missingPayload);
 
                                 expect(bc.unsubscribeFromDestination).not.toHaveBeenCalled();
 
@@ -487,7 +487,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                     .and
                     .callThrough();
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -513,7 +513,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                 // missing message payload
                                 bus.sendRequestMessage(
-                                    StompChannel.messages,
+                                    BrokerConnectorChannel.messages,
                                     message
                                 );
 
@@ -526,7 +526,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                 // valid message, wrong command
                                 bus.sendRequestMessage(
-                                    StompChannel.messages,
+                                    BrokerConnectorChannel.messages,
                                     message
                                 );
 
@@ -539,7 +539,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                 // valid message, missing destination
                                 bus.sendRequestMessage(
-                                    StompChannel.messages,
+                                    BrokerConnectorChannel.messages,
                                     message
                                 );
                                 break;
@@ -549,7 +549,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                         }
                     });
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     () => {
                         expect(bc.sendPacket).not.toHaveBeenCalled();
@@ -566,7 +566,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             (done) => {
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -583,7 +583,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                         }
                     });
 
-                bus.listenStream(StompChannel.error)
+                bus.listenStream(BrokerConnectorChannel.error)
                     .handle(
                     null,
                     (busCommand: StompBusCommand) => {
@@ -602,7 +602,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             (done) => {
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -623,7 +623,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                         }
                     });
 
-                bus.listenStream(StompChannel.error)
+                bus.listenStream(BrokerConnectorChannel.error)
                     .handle(
                     null,
                     (busCommand: StompBusCommand) => {
@@ -661,7 +661,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                  */
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -704,7 +704,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                  */
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -744,7 +744,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                  */
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -820,7 +820,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                  * Will check that sendPacket is fired when valid connection sessions exist.
                  */
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -855,7 +855,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                  * Will check that application prefix is applied if part of config
                  */
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                         (command: StompBusCommand) => {
 
@@ -895,7 +895,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                  * only a syslog will be triggered however as there are no topics configured.
                  */
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -932,7 +932,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                  * check galactic channels cannot be opened if topics are no configured for the broker.
                  */
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -969,7 +969,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                  * Check that galactic channels cannot be closed if topics are no configured
                  */
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -1026,7 +1026,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                 spyOn(log, 'warn').and.callThrough();
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -1065,7 +1065,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                 spyOn(log, 'info').and.callThrough();
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -1124,7 +1124,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                 expect(log.warn)
                     .toHaveBeenCalledWith('unable to send packet, session is empty', bc.getName());
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -1184,7 +1184,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                 spyOn(bc, 'sendPacket').and.callThrough();
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -1226,7 +1226,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                 spyOn(log, 'warn').and.callThrough();
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -1269,7 +1269,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                 spyOn(log, 'warn').and.callThrough();
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                     (command: StompBusCommand) => {
 
@@ -1326,7 +1326,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                     );
                 }
 
-                bus.listenStream(StompChannel.status)
+                bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
                         (command: StompBusCommand) => {
 

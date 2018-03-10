@@ -10,7 +10,7 @@ import {
 } from './model/message.model';
 import { BusStoreApi } from '../store.api';
 import { UUID } from './store/store.model';
-import { StompBusCommand, StompChannel, StompConfig } from '../bridge/stomp.model';
+import { StompBusCommand, BrokerConnectorChannel, StompConfig } from '../bridge/stomp.model';
 import { StompClient } from '../bridge/stomp.client';
 import { StompParser } from '../bridge/stomp.parser';
 import { ChannelName, EventBus, EventBusLowApi, SentFrom, TransactionType, BusTransaction } from '../bus.api';
@@ -74,7 +74,7 @@ export class BifrostEventBus extends EventBus implements BifrostEventBusEnabled 
     }
 
     public getName() {
-        return 'BifrostEventBus';
+        return 'EventBus';
     }
 
     public connectBridge(
@@ -103,7 +103,7 @@ export class BifrostEventBus extends EventBus implements BifrostEventBusEnabled 
         config.queueLocation = queueLocation;
         config.brokerConnectCount = numBrokerRelays;
         const handler: MessageHandler<StompBusCommand> = this.requestStream(
-            StompChannel.connection,
+            BrokerConnectorChannel.connection,
             StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, '', '', config),
         );
         handler.handle(

@@ -13,13 +13,13 @@ import { GeneralUtil } from '../util/util';
 
 export type BifrostSocket = WebSocket;
 
-export class StompChannel {
+export class BrokerConnectorChannel {
 
-    static connection: string = '#stomp-connection';
-    static subscription: string = '#stomp-subscription';
-    static messages: string = '#stomp-messages';
-    static error: string = '#stomp-error';
-    static status: string = '#stomp-status';
+    static connection: string = '#broker.connector-connection';
+    static subscription: string = '#broker.connector-subscription';
+    static messages: string = '#broker.connector-messages';
+    static error: string = '#broker.connector-error';
+    static status: string = '#broker.connector-status';
 
 }
 export interface StompMessage {

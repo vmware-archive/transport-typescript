@@ -1,7 +1,7 @@
 import { StompClient } from './stomp.client';
 import { Observable,  Subscription } from 'rxjs';
 import {
-    StompSession, StompChannel, StompBusCommand, StompSubscription, StompMessage,
+    StompSession, BrokerConnectorChannel, StompBusCommand, StompSubscription, StompMessage,
     StompConfig
 } from '../bridge/stomp.model';
 import { StompParser } from '../bridge/stomp.parser';
@@ -42,7 +42,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
                 destination,
                 subscription
             );
-        bus.api.send(StompChannel.subscription,
+        bus.api.send(BrokerConnectorChannel.subscription,
             new Message().request(command), BrokerConnector.serviceName);
 
     }
@@ -77,7 +77,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
     static fireConnectCommand(bus: EventBus, config: StompConfig = null): void {
 
         let command = StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, null, null, config);
-        bus.api.send(StompChannel.connection,
+        bus.api.send(BrokerConnectorChannel.connection,
             new Message().request(command), BrokerConnector.serviceName);
     }
 
@@ -85,7 +85,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
     static fireDisconnectCommand(bus: EventBus, sessionId: string): void {
 
         let command = StompParser.generateStompBusCommand(StompClient.STOMP_DISCONNECT, sessionId);
-        bus.api.send(StompChannel.connection,
+        bus.api.send(BrokerConnectorChannel.connection,
             new Message().request(command), BrokerConnector.serviceName);
     }
 
@@ -114,10 +114,10 @@ export class BrokerConnector implements BifrostEventBusEnabled {
         this.setBus(bus);
 
         let connectionChannel =
-            this.bus.api.getRequestChannel(StompChannel.connection, this.getName());
+            this.bus.api.getRequestChannel(BrokerConnectorChannel.connection, this.getName());
 
         let subscriptionChannel =
-            this.bus.api.getRequestChannel(StompChannel.subscription, this.getName());
+            this.bus.api.getRequestChannel(BrokerConnectorChannel.subscription, this.getName());
 
         let monitorChannel =
             this.bus.api.getRequestChannel(MonitorChannel.stream, this.getName());
@@ -347,7 +347,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
     }
 
     private sendBusCommandResponseRaw(command: StompBusCommand,
-                                      channel: string = StompChannel.status,
+                                      channel: string = BrokerConnectorChannel.status,
                                       echoStatus: boolean = false,
                                       error: boolean = false): void {
 
@@ -365,7 +365,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
 
         if (echoStatus) {
             this.bus.api.send(
-                StompChannel.status,
+                BrokerConnectorChannel.status,
                 messageType,
                 this.getName()
             );
@@ -373,7 +373,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
     }
 
     private sendBusCommandResponse(status: string,
-                                   channel: string = StompChannel.status,
+                                   channel: string = BrokerConnectorChannel.status,
                                    echoStatus: boolean = false): void {
         let msg: StompBusCommand = StompParser.generateStompBusCommand(status);
         this.sendBusCommandResponseRaw(msg, channel, echoStatus);
@@ -391,7 +391,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
             () => {
                 clearInterval(this.reconnectTimerInstance);
                 this.reconnecting = false;
-                this.connecting = false;
+                //this.connecting = false;
 
                 session.connectionCount++;
 
@@ -414,7 +414,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
                                 session.id                      // each broker requires a session.
                             );
 
-                        this.sendBusCommandResponseRaw(message, StompChannel.connection, true);
+                        this.sendBusCommandResponseRaw(message, BrokerConnectorChannel.connection, true);
 
                         // these are now available;
                         this._errorObservable = session.client.socketErrorObserver;
@@ -438,7 +438,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
                             session.id                              // each broker requires a session.
                         );
 
-                    this.sendBusCommandResponseRaw(message, StompChannel.connection, true);
+                    this.sendBusCommandResponseRaw(message, BrokerConnectorChannel.connection, true);
                 }
 
             }
@@ -482,9 +482,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
             this.log.warn('Trying to reconnect to broker....', this.getName());
             this.bus.api.tickEventLoop(
                 () => {
-                    if (!this.connecting) {
-                        this.connectClient(config);
-                    }
+                    this.connectClient(config);
                 }, this.connectDelay
             );
         };
@@ -505,7 +503,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
                 }
                 this.sendBusCommandResponse(
                     StompClient.STOMP_DISCONNECTED,
-                    StompChannel.connection, true);
+                    BrokerConnectorChannel.connection, true);
             }
         );
 
@@ -517,7 +515,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
                     = StompParser.generateStompBusCommand(
                     StompClient.STOMP_ERROR, '', '', err);
 
-                this.sendBusCommandResponseRaw(msg, StompChannel.error, true, true);
+                this.sendBusCommandResponseRaw(msg, BrokerConnectorChannel.error, true, true);
             }
         );
     }
@@ -555,7 +553,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
             session.addGalacticSubscription(channel, sub);
 
             // let the bus know.
-            this.sendBusCommandResponseRaw(message, StompChannel.subscription, true);
+            this.sendBusCommandResponseRaw(message, BrokerConnectorChannel.subscription, true);
 
             let subjectSubscription = subscriptionSubject.subscribe(
                 (msg: StompMessage) => {
@@ -579,7 +577,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
                     this.bus.sendResponseMessage(respChan, payload);
 
                     // duplicate to stomp messages.
-                    this.bus.api.send(StompChannel.messages,
+                    this.bus.api.send(BrokerConnectorChannel.messages,
                         new Message().response(busResponse),
                         this.getName()
                     );
@@ -597,7 +595,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
                 = StompParser.generateStompBusCommand(
                 StompClient.STOMP_ERROR, '', '', 'cannot subscribe, session does not exist.');
 
-            this.sendBusCommandResponseRaw(msg, StompChannel.error, true, true);
+            this.sendBusCommandResponseRaw(msg, BrokerConnectorChannel.error, true, true);
         }
     }
 
@@ -614,7 +612,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
                 );
 
             // let the bus know.
-            this.sendBusCommandResponseRaw(message, StompChannel.subscription, true);
+            this.sendBusCommandResponseRaw(message, BrokerConnectorChannel.subscription, true);
             const channel: string = StompParser.convertTopicToChannel(data.destination);
 
             const sub: Subscription = session.getGalacticSubscription(channel);

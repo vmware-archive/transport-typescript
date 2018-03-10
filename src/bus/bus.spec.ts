@@ -1,7 +1,7 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { EventBus, BifrostEventBus, StompChannel } from '../';
+import { EventBus, BifrostEventBus, BrokerConnectorChannel } from '../';
 import { LogLevel } from '../log/logger.model';
 import { Message, MessageHandler, MessageResponder, MessageType } from './model/message.model';
 import { Channel } from './model/channel.model';
@@ -1520,7 +1520,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                     () => {
                         expect(bus.api.loggerInstance.error)
                             .toHaveBeenCalledWith('responder caught error, discarding.',
-                            'BifrostEventBus');
+                            'EventBus');
                         done();
                     },
                     10
@@ -1543,7 +1543,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                     () => {
                         expect(bus.api.loggerInstance.error)
                             .toHaveBeenCalledWith('unable to handle response, no handler function supplied',
-                            'BifrostEventBus');
+                            'EventBus');
                         done();
                     },
                     50
@@ -1567,7 +1567,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                     () => {
                         expect(bus.api.loggerInstance.error)
                             .toHaveBeenCalledWith('unable to handle error, no error handler function supplied',
-                            'BifrostEventBus');
+                            'EventBus');
                         done();
                     },
                     50
@@ -1599,7 +1599,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 // fake the broker sending back a valid connection and session.
                 bus.sendResponseMessage(
-                    StompChannel.connection,
+                    BrokerConnectorChannel.connection,
                     StompParser.generateStompBusCommand(
                         StompClient.STOMP_CONNECTED,
                         'squeaky-chew'
@@ -1632,7 +1632,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 // fake the broker sending back an in correct/unexpected command
                 bus.sendResponseMessage(
-                    StompChannel.connection,
+                    BrokerConnectorChannel.connection,
                     StompParser.generateStompBusCommand(
                         StompClient.STOMP_ABORT,
                         'squeaky-chew'
@@ -1643,7 +1643,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                     () => {
                         expect(bus.api.loggerInstance.info)
                             .toHaveBeenCalledWith('connection handler received command message: ABORT',
-                            'BifrostEventBus');
+                            'EventBus');
                         readyHandler();
                     },
                     50
@@ -1745,7 +1745,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                 spyOn(log, 'error').and.callThrough();
                 bus.requestGalactic(null, null, null);
                 expect(log.error).toHaveBeenCalledWith('Cannot send Galactic Request, ' +
-                    'payload or channel is empty.', 'BifrostEventBus');
+                    'payload or channel is empty.', 'EventBus');
 
             });
     });
