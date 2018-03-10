@@ -482,9 +482,9 @@ export class BrokerConnector implements BifrostEventBusEnabled {
             this.log.warn('Trying to reconnect to broker....', this.getName());
             this.bus.api.tickEventLoop(
                 () => {
-                    if(!this.connecting) {
+                    if (!this.connecting) {
                         this.connectClient(config);
-                    };
+                    }
                 }, this.connectDelay
             );
         };
