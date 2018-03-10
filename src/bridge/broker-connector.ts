@@ -6,7 +6,6 @@ import {
 } from '../bridge/stomp.model';
 import { StompParser } from '../bridge/stomp.parser';
 import { StompValidator } from './stomp.validator';
-import { Syslog } from '../log/syslog';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
 import { Message } from '../bus/model/message.model';
 import { BifrostEventBus, BifrostEventBusEnabled } from '../bus/bus';
@@ -269,13 +268,13 @@ export class BrokerConnector implements BifrostEventBusEnabled {
 
             this._galaticChannels.delete(cleanedChannel);
         } else {
-            Syslog.warn('unable to close galactic channel, no open sessions.');
+            this.log.warn('unable to close galactic channel, no open sessions.', 'BrokerConnector');
         }
     }
 
     private processSubscriptionMessage(msg: Message): void {
         if (!StompValidator.validateSubscriptionMessage(msg)) {
-            Syslog.warn('unable to validate inbound subscription message, invalid');
+            this.log.warn('unable to validate inbound subscription message, invalid', 'BrokerConnector');
             return;
         }
 
@@ -286,7 +285,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
         switch (busCommand.command) {
             case StompClient.STOMP_SUBSCRIBE:
 
-                Syslog.debug('subscribing to destination: ' + sub.destination, this.getName());
+                this.log.info('subscribing to destination: ' + sub.destination, this.getName());
 
                 // create a subscription payload and throw it on the bus.
                 this.subscribeToDestination(sub);
@@ -294,7 +293,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
 
             case StompClient.STOMP_UNSUBSCRIBE:
 
-                Syslog.debug('unsubscribing from destination: ' + sub.destination, this.getName());
+                this.log.info('unsubscribing from destination: ' + sub.destination, this.getName());
 
                 // create an unsubscription payload and throw it on the bus.
                 this.unsubscribeFromDestination(sub);
@@ -308,7 +307,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
     private processConnectionMessage(msg: Message): void {
 
         if (!StompValidator.validateConnectionMessage(msg)) {
-            Syslog.warn('unable to validate connection message, invalid command');
+            this.log.warn('unable to validate connection message, invalid command', this.getName());
             return;
         }
 
@@ -375,7 +374,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
     }
 
     public connectClient(config: StompConfig): void {
-        let session = new StompSession(config);
+        let session = new StompSession(config, this.log);
 
         let connection = session.connect();
         config.connectionSubjectRef = connection;
@@ -388,8 +387,8 @@ export class BrokerConnector implements BifrostEventBusEnabled {
                 session.connectionCount++;
 
                 if (session.connectionCount < session.config.brokerConnectCount) {
-                    Syslog.info('Connection message ' + 
-                        session.connectionCount + ' of ' + config.brokerConnectCount + ' received');
+                    this.log.info('Connection message ' +
+                        session.connectionCount + ' of ' + config.brokerConnectCount + ' received', this.getName());
                 }
 
                 // this checks to see if the number of brokers configured send by the bus connectBroker() method
@@ -444,7 +443,8 @@ export class BrokerConnector implements BifrostEventBusEnabled {
             session.disconnect();
             this._sessions.delete(sessionId);
         } else {
-            Syslog.warn('unable to disconnect client, no active session with id: ' + sessionId);
+            this.log.warn('unable to disconnect client, no active session with id: ' +
+                sessionId, 'BrokerConnector');
         }
     }
 
@@ -455,20 +455,22 @@ export class BrokerConnector implements BifrostEventBusEnabled {
 
             // wire in the local broker session id.
             if (!message.headers['session']) {
-                Syslog.debug('sendPacket(): adding local broker session ID to message: ' + data.session);
+                this.log.debug('sendPacket(): adding local broker session ID to message: '
+                    + data.session, this.getName());
+
                 message.headers.session = data.session;
             } else {
-                Syslog.debug('sendPacket(): message headers already contain sessionId');
+                this.log.debug('sendPacket(): message headers already contain sessionId', this.getName());
             }
             session.send(data.destination, message.headers, message.body);
         } else {
-            Syslog.warn('unable to send packet, session is empty');
+            this.log.warn('unable to send packet, session is empty', this.getName());
         }
     }
 
     private reconnectTimer(config: StompConfig) {
         const connect = () => {
-            Syslog.warn('Trying to reconnect to broker....', this.getName());
+            this.log.warn('Trying to reconnect to broker....', this.getName());
             this.connectClient(config);
         };
         this.reconnectTimerInstance = setInterval(connect, this.reconnectDelay);
@@ -478,14 +480,15 @@ export class BrokerConnector implements BifrostEventBusEnabled {
 
         this._closeObservable.subscribe(
             (evt: any) => {
-                Syslog.warn('WebSocket to broker closed!', this.getName());
+                this.log.warn('WebSocket to broker closed!', this.getName());
                 this.sessions.clear();
 
                 if (!this.reconnecting) {
                     this.reconnecting = true;
                     this.reconnectTimer(evt.config);
                 } else {
-                    Syslog.warn('Waiting ' + this.reconnectDelay + ' seconds before reconnecting....');
+                    this.log.warn('Waiting ' + this.reconnectDelay +
+                        ' seconds before reconnecting...', this.getName());
                 }
                 this.sendBusCommandResponse(
                     StompClient.STOMP_DISCONNECTED,
@@ -495,7 +498,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
 
         this._errorObservable.subscribe(
             (err: any) => {
-                Syslog.error('Error occurred with WebSocket, Unable to connect to broker!');
+                this.log.error('Error occurred with WebSocket, Unable to connect to broker!', this.getName());
                 this._sessions.clear();
                 let msg
                     = StompParser.generateStompBusCommand(
@@ -608,11 +611,13 @@ export class BrokerConnector implements BifrostEventBusEnabled {
                 session.removeGalacticSubscription(channel);
                 this.bus.api.close(channel, this.getName());
             } else {
-                Syslog.warn('unable to unsubscribe, no galactic subscription found for id: ' + data.session);
+                this.log.warn('unable to unsubscribe, no galactic subscription found for id: '
+                    + data.session, this.getName());
+
                 this.bus.api.close(channel, this.getName());
             }
         } else {
-            Syslog.warn('unable to unsubscribe, no session found for id: ' + data.session);
+            this.log.warn('unable to unsubscribe, no session found for id: ' + data.session, this.getName());
         }
     }
 }

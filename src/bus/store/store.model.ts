@@ -6,7 +6,7 @@ import { StoreStream, MutateStream } from '../../store.api';
 import { Subscription } from 'rxjs/Subscription';
 import { Observable } from 'rxjs/Observable';
 import { MessageFunction } from '../model/message.model';
-import { Syslog } from '../../log/syslog';
+import { LoggerService } from '../../log';
 
 export type UUID = string;
 export type StoreType = string;
@@ -86,7 +86,7 @@ export class StoreStreamImpl<T, E = any> implements StoreStream<T> {
     protected subscription: Subscription;
 
 
-    constructor(protected stream: Observable<MutationRequestWrapper<T, E>>) {
+    constructor(protected stream: Observable<MutationRequestWrapper<T, E>>, protected log: LoggerService) {
 
     }
 
@@ -100,7 +100,7 @@ export class StoreStreamImpl<T, E = any> implements StoreStream<T> {
                     successHandler(req.value);
 
                 } else {
-                    Syslog.error('unable to handle cache stream event, no handler provided.');
+                    this.log.error('unable to handle cache stream event, no handler provided.', 'StoreStream');
                 }
             }
         );
@@ -120,8 +120,8 @@ export class MutateStreamImpl<T, E = any> extends StoreStreamImpl<T> implements 
     protected mutatorErrorHandler: MessageFunction<E>;
     protected mutatorSuccessHandler: MessageFunction<T>;
 
-    constructor(protected stream: Observable<MutationRequestWrapper<T, E>>) {
-        super(stream);
+    constructor(protected stream: Observable<MutationRequestWrapper<T, E>>, log: LoggerService) {
+        super(stream, log);
     }
 
     subscribe(successHandler: MessageFunction<T>): Subscription {
@@ -144,7 +144,7 @@ export class MutateStreamImpl<T, E = any> extends StoreStreamImpl<T> implements 
                     successHandler(req.value);
 
                 } else {
-                    Syslog.error('unable to handle cache stream event, no handler provided.');
+                    this.log.error('unable to handle cache stream event, no handler provided.', 'MutateStream');
                 }
             }
         );
@@ -158,7 +158,7 @@ export class MutateStreamImpl<T, E = any> extends StoreStreamImpl<T> implements 
                 () => this.mutatorErrorHandler(error)
             );
         } else {
-            Syslog.error('unable to send error event back to mutator, no error handler provided.');
+            this.log.error('unable to send error event back to mutator, no error handler provided.', 'MutateStream');
         }
     }
 
@@ -169,7 +169,8 @@ export class MutateStreamImpl<T, E = any> extends StoreStreamImpl<T> implements 
                 () => this.mutatorSuccessHandler(success)
             );
         } else {
-            Syslog.error('unable to send success event back to mutator, no success handler provided.');
+            this.log.error('unable to send success event back to mutator, ' +
+                'no success handler provided.', 'MutateStream');
         }
     }
 }

@@ -1,16 +1,13 @@
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {StompParser} from './stomp.parser';
-import {Syslog} from '../log/syslog';
 import {StompMessage, StompConfig} from './stomp.model';
-
 import {fromEvent} from 'rxjs/observable/fromEvent';
 import {map} from 'rxjs/operator/map';
 import {mergeMap} from 'rxjs/operator/mergeMap';
-
-
-
-const LOCATION: string = 'Bifröst: StompClient';
+import { GeneralUtil } from '../util/util';
+import { LoggerService } from '../log';
+import { BifrostEventBusEnabled } from '../bus';
 
 export interface StompTransaction {
     id: string;
@@ -20,7 +17,11 @@ export interface StompTransaction {
     abort: Function;
 }
 
-export class StompClient {
+export class StompClient implements BifrostEventBusEnabled {
+
+    getName(): string {
+        return (this as any).constructor.name;
+    }
 
     static STOMP_CONFIGURED: string = 'CONFIGURED';
     static STOMP_CONNECT: string = 'CONNECT';
@@ -60,7 +61,7 @@ export class StompClient {
     private _transactionReceipts: Map<string, Subject<any>>;
     private _heartbeater: any;
 
-    constructor() {
+    constructor(private log: LoggerService) {
 
         this._transactionReceipts = new Map < string, Subject < StompMessage >>();
         this._subscriptions = new Map < string, Subject < StompMessage >>();
@@ -140,7 +141,7 @@ export class StompClient {
     public disconnect(messageHeaders?: any): void {
         let headers = messageHeaders || {};
         if (this._socket) {
-            headers.receipt = 'disconnect-' + StompParser.genUUID();
+            headers.receipt = 'disconnect-' + GeneralUtil.genUUIDShort();
             this.transmit(StompClient.STOMP_DISCONNECT, headers);
         }
     }
@@ -194,7 +195,7 @@ export class StompClient {
                 subscription.complete();
                 this.deleteSubscription(id);
             } else {
-                Syslog.debug('Tried to complete subscription that did not exist: ' + id);
+                this.log.debug('Tried to complete subscription that did not exist: ' + id, this.getName());
             }
         });
 
@@ -202,12 +203,12 @@ export class StompClient {
 
     public beginTransaction(transactionId: string, header?: any): StompTransaction {
         let headers = header || {};
-        headers.transaction = StompParser.genUUID();
+        headers.transaction = GeneralUtil.genUUIDShort();
         if (transactionId) {
             headers.transaction = transactionId;
         }
         if (!headers.receipt) {
-            headers.receipt = StompParser.genUUID();
+            headers.receipt = GeneralUtil.genUUIDShort();
         }
 
         // store this receipt so we can let the user know if/when we get a notification back.
@@ -226,7 +227,7 @@ export class StompClient {
             },
         };
 
-        Syslog.debug('Starting STOMP Transaction: ' + headers.transaction, LOCATION);
+        this.log.debug('Starting STOMP Transaction: ' + headers.transaction, this.getName());
         this.transmit(StompClient.STOMP_BEGIN, headers);
         return txWrapper;
     }
@@ -238,7 +239,7 @@ export class StompClient {
     }
 
     private onStompError(frame: StompMessage) {
-        Syslog.error('Error with STOMP Client on WebSocket: ' + frame.command + frame.body, LOCATION);
+        this.log.error('Error with STOMP Client on WebSocket: ' + frame.command + frame.body, this.getName());
         this.sendStompErrorToSubscribers(frame.headers, frame.body);
     }
 
@@ -247,9 +248,9 @@ export class StompClient {
         try {
             frame = StompParser.unmarshal(err.data);
         } catch (e) {
-            Syslog.info('Error is not STOMP packet, cannot be unmarshalled', LOCATION);
+            this.log.info('Error is not STOMP packet, cannot be unmarshalled', this.getName());
         }
-        Syslog.error('Error with WebSocket, Connection Failed', LOCATION);
+        this.log.error('Error with WebSocket, Connection Failed', this.getName());
         if (frame && frame.hasOwnProperty('headers')) {
             this.sendStompErrorToSubscribers(frame.headers, 'Error occurred with WebSocket');
         }
@@ -259,12 +260,12 @@ export class StompClient {
         setTimeout(() => {
             this._subscriptions.forEach((subscriber: Subject<StompMessage>, id: string) => {
 
-                Syslog.debug('Unsubscribing: ' + id, LOCATION);
+                this.log.debug('Unsubscribing: ' + id, this.getName());
                 //subscriber.complete();
                 this.deleteSubscription(id);
 
             });
-            Syslog.info('WebSocket has been closed', LOCATION);
+            this.log.info('WebSocket has been closed', this.getName());
         });
         this._socketConnected = false;
         this._stompConnectedObserver = null;
@@ -279,7 +280,7 @@ export class StompClient {
 
     private onOpen(evt: Event) {
         this._socketConnected = true;
-        Syslog.debug('WebSocket opened', LOCATION);
+        this.log.debug('WebSocket opened', this.getName());
         this.transmit(StompClient.STOMP_CONNECT, {
             login: this._config.getConfig().user,
             passcode: this._config.getConfig().pass,
@@ -318,14 +319,14 @@ export class StompClient {
     private commit(txId: string) {
 
         let headers = {transaction: txId};
-        Syslog.debug('STOMP transaction COMMIT: ' + txId, LOCATION);
+        this.log.debug('STOMP transaction COMMIT: ' + txId, this.getName());
         this.transmit(StompClient.STOMP_COMMIT, headers);
     }
 
     public abort(txId: string) {
 
         let headers = {transaction: txId};
-        Syslog.debug('STOMP transaction ABORT: ' + txId, LOCATION);
+        this.log.debug('STOMP transaction ABORT: ' + txId, this.getName());
         this.transmit(StompClient.STOMP_ABORT, headers);
     }
 
@@ -341,14 +342,14 @@ export class StompClient {
 
             case StompClient.STOMP_CONNECTED:
 
-                Syslog.debug('STOMP client now connected, alerting subscribers', LOCATION);
+                this.log.debug('STOMP client now connected, alerting subscribers', this.getName());
                 this._stompConnected = true;
                 this._stompConnectedObserver.next(true);
                 break;
 
             case StompClient.STOMP_MESSAGE:
 
-                Syslog.debug('STOMP message received: ' + evt.data, LOCATION);
+                this.log.debug('STOMP message received: ' + evt.data, this.getName());
 
                 // the subscription ID should have been sent back from the server
                 if (frame.headers.subscription) {
@@ -366,7 +367,8 @@ export class StompClient {
             case StompClient.STOMP_RECEIPT:
 
                 let receiptId: string = frame.headers['receipt-id'];
-                Syslog.debug('STOMP receipt received: ' + receiptId, LOCATION);
+                this.log.debug('STOMP receipt received: ' + receiptId, this.getName());
+
                 let subject: Subject<StompMessage>
                     = this._transactionReceipts.get(receiptId);
                 if (subject) {
@@ -383,7 +385,7 @@ export class StompClient {
 
             case StompClient.STOMP_ERROR:
 
-                Syslog.debug('STOMP error received: ' + evt.data, LOCATION);
+                this.log.debug('STOMP error received: ' + evt.data, this.getName());
                 this.onStompError(frame);
                 break;
 
@@ -398,18 +400,18 @@ export class StompClient {
         if (this._socket) {
 
             if (this._socket.readyState === WebSocket.OPEN) {
-                Syslog.debug('Sending STOMP frame down the wire', LOCATION);
+                this.log.debug('Sending STOMP frame down the wire', this.getName());
                 this._socket.send(data);
                 return true;
 
             } else {
-                Syslog.error(err, LOCATION);
+                this.log.error(err, this.getName());
                 this.sendStompErrorToSubscribers(headers, err);
                 return false;
             }
 
         }
-        Syslog.debug(err, LOCATION);
+        this.log.debug(err, this.getName());
         return false;
     }
 

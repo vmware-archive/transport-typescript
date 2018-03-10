@@ -1,7 +1,6 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { Syslog } from '../log/syslog';
 
 import { Channel } from './model/channel.model';
 import { MonitorObject, MonitorType } from './model/monitor.model';
@@ -15,8 +14,6 @@ import { StompBusCommand, StompChannel, StompConfig } from '../bridge/stomp.mode
 import { StompClient } from '../bridge/stomp.client';
 import { StompParser } from '../bridge/stomp.parser';
 import { ChannelName, EventBus, EventBusLowApi, SentFrom, TransactionType, BusTransaction } from '../bus.api';
-import 'rxjs/add/operator/merge';
-import 'rxjs/add/observable/merge';
 import { EventBusLowLevelApiImpl } from './bus.lowlevel';
 import { LoggerService } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
@@ -27,6 +24,8 @@ import { StoreManager } from './store/store.manager';
 import { BusTransactionImpl } from './transaction';
 import { BrokerConnector } from '../bridge/broker-connector';
 import { GeneralUtil } from '../util/util';
+import 'rxjs/add/operator/merge';
+import 'rxjs/add/observable/merge';
 
 export abstract class BifrostEventBusEnabled {
     abstract getName(): string;
@@ -59,7 +58,7 @@ export class BifrostEventBus extends EventBus implements BifrostEventBusEnabled 
         window.AppEventBus = this as EventBus;
         window.AppBrokerConnector = new BrokerConnector(this.log);
         window.AppBrokerConnector.init(this);
-        window.AppSyslog = Syslog;
+        window.AppSyslog = this.log;
         
         if (!disableBootMessage) {
             this.log.setStylingVisble(true);

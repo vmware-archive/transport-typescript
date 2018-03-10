@@ -7,8 +7,7 @@ import { UUID } from './store.model';
 import { BusStore, StoreStream, MutateStream } from '../../store.api';
 import { MessageFunction } from '../model/message.model';
 import { EventBus } from '../../bus.api';
-import { LogLevel } from '../../log/index';
-import { Syslog } from '../../log/syslog';
+import { LoggerService, LogLevel } from '../../log/index';
 
 enum State {
     Created = 'Created',
@@ -24,13 +23,14 @@ enum Mutate {
 
 describe('BusStore [store/store.model]', () => {
     let bus: EventBus;
-    Syslog.suppressFlag = true;
+    let log: LoggerService
 
     beforeEach(() => {
         bus = new BifrostEventBus(LogLevel.Off, true);
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
         bus.stores.createStore('string');
+        log = bus.api.logger();
     });
 
     afterEach(() => {
@@ -134,12 +134,6 @@ describe('BusStore [store/store.model]', () => {
 
         let counter: number = 0;
 
-        // interface Dog {
-        //     name: string;
-        //     age: number;
-        //     commonPhrase: string;
-        // }
-
         cache.onChange<State.Created>('magnum', State.Created)
             .subscribe(
             (d: Dog) => {
@@ -192,7 +186,7 @@ describe('BusStore [store/store.model]', () => {
     });
 
     it('onChange() works with no success handler supplied', (done) => {
-        spyOn(Syslog, 'error').and.callThrough();
+        spyOn(log, 'error').and.callThrough();
 
         const store: BusStore<string> = bus.stores.createStore('dog');
         store.onChange<State.Created>('magnum', State.Created)
@@ -202,8 +196,9 @@ describe('BusStore [store/store.model]', () => {
 
         bus.api.tickEventLoop(
             () => {
-                expect(Syslog.error)
-                    .toHaveBeenCalledWith('unable to handle cache stream event, no handler provided.');
+                expect(log.error)
+                    .toHaveBeenCalledWith('unable to handle cache stream event, ' +
+                        'no handler provided.', 'StoreStream');
                 done();
             },
             20
@@ -451,7 +446,7 @@ describe('BusStore [store/store.model]', () => {
 
     it('check mutate() works with correct logging, without success handler.', (done) => {
 
-        spyOn(Syslog, 'error').and.callThrough();
+        spyOn(log, 'error').and.callThrough();
         const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
@@ -473,8 +468,9 @@ describe('BusStore [store/store.model]', () => {
 
         bus.api.tickEventLoop(
             () => {
-                expect(Syslog.error)
-                    .toHaveBeenCalledWith('unable to send success event back to mutator, no success handler provided.');
+                expect(log.error)
+                    .toHaveBeenCalledWith('unable to send success event back to mutator, ' +
+                        'no success handler provided.', 'MutateStream');
                 done();
             }
             , 20
@@ -483,7 +479,7 @@ describe('BusStore [store/store.model]', () => {
 
 
     it('check mutate() works without correct success handling', (done) => {
-        spyOn(Syslog, 'error').and.callThrough();
+        spyOn(log, 'error').and.callThrough();
         const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
@@ -496,7 +492,8 @@ describe('BusStore [store/store.model]', () => {
 
         bus.api.tickEventLoop(
             () => {
-                expect(Syslog.error).toHaveBeenCalledWith('unable to handle cache stream event, no handler provided.');
+                expect(log.error).toHaveBeenCalledWith('unable to handle ' +
+                    'cache stream event, no handler provided.', 'MutateStream');
                 done();
             }
             , 50
@@ -531,7 +528,7 @@ describe('BusStore [store/store.model]', () => {
 
     it('check mutate() works with correct error logging when no error handler provided', (done) => {
 
-        spyOn(Syslog, 'error').and.callThrough();
+        spyOn(log, 'error').and.callThrough();
         const cache: BusStore<Dog> = bus.stores.createStore('Dog');
 
         let d: Dog = new Dog('foxy', 11, 'eat it, not bury it');
@@ -551,8 +548,9 @@ describe('BusStore [store/store.model]', () => {
         cache.mutate(d, Mutate.Update, null);
         bus.api.tickEventLoop(
             () => {
-                expect(Syslog.error)
-                    .toHaveBeenCalledWith('unable to send error event back to mutator, no error handler provided.');
+                expect(log.error)
+                    .toHaveBeenCalledWith('unable to send error event back to' +
+                        ' mutator, no error handler provided.', 'MutateStream');
                 done();
             }
             , 50

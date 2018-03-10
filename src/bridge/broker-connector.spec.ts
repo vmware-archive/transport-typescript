@@ -1,14 +1,15 @@
-import { Message, BifrostEventBus } from '../';
+
 import { BrokerConnector } from './broker-connector';
 import { StompChannel, StompBusCommand, StompConfig, StompSession } from './stomp.model';
 import { StompParser } from './stomp.parser';
 import { StompClient } from './stomp.client';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
-import { Syslog } from '../log/syslog';
-import 'rxjs/add/operator/take';
 import { EventBus } from '../bus.api';
 import { LogLevel } from '../log/logger.model';
 import { GeneralUtil } from '../util/util';
+import 'rxjs/add/operator/take';
+import { BifrostEventBus, Message } from '../bus';
+import { LoggerService } from '../log';
 
 /**
  * Main BrokerConnector tests.
@@ -17,12 +18,13 @@ import { GeneralUtil } from '../util/util';
 describe('BrokerConnector [broker-connector.ts]', () => {
 
     let bus: EventBus;
-    let ss: BrokerConnector;
+    let bc: BrokerConnector;
     let config: StompConfig;
     let configNoTopics: StompConfig;
     let configMultiBroker: StompConfig;
     let configCustomId: StompConfig;
     let configApplicationPrefix: StompConfig;
+    let log: LoggerService;
 
     let subId: string;
 
@@ -36,7 +38,8 @@ describe('BrokerConnector [broker-connector.ts]', () => {
         () => {
 
             bus = new BifrostEventBus(LogLevel.Error, true);
-            ss = window.AppBrokerConnector;
+            bc = window.AppBrokerConnector;
+            log = window.AppSyslog;
 
             config = createStandardConfig();
             configNoTopics = createStandardConfig(false); // no topics.
@@ -49,6 +52,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
             bus.api.silenceLog(true);
             bus.api.suppressLog(true);
             bus.api.enableMonitorDump(false);
+
 
         });
 
@@ -263,7 +267,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
         it('We should only respond to valid connection messages sent on the bus',
             (done) => {
 
-                spyOn(ss, 'connectClient')
+                spyOn(bc, 'connectClient')
                     .and
                     .callThrough();
 
@@ -271,11 +275,11 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                 const badCommand = StompParser.generateStompBusCommand('CARROT', '', '', config);
                 bus.sendRequestMessage(StompChannel.connection, badCommand);
 
-                expect(ss.connectClient).not.toHaveBeenCalled();
+                expect(bc.connectClient).not.toHaveBeenCalled();
 
                 bus.sendRequestMessage(StompChannel.connection, 'CAMELOT');
 
-                expect(ss.connectClient).not.toHaveBeenCalled();
+                expect(bc.connectClient).not.toHaveBeenCalled();
 
                 // wrong command message
                 let wrongCommand =
@@ -283,7 +287,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                 bus.sendRequestMessage(StompChannel.connection, wrongCommand);
 
-                expect(ss.connectClient).not.toHaveBeenCalled();
+                expect(bc.connectClient).not.toHaveBeenCalled();
 
                 done();
             }
@@ -292,7 +296,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
         it('We should only respond to valid disconnection messages sent on the bus',
             (done) => {
 
-                spyOn(ss, 'disconnectClient')
+                spyOn(bc, 'disconnectClient')
                     .and
                     .callThrough();
 
@@ -307,12 +311,12 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                 let badCommand = StompParser.generateStompBusCommand('DISCOMMAND', '', '', config);
                                 bus.sendRequestMessage(StompChannel.connection, badCommand);
 
-                                expect(ss.disconnectClient).not.toHaveBeenCalled();
+                                expect(bc.disconnectClient).not.toHaveBeenCalled();
 
                                 // create a bad bus message
                                 bus.sendRequestMessage(StompChannel.connection, 'DISCONACRT');
 
-                                expect(ss.disconnectClient).not.toHaveBeenCalled();
+                                expect(bc.disconnectClient).not.toHaveBeenCalled();
 
                                 // wrong command message
                                 let wrongCommand =
@@ -325,7 +329,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                 bus.sendRequestMessage(StompChannel.connection, wrongCommand);
 
-                                expect(ss.disconnectClient).not.toHaveBeenCalled();
+                                expect(bc.disconnectClient).not.toHaveBeenCalled();
                                 done();
 
                                 break;
@@ -341,7 +345,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
         it('We should only respond to valid subscription messages sent on the bus',
             (done) => {
 
-                spyOn(ss, 'subscribeToDestination')
+                spyOn(bc, 'subscribeToDestination')
                     .and
                     .callThrough();
 
@@ -364,12 +368,12 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                 bus.sendRequestMessage(StompChannel.subscription, missingProperties);
 
-                                expect(ss.subscribeToDestination).not.toHaveBeenCalled();
+                                expect(bc.subscribeToDestination).not.toHaveBeenCalled();
 
                                 // create a bad bus message
                                 bus.sendRequestMessage(StompChannel.connection, StompClient.STOMP_SUBSCRIBE);
 
-                                expect(ss.subscribeToDestination).not.toHaveBeenCalled();
+                                expect(bc.subscribeToDestination).not.toHaveBeenCalled();
 
                                 let wrongCommand =
                                     StompParser.generateStompBusCommand(
@@ -384,7 +388,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                 // send wrong command
                                 bus.sendRequestMessage(StompChannel.subscription, wrongCommand);
 
-                                expect(ss.subscribeToDestination).not.toHaveBeenCalled();
+                                expect(bc.subscribeToDestination).not.toHaveBeenCalled();
 
                                 done();
                                 break;
@@ -400,7 +404,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
         it('We should only respond to valid unsubscription messages sent on the bus',
             (done) => {
 
-                spyOn(ss, 'unsubscribeFromDestination')
+                spyOn(bc, 'unsubscribeFromDestination')
                     .and
                     .callThrough();
 
@@ -430,7 +434,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                 // create a bad bus message
                                 bus.sendRequestMessage(StompChannel.connection, StompClient.STOMP_UNSUBSCRIBE);
 
-                                expect(ss.unsubscribeFromDestination).not.toHaveBeenCalled();
+                                expect(bc.unsubscribeFromDestination).not.toHaveBeenCalled();
 
                                 let wrongCommand =
                                     StompParser.generateStompBusCommand(
@@ -446,7 +450,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                 // send wrong command
                                 bus.sendRequestMessage(StompChannel.subscription, wrongCommand);
 
-                                expect(ss.unsubscribeFromDestination).not.toHaveBeenCalled();
+                                expect(bc.unsubscribeFromDestination).not.toHaveBeenCalled();
 
                                 let missingPayload =
                                     StompParser.generateStompBusCommand(
@@ -459,7 +463,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                 // send missing payload and distribution
                                 bus.sendRequestMessage(StompChannel.subscription, missingPayload);
 
-                                expect(ss.unsubscribeFromDestination).not.toHaveBeenCalled();
+                                expect(bc.unsubscribeFromDestination).not.toHaveBeenCalled();
 
                                 done();
                                 break;
@@ -481,7 +485,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                 let mId: string = StompParser.genUUID();
                 let headers: Object = { id: mId, subscription: subId };
 
-                spyOn(ss, 'sendPacket')
+                spyOn(bc, 'sendPacket')
                     .and
                     .callThrough();
 
@@ -550,7 +554,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                 bus.listenStream(StompChannel.status)
                     .handle(
                     () => {
-                        expect(ss.sendPacket).not.toHaveBeenCalled();
+                        expect(bc.sendPacket).not.toHaveBeenCalled();
                         done();
                     }
                     );
@@ -570,7 +574,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
-                                let session = ss.getSession(command.session);
+                                let session = bc.getSession(command.session);
                                 setTimeout(
                                     () => session.client.clientSocket.triggerEvent('error', ['unknown'])
                                 );
@@ -671,7 +675,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                 break;
 
                             case StompClient.STOMP_SUBSCRIBED:
-                                expect(ss.galacticChannels.size).toEqual(1);
+                                expect(bc.galacticChannels.size).toEqual(1);
 
                                 // trigger an unsubscription via channel close
                                 bus.closeChannel('fancycats', getName());
@@ -748,14 +752,14 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                         switch (command.command) {
                             case StompClient.STOMP_SUBSCRIBED:
-                                expect(ss.galacticChannels.size).toEqual(2);
+                                expect(bc.galacticChannels.size).toEqual(2);
 
                                 // trigger an unsubscription via channel close
                                 bus.closeGalacticChannel('happy-puppers', getName());
                                 break;
 
                             case StompClient.STOMP_UNSUBSCRIBED:
-                                ss.sessions.forEach(
+                                bc.sessions.forEach(
                                     (session: StompSession) => {
                                         BrokerConnector.fireDisconnectCommand(bus, session.id);
                                     }
@@ -812,7 +816,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             (done) => {
 
-                spyOn(ss, 'sendPacket').and.callThrough();
+                spyOn(bc, 'sendPacket').and.callThrough();
 
                 /**
                  * Will check that sendPacket is fired when valid connection sessions exist.
@@ -828,7 +832,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                 bus.api.tickEventLoop(
                                     () => {
-                                        expect(ss.sendPacket).toHaveBeenCalled();
+                                        expect(bc.sendPacket).toHaveBeenCalled();
                                         done();
                                     }
                                 );
@@ -846,8 +850,8 @@ describe('BrokerConnector [broker-connector.ts]', () => {
         it('check galactic messages are sent with or without application prefix ',
 
             (done) => {
-                const logger = bus.api.logger();
-                spyOn(logger, 'debug').and.callThrough();
+
+                spyOn(log, 'debug').and.callThrough();
 
                 /**
                  * Will check that application prefix is applied if part of config
@@ -863,7 +867,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                     bus.api.tickEventLoop(
                                         () => {
-                                            expect(logger.debug).toHaveBeenCalledWith(
+                                            expect(log.debug).toHaveBeenCalledWith(
                                                 'Sending Galactic Message for session anything to ' +
                                                 'destination /dogs/sometopic', 'BrokerConnector');
                                             done();
@@ -886,8 +890,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             (done) => {
 
-                const logger = bus.api.logger();
-                spyOn(logger, 'warn').and.callThrough();
+                spyOn(log, 'warn').and.callThrough();
 
                 /**
                  * Will check that sendPacket is fired when valid connection sessions exist.
@@ -904,7 +907,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                 bus.api.tickEventLoop(
                                     () => {
-                                        expect(logger.warn)
+                                        expect(log.warn)
                                             .toHaveBeenCalledWith(
                                             'Cannot send galactic message, topics not ' +
                                             'enabled for broker, queues not implemented yet.', 'BrokerConnector');
@@ -925,8 +928,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             (done) => {
 
-                const logger = bus.api.logger();
-                spyOn(logger, 'warn').and.callThrough();
+                spyOn(log, 'warn').and.callThrough();
 
                 /**
                  * check galactic channels cannot be opened if topics are no configured for the broker.
@@ -942,7 +944,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                 bus.api.tickEventLoop(
                                     () => {
-                                        expect(logger.warn)
+                                        expect(log.warn)
                                             .toHaveBeenCalledWith(
                                             'Unable to open galactic channel, ' +
                                             'topics not configured and queues not supported yet.', 'BrokerConnector');
@@ -963,8 +965,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             (done) => {
 
-                const logger = bus.api.logger();
-                spyOn(logger, 'warn').and.callThrough();
+                spyOn(log, 'warn').and.callThrough();
 
                 /**
                  * Check that galactic channels cannot be closed if topics are no configured
@@ -981,7 +982,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                 bus.api.tickEventLoop(
                                     () => {
-                                        expect(logger.warn)
+                                        expect(log.warn)
                                             .toHaveBeenCalledTimes(2);
                                         done();
                                     }
@@ -999,9 +1000,8 @@ describe('BrokerConnector [broker-connector.ts]', () => {
         it('check galactic channels are not closed if there are no sessions active.',
 
             (done) => {
-
-                spyOn(Syslog, 'warn').and.callThrough();
-                spyOn(Syslog, 'info').and.callThrough();
+                spyOn(log, 'warn').and.callThrough();
+                spyOn(log, 'info').and.callThrough();
 
                 /**
                  * Check that galactic channels cannot be closed if topics are no configured
@@ -1013,48 +1013,20 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                     () => {
 
                         //Added galactic channel to broker subscription requests:
-                        expect(Syslog.warn)
+                        expect(log.warn)
                             .toHaveBeenCalledWith(
-                            'unable to close galactic channel, no open sessions.');
+                            'unable to close galactic channel, no open sessions.',bc.getName());
                         done();
                     }
                 );
             }
         );
 
-        // it('check that incoming stomp messages are not processed if they are invalid.',
-
-        //     (done) => {
-
-        //         spyOn(Syslog, 'warn').and.callThrough();
-        //         spyOn(ss, 'sendPacket').and.callThrough();
-
-        //         /**
-        //          * Check that incoming messages for stomp comms are valid, no processing otherwise.
-        //          */
-        //         bus.sendRequestMessage(StompChannel.messages, 'invalid msg');
-
-        //         bus.api.tickEventLoop(
-        //             () => {
-
-        //                 //Added galactic channel to broker subscription requests:
-
-        //                 expect(Syslog.warn)
-        //                     .toHaveBeenCalledWith(
-        //                     'unable to validate inbound message, invalid: invalid msg');
-
-        //                 expect(ss.sendPacket).not.toHaveBeenCalled();
-        //                 done();
-        //             }, 50
-        //         );
-        //     }
-        // );
-
         it('check that incoming stomp subscriptions are not processed if they are invalid commands',
 
             (done) => {
 
-                spyOn(Syslog, 'warn').and.callThrough();
+                spyOn(log, 'warn').and.callThrough();
 
                 bus.listenStream(StompChannel.status)
                     .handle(
@@ -1073,9 +1045,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                 bus.api.tickEventLoop(
                                     () => {
-                                        expect(Syslog.warn)
+                                        expect(log.warn)
                                             .toHaveBeenCalledWith(
-                                            'unable to validate inbound subscription message, invalid');
+                                            'unable to validate inbound subscription message, invalid', bc.getName());
                                         done();
                                     }
                                 );
@@ -1093,7 +1065,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             (done) => {
 
-                spyOn(Syslog, 'info').and.callThrough();
+                spyOn(log, 'info').and.callThrough();
 
                 bus.listenStream(StompChannel.status)
                     .handle(
@@ -1111,7 +1083,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                 BrokerConnector.fireConnectCommand(bus, configMultiBroker);
                 bus.api.tickEventLoop(
                     () => {
-                        expect(Syslog.info).toHaveBeenCalledWith('Connection message 1 of 2 received');
+                        expect(log.info).toHaveBeenCalledWith('Connection message 1 of 2 received', bc.getName());
 
                         // fire second connection from relay.
                         configMultiBroker.connectionSubjectRef.next(true);
@@ -1124,10 +1096,11 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             () => {
 
-                spyOn(Syslog, 'warn').and.callThrough();
-                ss.disconnectClient('ember-pup');
-                expect(Syslog.warn)
-                    .toHaveBeenCalledWith('unable to disconnect client, no active session with id: ember-pup');
+                spyOn(log, 'warn').and.callThrough();
+                bc.disconnectClient('ember-pup');
+                expect(log.warn)
+                    .toHaveBeenCalledWith('unable to disconnect client, ' +
+                        'no active session with id: ember-pup', bc.getName());
 
             }
         );
@@ -1136,9 +1109,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             (done) => {
 
-                spyOn(Syslog, 'warn').and.callThrough();
-                spyOn(Syslog, 'debug').and.callThrough();
-                ss.sendPacket(
+                spyOn(log, 'warn').and.callThrough();
+                spyOn(log, 'debug').and.callThrough();
+                bc.sendPacket(
                     {
                         payload: {
                             command: 'none',
@@ -1150,8 +1123,8 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                         session: null
                     }
                 );
-                expect(Syslog.warn)
-                    .toHaveBeenCalledWith('unable to send packet, session is empty');
+                expect(log.warn)
+                    .toHaveBeenCalledWith('unable to send packet, session is empty', bc.getName());
 
                 bus.listenStream(StompChannel.status)
                     .handle(
@@ -1162,7 +1135,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
 
 
-                                ss.sendPacket(
+                                bc.sendPacket(
                                     {
                                         payload: {
                                             command: 'none',
@@ -1174,11 +1147,11 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                         session: 'puppy-love'
                                     }
                                 );
-                                expect(Syslog.debug)
+                                expect(log.debug)
                                     .toHaveBeenCalledWith('sendPacket(): adding local broker session ' +
-                                    'ID to message: puppy-love');
+                                    'ID to message: puppy-love', bc.getName());
 
-                                ss.sendPacket(
+                                bc.sendPacket(
                                     {
                                         payload: {
                                             command: 'none',
@@ -1190,8 +1163,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                         session: 'puppy-love'
                                     }
                                 );
-                                expect(Syslog.debug)
-                                    .toHaveBeenCalledWith('sendPacket(): message headers already contain sessionId');
+                                expect(log.debug)
+                                    .toHaveBeenCalledWith('sendPacket(): message headers already ' +
+                                        'contain sessionId', bc.getName());
                                 //
                                 done();
                                 break;
@@ -1210,7 +1184,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             (done) => {
 
-                spyOn(ss, 'sendPacket').and.callThrough();
+                spyOn(bc, 'sendPacket').and.callThrough();
 
                 bus.listenStream(StompChannel.status)
                     .handle(
@@ -1230,7 +1204,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                 bus.api.tickEventLoop(
                                     () => {
-                                        expect(ss.sendPacket).toHaveBeenCalled();
+                                        expect(bc.sendPacket).toHaveBeenCalled();
                                         done();
                                     }, 20
                                 );
@@ -1252,7 +1226,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             (done) => {
 
-                spyOn(Syslog, 'warn').and.callThrough();
+                spyOn(log, 'warn').and.callThrough();
 
                 bus.listenStream(StompChannel.status)
                     .handle(
@@ -1261,7 +1235,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
 
-                                ss.unsubscribeFromDestination({ session: 'none', destination: 'none', id: 'none' });
+                                bc.unsubscribeFromDestination({ session: 'none', destination: 'none', id: 'none' });
 
                                 bus.api.tickEventLoop(
                                     () => {
@@ -1272,9 +1246,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                 bus.api.tickEventLoop(
                                     () => {
-                                        expect(Syslog.warn)
+                                        expect(log.warn)
                                             .toHaveBeenCalledWith('unable to unsubscribe, ' +
-                                            'no session found for id: none');
+                                            'no session found for id: none', bc.getName());
                                         done();
                                     }, 20
                                 );
@@ -1295,7 +1269,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             (done) => {
 
-                spyOn(Syslog, 'warn').and.callThrough();
+                spyOn(log, 'warn').and.callThrough();
 
                 bus.listenStream(StompChannel.status)
                     .handle(
@@ -1304,7 +1278,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
 
-                                ss.unsubscribeFromDestination(
+                                bc.unsubscribeFromDestination(
                                     { session: 'puppy-love', destination: 'none', id: 'none' }
                                 );
 
@@ -1317,9 +1291,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                                 bus.api.tickEventLoop(
                                     () => {
-                                        expect(Syslog.warn)
+                                        expect(log.warn)
                                             .toHaveBeenCalledWith('unable to unsubscribe, ' +
-                                            'no galactic subscription found for id: puppy-love');
+                                            'no galactic subscription found for id: puppy-love', bc.getName());
                                         done();
                                     }, 20
                                 );

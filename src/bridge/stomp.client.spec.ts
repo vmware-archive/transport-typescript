@@ -5,9 +5,10 @@
 import { StompClient } from './stomp.client';
 import { Subject } from 'rxjs/Subject';
 import { StompParser } from './stomp.parser';
-import { Syslog } from '../log/syslog';
 import { StompMessage, StompConfig } from './stomp.model';
 import 'rxjs/add/operator/mergeMap';
+import { LoggerService } from '../log';
+import { GeneralUtil } from '../util/util';
 
 describe('Stomp Client [stomp.client]', () => {
 
@@ -29,10 +30,11 @@ describe('Stomp Client [stomp.client]', () => {
             false
         );
         config.testMode = true;
-        client = new StompClient();
+        let log = new LoggerService();
+        client = new StompClient(log);
         client.useMockSocket();
-        subId = StompParser.genUUID();
-        Syslog.silent(true);
+        log.silent(true);
+        subId = GeneralUtil.genUUIDShort();
     });
 
 

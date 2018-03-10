@@ -3,18 +3,20 @@
  */
 
 import { Channel } from './channel.model';
-import { Syslog } from '../../log/syslog';
 import { LogUtil } from '../../log/util';
 import { Message } from './message.model';
+import { LoggerService } from '../../log';
 
 /**
  * This is the unit test for the Stream model.
  */
 
+const name = 'channel.model';
 
-describe('Stream Model [stream]', () => {
+describe('Stream Model [channel.model]', () => {
 
     let channel: Channel;
+    let log: LoggerService;
 
     let testObject = {
         name: 'test'
@@ -26,6 +28,8 @@ describe('Stream Model [stream]', () => {
     beforeEach(
         () => {
             channel = new Channel('test-stream');
+            log = new LoggerService();
+            log.silent(true);
         }
     );
 
@@ -51,7 +55,7 @@ describe('Stream Model [stream]', () => {
 
             (error: any) => {
                 // shouldn't come here
-                Syslog.error('Unexpected error on stream.send: ' + LogUtil.pretty(error), 'stream.spec');
+                log.error('Unexpected error on stream.send: ' + LogUtil.pretty(error), name);
             }
         );
 
@@ -62,7 +66,7 @@ describe('Stream Model [stream]', () => {
         channel.stream.subscribe(
             (message: Message) => {
                 // shouldn't come here
-                Syslog.error('Unexpected data received: ' + LogUtil.pretty(message), 'stream.spec');
+                log.error('Unexpected data received: ' + LogUtil.pretty(message), name);
             },
 
             (error: any) => {
@@ -79,18 +83,18 @@ describe('Stream Model [stream]', () => {
         channel.stream.subscribe(
             (message: Message) => {
                 // shouldn't come here
-                Syslog.error('Unexpected data received: ' + LogUtil.pretty(message), 'stream.spec');
+                log.error('Unexpected data received: ' + LogUtil.pretty(message), name);
             },
 
             (error: any) => {
                 // shouldn't come here
-                Syslog.error('Unexpected error received: ' + LogUtil.pretty(error), 'stream.spec');
+                log.error('Unexpected error received: ' + LogUtil.pretty(error), name);
             },
 
             () => {
                 expect(channel.isClosed)
                     .toBeTruthy();
-                Syslog.debug('Completion correctly received.', 'stream.spec');
+                log.debug('Completion correctly received.', name);
                 done();
             }
         );

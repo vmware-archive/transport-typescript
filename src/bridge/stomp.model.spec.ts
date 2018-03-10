@@ -4,8 +4,11 @@
 
 import { MockSocket } from './stomp.mocksocket';
 import { StompConfig, StompSession } from './stomp.model';
+import { LoggerService } from '../log';
 
 describe('Stomp Model [stomp.config]', () => {
+
+    let log: LoggerService;
 
     describe('Stomp Configuration', () => {
 
@@ -18,6 +21,9 @@ describe('Stomp Model [stomp.config]', () => {
                     'user',
                     'pass'
                 );
+
+                log = new LoggerService();
+                log.silent(true);
 
                 expect(config.host).toBeDefined();
                 expect(config.port).toBeDefined();
@@ -155,7 +161,7 @@ describe('Stomp Model [stomp.config]', () => {
                 );
 
                 config.testMode = true;
-                let session = new StompSession(config);
+                let session = new StompSession(config, log);
 
                 expect(session.connect).toBeTruthy();
                 expect(session.client).not.toBeNull();
@@ -176,7 +182,7 @@ describe('Stomp Model [stomp.config]', () => {
                 );
 
                 config.testMode = true;
-                const session = new StompSession(config);
+                const session = new StompSession(config, log);
 
                 session.addGalacticSubscription('space-dogs', null);
                 expect(session.getGalacticSubscriptions().has('space-dogs')).toBeTruthy();

@@ -1,7 +1,6 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { Syslog } from './log/syslog';
 import { BrokerConnector } from './index';
 import { StoreType, UUID } from './bus/store/store.model';
 import { BusStoreApi } from './store.api';
@@ -26,7 +25,7 @@ declare global {
     
         AppEventBus: EventBus;
         AppBrokerConnector: BrokerConnector;
-        AppSyslog: Syslog;
+        AppSyslog: LoggerService;
     }
 }
 

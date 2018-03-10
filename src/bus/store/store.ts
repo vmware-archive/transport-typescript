@@ -13,7 +13,6 @@ import {
 } from './store.model';
 import { BusStore, StoreStream, MutateStream } from '../../store.api';
 import { EventBus } from '../../bus.api';
-import { Syslog } from '../../log/syslog';
 import { LoggerService } from '../../log/logger.service';
 
 interface Predicate<T> {
@@ -127,7 +126,7 @@ export class StoreImpl<T> implements BusStore<T>, BifrostEventBusEnabled {
             return true; // all states.
         };
 
-        return new StoreStreamImpl<T>(this.filterStream(stream, [stateChangeFilter]));
+        return new StoreStreamImpl<T>(this.filterStream(stream, [stateChangeFilter]), this.log);
     }
 
     onAllChanges<S>(objectType: T, ...stateChangeType: S[]): StoreStream<T> {
@@ -154,6 +153,7 @@ export class StoreImpl<T> implements BusStore<T>, BifrostEventBusEnabled {
         };
 
         const compareObjects: Predicate<StoreStateChange<S, T>> = (state: StoreStateChange<S, T>) => {
+
             // const compareKeys = (a: T, b: T): boolean => {
             //     const aKeys = Object.keys(a).sort();
             //     const bKeys = Object.keys(b).sort();
@@ -164,16 +164,19 @@ export class StoreImpl<T> implements BusStore<T>, BifrostEventBusEnabled {
             
             // Check that class names match. If not, just log, don't do anything.    
             const match: boolean = objectType.constructor.name.trim() === state.value.constructor.name.trim();
+
             if (!match) {
-                Syslog.warn('onAllChanges() stream handling mismatched object types [' +
-                    objectType.constructor.name.trim() + '] and [' + state.value.constructor.name.trim() + ']');
+
+                this.log.warn('onAllChanges() stream handling mismatched object types [' +
+                    objectType.constructor.name.trim() + '] and [' + state.value.constructor.name.trim() + ']',
+                        this.getName());
             }
             return true;
 
 
         };
 
-        return new StoreStreamImpl<T>(this.filterStream(stream, [stateChangeFilter, compareObjects]));
+        return new StoreStreamImpl<T>(this.filterStream(stream, [stateChangeFilter, compareObjects]), this.log);
     }
 
     private filterStream<S>(
@@ -240,7 +243,7 @@ export class StoreImpl<T> implements BusStore<T>, BifrostEventBusEnabled {
                 }
             );
 
-        return new MutateStreamImpl<T, E>(filterStream);
+        return new MutateStreamImpl<T, E>(filterStream, this.log);
     }
 
     reset(): void {

@@ -2,7 +2,6 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 import { EventBus, BifrostEventBus, StompChannel } from '../';
-import { Syslog } from '../log/syslog';
 import { LogLevel } from '../log/logger.model';
 import { Message, MessageHandler, MessageResponder, MessageType } from './model/message.model';
 import { Channel } from './model/channel.model';
@@ -232,7 +231,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             null,
             null,
             () => {
-                Syslog.debug('Channel1: Completion received correctly.', 'messagebus.service');
+                bus.api.logger().debug('Channel1: Completion received correctly.', 'messagebus.service');
                 doneCaller();
             }
         );
@@ -242,7 +241,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             null,
             null,
             () => {
-                Syslog.debug('Channel2: Completion received correctly.', 'messagebus.service');
+                bus.api.logger().debug('Channel2: Completion received correctly.', 'messagebus.service');
                 doneCaller();
             }
         );
