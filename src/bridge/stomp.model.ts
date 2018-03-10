@@ -11,6 +11,8 @@ import { UUID } from '../bus/store/store.model';
 import { LoggerService } from '../log';
 import { GeneralUtil } from '../util/util';
 
+export type BifrostSocket = WebSocket;
+
 export class StompChannel {
 
     static connection: string = '#stomp-connection';

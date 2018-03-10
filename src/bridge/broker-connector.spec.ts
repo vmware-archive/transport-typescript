@@ -1,6 +1,6 @@
 
 import { BrokerConnector } from './broker-connector';
-import { StompChannel, StompBusCommand, StompConfig, StompSession } from './stomp.model';
+import { StompChannel, StompBusCommand, StompConfig, StompSession, BifrostSocket } from './stomp.model';
 import { StompParser } from './stomp.parser';
 import { StompClient } from './stomp.client';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
@@ -10,6 +10,7 @@ import { GeneralUtil } from '../util/util';
 import 'rxjs/add/operator/take';
 import { BifrostEventBus, Message } from '../bus';
 import { LoggerService } from '../log';
+import { MockSocket } from './stomp.mocksocket';
 
 /**
  * Main BrokerConnector tests.
@@ -51,8 +52,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             bus.api.silenceLog(true);
             bus.api.suppressLog(true);
-            bus.api.enableMonitorDump(false);
-
+            //bus.api.logger().setStylingVisble(false);
 
         });
 
@@ -164,7 +164,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                 let outboundMessage = 'a lovely horse';
 
-                let mId: string = StompParser.genUUID();
+                let mId: string = GeneralUtil.genUUIDShort();
                 let headers: any = { id: mId, subscription: subId };
 
                 bus.listenStream(StompChannel.status)
@@ -388,8 +388,6 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                 // send wrong command
                                 bus.sendRequestMessage(StompChannel.subscription, wrongCommand);
 
-                                expect(bc.subscribeToDestination).not.toHaveBeenCalled();
-
                                 done();
                                 break;
 
@@ -482,7 +480,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                 let outboundMessage = 'anyone fancy a pint?';
 
-                let mId: string = StompParser.genUUID();
+                let mId: string = GeneralUtil.genUUIDShort();
                 let headers: Object = { id: mId, subscription: subId };
 
                 spyOn(bc, 'sendPacket')
@@ -1307,6 +1305,69 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                     }
                     );
                 BrokerConnector.fireConnectCommand(bus, configCustomId);
+            }
+        );
+
+        it('Make sure the reconnect timer triggers when socket is closed.',
+
+            (done) => {
+                bc.reconnectDelay = 50;
+                bc.connectDelay = 30;
+
+                spyOn(log, 'warn').and.callThrough();
+                spyOn(log, 'info').and.callThrough();
+
+                const fireClose  = () => {
+                    bc.sessions.forEach(
+                        (session: StompSession) => {
+                            const socket = session.client.clientSocket as MockSocket;
+                            socket.triggerEvent('close');
+                        }
+                    );
+                }
+
+                bus.listenStream(StompChannel.status)
+                    .handle(
+                        (command: StompBusCommand) => {
+
+                            switch (command.command) {
+                                case StompClient.STOMP_CONNECTED:
+
+                                    fireClose();
+
+                                    bus.api.tickEventLoop(
+                                        () => {
+                                            fireClose();
+                                        }, 10
+                                    );
+
+                                    bus.api.tickEventLoop(
+                                        () => {
+                                            expect(log.warn)
+                                                .toHaveBeenCalledWith(
+                                                    'WebSocket to broker closed!', bc.getName());
+
+                                            expect(log.info)
+                                                .toHaveBeenCalledWith(
+                                                    'Starting re-connection timer', bc.getName());
+
+                                            expect(log.warn)
+                                                .toHaveBeenCalledWith(
+                                                    'Trying to reconnect to broker....', bc.getName());
+
+                                            done();
+
+
+                                        }, 80
+                                    );
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                        });
+                BrokerConnector.fireConnectCommand(bus, config);
+
             }
         );
 

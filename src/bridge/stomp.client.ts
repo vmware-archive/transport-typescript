@@ -1,7 +1,7 @@
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {StompParser} from './stomp.parser';
-import {StompMessage, StompConfig} from './stomp.model';
+import { StompMessage, StompConfig, BifrostSocket } from './stomp.model';
 import {fromEvent} from 'rxjs/observable/fromEvent';
 import {map} from 'rxjs/operator/map';
 import {mergeMap} from 'rxjs/operator/mergeMap';
@@ -143,6 +143,8 @@ export class StompClient implements BifrostEventBusEnabled {
         if (this._socket) {
             headers.receipt = 'disconnect-' + GeneralUtil.genUUIDShort();
             this.transmit(StompClient.STOMP_DISCONNECT, headers);
+        } else {
+            this.log.warn('Uable to disconnect client, no socket open', this.getName());
         }
     }
 
@@ -233,9 +235,7 @@ export class StompClient implements BifrostEventBusEnabled {
     }
 
     private deleteSubscription(id: string): void {
-        if (this.getSubscription(id) != null) {
-            this._subscriptions.delete(id);
-        }
+        this._subscriptions.delete(id);
     }
 
     private onStompError(frame: StompMessage) {

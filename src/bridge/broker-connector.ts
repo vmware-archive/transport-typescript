@@ -20,6 +20,8 @@ export class BrokerConnector implements BifrostEventBusEnabled {
 
     static serviceName: string = 'stomp.service';
     public reconnectDelay: number = 5000;
+    public connectDelay: number = 20;
+    public connecting: boolean = false;
 
     // helper methods for boilerplate commands.
     static fireSubscriptionCommand(bus: EventBus,
@@ -324,7 +326,11 @@ export class BrokerConnector implements BifrostEventBusEnabled {
                 this.sendBusCommandResponse(StompClient.STOMP_CONFIGURED);
 
                 // connect, or re-use existing socket.
-                this.connectClient(config);
+                this.bus.api.tickEventLoop(
+                    () => {
+                        this.connectClient(config);
+                    }, this.connectDelay
+                );
                 break;
 
             case StompClient.STOMP_DISCONNECT:
@@ -377,12 +383,15 @@ export class BrokerConnector implements BifrostEventBusEnabled {
         let session = new StompSession(config, this.log);
 
         let connection = session.connect();
+        this.connecting = true;
+
         config.connectionSubjectRef = connection;
 
         connection.subscribe(
             () => {
                 clearInterval(this.reconnectTimerInstance);
                 this.reconnecting = false;
+                this.connecting = false;
 
                 session.connectionCount++;
 
@@ -471,7 +480,13 @@ export class BrokerConnector implements BifrostEventBusEnabled {
     private reconnectTimer(config: StompConfig) {
         const connect = () => {
             this.log.warn('Trying to reconnect to broker....', this.getName());
-            this.connectClient(config);
+            this.bus.api.tickEventLoop(
+                () => {
+                    if(!this.connecting) {
+                        this.connectClient(config);
+                    };
+                }, this.connectDelay
+            );
         };
         this.reconnectTimerInstance = setInterval(connect, this.reconnectDelay);
     }
@@ -484,11 +499,9 @@ export class BrokerConnector implements BifrostEventBusEnabled {
                 this.sessions.clear();
 
                 if (!this.reconnecting) {
+                    this.log.info('Starting re-connection timer', this.getName());
                     this.reconnecting = true;
                     this.reconnectTimer(evt.config);
-                } else {
-                    this.log.warn('Waiting ' + this.reconnectDelay +
-                        ' seconds before reconnecting...', this.getName());
                 }
                 this.sendBusCommandResponse(
                     StompClient.STOMP_DISCONNECTED,

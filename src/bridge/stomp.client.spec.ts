@@ -17,6 +17,7 @@ describe('Stomp Client [stomp.client]', () => {
     let connected: Subject<Boolean>;
     let subId: string;
     let testDestination: string = 'test';
+    let log: LoggerService;
 
     beforeEach(() => {
         config = new StompConfig(
@@ -30,7 +31,7 @@ describe('Stomp Client [stomp.client]', () => {
             false
         );
         config.testMode = true;
-        let log = new LoggerService();
+        log = new LoggerService();
         client = new StompClient(log);
         client.useMockSocket();
         log.silent(true);
@@ -366,6 +367,19 @@ describe('Stomp Client [stomp.client]', () => {
             }
         );
 
+
+        it('Check transaction ID is added if not ID if supplied',
+            () => {
+
+                spyOn(log, 'debug');
+                let headers: any = {};
+                client.beginTransaction(null, headers);
+                expect(headers.transaction).not.toBeNull();
+
+            }
+        );
+
+
         it('We should be able to send a transaction and get a receipt using a random ID',
             (done) => {
 
@@ -616,6 +630,18 @@ describe('Stomp Client [stomp.client]', () => {
                 client.clientSocket.triggerEvent('error', [true]);
             }
         );
+
+        it('Check a disconnect does not fire if there is no socket open',
+            () => {
+
+                spyOn(log, 'warn');
+                client.disconnect(config);
+                expect(log.warn).toHaveBeenCalledTimes(1);
+
+            }
+        );
+
+
 
         it('The client send heartbeats if configured',
             (done) => {

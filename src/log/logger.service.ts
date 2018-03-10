@@ -207,9 +207,9 @@ export class LoggerService {
                 this.outputWithOptionalStyle(console.log, output, this.verboseCss);
                 break;
 
-            default:
-                this.outputWithOptionalStyle(console.log, output, this.normalCss);
-                break;
+            // default:
+            //     this.outputWithOptionalStyle(console.log, output, this.normalCss);
+            //     break;
         }
     }
 }
