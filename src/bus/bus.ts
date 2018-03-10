@@ -345,6 +345,7 @@ export class BifrostEventBus extends EventBus implements BifrostEventBusEnabled 
         
         if (!channel || !request) {
             this.log.error('Cannot send Galactic Request, payload or channel is empty.', this.getName());
+            return;
         }
 
         const conversationId: UUID = request.id;

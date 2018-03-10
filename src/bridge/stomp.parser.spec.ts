@@ -5,6 +5,7 @@
 import {StompParser} from './stomp.parser';
 import {StompClient} from './stomp.client';
 import {Message} from '../bus/model/message.model';
+import { GeneralUtil } from '../util/util';
 
 describe('Stomp Parser [stomp.parser]', () => {
 
@@ -38,8 +39,8 @@ describe('Stomp Parser [stomp.parser]', () => {
     it('We should be able to generate a valid UUID',
         () => {
 
-            let uuid1 = StompParser.genUUID();
-            let uuid2 = StompParser.genUUID();
+            let uuid1 = GeneralUtil.genUUID();
+            let uuid2 = GeneralUtil.genUUID();
             expect(uuid1.length).toEqual(36);
             expect(uuid1.charAt(8)).toEqual('-');
             expect(uuid1.charAt(13)).toEqual('-');
@@ -160,7 +161,7 @@ describe('Stomp Parser [stomp.parser]', () => {
     it('We should be able to extract bus commands from a bus message',
         () => {
 
-            let id = StompParser.genUUID();
+            let id = GeneralUtil.genUUID();
             let busCommand =
                 StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, id);
 
@@ -178,7 +179,7 @@ describe('Stomp Parser [stomp.parser]', () => {
     it('We should be able to extract a stomp message from a bus command message',
         () => {
 
-            let id = StompParser.genUUID();
+            let id = GeneralUtil.genUUID();
 
             let stompMessage = StompParser.frame(StompClient.STOMP_CONNECT, {}, 'two big dogs with a ball');
 
@@ -202,7 +203,7 @@ describe('Stomp Parser [stomp.parser]', () => {
     it('We should be able to extract a stomp message from a bus message',
         () => {
 
-            let id = StompParser.genUUID();
+            let id = GeneralUtil.genUUID();
 
             let stompMessage = StompParser.frame(StompClient.STOMP_CONNECT, {}, 'two big dogs with a ball');
 
@@ -222,9 +223,7 @@ describe('Stomp Parser [stomp.parser]', () => {
             expect(extracted.command).toEqual(StompClient.STOMP_CONNECT);
             expect(extracted.body).toEqual('two big dogs with a ball');
             expect(StompParser.extractStompMessageFromBusMessage(null)).toBeNull();
-
             
-
         }
     );
 
@@ -236,11 +235,19 @@ describe('Stomp Parser [stomp.parser]', () => {
 
             msg = StompParser.frame('TEST', null, 'tasty potato?');
             expect(msg.toString()).toEqual('TEST\n\ntasty potato?');
+            
+        }
+    );
 
+    it('Check a subscription can be converted to a channel',
+        () => {
+
+           const subA = StompParser.convertSubscriptionToChannel('puppykitty/', 'kitty');
+           expect(subA).toEqual('puppy');
 
         }
     );
 
-
+    
 });
 

@@ -47,13 +47,12 @@ export class StoreManager implements BusStoreApi {
         return {
             whenReady: (handler: Function) => {
                 let storesReady = 0;
-
                 for (let store of stores) {
-                    this.getStore(store).whenReady(() => {
+                    this.createStore(store).whenReady(() => {
                         storesReady++;
 
                         if (storesReady === stores.length) {
-                            handler();
+                            handler(Array.from(this.internalStoreMap.values()));
                         }
                     });
                 }

@@ -656,7 +656,6 @@ describe('BusStore [store/store.model]', () => {
         cache.populate(vals);
 
     });
-
 });
 
 class Dog {

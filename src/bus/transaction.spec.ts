@@ -5,7 +5,7 @@ import { BifrostEventBus } from '../';
 
 import { BusTransactionImpl } from './transaction';
 import { BusTransaction, EventBus, TransactionReceipt, TransactionType } from '../bus.api';
-import { LogLevel } from '../log';
+import { LoggerService, LogLevel } from '../log';
 import { StompParser } from '../bridge/stomp.parser';
 
 describe('Bus Transactions [transaction.ts]', () => {
@@ -13,6 +13,7 @@ describe('Bus Transactions [transaction.ts]', () => {
     let transaction: BusTransaction;
     let bus: EventBus;
     const chan = '#some-test-channel';
+    let log: LoggerService;
 
     beforeEach(
         () => {
@@ -20,6 +21,7 @@ describe('Bus Transactions [transaction.ts]', () => {
             bus.api.loggerInstance.setStylingVisble(false);
             //bus.api.enableMonitorDump(true);
             transaction = bus.createTransaction();
+            log = bus.api.logger();
         }
     );
 
@@ -391,9 +393,125 @@ describe('Bus Transactions [transaction.ts]', () => {
 
         store3.put('cotton', 'stomp', null);
         store3.initialize();
-    
-    
+
     });
+
+    it('Check waitForStoreReady() cannot fire if the transaction as been completed', (done) => {
+
+        spyOn(log, 'warn').and.callThrough();
+        transaction.onComplete(
+            () => {
+                try {
+                    transaction.waitForStoreReady('store1');
+                } catch (e) {
+                    expect(log.warn).toHaveBeenCalledTimes(1);
+                    done();
+                }
+            }
+        );
+
+        transaction.waitForStoreReady('store1');
+        transaction.commit();
+
+        const store1 = bus.stores.createStore('store1');
+        store1.initialize();
+    });
+
+    it('Check sendRequest() cannot fire if the transaction as been completed', (done) => {
+
+        spyOn(log, 'warn').and.callThrough();
+        transaction.onComplete(
+            () => {
+                try {
+                    transaction.sendRequest('maggie', 'pop');
+                } catch (e) {
+                    expect(log.warn).toHaveBeenCalledTimes(1);
+                    done();
+                }
+            }
+        );
+
+        transaction.waitForStoreReady('store1');
+        transaction.commit();
+
+        const store1 = bus.stores.createStore('store1');
+        store1.initialize();
+    });
+
+    it('Check onComplete() cannot fire if the transaction as been completed', (done) => {
+
+        spyOn(log, 'warn').and.callThrough();
+        transaction.onComplete(
+            () => {
+                try {
+                    transaction.onComplete(() => console.log('chickie'));
+                } catch (e) {
+                    expect(log.warn).toHaveBeenCalledTimes(1);
+                    done();
+                }
+            }
+        );
+
+        transaction.waitForStoreReady('store1');
+        transaction.commit();
+
+        const store1 = bus.stores.createStore('store1');
+        store1.initialize();
+    });
+
+    it('Check commit() cannot fire if the transaction as been completed', (done) => {
+
+        spyOn(log, 'warn').and.callThrough();
+        transaction.onComplete(
+            () => {
+                try {
+                    transaction.commit();
+                } catch (e) {
+                    expect(log.warn).toHaveBeenCalledTimes(1);
+                    done();
+                }
+            }
+        );
+
+        transaction.waitForStoreReady('store1');
+        transaction.commit();
+
+        const store1 = bus.stores.createStore('store1');
+        store1.initialize();
+    });
+
+
+    it('Check commit() cannot fire if no requests have been made', (done) => {
+
+        try {
+            transaction.commit();
+        } catch (e) {
+            done();
+        }
+
+    });
+
+    it('Check onError() cannot fire if the transaction as been completed', (done) => {
+
+        spyOn(log, 'warn').and.callThrough();
+        transaction.onComplete(
+            () => {
+                try {
+                    transaction.onError(() => console.log('chickie'));
+                } catch (e) {
+                    expect(log.warn).toHaveBeenCalledTimes(1);
+                    done();
+                }
+            }
+        );
+
+        transaction.waitForStoreReady('store1');
+        transaction.commit();
+
+        const store1 = bus.stores.createStore('store1');
+        store1.initialize();
+    });
+
 
 
 });

@@ -59,6 +59,10 @@ export class LoggerService {
         return this._logLevel;
     }
 
+    get stylingVisble() {
+        return this._styledLogsSupported;
+    }
+
     suppress(flag: boolean) {
         this._suppress = flag;
     }
