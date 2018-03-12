@@ -2,18 +2,17 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import { ChannelName, EventBus, EventBusLowApi, SentFrom } from '../bus.api';
+import {
+    ChannelName, EventBus, EventBusLowApi, MessageHandler, MessageResponder, MessageType,
+    SentFrom
+} from '../bus.api';
 import { Channel } from './model/channel.model';
 import { 
     Message, 
-    MessageHandler, 
-    MessageHandlerConfig, 
-    MessageResponder, 
-    MessageType
-} from './model/message.model';
+    MessageHandlerConfig} from './model/message.model';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
-import { LoggerService } from '../log/logger.service';
+import { Logger } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
 import { MonitorChannel, MonitorObject, MonitorType } from './model/monitor.model';
 import { LogUtil } from '../log/util';
@@ -23,15 +22,15 @@ import { UUID } from './store/store.model';
 export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
     readonly channelMap: Map<ChannelName, Channel>;
-    private log: LoggerService;
+    private log: Logger;
     private monitorChannel = MonitorChannel.stream;
     private monitorStream: Channel;
     private dumpMonitor: boolean;
     private internalChannelMap: Map<string, Channel>;
-    public loggerInstance: LoggerService;
+    public loggerInstance: Logger;
 
 
-    constructor(private eventBusRef: EventBus, channelMap: Map<string, Channel>, logger: LoggerService) {
+    constructor(private eventBusRef: EventBus, channelMap: Map<string, Channel>, logger: Logger) {
         this.internalChannelMap = channelMap;
 
         // create monitor stream.
@@ -248,7 +247,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         this.dumpMonitor = flag;
     }
 
-    logger(): LoggerService {
+    logger(): Logger {
         return this.log;
     }
 

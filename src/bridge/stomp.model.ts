@@ -8,7 +8,7 @@ import { StompClient } from './stomp.client';
 import { StompParser } from './stomp.parser';
 import { MockSocket } from './stomp.mocksocket';
 import { UUID } from '../bus/store/store.model';
-import { LoggerService } from '../log';
+import { Logger } from '../log';
 import { GeneralUtil } from '../util/util';
 
 export type BifrostSocket = WebSocket;
@@ -52,7 +52,7 @@ export class StompSession {
     private connCount: number = 0;
     private _applicationDestinationPrefix: string;
 
-    constructor(config: StompConfig, private log: LoggerService) {
+    constructor(config: StompConfig, private log: Logger) {
         this._config = config;
         this._client = new StompClient(log);
         this._id = GeneralUtil.genUUIDShort();

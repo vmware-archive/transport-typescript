@@ -6,8 +6,8 @@ import {fromEvent} from 'rxjs/observable/fromEvent';
 import {map} from 'rxjs/operator/map';
 import {mergeMap} from 'rxjs/operator/mergeMap';
 import { GeneralUtil } from '../util/util';
-import { LoggerService } from '../log';
-import { BifrostEventBusEnabled } from '../bus';
+import { Logger } from '../log';
+import { EventBusEnabled } from '../bus';
 
 export interface StompTransaction {
     id: string;
@@ -17,7 +17,7 @@ export interface StompTransaction {
     abort: Function;
 }
 
-export class StompClient implements BifrostEventBusEnabled {
+export class StompClient implements EventBusEnabled {
 
     getName(): string {
         return (this as any).constructor.name;
@@ -61,7 +61,7 @@ export class StompClient implements BifrostEventBusEnabled {
     private _transactionReceipts: Map<string, Subject<any>>;
     private _heartbeater: any;
 
-    constructor(private log: LoggerService) {
+    constructor(private log: Logger) {
 
         this._transactionReceipts = new Map < string, Subject < StompMessage >>();
         this._subscriptions = new Map < string, Subject < StompMessage >>();

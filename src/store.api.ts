@@ -2,7 +2,7 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import { MessageFunction } from './bus/model/message.model';
+import { MessageFunction } from './bus.api';
 import { Subscription } from 'rxjs/Subscription';
 import { UUID, StoreType } from './bus/store/store.model';
 
@@ -132,17 +132,15 @@ export interface BusStore<T> {
 
     /**
      * Send a mutation request to any subscribers handling mutations.
-     * @param {T} value to be mutated
+     * @param {V} value to be mutated
      * @param {M} mutationType the type of the mutation
-     * @param {MessageFunction<T>} successHandler provide object T to mutator function on successful mutation.
+     * @param {MessageFunction<S>} successHandler provide object S to mutator function on successful mutation.
      * @param {MessageFunction<E>} errorHandler provide object E to mutator function on error.
      * @returns {boolean} true if mutation request was placed in stream
      */
-    mutate<M, E>(
-        value: T,
-        mutationType: M,
-        successHandler: MessageFunction<T>,
-        errorHandler?: MessageFunction<E>): boolean;
+    mutate<V, M, E, S>(value: V, mutationType: M,
+                       successHandler: MessageFunction<S>, errorHandler?: MessageFunction<E>): boolean;
+
 
     /**
      * Populate the cache with a collection of objects and their ID's.

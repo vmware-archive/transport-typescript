@@ -9,7 +9,7 @@ import { LogLevel } from '../log/logger.model';
 import { GeneralUtil } from '../util/util';
 import 'rxjs/add/operator/take';
 import { BifrostEventBus, Message } from '../bus';
-import { LoggerService } from '../log';
+import { Logger } from '../log';
 import { MockSocket } from './stomp.mocksocket';
 
 /**
@@ -25,7 +25,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
     let configMultiBroker: StompConfig;
     let configCustomId: StompConfig;
     let configApplicationPrefix: StompConfig;
-    let log: LoggerService;
+    let log: Logger;
 
     let subId: string;
 
@@ -38,7 +38,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
     beforeEach(
         () => {
 
-            bus = new BifrostEventBus(LogLevel.Error, true);
+            bus = BifrostEventBus.rebootWithOptions(LogLevel.Error, true);
             bc = window.AppBrokerConnector;
             log = window.AppSyslog;
 
@@ -50,9 +50,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             subId = GeneralUtil.genUUIDShort();
 
-            bus.api.silenceLog(true);
-            bus.api.suppressLog(true);
-            //bus.api.logger().setStylingVisble(false);
+            //bus.api.silenceLog(true);
+            //bus.api.suppressLog(true);
+            bus.api.logger().setStylingVisble(false);
 
         });
 

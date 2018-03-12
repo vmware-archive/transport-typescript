@@ -8,7 +8,7 @@ import { LogLevel, LogChannel, LogObject } from './logger.model';
  * for use across the application, however, anyone can create an instance of this service and manage independent
  * Log Levels and output.
  */
-export class LoggerService {
+export class Logger {
     private dateCss = 'color: blue;';
     private fromCss = 'color: green';
     private normalCss = 'color: black;';

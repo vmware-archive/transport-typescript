@@ -2,8 +2,8 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import { Message, MessageFunction } from '../model/message.model';
-import { BifrostEventBusEnabled, BifrostEventBus } from '../bus';
+import { Message} from '../model/message.model';
+import { BifrostEventBus } from '../bus';
 import { StompParser } from '../../bridge/stomp.parser';
 import { Observable } from 'rxjs/Observable';
 import {
@@ -12,14 +12,14 @@ import {
     StoreType
 } from './store.model';
 import { BusStore, StoreStream, MutateStream } from '../../store.api';
-import { EventBus } from '../../bus.api';
-import { LoggerService } from '../../log/logger.service';
+import { EventBus, EventBusEnabled, MessageFunction } from '../../bus.api';
+import { Logger } from '../../log/logger.service';
 
 interface Predicate<T> {
     (value: T): boolean;
 }
 
-export class StoreImpl<T> implements BusStore<T>, BifrostEventBusEnabled {
+export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
     
     private uuid: string;
     
@@ -37,7 +37,7 @@ export class StoreImpl<T> implements BusStore<T>, BifrostEventBusEnabled {
         return 'store-' + this.uuid + '-object-' + id;
     }
 
-    constructor(private bus: EventBus, private log: LoggerService, private type: StoreType) {
+    constructor(private bus: EventBus, private log: Logger, private type: StoreType) {
         this.cache = new Map<UUID, any>();
         this.uuid = StompParser.genUUIDShort();
         this.cacheStreamChan = 'cache-change-' + this.uuid;
@@ -196,12 +196,12 @@ export class StoreImpl<T> implements BusStore<T>, BifrostEventBusEnabled {
         );
     }
 
-    mutate<M, E>(
-        value: T, mutationType: M,
-        successHandler: MessageFunction<T>, 
+    mutate<V, M, S, E>(
+        value: V, mutationType: M,
+        successHandler: MessageFunction<V>,
         errorHandler?: MessageFunction<E>): boolean {
 
-        const mutation: StoreStateMutation<M, T> = new StoreStateMutation(mutationType, value);
+        const mutation: StoreStateMutation<M, V> = new StoreStateMutation(mutationType, value);
         mutation.errorHandler = errorHandler;
         mutation.successHandler = successHandler;
 

@@ -5,17 +5,24 @@
 import { Channel } from './model/channel.model';
 import { MonitorObject, MonitorType } from './model/monitor.model';
 import {
-    Message, MessageHandlerConfig, MessageResponder, MessageHandler,
-    MessageFunction
-} from './model/message.model';
+    Message,
+    MessageHandlerConfig} from './model/message.model';
 import { BusStoreApi } from '../store.api';
 import { UUID } from './store/store.model';
-import { StompBusCommand, BrokerConnectorChannel, StompConfig } from '../bridge/stomp.model';
+import { BrokerConnectorChannel, StompBusCommand, StompConfig } from '../bridge/stomp.model';
 import { StompClient } from '../bridge/stomp.client';
 import { StompParser } from '../bridge/stomp.parser';
-import { ChannelName, EventBus, EventBusLowApi, SentFrom, TransactionType, BusTransaction } from '../bus.api';
+import {
+    BusTransaction,
+    ChannelName,
+    EventBus,
+    EventBusEnabled,
+    EventBusLowApi, MessageFunction, MessageHandler, MessageResponder,
+    SentFrom,
+    TransactionType
+} from '../bus.api';
 import { EventBusLowLevelApiImpl } from './bus.lowlevel';
-import { LoggerService } from '../log/logger.service';
+import { Logger } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
 import { GalacticRequest } from './model/request.model';
 import { GalacticResponse } from './model/response.model';
@@ -27,26 +34,44 @@ import { GeneralUtil } from '../util/util';
 import 'rxjs/add/operator/merge';
 import 'rxjs/add/observable/merge';
 
-export abstract class BifrostEventBusEnabled {
-    abstract getName(): string;
-}
+export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
-export class BifrostEventBus extends EventBus implements BifrostEventBusEnabled {
+    private static _instance: EventBus;
+
+    public static getInstance(): EventBus {
+        return BifrostEventBus.boot();
+    }
+
+    public static boot(): EventBus {
+        return this._instance || (this._instance = new this());
+    }
+
+    public static bootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
+        return this._instance || (this._instance = new this(logLevel, disableBootMessage));
+    }
+
+    public static rebootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
+        return (this._instance = new this(logLevel, disableBootMessage));
+    }
+
+    public static reboot(): EventBus {
+        return (this._instance = new this());
+    }
 
     private internalChannelMap: Map<string, Channel>;
-    private log: LoggerService;
+    private log: Logger;
 
 
     // low level API
     readonly api: EventBusLowApi;
     readonly stores: BusStoreApi;
 
-    constructor(logLevel: LogLevel = LogLevel.Info, disableBootMessage: boolean = false) {
+    private constructor(logLevel: LogLevel = LogLevel.Off, disableBootMessage: boolean = false) {
         super();
         this.internalChannelMap = new Map<string, Channel>();
 
         // logging
-        this.log = new LoggerService();
+        this.log = new Logger();
 
         // Low Level API.
         this.api = new EventBusLowLevelApiImpl(this, this.internalChannelMap, this.log);
@@ -59,7 +84,8 @@ export class BifrostEventBus extends EventBus implements BifrostEventBusEnabled 
         window.AppBrokerConnector = new BrokerConnector(this.log);
         window.AppBrokerConnector.init(this);
         window.AppSyslog = this.log;
-        
+        window.AppStoreManager = this.stores;
+
         if (!disableBootMessage) {
             this.log.setStylingVisble(true);
             this.log.info('🌈 Bifröst ' + EventBus.version + ' Initialized', 'window.AppEventBus');

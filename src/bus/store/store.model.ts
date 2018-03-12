@@ -5,8 +5,8 @@
 import { StoreStream, MutateStream } from '../../store.api';
 import { Subscription } from 'rxjs/Subscription';
 import { Observable } from 'rxjs/Observable';
-import { MessageFunction } from '../model/message.model';
-import { LoggerService } from '../../log';
+import { MessageFunction } from '../../bus.api';
+import { Logger } from '../../log';
 
 export type UUID = string;
 export type StoreType = string;
@@ -86,7 +86,7 @@ export class StoreStreamImpl<T, E = any> implements StoreStream<T> {
     protected subscription: Subscription;
 
 
-    constructor(protected stream: Observable<MutationRequestWrapper<T, E>>, protected log: LoggerService) {
+    constructor(protected stream: Observable<MutationRequestWrapper<T, E>>, protected log: Logger) {
 
     }
 
@@ -120,7 +120,7 @@ export class MutateStreamImpl<T, E = any> extends StoreStreamImpl<T> implements 
     protected mutatorErrorHandler: MessageFunction<E>;
     protected mutatorSuccessHandler: MessageFunction<T>;
 
-    constructor(protected stream: Observable<MutationRequestWrapper<T, E>>, log: LoggerService) {
+    constructor(protected stream: Observable<MutationRequestWrapper<T, E>>, log: Logger) {
         super(stream, log);
     }
 

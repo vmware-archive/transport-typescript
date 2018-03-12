@@ -7,7 +7,7 @@ import { Subject } from 'rxjs/Subject';
 import { StompParser } from './stomp.parser';
 import { StompMessage, StompConfig } from './stomp.model';
 import 'rxjs/add/operator/mergeMap';
-import { LoggerService } from '../log';
+import { Logger } from '../log';
 import { GeneralUtil } from '../util/util';
 
 describe('Stomp Client [stomp.client]', () => {
@@ -17,7 +17,7 @@ describe('Stomp Client [stomp.client]', () => {
     let connected: Subject<Boolean>;
     let subId: string;
     let testDestination: string = 'test';
-    let log: LoggerService;
+    let log: Logger;
 
     beforeEach(() => {
         config = new StompConfig(
@@ -31,7 +31,7 @@ describe('Stomp Client [stomp.client]', () => {
             false
         );
         config.testMode = true;
-        log = new LoggerService();
+        log = new Logger();
         client = new StompClient(log);
         client.useMockSocket();
         log.silent(true);

@@ -5,7 +5,7 @@
 import { Channel } from './channel.model';
 import { LogUtil } from '../../log/util';
 import { Message } from './message.model';
-import { LoggerService } from '../../log';
+import { Logger } from '../../log';
 
 /**
  * This is the unit test for the Stream model.
@@ -16,7 +16,7 @@ const name = 'channel.model';
 describe('Stream Model [channel.model]', () => {
 
     let channel: Channel;
-    let log: LoggerService;
+    let log: Logger;
 
     let testObject = {
         name: 'test'
@@ -28,7 +28,7 @@ describe('Stream Model [channel.model]', () => {
     beforeEach(
         () => {
             channel = new Channel('test-stream');
-            log = new LoggerService();
+            log = new Logger();
             log.silent(true);
         }
     );

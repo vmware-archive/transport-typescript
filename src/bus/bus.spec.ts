@@ -3,10 +3,10 @@
  */
 import { EventBus, BifrostEventBus, BrokerConnectorChannel } from '../';
 import { LogLevel } from '../log/logger.model';
-import { Message, MessageHandler, MessageResponder, MessageType } from './model/message.model';
+import { Message} from './model/message.model';
 import { Channel } from './model/channel.model';
 import { Observable } from 'rxjs/Observable';
-import { LoggerService } from '../log/logger.service';
+import { Logger } from '../log/logger.service';
 import { StompParser } from '../bridge/stomp.parser';
 import { StompClient } from '../bridge/stomp.client';
 import { MonitorObject, MonitorType } from './model/monitor.model';
@@ -14,6 +14,7 @@ import { GalacticRequest } from './model/request.model';
 import { UUID } from './store/store.model';
 import { GalacticResponse } from './model/response.model';
 import { GeneralUtil } from '../util/util';
+import { MessageHandler, MessageResponder, MessageType } from '../bus.api';
 
 function makeCallCountCaller(done: any, targetCount: number): any {
     let count = 0;
@@ -33,17 +34,17 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
 
     let bus: EventBus;
-    let log: LoggerService;
+    let log: Logger;
 
     beforeEach(() => {
-        bus = new BifrostEventBus(LogLevel.Error, true);
+        bus = BifrostEventBus.rebootWithOptions(LogLevel.Error, true);
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
         bus.api.enableMonitorDump(false);
         log = bus.api.logger();
     });
     it('Check logging settings', () => {
-        bus = new BifrostEventBus(LogLevel.Info, true);
+        bus = BifrostEventBus.rebootWithOptions(LogLevel.Info, true);
         bus.api.silenceLog(false);
         bus.api.suppressLog(true);
         bus.api.enableMonitorDump(false);
@@ -103,7 +104,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
     it('Check boot message is fired', () => {
 
-        bus = new BifrostEventBus(LogLevel.Off, false);
+        bus = BifrostEventBus.bootWithOptions(LogLevel.Off, false);
         expect(bus.api.logger().stylingVisble).toBeTruthy();
 
     });
@@ -531,7 +532,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         bus.api.enableMonitorDump(true);
         bus.api.silenceLog(false);
         bus.api.setLogLevel(LogLevel.Debug);
-        const log: LoggerService = bus.api.logger();
+        const log: Logger = bus.api.logger();
         log.setStylingVisble(false);
 
         bus.api.suppressLog(true);
@@ -585,7 +586,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         bus.api.enableMonitorDump(true);
         bus.api.silenceLog(false);
         bus.api.setLogLevel(LogLevel.Debug);
-        const log: LoggerService = bus.api.logger();
+        const log: Logger = bus.api.logger();
         log.setStylingVisble(false);
         bus.api.suppressLog(true);
 
@@ -618,7 +619,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         bus.api.enableMonitorDump(true);
         bus.api.silenceLog(false);
         bus.api.setLogLevel(LogLevel.Debug);
-        const log: LoggerService = bus.api.logger();
+        const log: Logger = bus.api.logger();
         log.setStylingVisble(false);
         bus.api.suppressLog(true);
 
@@ -642,7 +643,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         bus.api.enableMonitorDump(true);
         bus.api.silenceLog(false);
         bus.api.setLogLevel(LogLevel.Debug);
-        const log: LoggerService = bus.api.logger();
+        const log: Logger = bus.api.logger();
         log.setStylingVisble(false);
 
         bus.api.suppressLog(true);

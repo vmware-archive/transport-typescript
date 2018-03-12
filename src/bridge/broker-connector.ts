@@ -8,15 +8,15 @@ import { StompParser } from '../bridge/stomp.parser';
 import { StompValidator } from './stomp.validator';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
 import { Message } from '../bus/model/message.model';
-import { BifrostEventBus, BifrostEventBusEnabled } from '../bus/bus';
-import { EventBus } from '../bus.api';
-import { LoggerService } from '../log';
+import { BifrostEventBus} from '../bus/bus';
+import { EventBus, EventBusEnabled } from '../bus.api';
+import { Logger } from '../log';
 
 /**
  * Service is responsible for handling all STOMP communications over a socket.
  */
 
-export class BrokerConnector implements BifrostEventBusEnabled {
+export class BrokerConnector implements EventBusEnabled {
 
     static serviceName: string = 'stomp.service';
     public reconnectDelay: number = 5000;
@@ -89,7 +89,7 @@ export class BrokerConnector implements BifrostEventBusEnabled {
             new Message().request(command), BrokerConnector.serviceName);
     }
 
-    constructor(private log: LoggerService) {
+    constructor(private log: Logger) {
 
     }
 

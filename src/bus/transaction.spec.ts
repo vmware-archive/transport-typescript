@@ -5,7 +5,7 @@ import { BifrostEventBus } from '../';
 
 import { BusTransactionImpl } from './transaction';
 import { BusTransaction, EventBus, TransactionReceipt, TransactionType } from '../bus.api';
-import { LoggerService, LogLevel } from '../log';
+import { Logger, LogLevel } from '../log';
 import { StompParser } from '../bridge/stomp.parser';
 
 describe('Bus Transactions [transaction.ts]', () => {
@@ -13,11 +13,11 @@ describe('Bus Transactions [transaction.ts]', () => {
     let transaction: BusTransaction;
     let bus: EventBus;
     const chan = '#some-test-channel';
-    let log: LoggerService;
+    let log: Logger;
 
     beforeEach(
         () => {
-            bus = new BifrostEventBus(LogLevel.Off, true);
+            bus = BifrostEventBus.rebootWithOptions(LogLevel.Off, true);
             bus.api.loggerInstance.setStylingVisble(false);
             //bus.api.enableMonitorDump(true);
             transaction = bus.createTransaction();

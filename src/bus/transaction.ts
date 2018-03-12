@@ -1,10 +1,10 @@
 import { UUID, StoreType } from './store/store.model';
-import { MessageFunction } from './model/message.model';
+import { MessageFunction } from '../bus.api';
 import { BusTransaction, TransactionReceipt, TransactionType, EventBus, ChannelName } from '../bus.api';
 import { TransactionRequest, TransactionRequestImpl, TransactionReceiptImpl } from './model/transaction.model';
 import { Subject } from 'rxjs/Subject';
 import { GeneralUtil } from '../util/util';
-import { LoggerService } from '../log/logger.service';
+import { Logger } from '../log/logger.service';
 
 /**
  * Copyright(c) VMware Inc. 2016-2018
@@ -18,7 +18,7 @@ export class BusTransactionImpl implements BusTransaction {
     private bus: EventBus;
     private name: string;
     private completedHandler: any;
-    private log: LoggerService;
+    private log: Logger;
     private id: UUID;
     private transactionErrorChannel: ChannelName;
     private completed: boolean = false;
@@ -27,7 +27,7 @@ export class BusTransactionImpl implements BusTransaction {
 
     constructor(
             bus: EventBus,
-            logger: LoggerService, 
+            logger: Logger,
             transactionType: TransactionType = TransactionType.ASYNC,
             name: string = 'BusTransaction'
         ) {

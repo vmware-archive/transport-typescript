@@ -1,7 +1,7 @@
 /**
  * Copyright(c) VMware Inc., 2016
  */
-import { LoggerService } from './logger.service';
+import { Logger } from './logger.service';
 import { LogLevel } from './logger.model';
 
 function getName() {
@@ -18,10 +18,10 @@ describe('Log Service [log/logger.service.spec ]', () => {
     const tag = '[' + getName() + ']: ';
     const response = tag + testMessage;
 
-    let log: LoggerService;
+    let log: Logger;
 
     beforeEach(() => {
-        log = new LoggerService();
+        log = new Logger();
         log.silent(true);
     });
 

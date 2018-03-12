@@ -2,7 +2,7 @@ import { BusStoreApi, BusStore, StoreReadyResult } from '../../store.api';
 import { StoreType, UUID } from './store.model';
 import { StoreImpl } from './store';
 import { EventBus } from '../../bus.api';
-import { LoggerService } from '../../log/logger.service';
+import { Logger } from '../../log/logger.service';
 
 /**
  * Copyright(c) VMware Inc. 2016-2018
@@ -11,7 +11,7 @@ export class StoreManager implements BusStoreApi {
     
     private internalStoreMap: Map<string, BusStore<any>>;
     
-    constructor(private bus: EventBus, private log: LoggerService) {
+    constructor(private bus: EventBus, private log: Logger) {
        
         // Store map.
         this.internalStoreMap = new Map<StoreType, BusStore<any>>();

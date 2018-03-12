@@ -10,7 +10,7 @@ describe('Store Manager [store/store.manager]', () => {
 
     it('Check readyJoin works', (done) => {
 
-        const bus: EventBus = new BifrostEventBus(LogLevel.Off, true);
+        const bus: EventBus = BifrostEventBus.bootWithOptions(LogLevel.Off, true);
         bus.stores.readyJoin(['ember', 'fox']).whenReady(
             () => {
                 done();
@@ -24,7 +24,7 @@ describe('Store Manager [store/store.manager]', () => {
 
     it('Check readyJoin works and values come through', (done) => {
 
-        const bus: EventBus = new BifrostEventBus(LogLevel.Off, true);
+        const bus: EventBus = BifrostEventBus.bootWithOptions(LogLevel.Off, true);
         bus.stores.readyJoin(['ember', 'fox']).whenReady(
             (stores: Array<BusStore<any>>) => {
                 expect(stores.length).toEqual(2);

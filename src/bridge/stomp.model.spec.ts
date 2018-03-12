@@ -4,11 +4,11 @@
 
 import { MockSocket } from './stomp.mocksocket';
 import { StompConfig, StompSession } from './stomp.model';
-import { LoggerService } from '../log';
+import { Logger } from '../log';
 
 describe('Stomp Model [stomp.config]', () => {
 
-    let log: LoggerService;
+    let log: Logger;
 
     describe('Stomp Configuration', () => {
 
@@ -22,7 +22,7 @@ describe('Stomp Model [stomp.config]', () => {
                     'pass'
                 );
 
-                log = new LoggerService();
+                log = new Logger();
                 log.silent(true);
 
                 expect(config.host).toBeDefined();

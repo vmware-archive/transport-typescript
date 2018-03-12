@@ -5,9 +5,9 @@
 import { BifrostEventBus } from '../index';
 import { UUID } from './store.model';
 import { BusStore, StoreStream, MutateStream } from '../../store.api';
-import { MessageFunction } from '../model/message.model';
+import { MessageFunction } from '../../bus.api';
 import { EventBus } from '../../bus.api';
-import { LoggerService, LogLevel } from '../../log/index';
+import { Logger, LogLevel } from '../../log/index';
 
 enum State {
     Created = 'Created',
@@ -23,10 +23,10 @@ enum Mutate {
 
 describe('BusStore [store/store.model]', () => {
     let bus: EventBus;
-    let log: LoggerService
+    let log: Logger
 
     beforeEach(() => {
-        bus = new BifrostEventBus(LogLevel.Off, true);
+        bus = BifrostEventBus.rebootWithOptions(LogLevel.Off, true);
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
         bus.stores.createStore('string');
