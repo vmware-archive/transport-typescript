@@ -38,22 +38,49 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
     private static _instance: EventBus;
 
+    /**
+     * Destroy the bus completely.
+     */
+    public static destroy(): void {
+        this._instance = null;
+    }
+
     public static getInstance(): EventBus {
         return BifrostEventBus.boot();
     }
 
+    /**
+     * Boot and create a singleton EventBus instance with default options
+     * @returns {EventBus} the bus.
+     */
     public static boot(): EventBus {
         return this._instance || (this._instance = new this());
     }
 
+    /**
+     * Boot and create a singleton EventBus instance with custom options for logging level and boot message
+     * @param {LogLevel} logLevel log level to set
+     * @param {boolean} disableBootMessage set to true to turn off the boot message.
+     * @returns {EventBus} the bus
+     */
     public static bootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
         return this._instance || (this._instance = new this(logLevel, disableBootMessage));
     }
 
+    /**
+     * Reboot the bus, critical for tests, reboot destroys the singleton and re-creates it.
+     * @param {LogLevel} logLevel  log level to set
+     * @param {boolean} disableBootMessage set true to turn off the boot message.
+     * @returns {EventBus} the newly rebooted bus
+     */
     public static rebootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
         return (this._instance = new this(logLevel, disableBootMessage));
     }
 
+    /**
+     * Reboot the bus, critical for tests, reboot destroys the singleton and re-creates it.
+     * @returns {EventBus} the newly rebooted event bus.
+     */
     public static reboot(): EventBus {
         return (this._instance = new this());
     }
@@ -66,7 +93,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
     readonly api: EventBusLowApi;
     readonly stores: BusStoreApi;
 
-    private constructor(logLevel: LogLevel = LogLevel.Off, disableBootMessage: boolean = false) {
+    private constructor(logLevel: LogLevel = LogLevel.Off, disableBootMessage: boolean = true) {
         super();
         this.internalChannelMap = new Map<string, Channel>();
 
@@ -97,6 +124,10 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         
         // say hi to magnum.
         // this.easterEgg();
+    }
+
+    public get logger(): Logger {
+        return this.log;
     }
 
     public getName() {

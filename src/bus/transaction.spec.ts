@@ -1,12 +1,11 @@
 /**
- * Copyright(c) VMware Inc. 2016-2017
+ * Copyright(c) VMware Inc. 2016-2018
  */
-import { BifrostEventBus } from '../';
 
-import { BusTransactionImpl } from './transaction';
 import { BusTransaction, EventBus, TransactionReceipt, TransactionType } from '../bus.api';
-import { Logger, LogLevel } from '../log';
-import { StompParser } from '../bridge/stomp.parser';
+import { Logger } from '../log';
+import { BusTestUtil } from '../util/test.util';
+import { GeneralUtil } from '../util/util';
 
 describe('Bus Transactions [transaction.ts]', () => {
 
@@ -17,7 +16,7 @@ describe('Bus Transactions [transaction.ts]', () => {
 
     beforeEach(
         () => {
-            bus = BifrostEventBus.rebootWithOptions(LogLevel.Off, true);
+            bus = BusTestUtil.bootBus();
             bus.api.loggerInstance.setStylingVisble(false);
             //bus.api.enableMonitorDump(true);
             transaction = bus.createTransaction();
@@ -313,11 +312,10 @@ describe('Bus Transactions [transaction.ts]', () => {
     });
 
     it('Should be able wait for multiple stores and requests to be completed asynchronously', (done) => {
-        let count = 0;
 
         bus.respondStream(chan)
             .generate(
-               () => StompParser.genUUID()
+               () => GeneralUtil.genUUIDShort()
              );
 
         transaction.onComplete(

@@ -77,7 +77,7 @@ export class Logger {
      * @param object
      * @param from optional caller filename
      */
-    verbose(object: any, from: string) {
+    verbose(object: any, from?: string) {
         this.log(new LogObject().build(LogLevel.Verbose, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -87,7 +87,7 @@ export class Logger {
      * @param object
      * @param from optional caller filename
      */
-    debug(object: any, from: string) {
+    debug(object: any, from?: string) {
         this.log(new LogObject().build(LogLevel.Debug, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -97,7 +97,7 @@ export class Logger {
      * @param object
      * @param from optional caller filename
      */
-    info(object: any, from: string) {
+    info(object: any, from?: string) {
         this.log(new LogObject().build(LogLevel.Info, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -107,7 +107,7 @@ export class Logger {
      * @param object
      * @param from optional caller filename
      */
-    warn(object: any, from: string) {
+    warn(object: any, from?: string) {
         this.log(new LogObject().build(LogLevel.Warn, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -117,7 +117,7 @@ export class Logger {
      * @param object
      * @param from optional caller filename
      */
-    error(object: any, from: string) {
+    error(object: any, from?: string) {
         this.log(new LogObject().build(LogLevel.Error, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -127,7 +127,7 @@ export class Logger {
      * @param object
      * @param from optional caller filename
      */
-    always(object: any, from: string) {
+    always(object: any, from?: string) {
         this.log(new LogObject().build(LogLevel.Off, LogChannel.channel, object, from));
     }
 

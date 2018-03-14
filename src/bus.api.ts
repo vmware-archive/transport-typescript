@@ -411,6 +411,13 @@ export abstract class EventBus {
      */
     abstract createTransaction(type?: TransactionType, name?: string): BusTransaction;
 
+    /**
+     * Get instance of syslog
+     * @returns {Logger} singleton logger bound to bus.
+     */
+    abstract get logger(): Logger;
+
+
 }
 
 /**

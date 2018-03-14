@@ -2,12 +2,12 @@
  * Copyright(c) VMware Inc. 2017
  */
 
-import { BifrostEventBus } from '../index';
 import { UUID } from './store.model';
 import { BusStore, StoreStream, MutateStream } from '../../store.api';
 import { MessageFunction } from '../../bus.api';
 import { EventBus } from '../../bus.api';
-import { Logger, LogLevel } from '../../log/index';
+import { Logger } from '../../log';
+import { BusTestUtil } from '../../util/test.util';
 
 enum State {
     Created = 'Created',
@@ -23,10 +23,10 @@ enum Mutate {
 
 describe('BusStore [store/store.model]', () => {
     let bus: EventBus;
-    let log: Logger
+    let log: Logger;
 
     beforeEach(() => {
-        bus = BifrostEventBus.rebootWithOptions(LogLevel.Off, true);
+        bus = BusTestUtil.bootBus();
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
         bus.stores.createStore('string');
@@ -410,7 +410,7 @@ describe('BusStore [store/store.model]', () => {
         );
 
         cache.mutate(d, Mutate.Update,
-            (dog: Dog) => {
+            () => {
                 expect(d.dogPhrase).toEqual('ok, now you can eat it!');
                 done();
             }
@@ -426,7 +426,7 @@ describe('BusStore [store/store.model]', () => {
         let counter = 0;
         const mutateStream: MutateStream<Dog, string> = cache.onMutationRequest(new Dog());
         mutateStream.subscribe(
-            (dog: Dog) => {
+            () => {
                 counter++;
             }
         );

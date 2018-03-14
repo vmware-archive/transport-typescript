@@ -5,12 +5,13 @@ import { BifrostEventBus } from '../bus';
 import { EventBus } from '../../bus.api';
 import { LogLevel } from '../../log';
 import { BusStore } from '../../store.api';
+import { BusTestUtil } from '../../util/test.util';
 
 describe('Store Manager [store/store.manager]', () => {
 
     it('Check readyJoin works', (done) => {
 
-        const bus: EventBus = BifrostEventBus.bootWithOptions(LogLevel.Off, true);
+        const bus: EventBus = BusTestUtil.bootBusWithOptions(LogLevel.Off, true);
         bus.stores.readyJoin(['ember', 'fox']).whenReady(
             () => {
                 done();
@@ -41,5 +42,4 @@ describe('Store Manager [store/store.manager]', () => {
         store2.initialize();
 
     });
-
 });

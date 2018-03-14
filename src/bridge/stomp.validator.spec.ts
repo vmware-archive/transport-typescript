@@ -6,8 +6,8 @@ import { StompParser } from './stomp.parser';
 import { StompClient } from './stomp.client';
 import { StompMessage, StompBusCommand } from './stomp.model';
 import { StompValidator } from './stomp.validator';
-import { MonitorObject, MonitorType } from '../bus/model/monitor.model';
-import { Message } from '../bus/model/message.model';
+import { MonitorObject, MonitorType } from '../bus';
+import { Message } from '../bus';
 import { GeneralUtil } from '../util/util';
 
 describe('Stomp Validator [stomp.validator]', () => {

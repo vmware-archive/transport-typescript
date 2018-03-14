@@ -2,17 +2,16 @@
  * Copyright(c) VMware Inc. 2017
  */
 
-import { BifrostEventBus } from '../index';
 import { StoreStateChange } from './store.model';
 import { EventBus } from '../../bus.api';
-import { LogLevel } from '../../log/index';
-
+import { LogLevel } from '../../log';
+import { BusTestUtil } from '../../util/test.util';
 
 describe('BusStore Model [store/store.model]', () => {
     let bus: EventBus;
 
     beforeEach(() => {
-        bus = BifrostEventBus.rebootWithOptions(LogLevel.Error, true);
+        bus = BusTestUtil.bootBusWithOptions(LogLevel.Error, true);
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
     });
