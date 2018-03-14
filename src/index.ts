@@ -1,8 +1,6 @@
-/*
- * Copyright (c) 2016 VMware, Inc. All Rights Reserved.
- * This software is released under MIT license.
- * The full license information can be found in LICENSE in the root directory of this project.
+/**
+ * Copyright(c) VMware Inc. 2016-2017
  */
-export * from './bifrost.module'
 export * from './bus/index';
 export * from './bridge/index';
+

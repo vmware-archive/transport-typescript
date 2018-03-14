@@ -1,33 +1,30 @@
-/**
- * Copyright(c) VMware Inc. 2016-2017
- */
-
-import { Injectable } from '@angular/core';
 import { StompClient } from './stomp.client';
-import { Observable, ReplaySubject, Subscription } from 'rxjs';
+import { Observable,  Subscription } from 'rxjs';
 import {
-    StompSession, StompChannel, StompBusCommand, StompSubscription, StompMessage,
+    StompSession, BrokerConnectorChannel, StompBusCommand, StompSubscription, StompMessage,
     StompConfig
 } from '../bridge/stomp.model';
-import { StompCommandSchema, StompConfigSchema } from './stomp.schema';
 import { StompParser } from '../bridge/stomp.parser';
 import { StompValidator } from './stomp.validator';
-import { Syslog } from '../log/syslog';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
 import { Message } from '../bus/model/message.model';
-import { MessagebusService, MessageBusEnabled } from '../bus/messagebus.service';
+import { BifrostEventBus} from '../bus/bus';
+import { EventBus, EventBusEnabled } from '../bus.api';
+import { Logger } from '../log';
 
 /**
  * Service is responsible for handling all STOMP communications over a socket.
  */
 
-@Injectable()
-export class StompService implements MessageBusEnabled {
+export class BrokerConnector implements EventBusEnabled {
 
     static serviceName: string = 'stomp.service';
+    public reconnectDelay: number = 5000;
+    public connectDelay: number = 20;
+    public connecting: boolean = false;
 
     // helper methods for boilerplate commands.
-    static fireSubscriptionCommand(bus: MessagebusService,
+    static fireSubscriptionCommand(bus: EventBus,
                                    sessionId: string,
                                    destination: string,
                                    subscriptionId: string,
@@ -45,18 +42,18 @@ export class StompService implements MessageBusEnabled {
                 destination,
                 subscription
             );
-        bus.api.send(StompChannel.subscription,
-            new Message().request(command, new StompConfigSchema()), StompService.serviceName);
+        bus.api.send(BrokerConnectorChannel.subscription,
+            new Message().request(command), BrokerConnector.serviceName);
 
     }
 
     // helper function for subscriptions.
-    static fireSubscribeCommand(bus: MessagebusService,
+    static fireSubscribeCommand(bus: EventBus,
                                 sessionId: string,
                                 destination: string,
                                 subscriptionId: string): void {
 
-        StompService.fireSubscriptionCommand(bus,
+        BrokerConnector.fireSubscriptionCommand(bus,
             sessionId,
             destination,
             subscriptionId,
@@ -64,12 +61,12 @@ export class StompService implements MessageBusEnabled {
     }
 
     // helper function for unsubscriptions.
-    static fireUnSubscribeCommand(bus: MessagebusService,
+    static fireUnSubscribeCommand(bus: EventBus,
                                   sessionId: string,
                                   destination: string,
                                   subscriptionId: string): void {
 
-        StompService.fireSubscriptionCommand(bus,
+        BrokerConnector.fireSubscriptionCommand(bus,
             sessionId,
             destination,
             subscriptionId,
@@ -77,21 +74,24 @@ export class StompService implements MessageBusEnabled {
     }
 
     // helper function for connecting
-    static fireConnectCommand(bus: MessagebusService, config: StompConfig = null): void {
+    static fireConnectCommand(bus: EventBus, config: StompConfig = null): void {
 
         let command = StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, null, null, config);
-        bus.api.send(StompChannel.connection,
-            new Message().request(command, new StompConfigSchema()), StompService.serviceName);
+        bus.api.send(BrokerConnectorChannel.connection,
+            new Message().request(command), BrokerConnector.serviceName);
     }
 
     // helper function for disconnecting
-    static fireDisconnectCommand(bus: MessagebusService, sessionId: string): void {
+    static fireDisconnectCommand(bus: EventBus, sessionId: string): void {
 
         let command = StompParser.generateStompBusCommand(StompClient.STOMP_DISCONNECT, sessionId);
-        bus.api.send(StompChannel.connection,
-            new Message().request(command, new StompConfigSchema()), StompService.serviceName);
+        bus.api.send(BrokerConnectorChannel.connection,
+            new Message().request(command), BrokerConnector.serviceName);
     }
 
+    constructor(private log: Logger) {
+
+    }
 
     getName(): string {
         return (this as any).constructor.name;
@@ -101,26 +101,23 @@ export class StompService implements MessageBusEnabled {
     private _closeObservable: Observable<CloseEvent>;
     private _sessions: Map<string, StompSession>;
     private _galaticChannels: Map<string, boolean>;
-    private _galacticRequests: ReplaySubject<string>;
-    private _galacticRequestSubscription: Subscription;
-    private bus: MessagebusService;
+    private bus: BifrostEventBus;
+    private reconnectTimerInstance: any;
+    private reconnecting: boolean = false;
 
-    setBus(bus: MessagebusService) {
+    setBus(bus: BifrostEventBus) {
         this.bus = bus;
     }
 
-    init(bus: MessagebusService) {
+    init(bus: BifrostEventBus) {
 
         this.setBus(bus);
 
         let connectionChannel =
-            this.bus.api.getRequestChannel(StompChannel.connection, this.getName());
+            this.bus.api.getRequestChannel(BrokerConnectorChannel.connection, this.getName());
 
         let subscriptionChannel =
-            this.bus.api.getRequestChannel(StompChannel.subscription, this.getName());
-
-        let inboundChannel =
-            this.bus.api.getRequestChannel(StompChannel.messages, this.getName());
+            this.bus.api.getRequestChannel(BrokerConnectorChannel.subscription, this.getName());
 
         let monitorChannel =
             this.bus.api.getRequestChannel(MonitorChannel.stream, this.getName());
@@ -137,12 +134,6 @@ export class StompService implements MessageBusEnabled {
             }
         );
 
-        inboundChannel.subscribe(
-            (msg: Message) => {
-                this.processInboundMessage(msg);
-            }
-        );
-
         monitorChannel.subscribe(
             (msg: Message) => {
                 this.processMonitorStreamMessage(msg);
@@ -151,7 +142,6 @@ export class StompService implements MessageBusEnabled {
 
         this._sessions = new Map<string, StompSession>();
         this._galaticChannels = new Map<string, boolean>();
-        this._galacticRequests = new ReplaySubject<string>();
 
     }
 
@@ -195,20 +185,28 @@ export class StompService implements MessageBusEnabled {
 
     private sendGalacticMessage(channel: string, payload: any): void {
 
-        const cleanedChannel = StompParser.convertChannelToSubscription(channel);
+        let cleanedChannel = StompParser.convertChannelToSubscription(channel);
 
         this._sessions.forEach(session => {
             const config = session.config;
+            if (session.applicationDestinationPrefix) {
+                cleanedChannel = session.applicationDestinationPrefix + '/' + cleanedChannel;
+            }
 
             if (config.useTopics) {
+                const destination = cleanedChannel;
                 const command: StompBusCommand = StompParser.generateStompBusCommand(
                     StompClient.STOMP_MESSAGE,
                     session.id,
-                    cleanedChannel,
+                    destination,
                     StompParser.generateStompReadyMessage(payload)
                 );
-
+                this.log.debug('Sending Galactic Message for session ' + session.id +
+                    ' to destination ' + destination, this.getName());
                 this.sendPacket(command);
+            } else {
+                this.log.warn('Cannot send galactic message, topics not enabled for ' +
+                      'broker, queues not implemented yet.', this.getName());
             }
         });
     }
@@ -221,9 +219,7 @@ export class StompService implements MessageBusEnabled {
         let cleanedChannel = StompParser.convertChannelToSubscription(channel);
         this._galaticChannels.set(channel, true);
 
-        // if we're connected, kick things off, if not then fill the requests stream up
-        // and consume once we are connected.
-
+        // if we're connected, kick things off
         if (this._sessions.size >= 1) {
             this._sessions.forEach(session => {
                 let config = session.config;
@@ -238,12 +234,11 @@ export class StompService implements MessageBusEnabled {
                             session.id, destination, subscriptionId
                         );
                     this.subscribeToDestination(subscription);
+                } else {
+                    this.log.warn('Unable to open galactic channel, topics not ' +
+                        'configured and queues not supported yet.', this.getName());
                 }
             });
-
-        } else {
-            // stream will be subscribed to on connection.
-            this._galacticRequests.next(channel);
         }
     }
 
@@ -266,25 +261,22 @@ export class StompService implements MessageBusEnabled {
                         );
 
                     this.unsubscribeFromDestination(subscription);
+                } else {
+                    this.log.warn('Unable to close galactic channel, topics not ' +
+                        'configured and queues not supported yet.', this.getName());
                 }
+
             });
 
             this._galaticChannels.delete(cleanedChannel);
+        } else {
+            this.log.warn('unable to close galactic channel, no open sessions.', 'BrokerConnector');
         }
-    }
-
-    private processInboundMessage(msg: Message): void {
-
-        if (!StompValidator.validateInboundMessage(msg)) {
-            return;
-        }
-        let busCommand = StompParser.extractStompBusCommandFromMessage(msg);
-
-        this.sendPacket(busCommand);
     }
 
     private processSubscriptionMessage(msg: Message): void {
         if (!StompValidator.validateSubscriptionMessage(msg)) {
+            this.log.warn('unable to validate inbound subscription message, invalid', 'BrokerConnector');
             return;
         }
 
@@ -295,7 +287,7 @@ export class StompService implements MessageBusEnabled {
         switch (busCommand.command) {
             case StompClient.STOMP_SUBSCRIBE:
 
-                Syslog.debug('subscribing to destination: ' + sub.destination, this.getName());
+                this.log.info('subscribing to destination: ' + sub.destination, this.getName());
 
                 // create a subscription payload and throw it on the bus.
                 this.subscribeToDestination(sub);
@@ -303,7 +295,7 @@ export class StompService implements MessageBusEnabled {
 
             case StompClient.STOMP_UNSUBSCRIBE:
 
-                Syslog.debug('unsubscribing from destination: ' + sub.destination, this.getName());
+                this.log.info('unsubscribing from destination: ' + sub.destination, this.getName());
 
                 // create an unsubscription payload and throw it on the bus.
                 this.unsubscribeFromDestination(sub);
@@ -317,6 +309,7 @@ export class StompService implements MessageBusEnabled {
     private processConnectionMessage(msg: Message): void {
 
         if (!StompValidator.validateConnectionMessage(msg)) {
+            this.log.warn('unable to validate connection message, invalid command', this.getName());
             return;
         }
 
@@ -333,7 +326,11 @@ export class StompService implements MessageBusEnabled {
                 this.sendBusCommandResponse(StompClient.STOMP_CONFIGURED);
 
                 // connect, or re-use existing socket.
-                this.connectClient(config);
+                this.bus.api.tickEventLoop(
+                    () => {
+                        this.connectClient(config);
+                    }, this.connectDelay
+                );
                 break;
 
             case StompClient.STOMP_DISCONNECT:
@@ -350,15 +347,15 @@ export class StompService implements MessageBusEnabled {
     }
 
     private sendBusCommandResponseRaw(command: StompBusCommand,
-                                      channel: string = StompChannel.status,
+                                      channel: string = BrokerConnectorChannel.status,
                                       echoStatus: boolean = false,
                                       error: boolean = false): void {
 
         let messageType: Message =
-            new Message().response(command, new StompCommandSchema());
+            new Message().response(command);
         if (error) {
             messageType =
-                new Message().error(command, new StompCommandSchema());
+                new Message().error(command);
         }
         this.bus.api.send(
             channel,
@@ -368,7 +365,7 @@ export class StompService implements MessageBusEnabled {
 
         if (echoStatus) {
             this.bus.api.send(
-                StompChannel.status,
+                BrokerConnectorChannel.status,
                 messageType,
                 this.getName()
             );
@@ -376,20 +373,33 @@ export class StompService implements MessageBusEnabled {
     }
 
     private sendBusCommandResponse(status: string,
-                                   channel: string = StompChannel.status,
+                                   channel: string = BrokerConnectorChannel.status,
                                    echoStatus: boolean = false): void {
         let msg: StompBusCommand = StompParser.generateStompBusCommand(status);
         this.sendBusCommandResponseRaw(msg, channel, echoStatus);
     }
 
     public connectClient(config: StompConfig): void {
-        let session = new StompSession(config);
+        let session = new StompSession(config, this.log);
 
         let connection = session.connect();
+        this.connecting = true;
+
+        config.connectionSubjectRef = connection;
 
         connection.subscribe(
             () => {
+                clearInterval(this.reconnectTimerInstance);
+                this.reconnecting = false;
+                //this.connecting = false;
+
                 session.connectionCount++;
+
+                if (session.connectionCount < session.config.brokerConnectCount) {
+                    this.log.info('Connection message ' +
+                        session.connectionCount + ' of ' + config.brokerConnectCount + ' received', this.getName());
+                }
+
                 // this checks to see if the number of brokers configured send by the bus connectBroker() method
                 // has been hit yet for this session. The broker connect count is equivalent to how many CONNECTED
                 // events will be sent down the socket.
@@ -404,7 +414,7 @@ export class StompService implements MessageBusEnabled {
                                 session.id                      // each broker requires a session.
                             );
 
-                        this.sendBusCommandResponseRaw(message, StompChannel.connection, true);
+                        this.sendBusCommandResponseRaw(message, BrokerConnectorChannel.connection, true);
 
                         // these are now available;
                         this._errorObservable = session.client.socketErrorObserver;
@@ -414,13 +424,9 @@ export class StompService implements MessageBusEnabled {
                         this._sessions.set(session.id, session);
                         this.subscribeToClientObservables();
 
-                        // if we have pending galactic channels waiting, lets open the replay
-                        // and subscribe to those destinations
-                        this._galacticRequestSubscription = this._galacticRequests.subscribe(
-                            (channel: string) => {
-                                this.openGalacticChannel(channel);
-                            }
-                        );
+                        // subscribe to all open channels
+                        this._galaticChannels.forEach((open, channel) => this.openGalacticChannel(channel));
+
                         session.connected = true;
                     }
                 } else if (session.config.brokerConnectCount > session.connectionCount) {
@@ -432,7 +438,7 @@ export class StompService implements MessageBusEnabled {
                             session.id                              // each broker requires a session.
                         );
 
-                    this.sendBusCommandResponseRaw(message, StompChannel.connection, true);
+                    this.sendBusCommandResponseRaw(message, BrokerConnectorChannel.connection, true);
                 }
 
             }
@@ -445,7 +451,9 @@ export class StompService implements MessageBusEnabled {
         if (session && session !== null) {
             session.disconnect();
             this._sessions.delete(sessionId);
-            this._galacticRequestSubscription.unsubscribe();
+        } else {
+            this.log.warn('unable to disconnect client, no active session with id: ' +
+                sessionId, 'BrokerConnector');
         }
     }
 
@@ -456,29 +464,58 @@ export class StompService implements MessageBusEnabled {
 
             // wire in the local broker session id.
             if (!message.headers['session']) {
+                this.log.debug('sendPacket(): adding local broker session ID to message: '
+                    + data.session, this.getName());
+
                 message.headers.session = data.session;
+            } else {
+                this.log.debug('sendPacket(): message headers already contain sessionId', this.getName());
             }
             session.send(data.destination, message.headers, message.body);
+        } else {
+            this.log.warn('unable to send packet, session is empty', this.getName());
         }
+    }
+
+    private reconnectTimer(config: StompConfig) {
+        const connect = () => {
+            this.log.warn('Trying to reconnect to broker....', this.getName());
+            this.bus.api.tickEventLoop(
+                () => {
+                    this.connectClient(config);
+                }, this.connectDelay
+            );
+        };
+        this.reconnectTimerInstance = setInterval(connect, this.reconnectDelay);
     }
 
     private subscribeToClientObservables(): void {
 
         this._closeObservable.subscribe(
-            () => {
+            (evt: any) => {
+                this.log.warn('WebSocket to broker closed!', this.getName());
+                this.sessions.clear();
+
+                if (!this.reconnecting) {
+                    this.log.info('Starting re-connection timer', this.getName());
+                    this.reconnecting = true;
+                    this.reconnectTimer(evt.config);
+                }
                 this.sendBusCommandResponse(
                     StompClient.STOMP_DISCONNECTED,
-                    StompChannel.connection, true);
+                    BrokerConnectorChannel.connection, true);
             }
         );
 
         this._errorObservable.subscribe(
             (err: any) => {
+                this.log.error('Error occurred with WebSocket, Unable to connect to broker!', this.getName());
+                this._sessions.clear();
                 let msg
                     = StompParser.generateStompBusCommand(
                     StompClient.STOMP_ERROR, '', '', err);
 
-                this.sendBusCommandResponseRaw(msg, StompChannel.error, true, true);
+                this.sendBusCommandResponseRaw(msg, BrokerConnectorChannel.error, true, true);
             }
         );
     }
@@ -516,10 +553,10 @@ export class StompService implements MessageBusEnabled {
             session.addGalacticSubscription(channel, sub);
 
             // let the bus know.
-            this.sendBusCommandResponseRaw(message, StompChannel.subscription, true);
+            this.sendBusCommandResponseRaw(message, BrokerConnectorChannel.subscription, true);
 
             let subjectSubscription = subscriptionSubject.subscribe(
-                (message: StompMessage) => {
+                (msg: StompMessage) => {
 
                     let busResponse: StompBusCommand =
                         StompParser.generateStompBusCommand(
@@ -528,25 +565,20 @@ export class StompService implements MessageBusEnabled {
                             data.destination,
                             StompParser.frame(
                                 StompClient.STOMP_MESSAGE,
-                                message.headers,
-                                message.body
+                                msg.headers,
+                                msg.body
                             )
                         );
 
-                    let channel =
+                    let respChan =
                         StompParser.convertSubscriptionToChannel(data.destination, session.config.topicLocation);
 
-                    let payload;
-                    try {
-                        payload = JSON.parse(message.body);
-                    } catch (e) {
-                        payload = message.body;
-                    }
-                    this.bus.sendResponseMessage(channel, payload);
+                    let payload = JSON.parse(msg.body);
+                    this.bus.sendResponseMessage(respChan, payload);
 
                     // duplicate to stomp messages.
-                    this.bus.api.send(StompChannel.messages,
-                        new Message().response(busResponse, new StompCommandSchema()),
+                    this.bus.api.send(BrokerConnectorChannel.messages,
+                        new Message().response(busResponse),
                         this.getName()
                     );
                 }
@@ -563,7 +595,7 @@ export class StompService implements MessageBusEnabled {
                 = StompParser.generateStompBusCommand(
                 StompClient.STOMP_ERROR, '', '', 'cannot subscribe, session does not exist.');
 
-            this.sendBusCommandResponseRaw(msg, StompChannel.error, true, true);
+            this.sendBusCommandResponseRaw(msg, BrokerConnectorChannel.error, true, true);
         }
     }
 
@@ -580,7 +612,7 @@ export class StompService implements MessageBusEnabled {
                 );
 
             // let the bus know.
-            this.sendBusCommandResponseRaw(message, StompChannel.subscription, true);
+            this.sendBusCommandResponseRaw(message, BrokerConnectorChannel.subscription, true);
             const channel: string = StompParser.convertTopicToChannel(data.destination);
 
             const sub: Subscription = session.getGalacticSubscription(channel);
@@ -589,7 +621,16 @@ export class StompService implements MessageBusEnabled {
                 sub.unsubscribe();
                 session.removeGalacticSubscription(channel);
                 this.bus.api.close(channel, this.getName());
+            } else {
+                this.log.warn('unable to unsubscribe, no galactic subscription found for id: '
+                    + data.session, this.getName());
+
+                this.bus.api.close(channel, this.getName());
             }
+        } else {
+            this.log.warn('unable to unsubscribe, no session found for id: ' + data.session, this.getName());
         }
     }
 }
+
+

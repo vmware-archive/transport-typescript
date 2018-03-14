@@ -10,7 +10,7 @@ var mergeStream = require('merge-stream');
 
 var typings = ["src/typings.d.ts"];
 
-module.exports = function(tsSources, options, destination) {
+module.exports = function (tsSources, options, destination) {
     // always include typings to the sources;
     // this function is always called after the "triage" task so the tmp typings file exists
     var allSources = typings.concat(tsSources);
@@ -22,28 +22,14 @@ module.exports = function(tsSources, options, destination) {
     if (options.module) {
         tsConfig.module = options.module;
     }
-    var tsProject = ts.createProject("tsconfig.json", tsConfig);
+    var tsProject = ts.createProject('tsconfig.json', tsConfig);
 
-    var prod = process.env.NODE_ENV==="prod";
+    var stream = gulp.src(tsSources)
+        .pipe(sourcemaps.init())
+        .pipe(tsProject())
+        .pipe(sourcemaps.write(".", { sourceRoot: "/src" }));
 
-    var stream = gulp.src(allSources, {base: "src/"})
 
-    if (!prod) {
-        stream = stream.pipe(sourcemaps.init());
-    }
+    return stream;
 
-    stream = stream.pipe(ts(tsProject));
-    if (!prod) {
-        stream = stream.pipe(sourcemaps.write(".", {sourceRoot: "/src"}));
-    }
-
-    if (!options.internal && prod) {
-        // Merge the two output streams, so this task is finished when the IO of both operations are done.
-        return mergeStream([
-            stream.js,
-            stream.dts
-        ]);
-    } else {
-        return stream;
-    }
 };

@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2016 VMware, Inc. All Rights Reserved.
- * This software is released under MIT license.
- * The full license information can be found in LICENSE in the root directory of this project.
+ * Copyright (c) 2017 VMware, Inc. All Rights Reserved.
  */
 
 var gulp = require('gulp-help')(require('gulp'));
@@ -9,94 +7,56 @@ var env = require('gulp-env');
 var requireDir = require('require-dir');
 var runSequence = require('run-sequence');
 var util = require('gulp-util');
+var webpack_stream = require('webpack-stream');
+var webpack_config = require('./webpack.config.js');
 
-/**
- * Check for prod flag during gulp task executions
- */
-if(util.env.prod){
-    env.set({NODE_ENV: "prod"});
-} else {
-    env.set({NODE_ENV: "dev"});
-}
+requireDir('./build/tasks', { recurse: true });
 
-requireDir('./build/tasks', {recurse: true});
-
-/**
- * Cleans, compiles and bundles the entire application, before cleaning up the tmp/ folder again.
- */
 gulp.task('build', function (callback) {
-    var prod = process.env.NODE_ENV==="prod";
     return runSequence(
         'clean',
-        prod ?
-            ['typescript', 'bundle'] :
-            ['typescript'],
+        ['typescript'],
         callback
     );
 });
 
-gulp.task('build:dev', function (callback) {
-    return runSequence(
-        'clean',
-       ['typescript'],
-        callback
-    );
-});
-
-/**
- * Builds one time, then watches for changes and starts Browsersync
- */
-gulp.task("serve", function (callback) {
-    var prod = process.env.NODE_ENV==="prod";
-    return runSequence(
-        'build',
-        prod ?
-            ['typescript:watch', 'bundle:watch'] :
-            ['typescript:watch'],
-        'live',
-        callback
-    );
-});
-
-/**
- * Builds the application in production mode and runs all tests once on it.
- */
 gulp.task("test", function (callback) {
     return runSequence(
-        'build:dev',
-        'karma:verbose',
+        'clean',
+        'karma',
         callback
     );
 });
 
 gulp.task("test:debug", function (callback) {
     return runSequence(
-        'build:dev',
+        'clean',
         'karma:debug',
         callback
     );
 });
 
-
-gulp.task("coverage", function (callback) {
-    return runSequence(
-        'build:dev',
-        'karma:coverage-report',
-        callback
-    );
-});
-
-/**
- * Publishes the bifröst package to the NPM registry
- */
-gulp.task("npm:prepare", function(callback) {
-    env.set({NODE_ENV: "prod"}); // The build is in production mode
+gulp.task("npm:prepare", function (callback) {
+    env.set({ NODE_ENV: "prod" }); // The build is in production mode
     return runSequence(
         'build',
-        'aot',
-        'npm:all',
+        'webpack',
+        'npm:publish',
         callback
     );
 });
 
+gulp.task('webpack', function () {
+    var bifrostSources = [
+        'dist/**/*.js',
+        'dist/**/*.ts',
+        'dist/**/*.js.map',
+        '!src/**/*.spec.ts',
+        '!src/**/*.mock.ts'
+    ];
+    gulp.src(bifrostSources)
+        .pipe(gulp.dest("tmp"));
 
+    return webpack_stream(webpack_config)
+        .pipe(gulp.dest('./dist'));
+});

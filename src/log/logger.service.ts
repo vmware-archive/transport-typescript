@@ -1,26 +1,14 @@
 /**
  * Copyright(c) VMware Inc., 2016
  */
-
-import { Injectable } from '@angular/core';
 import { LogLevel, LogChannel, LogObject } from './logger.model';
-
-function checkForStyledLogSupport () {
-    if (typeof(window) === 'undefined') {
-        return false;
-    }
-    const looksLikePhantomJS = /PhantomJS/.test(window.navigator.userAgent);
-    return !looksLikePhantomJS;
-}
 
 /**
  * This is the low-lever logger that can be instantiated and destroyed at will. Syslog maintains one of these
  * for use across the application, however, anyone can create an instance of this service and manage independent
  * Log Levels and output.
  */
-
-@Injectable()
-export class LoggerService {
+export class Logger {
     private dateCss = 'color: blue;';
     private fromCss = 'color: green';
     private normalCss = 'color: black;';
@@ -36,7 +24,11 @@ export class LoggerService {
 
     private _lastLog: string;
 
-    private _styledLogsSupported: boolean = checkForStyledLogSupport();
+    private _styledLogsSupported: boolean = true;
+
+    setStylingVisble(flag: boolean) {
+        this._styledLogsSupported = flag;
+    }
 
     /**
      * Returns the last item logged.
@@ -44,7 +36,7 @@ export class LoggerService {
      * @returns {string}
      */
     last(): string {
-       return this._lastLog;
+        return this._lastLog;
     }
 
     /**
@@ -59,19 +51,23 @@ export class LoggerService {
      *
      * @param level
      */
-    set logLevel (level: LogLevel) {
+    set logLevel(level: LogLevel) {
         this._logLevel = level;
     }
 
-    get logLevel () {
+    get logLevel() {
         return this._logLevel;
     }
 
-    suppress (flag: boolean) {
+    get stylingVisble() {
+        return this._styledLogsSupported;
+    }
+
+    suppress(flag: boolean) {
         this._suppress = flag;
     }
 
-    silent (flag: boolean) {
+    silent(flag: boolean) {
         this._silent = flag;
     }
 
@@ -81,7 +77,7 @@ export class LoggerService {
      * @param object
      * @param from optional caller filename
      */
-    verbose (object: any, from: string) {
+    verbose(object: any, from?: string) {
         this.log(new LogObject().build(LogLevel.Verbose, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -91,7 +87,7 @@ export class LoggerService {
      * @param object
      * @param from optional caller filename
      */
-    debug (object: any, from: string) {
+    debug(object: any, from?: string) {
         this.log(new LogObject().build(LogLevel.Debug, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -101,7 +97,7 @@ export class LoggerService {
      * @param object
      * @param from optional caller filename
      */
-    info (object: any, from: string) {
+    info(object: any, from?: string) {
         this.log(new LogObject().build(LogLevel.Info, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -111,7 +107,7 @@ export class LoggerService {
      * @param object
      * @param from optional caller filename
      */
-    warn (object: any, from: string) {
+    warn(object: any, from?: string) {
         this.log(new LogObject().build(LogLevel.Warn, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -121,7 +117,7 @@ export class LoggerService {
      * @param object
      * @param from optional caller filename
      */
-    error (object: any, from: string) {
+    error(object: any, from?: string) {
         this.log(new LogObject().build(LogLevel.Error, LogChannel.channel, object, from, this._suppress));
     }
 
@@ -131,7 +127,7 @@ export class LoggerService {
      * @param object
      * @param from optional caller filename
      */
-    always (object: any, from: string) {
+    always(object: any, from?: string) {
         this.log(new LogObject().build(LogLevel.Off, LogChannel.channel, object, from));
     }
 
@@ -157,13 +153,15 @@ export class LoggerService {
         fn.apply(console, consoleArgs);
     }
 
-    private log (logObject: LogObject) {
+    private log(logObject: LogObject) {
         if (logObject.logLevel < this.logLevel) {
             return;
         }
-
-        this._lastLog = '[' + logObject.caller + ']: ' + logObject.object;
-
+        if (logObject.caller) {
+            this._lastLog = '[' + logObject.caller + ']: ' + logObject.object;
+        } else {
+            this._lastLog = logObject.object;
+        }
         if (logObject.suppress) {
             return;
         }
@@ -173,17 +171,27 @@ export class LoggerService {
         }
 
         let date: string = new Date().toLocaleTimeString();
-        let output: string = '%c' + date + ' %c[' + logObject.caller + ']: %c' + logObject.object;
+        let output: string = '%c' + logObject.object;
+        if (logObject.caller) {
+            output += '%c [' + logObject.caller + ']%c';
+            output += ' (' + date + ')';
+        } else {
+            output += '%c%c';
+        }
+
         if (!this._styledLogsSupported) {
             output = output.replace(/%c/g, '');
         }
+        
 
         switch (logObject.logLevel) {
             case LogLevel.Error:
+                output = '⁉️ [Error]: ' + output; 
                 this.outputWithOptionalStyle(console.error, output, this.errorCss);
                 break;
 
             case LogLevel.Warn:
+                output = '⚠️ [Warn]: ' + output; 
                 this.outputWithOptionalStyle(console.warn, output, this.warnCss);
                 break;
 
@@ -199,9 +207,9 @@ export class LoggerService {
                 this.outputWithOptionalStyle(console.log, output, this.verboseCss);
                 break;
 
-            default:
-                this.outputWithOptionalStyle(console.log, output, this.normalCss);
-                break;
+            // default:
+            //     this.outputWithOptionalStyle(console.log, output, this.normalCss);
+            //     break;
         }
     }
 }

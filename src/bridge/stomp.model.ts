@@ -7,32 +7,33 @@ import { Subscription } from 'rxjs/Subscription';
 import { StompClient } from './stomp.client';
 import { StompParser } from './stomp.parser';
 import { MockSocket } from './stomp.mocksocket';
+import { UUID } from '../bus/store/store.model';
+import { Logger } from '../log';
+import { GeneralUtil } from '../util/util';
 
-export class StompChannel {
+export type BifrostSocket = WebSocket;
 
-    static connection: string = '#stomp-connection';
-    static subscription: string = '#stomp-subscription';
-    static messages: string = '#stomp-messages';
-    static error: string = '#stomp-error';
-    static status: string = '#stomp-status';
+export class BrokerConnectorChannel {
+
+    static connection: string = '#broker.connector-connection';
+    static subscription: string = '#broker.connector-subscription';
+    static messages: string = '#broker.connector-messages';
+    static error: string = '#broker.connector-error';
+    static status: string = '#broker.connector-status';
 
 }
-
 export interface StompMessage {
     command: string;
     headers: any;
     body: string;
-
     toString(): string;
 }
-
 export interface StompBusCommand {
     destination: string;
     session: string;
     command: string;
     payload: any;
 }
-
 export interface StompSubscription {
     session: string;
     destination: string;
@@ -49,13 +50,20 @@ export class StompSession {
     private galacticSubscriptions: Map<string, Subscription>;
     private isConnected: boolean = false;
     private connCount: number = 0;
+    private _applicationDestinationPrefix: string;
 
-    constructor(config: StompConfig) {
+    constructor(config: StompConfig, private log: Logger) {
         this._config = config;
-        this._client = new StompClient();
-        this._id = StompParser.genUUID();
+        this._client = new StompClient(log);
+        this._id = GeneralUtil.genUUIDShort();
+        if (config.sessionId) {
+            this._id = config.sessionId;
+        }
         this._subscriptions = new Map<String, Subject<StompMessage>>();
         this.galacticSubscriptions = new Map<string, Subscription>();
+        if (config.applicationDestinationPrefix) {
+            this._applicationDestinationPrefix = config.applicationDestinationPrefix;
+        }
     }
 
     public get connected(): boolean {
@@ -84,6 +92,10 @@ export class StompSession {
 
     get id(): string {
         return this._id;
+    }
+
+    get applicationDestinationPrefix(): string {
+        return this._applicationDestinationPrefix;
     }
 
     connect(): Subject<Boolean> {
@@ -141,13 +153,16 @@ export class StompConfig {
     private _topicLocation: string = '/topic';
     private _queueLocation: string = '/queue';
     private numBrokerConnect: number = 1;
+    public connectionSubjectRef: Subject<Boolean>; // used to manipulate multi connect messages from relays.
+    public sessionId: UUID;
 
     static generate(endpoint: string,
                     host?: string,
                     port?: number,
                     useSSL?: boolean,
                     user?: string,
-                    pass?: string) {
+                    pass?: string,
+                    applicationDesintationPrefix?: string) {
 
         return new StompConfig(
             endpoint,
@@ -155,7 +170,8 @@ export class StompConfig {
             port,
             user,
             pass,
-            useSSL
+            useSSL,
+            applicationDesintationPrefix
         );
     }
 
@@ -167,17 +183,12 @@ export class StompConfig {
                 private _user?: string,
                 private _pass?: string,
                 private _useSSL?: boolean,
+                private _applicationDestinationPrefix?: string,
                 private _requireACK?: boolean,
-                private _heartbeatIn?: number,
-                private _heartbeatOut?: number) {
+                private _heartbeatIn: number = 0,
+                private _heartbeatOut: number = 30000) {
 
-        if (!_heartbeatIn) {
-            this._heartbeatIn = 0;
-        }
-        if (!_heartbeatOut) {
-            this._heartbeatOut = 30000;
-        }
-    };
+    }
 
     set brokerConnectCount(count: number) {
         this.numBrokerConnect = count;
@@ -266,7 +277,12 @@ export class StompConfig {
             useSSL: this._useSSL,
             heartbeatIn: this._heartbeatIn,
             heartbeatOut: this._heartbeatOut,
+            applicationDestinationPrefix: this._applicationDestinationPrefix
         };
+    }
+
+    public get applicationDestinationPrefix(): string {
+        return this._applicationDestinationPrefix;
     }
 
     /* same as getConfig() just cleaner */

@@ -1,29 +1,36 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { MessageBusEnabled } from './messagebus.service';
-import { ChannelName, EventBus, EventBusLowApi, SentFrom } from './bus.api';
+
+import {
+    ChannelName, EventBus, EventBusLowApi, MessageHandler, MessageResponder, MessageType,
+    SentFrom
+} from '../bus.api';
 import { Channel } from './model/channel.model';
-import { Message, MessageHandler, MessageHandlerConfig, MessageResponder, MessageType } from './model/message.model';
+import { 
+    Message, 
+    MessageHandlerConfig} from './model/message.model';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
-import { LoggerService } from '../log/logger.service';
+import { Logger } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
 import { MonitorChannel, MonitorObject, MonitorType } from './model/monitor.model';
 import { LogUtil } from '../log/util';
 import { Subscription } from 'rxjs/Subscription';
+import { UUID } from './store/store.model';
 
-export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowApi {
+export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
     readonly channelMap: Map<ChannelName, Channel>;
-    private log: LoggerService;
+    private log: Logger;
     private monitorChannel = MonitorChannel.stream;
     private monitorStream: Channel;
     private dumpMonitor: boolean;
     private internalChannelMap: Map<string, Channel>;
+    public loggerInstance: Logger;
 
 
-    constructor(private eventBusRef: EventBus, channelMap: Map<string, Channel>) {
+    constructor(private eventBusRef: EventBus, channelMap: Map<string, Channel>, logger: Logger) {
         this.internalChannelMap = channelMap;
 
         // create monitor stream.
@@ -31,101 +38,130 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         this.internalChannelMap.set(this.monitorChannel, this.monitorStream);
 
         // set up logging.
-        this.log = new LoggerService();
-        this.log.logLevel = LogLevel.Info;
-
+        this.log = logger;
+    
         // disable monitor dump by default.
         this.enableMonitorDump(false);
         this.monitorBus();
 
         this.channelMap = this.internalChannelMap;
+        this.loggerInstance = this.log;
+
     }
 
-    getName(): string {
-        return 'EventBusLowLevelApi';
-    }
-
-    getChannel(cname: ChannelName, from: SentFrom): Observable<Message> {
-        return this.getChannelObject(cname, from)
+    getChannel(cname: ChannelName, from: SentFrom, noRefCount: boolean = false): Observable<Message> {
+        return this.getChannelObject(cname, from, noRefCount)
             .stream
             .map(
-                (msg: Message) => {
-                    if (msg.payload.hasOwnProperty('_sendChannel')) {
-                        msg.payload = msg.payload.body;
-                    }
-                    return msg;
+            (msg: Message) => {
+                if (msg.payload.hasOwnProperty('_sendChannel')) {
+                    msg.payload = msg.payload.body;
                 }
+                return msg;
+            }
             );
     }
 
-    getChannelObject(name: ChannelName, from?: SentFrom): Channel {
+    getChannelObject(
+        name: ChannelName, 
+        from?: SentFrom, 
+        noRefCount: boolean = false, 
+        broadcast: boolean = true): Channel {
+
         let channel: Channel;
-        let symbol = ' + ';
+        let symbol;
+
+        const monitorNewReference = () => {
+
+            const observerId: UUID = channel.createObserver();
+            let mo = new MonitorObject().build(MonitorType.MonitorObserverJoinedChannel,
+                name, from, { count: channel.refCount, id: observerId, from: from });
+            this.monitorStream.send(new Message().request(mo));
+        };
+
+        const newChannelCreated = () => {
+            let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, name, from, '');
+            this.monitorStream.send(new Message().request(mo));
+        };
+
+        let newChannel: boolean = false;
 
         if (this.internalChannelMap.has(name)) {
             channel = this.internalChannelMap.get(name);
+
         } else {
             channel = new Channel(name);
             this.internalChannelMap.set(name, channel);
-            symbol = ' +++ ';
-
-            let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, name, from, symbol);
-            this.monitorStream.send(new Message().request(mo));
+            newChannel = true;
         }
-        channel.increment();
+
+        if (!noRefCount) {
+            channel.increment();
+        }
+
+        if (newChannel && broadcast) { 
+            newChannelCreated();
+        }
+
+        if (!noRefCount && broadcast) {
+            monitorNewReference();
+        }
+
+
         return channel;
     }
 
-    getRequestChannel(name: ChannelName, from?: SentFrom): Observable<Message> {
-        return this.getChannel(name, from)
+    getRequestChannel(name: ChannelName, from?: SentFrom, noRefCount: boolean = false): Observable<Message> {
+        return this.getChannel(name, from, noRefCount)
             .filter((message: Message) => {
                 return (message.isRequest());
             });
     }
 
-    getResponseChannel(cname: ChannelName, from?: SentFrom): Observable<Message> {
-        return this.getChannel(cname, from)
+    getResponseChannel(cname: ChannelName, from?: SentFrom, noRefCount: boolean = false): Observable<Message> {
+        return this.getChannel(cname, from, noRefCount)
             .filter((message: Message) => {
                 return (message.isResponse());
             });
     }
 
-    getErrorChannel(cname: ChannelName, from?: SentFrom): Observable<Message> {
-        return this.getChannel(cname, from)
+    getErrorChannel(cname: ChannelName, from?: SentFrom, noRefCount: boolean = false): Observable<Message> {
+        return this.getChannel(cname, from, noRefCount)
             .filter((message: Message) => {
                 return (message.isError());
             });
     }
 
-    getGalacticChannel(cname: ChannelName, from: SentFrom): Observable<Message> {
+    getGalacticChannel(cname: ChannelName, from?: SentFrom, noRefCount: boolean = false): Observable<Message> {
         this.getMonitorStream().send(
             new Message().request(
                 new MonitorObject().build(MonitorType.MonitorNewGalacticChannel, cname, from)
             )
         );
 
-        return this.getChannelObject(cname, from)
+        return this.getChannelObject(cname, from, noRefCount)
             .setGalactic().stream
             .map(
-                (msg: Message) => {
-                    if (msg.payload.hasOwnProperty('_sendChannel')) {
-                        msg.payload = msg.payload.body;
-                    }
-                    return msg;
+            (msg: Message) => {
+                // just an FYI -  I hate this... I made a bad choice and I will fix it!
+                if (msg.payload.hasOwnProperty('_sendChannel')) {
+                    msg.payload = msg.payload.body;
                 }
+                return msg;
+            }
             );
     }
 
-    sendRequest(cname: string, payload: any, name?: string, schema?: any): void {
+    sendRequest(cname: string, payload: any, name?: string): void {
         let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
-        this.send(mh.sendChannel, new Message().request(mh, schema), name);
+        this.send(mh.sendChannel, new Message().request(mh), name);
     }
 
-    sendResponse(cname: string, payload: any, name?: string, schema?: any): void {
+    sendResponse(cname: string, payload: any, name?: string): void {
         let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
         this.tickEventLoop(
             () => {
-                this.send(mh.sendChannel, new Message().response(mh, schema), name);
+                this.send(mh.sendChannel, new Message().response(mh), name);
             }
         );
     }
@@ -146,17 +182,22 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         return true;
     }
 
-    close(cname: ChannelName, from?: SentFrom): boolean {
+    close(cname: ChannelName, from?: SentFrom, observerId: UUID = 'none'): boolean {
         if (!this.internalChannelMap.has(cname)) {
             return false;
         }
 
         let channel = this.internalChannelMap.get(cname);
         channel.decrement();
-        let mo = new MonitorObject().build(MonitorType.MonitorCloseChannel, cname, from, ' ' + channel.refCount);
+        let mo = new MonitorObject().build(MonitorType.MonitorObserverLeftChannel, cname, from,
+            { count: channel.refCount, from: from, id: observerId });
         this.monitorStream.send(new Message().request(mo));
 
         if (channel.refCount === 0) {
+
+            mo = new MonitorObject().build(MonitorType.MonitorCloseChannel, cname, from, channel.refCount);
+            this.monitorStream.send(new Message().request(mo));
+
             this.destroy(channel, from);
             return true;
         }
@@ -165,8 +206,10 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
     countListeners(): number {
         let count = 0;
         this.channelMap.forEach((channel) => {
+            //console.log('channel open: ' + channel.name + ' - ' + channel.refCount);
             count += channel.refCount;
         });
+        //console.log('----\n\n');
         return count;
     }
 
@@ -204,7 +247,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         this.dumpMonitor = flag;
     }
 
-    logger(): LoggerService {
+    logger(): Logger {
         return this.log;
     }
 
@@ -244,7 +287,7 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
             return false;
         }
 
-        const mo: MonitorObject = new MonitorObject().build(MonitorType.MonitorError, cname, 'bus error');
+        const mo: MonitorObject = new MonitorObject().build(MonitorType.MonitorError, cname, err);
         this.monitorStream.send(new Message().error(mo));
 
         this.internalChannelMap.get(cname)
@@ -252,25 +295,27 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         return true;
     }
 
-    tickEventLoop(func: Function): void {
-        setTimeout(func);
-    };
+    tickEventLoop(func: Function, delay: number = 0): void {
+        setTimeout(func, delay);
+    }
 
-    request<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, schema?: any): MessageHandler<R, E> {
+    request<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom,
+                        schema?: any, id?: UUID): MessageHandler<R, E> {
 
         // ignore schema for now.
-        this.send(handlerConfig.sendChannel, new Message().request(handlerConfig, schema), name);
-
-        return this.createMessageHandler(handlerConfig, false, name);
+        const handler: MessageHandler<R, E> = this.createMessageHandler(handlerConfig, false, name, id);
+        this.send(handlerConfig.sendChannel, new Message(id).request(handlerConfig), name);
+        return handler;
     }
 
     respond<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, schema?: any): MessageResponder<R, E> {
 
-        return this.createMessageResponder(handlerConfig, name, schema);
+        return this.createMessageResponder(handlerConfig, name);
     }
 
-    listen<R>(handlerConfig: MessageHandlerConfig, requestStream?: boolean, name?: SentFrom): MessageHandler<R> {
-        return this.createMessageHandler(handlerConfig, requestStream, name);
+    listen<R>(handlerConfig: MessageHandlerConfig, requestStream?: boolean, 
+              name?: SentFrom, id?: UUID): MessageHandler<R> {
+        return this.createMessageHandler(handlerConfig, requestStream, name, id);
     }
 
     /**
@@ -285,32 +330,42 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
      * @param schema
      * @returns {MessageResponder<T, E>}
      */
-    private createMessageResponder<T, E = any>(handlerConfig: MessageHandlerConfig,
-                                               name = this.getName(), schema?: any): MessageResponder<T, E> {
-        let schemaRef = schema;
+    private createMessageResponder<T, E = any>(
+        handlerConfig: MessageHandlerConfig, name?: string): MessageResponder<T, E> {
+
+
         let sub: Subscription;
-        const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.sendChannel, name);
+        const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.sendChannel, name, true);
         const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.sendChannel, name);
+        let closed: boolean = false;
+        const chanObject: Channel = this.getChannelObject(handlerConfig.returnChannel, name, true);
+        const subscriberId: UUID = chanObject.createSubscriber();
+        const latestObserver = chanObject.latestObserver;
+        
+        const killSubscription = () => { 
+            sub.unsubscribe();
+            this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
+            chanObject.removeSubscriber(subscriberId);
+            this.close(handlerConfig.sendChannel, name, latestObserver);
+            sub = null;
+            closed = true;
+        };
 
         return {
             generate: (generateSuccessResponse: Function, generateErrorResponse: Function): Subscription => {
+                this.sendSubscribedMonitorMessage(subscriberId, chanObject.name, name);
                 const mergedStreams = Observable.merge(errorChannel, requestChannel);
-
                 sub = mergedStreams.subscribe(
                     (msg: Message) => {
                         let pl = msg.payload;
-                        // check if message is using wrapped API or not.
-                        if (pl.hasOwnProperty('_sendChannel')) {
-                            pl = msg.payload.body;
-                        }
                         if (!msg.isError()) {
                             this.tickEventLoop(
                                 () => {
-                                    this.eventBusRef.sendResponseMessage(
+                                    this.eventBusRef.sendResponseMessageWithId(
                                         handlerConfig.returnChannel,
                                         generateSuccessResponse(pl),
-                                        name,
-                                        schemaRef,
+                                        msg.id,
+                                        name
                                     );
                                 }
                             );
@@ -319,53 +374,58 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                             if (generateErrorResponse) {
                                 err = generateErrorResponse;
                             } else {
-                                err = generateSuccessResponse;
+                                err = generateSuccessResponse; // what else should we do here?
                             }
                             this.tickEventLoop(
                                 () => {
                                     this.eventBusRef.sendErrorMessage(
                                         handlerConfig.returnChannel,
                                         err(pl),
-                                        name,
-                                        schemaRef,
+                                        name
                                     );
                                 }
                             );
                         }
                         if (handlerConfig.singleResponse) {
-                            if (sub) {
-                                sub.unsubscribe();
-                            }
+                            
+                            killSubscription();
+                        }
+                    },
+                    (errorData: any) => {
+
+                        this.log.error('responder caught error, discarding.', name);
+                        if (sub) {
+                            killSubscription();
                         }
                     }
                 );
                 return sub;
             },
             tick: (payload: any): void => {
-                if (sub && !sub.closed) {
+                if (!closed) {
                     this.sendResponse(handlerConfig.returnChannel, payload);
                 }
             },
             close: (): boolean => {
                 if (!handlerConfig.singleResponse) {
-                    if (sub) {
-                        sub.unsubscribe();
-                    }
+                    sub.unsubscribe();
+
+                    // return refcount
+                    this.close(handlerConfig.sendChannel, name, latestObserver);
+                    this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
+                    closed = true;
                     sub = null;
                 }
                 return true;
             },
             isClosed(): boolean {
-                return (!sub || sub.closed);
+                return closed;
             },
             getObservable(): Observable<any> {
                 const chan = Observable.merge(requestChannel, errorChannel);
                 return chan.map(
                     (msg: Message) => {
                         let pl = msg.payload;
-                        if (pl.hasOwnProperty('_sendChannel')) {
-                            pl = msg.payload.body;
-                        }
                         if (msg.isError()) {
                             throw new Error(pl);
                         } else {
@@ -377,6 +437,23 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
         };
     }
 
+    private sendSubscribedMonitorMessage(uuid: UUID, channelName: ChannelName, from?: SentFrom): void {
+        this.monitorStream.send(
+            new Message().request(
+                new MonitorObject().build(MonitorType.MonitorObserverSubscribedChannel, channelName, name,
+                    { id: uuid, from: from })
+            )
+        );
+    }
+
+    private sendUnsubscribedMonitorMessage(uuid: UUID, channelName: ChannelName, from?: SentFrom): void {
+        this.monitorStream.send(
+            new Message().request(
+                new MonitorObject().build(MonitorType.MonitorObserverUnsubscribedChannel, channelName, name,
+                    { id: uuid, from: from })
+            )
+        );
+    }
     /**
      * Create a message handler.
      * @param {MessageHandlerConfig} handlerConfig
@@ -384,16 +461,36 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
      * @param {string} name
      * @returns {MessageHandler<any>}
      */
-    private createMessageHandler(handlerConfig: MessageHandlerConfig, requestStream: boolean = false,
-                                 name = this.getName()): MessageHandler<any> {
-        let sub: Subscription;
-        const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.returnChannel, name);
-        const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.returnChannel, name);
-        const responseChannel: Observable<Message> = this.getResponseChannel(handlerConfig.returnChannel, name);
-        const fullChannel: Observable<Message> = this.getChannel(handlerConfig.returnChannel, name);
-        return {
+    private createMessageHandler(
+        handlerConfig: MessageHandlerConfig, 
+        requestStream: boolean = false,
+        name?: string, 
+        messageId?: UUID): MessageHandler<any> {
 
+        let sub: Subscription;
+        const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.returnChannel, name, true);
+        const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.returnChannel, name, true);
+        const responseChannel: Observable<Message> = this.getResponseChannel(handlerConfig.returnChannel, name, true);
+        const fullChannel: Observable<Message> = this.getChannel(handlerConfig.returnChannel, name, false);
+        const chanObject: Channel = this.getChannelObject(handlerConfig.returnChannel, name, true);
+        const subscriberId: UUID = chanObject.createSubscriber();
+        const latestObserver = chanObject.latestObserver;
+        this.sendSubscribedMonitorMessage(subscriberId, chanObject.name, name);
+        let closed: boolean = false;
+        const registeredId = messageId;
+
+        const killSubscription = () => { 
+            sub.unsubscribe();
+            chanObject.removeSubscriber(subscriberId);
+            this.sendUnsubscribedMonitorMessage(subscriberId, chanObject.name, name);
+            this.close(handlerConfig.returnChannel, name, latestObserver);
+            sub = null;
+            closed = true;
+        };
+
+        return {
             handle: (success: Function, error?: Function): Subscription => {
+
                 let _chan: Observable<Message>;
                 if (requestStream) {
                     _chan = requestChannel;
@@ -403,39 +500,61 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
                 const mergedStreams = Observable.merge(errorChannel, _chan);
                 sub = mergedStreams.subscribe(
                     (msg: Message) => {
-                        let _pl = msg.payload;
-                        if (_pl.hasOwnProperty('_sendChannel')) {
-                            _pl = msg.payload.body;
+                        
+                        // If you have registered your handler with a message ID, this will check and
+                        // and in some more checks to ensure only messages with a matching ID will proceed.
+                        // this logic will only kick in if the response (inbound) message has an ID, if no ID is
+                        // found on the inbound, then validation is bypassed and the gates open regardless.
+
+                        let validateId: boolean = false;
+                        let proceedToHandle: boolean = true;
+                        
+                        if (registeredId && msg.id) {
+                            validateId = true;
                         }
-                        if (msg.isError()) {
-                            if (error) {
-                                error(_pl);
+                        if (validateId && msg.id && registeredId !== msg.id) {
+                            proceedToHandle = false;
+                        }
+
+                        if (proceedToHandle) {
+                            let _pl = msg.payload;
+                            if (msg.isError()) {
+                                if (error) {
+                                    error(_pl);
+                                }
+                            } else {
+                                if (success) {
+                                    success(_pl);
+                                } else {
+                                    this.log.error('unable to handle response, no handler function supplied', name);
+                                }
+                            }
+                            if (handlerConfig.singleResponse) {
+                                if (sub) {
+                                    killSubscription();
+                                }
                             }
                         } else {
-                            if (success) {
-                                success(_pl);
-                            }
-                        }
-                        if (handlerConfig.singleResponse) {
-                            if (sub) {
-                                sub.unsubscribe();
-                            }
-                        }
+                            this.log.debug('* Dropping Message ' + msg.id 
+                                            + ', handler only listening for ' + registeredId, name);
+                        }     
                     },
-                    (data: any) => {
+                    (errorData: any) => {
                         if (error) {
-                            error(data);
+                            error(errorData);
+                        } else {
+                            this.log.error('unable to handle error, no error handler function supplied', name);
                         }
                         if (sub) {
-                            sub.unsubscribe();
+                            killSubscription();
                         }
                     }
                 );
                 return sub;
             },
             tick: (payload: any): void => {
-                if (sub && !sub.closed) {
-                    this.eventBusRef.sendRequestMessage(handlerConfig.sendChannel, payload);
+                if (!closed) {
+                    this.eventBusRef.sendRequestMessageWithId(handlerConfig.sendChannel, payload, messageId);
                 }
             },
             error: (payload: any): void => {
@@ -446,37 +565,37 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
             close: (): boolean => {
                 if (!handlerConfig.singleResponse) {
                     if (sub) {
-                        sub.unsubscribe();
+                        killSubscription();
                     }
                     sub = null;
                 }
                 return true;
             },
             isClosed(): boolean {
-                return (!sub || sub.closed);
+                return closed;
             },
             getObservable(type?: MessageType): Observable<any> {
 
-                let chan = fullChannel;
-                if (type) {
-                    switch (type) {
-                        case MessageType.MessageTypeResponse:
-                            chan = responseChannel;
-                            break;
-                        case MessageType.MessageTypeError:
-                            chan = errorChannel;
-                            break;
-                        default:
-                            chan = requestChannel;
-                            break;
-                    }
+                let chan;
+                //if (type) {
+                switch (type) {
+                    case MessageType.MessageTypeResponse:
+                        chan = responseChannel;
+                        break;
+                    case MessageType.MessageTypeError:
+                        chan = errorChannel;
+                        break;
+                    case MessageType.MessageTypeRequest:
+                        chan = requestChannel;
+                        break;
+                    default:
+                        chan = fullChannel;
+                        break;
                 }
+                //}
                 return chan.map(
                     (msg: Message) => {
                         let pl = msg.payload;
-                        if (pl.hasOwnProperty('_sendChannel')) {
-                            pl = msg.payload.body;
-                        }
                         if (msg.isError()) {
                             throw new Error(pl);
                         } else {
@@ -511,34 +630,28 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
      * @param {MonitorObject} mo
      * @param {string} tag
      */
-    private dumpData(mo: MonitorObject, tag: string) {
+    private dumpData(mo: MonitorObject, tag: string, dropped: boolean = false) {
 
         let message = mo.data as Message;
 
         this.log.group(LogLevel.Info, tag);
-        this.log.info(' -> ' + mo.channel, 'Channel');
-
         if (message.isRequest()) {
-            this.log.info('REQUEST', 'Type');
+            this.log.info('📤 Request (outbound)', null);
         } else {
             if (message.isError()) {
-                this.log.info('ERROR', 'Type');
+                this.log.info('⁉️ ERROR!', null);
             } else {
-                this.log.info('RESPONSE', 'Type');
+                this.log.info('📥 Response (inbound)', 'message type');
             }
         }
-
-        this.log.group(LogLevel.Info, message.isError() ? 'Error' : 'Payload');
-
-        this.log.info(LogUtil.pretty(message.payload), mo.from);
-        this.log.groupEnd(LogLevel.Info);
-
-        if (message.messageSchema) {
-            this.log.group(LogLevel.Info, 'Schema: ' + message.messageSchema._title);
-            this.log.info(LogUtil.pretty(message.messageSchema), 'Schema');
-            this.log.groupEnd(LogLevel.Info);
+        this.log.info('📤 Channel: ' + mo.channel, null);
+        if (dropped) {
+            this.log.warn('💩 Message Was Dropped!', null);
         }
+        this.log.group(LogLevel.Info, message.isError() ? '⚠️ Error Payload' : '📦 Message Payload');
 
+        this.log.info(LogUtil.pretty(message.payload), null);
+        this.log.groupEnd(LogLevel.Info);
         this.log.groupEnd(LogLevel.Info);
     }
 
@@ -546,55 +659,85 @@ export class EventBusLowLevelApiImpl implements MessageBusEnabled, EventBusLowAp
      * This is a listener on the monitor channel which dumps message events to the console
      */
     private monitorBus() {
+
         this.getMonitor()
             .subscribe(
-                (message: Message) => {
-                    if (!message.isError()) {
-                        if (this.dumpMonitor) {
-                            let mo = message.payload as MonitorObject;
+            (message: Message) => {
+                //if (!message.isError()) {
+                if (this.dumpMonitor) {
 
-                            switch (mo.type) {
-                                case MonitorType.MonitorNewChannel:
-                                    this.log.info(mo.data + mo.channel, mo.from);
-                                    break;
+                    let mo = message.payload as MonitorObject;
+                    let type: string = 'Response';
+                    let pload: Message = mo.data as Message;
+                    
+                    // bypass easteregg.
+                    if (mo.channel === '__maglingtonpuddles__') {
+                        return;
+                    }
+                    switch (mo.type) {
+                        case MonitorType.MonitorNewChannel:
+                            this.log.info('✨ (channel created)-> ' + mo.channel, mo.from);
+                            break;
+                        
+                        case MonitorType.MonitorNewGalacticChannel:
+                            this.log.info('🌌 (galactic channel mapped)-> ' + mo.channel, mo.from);
+                            break;
 
-                                case MonitorType.MonitorCloseChannel:
-                                    this.log.info(' X ' + mo.channel + '[' + mo.data + ']', mo.from);
-                                    break;
+                        case MonitorType.MonitorObserverJoinedChannel:
+                            this.log.info('👁 (new observer ' + mo.data.id + ' [' + mo.data.count + '])-> ' +
+                                mo.channel, mo.data.from);
+                            break;
 
-                                case MonitorType.MonitorCompleteChannel:
-                                    this.log.info(' C ' + mo.channel, mo.from);
-                                    break;
+                        case MonitorType.MonitorObserverSubscribedChannel:
+                            this.log.info('📡 (observer subscribed [' + mo.data.id + '])-> '
+                                + mo.channel, mo.data.from);
+                            break;
 
-                                case MonitorType.MonitorDestroyChannel:
-                                    this.log.info('XXX ' + mo.channel, mo.from);
-                                    break;
+                        case MonitorType.MonitorObserverUnsubscribedChannel:
+                            this.log.info('💨 (observer un-subscribed [' + mo.data.id + '])-> '
+                                + mo.channel, mo.data.from);
+                            break;
 
-                                case MonitorType.MonitorData:
-                                    this.dumpData(mo, mo.from + ' -> ' + mo.channel +
-                                        (message.messageSchema
-                                            ? '  ['
-                                            + message.messageSchema._title
-                                            + ']'
-                                            : ''));
-                                    break;
+                        case MonitorType.MonitorObserverLeftChannel:
+                            this.log.info('🗑️ (observer closed [' + mo.data.id + '])-> ' +
+                                mo.channel, mo.data.from);
+                            break;
 
-                                case MonitorType.MonitorDropped:
-                                    this.dumpData(mo, '*DROP* message from ' + mo.from + ' -> ' + mo.channel +
-                                        (message.messageSchema
-                                            ? '  ['
-                                            + message.messageSchema._title
-                                            + ']'
-                                            : ''));
-                                    break;
-                                default:
-                                    break;
+                        case MonitorType.MonitorCloseChannel:
+                            this.log.info('🚫 (channel closed)-> ' + mo.channel, mo.from);
+                            break;
+
+                        case MonitorType.MonitorCompleteChannel:
+                            this.log.info('🏁 (channel completed)-> ' + mo.channel, mo.from);
+                            break;
+
+                        case MonitorType.MonitorDestroyChannel:
+                            this.log.info('💣 (channel destroyed)-> ' + mo.channel, mo.from);
+                            break;
+
+                        case MonitorType.MonitorData:
+                            if (pload.isRequest()) {
+                                type = 'Request';
                             }
-                        }
-                    } else {
-                        this.log.error('Error on monitor channel: ' + LogUtil.pretty(message), this.getName());
+                            if (pload.isError()) {
+                                type = 'Error';
+                            }
+                            this.dumpData(mo, '💬 (' + type + ')-> ' + mo.channel + ' [' + mo.from + ']');
+                            break;
+
+                        case MonitorType.MonitorDropped:
+                            this.dumpData(mo, '💩 (dropped)->  ' + mo.from + ' -> ' + mo.channel, true);
+                            break;
+
+                        case MonitorType.MonitorError:
+                            this.log.error('(error)-> ' + mo.channel, mo.from);
+                            break;
+
+                        default:
+                            break;
                     }
                 }
+            }
             );
     }
 

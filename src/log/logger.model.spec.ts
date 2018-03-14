@@ -1,7 +1,7 @@
-///<reference path="util.ts"/>
 /**
- * Copyright(c) VMware Inc., 2016
+ * Copyright(c) VMware Inc. 2016-2017
  */
+
 import {LogObject, LogLevel, LogLevelObject} from './logger.model';
 import {LogUtil} from './util';
 

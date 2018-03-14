@@ -10,49 +10,56 @@ var clangFormat = require('clang-format');
 var bifrostSources = [
     'src/**/*.ts',
     '!src/**/*.spec.ts',
-    '!src/**/*.mock.ts'
+    '!src/**/*.mock.ts',
+    '!node_modules/**/*.ts'
 ];
 
 gulp.task('tslint:bifrost', function(){
     return gulp.src(bifrostSources)
         .pipe(tslint({
-            configuration: 'build/tslint.json'
+            configuration: 'build/tslint.json',
+            formatter: 'stylish',
         }))
-        .pipe(tslint.report('verbose'));
+        .pipe(tslint.report());
 });
 
-gulp.task('tslint:bifrost:no-error', function(){
+gulp.task('tslint:bifrost:no-error', function () {
     return gulp.src(bifrostSources)
         .pipe(tslint({
-            configuration: 'build/tslint.json'
-        }))
-        .pipe(tslint.report('verbose', {
+            configuration: 'build/tslint.json',
+            formatter: 'stylish',
             emitError: false
         }));
+
 });
 
-var testsSources = ['src/**/*.spec.ts', 'src/**/*.mock.ts'];
+var testsSources = [
+    'src/**/*.spec.ts', 
+    'src/**/*.mock.ts',
+    '!node_modules/**/*.ts'
+];
 
 gulp.task('tslint:tests', function(){
-    return gulp.src(testsSources)
-        .pipe(tslint({
-            configuration: 'build/tslint.json'
-        }))
-        .pipe(tslint.report('verbose'));
+    return gulp.src(bifrostSources)
+    .pipe(tslint({
+        configuration: 'build/tslint.json',
+        formatter: 'stylish',
+    }))
+    .pipe(tslint.report());
 });
 
 gulp.task('tslint:tests:no-error', function(){
-    return gulp.src(testsSources)
-        .pipe(tslint({
-            configuration: 'build/tslint.json'
-        }))
-        .pipe(tslint.report('verbose', {
-            emitError: false
-        }));
+    return gulp.src(bifrostSources)
+    .pipe(tslint({
+        configuration: 'build/tslint.json',
+        formatter: 'stylish',
+        emitError: false
+    }));
+
 });
 
 
-gulp.task("tslint", ["tslint:bifrost", "tslint:tests"], function(){});
+gulp.task("tslint", ["tslint:bifrost"], function(){});
 
 /**
  Warns if the typescript formatting is valid or not

@@ -2,21 +2,21 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import {Channel} from './channel.model';
-import {Syslog} from '../../log/syslog';
-import {LogUtil} from '../../log/util';
-import {Message} from './message.model';
-import {BifrostModule} from '../../bifrost.module';
-import {TestBed} from '@angular/core/testing';
+import { Channel } from './channel.model';
+import { LogUtil } from '../../log/util';
+import { Message } from './message.model';
+import { Logger } from '../../log';
 
 /**
  * This is the unit test for the Stream model.
  */
 
+const name = 'channel.model';
 
-describe('Stream Model [stream]', () => {
+describe('Stream Model [channel.model]', () => {
 
     let channel: Channel;
+    let log: Logger;
 
     let testObject = {
         name: 'test'
@@ -25,13 +25,13 @@ describe('Stream Model [stream]', () => {
     let testError = {
         error: 'fake error'
     };
-
-    beforeEach(function () {
-        channel = new Channel('test-stream');
-        TestBed.configureTestingModule({
-            imports: [BifrostModule.forRoot()]
-        });
-    });
+    beforeEach(
+        () => {
+            channel = new Channel('test-stream');
+            log = new Logger();
+            log.silent(true);
+        }
+    );
 
     it('Should verify stream creation', () => {
         channel.decrement();
@@ -55,7 +55,7 @@ describe('Stream Model [stream]', () => {
 
             (error: any) => {
                 // shouldn't come here
-                Syslog.error('Unexpected error on stream.send: ' + LogUtil.pretty(error), 'stream.spec');
+                log.error('Unexpected error on stream.send: ' + LogUtil.pretty(error), name);
             }
         );
 
@@ -66,7 +66,7 @@ describe('Stream Model [stream]', () => {
         channel.stream.subscribe(
             (message: Message) => {
                 // shouldn't come here
-                Syslog.error('Unexpected data received: ' + LogUtil.pretty(message), 'stream.spec');
+                log.error('Unexpected data received: ' + LogUtil.pretty(message), name);
             },
 
             (error: any) => {
@@ -83,23 +83,51 @@ describe('Stream Model [stream]', () => {
         channel.stream.subscribe(
             (message: Message) => {
                 // shouldn't come here
-                Syslog.error('Unexpected data received: ' + LogUtil.pretty(message), 'stream.spec');
+                log.error('Unexpected data received: ' + LogUtil.pretty(message), name);
             },
 
             (error: any) => {
                 // shouldn't come here
-                Syslog.error('Unexpected error received: ' + LogUtil.pretty(error), 'stream.spec');
+                log.error('Unexpected error received: ' + LogUtil.pretty(error), name);
             },
 
             () => {
                 expect(channel.isClosed)
                     .toBeTruthy();
-                Syslog.debug('Completion correctly received.', 'stream.spec');
+                log.debug('Completion correctly received.', name);
                 done();
             }
         );
 
         channel.complete();
+    });
+
+    it('check subscribers and observers work correctly.', () => {
+        const uuidA = channel.createSubscriber();
+        expect(channel.getSubscriber(uuidA).id).toEqual(uuidA);
+
+        const uuidB = channel.createObserver();
+        expect(channel.getObserver(uuidB).id).toEqual(uuidB);
+
+        channel.removeObserver(uuidB);
+        expect(channel.getObserver(uuidB)).toBeUndefined();
+
+        channel.setGalactic();
+        expect(channel.galactic).toBeTruthy();
+
+        channel.setPrivate();
+        expect(channel.galactic).toBeFalsy();
+        
+    });
+
+    it('check galactic and private switches work.', () => {
+
+        channel.setGalactic();
+        expect(channel.galactic).toBeTruthy();
+
+        channel.setPrivate();
+        expect(channel.galactic).toBeFalsy();
+        
     });
 });
 

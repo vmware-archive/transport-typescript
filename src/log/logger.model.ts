@@ -1,4 +1,8 @@
 /**
+ * Copyright(c) VMware Inc. 2016-2017
+ */
+
+/**
  * Channels for communication with the logger Service, and its message object.
  */
 
@@ -9,7 +13,7 @@ export enum LogLevel {
     Info,
     Warn,
     Error,
-    Off
+    Off,
 }
 
 export class LogChannel {

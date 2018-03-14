@@ -15,7 +15,8 @@ var renameFolder = require("../rename-folder");
 var bifrostSources = [
     'src/**/*.ts',
     '!src/**/*.spec.ts',
-    '!src/**/*.mock.ts'
+    '!src/**/*.mock.ts',
+    '!node_modules/**/*'
 ];
 
 gulp.task('typescript:bifrost', function () {
@@ -38,16 +39,13 @@ gulp.task('typescript:tests', function () {
     .pipe(absoluteRequires({
         pattern: /\.\.?\/.*(mock|spec)/,
         rename: {
-            "vmw-bifrost": "tests"
+            "bifrost": "tests"
         }
     }))
     // The requires remaining are all actual bifröst classes
     .pipe(absoluteRequires({}))
     .pipe(gulp.dest("dist/tests"));
 });
-
-
-
 
 gulp.task('typescript', function (callback) {
     return runSequence(

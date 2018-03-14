@@ -1,9 +1,12 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { Subject } from 'rxjs';
+import { Subject } from 'rxjs/Subject';
 import { Message } from './message.model';
-
+import { UUID } from '../store/store.model';
+import { StompParser } from '../../bridge/stomp.parser';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/filter';
 /**
  * A Channel object represents a single channel on the message bus.
  * This enables many-to-many transactions. Anyone can send a packet on a stream, and anyone can subscribe to a stream.
@@ -13,6 +16,16 @@ import { Message } from './message.model';
  * The Channel stream allows for packets and errors to be transmitted and both can be received by subscribers.
  */
 
+export interface Subscriber {
+    id: UUID;
+    subscribed: number;
+}
+
+export interface Observer {
+    id: UUID;
+    subscribed: number;
+}
+
 export class Channel {
     private _name: string;
     private _refCount: number;
@@ -21,12 +34,18 @@ export class Channel {
 
     private _streamObject: Subject<Message>;
 
+    public subscribers: Map<UUID, Subscriber>;
+    public observers: Map<UUID, Observer>;
+    public latestObserver: UUID;
+
     constructor(name: string) {
         this._name = name;
         this._refCount = 0;
         this._streamObject = new Subject<Message>();
         this._closed = false;
         this._galactic = false;
+        this.subscribers = new Map<UUID, Subscriber>();
+        this.observers = new Map<UUID, Observer>();
     }
 
     /**
@@ -38,8 +57,33 @@ export class Channel {
         return this._streamObject;
     }
 
-    set stream(stream: Subject<Message>) {
-        this._streamObject = stream;
+    createSubscriber(): UUID {
+        const id: UUID = StompParser.genUUIDShort();
+        this.subscribers.set(id, {id: id, subscribed: new Date().getDate()});
+        return id;
+    }
+
+    removeSubscriber(uuid: UUID): boolean {
+        return this.subscribers.delete(uuid);
+    }
+
+    getSubscriber(uuid: UUID): Subscriber {
+        return this.subscribers.get(uuid);
+    }
+
+    createObserver(): UUID {
+        const id: UUID = StompParser.genUUIDShort();
+        this.observers.set(id, {id: id, subscribed: new Date().getDate()});
+        this.latestObserver = id;
+        return id;
+    }
+
+    removeObserver(uuid: UUID): boolean {
+        return this.observers.delete(uuid);
+    }
+
+    getObserver(uuid: UUID): Subscriber {
+        return this.observers.get(uuid);
     }
 
     /**

@@ -5,11 +5,12 @@
 import {StompParser} from './stomp.parser';
 import {StompClient} from './stomp.client';
 import {Message} from '../bus/model/message.model';
+import { GeneralUtil } from '../util/util';
 
 describe('Stomp Parser [stomp.parser]', () => {
 
     it('We should be able to parse the byte content length of a body',
-        (done) => {
+        () => {
 
             let message1 = '{"something":"goes_here"}';
             let message2 = '{"a":"1","b":"2","c":"3","d":"4"}';
@@ -32,16 +33,14 @@ describe('Stomp Parser [stomp.parser]', () => {
             expect(StompParser.byteCount(message5))
                 .toEqual(64);
 
-            done();
-
         }
     );
 
     it('We should be able to generate a valid UUID',
-        (done) => {
+        () => {
 
-            let uuid1 = StompParser.genUUID();
-            let uuid2 = StompParser.genUUID();
+            let uuid1 = GeneralUtil.genUUID();
+            let uuid2 = GeneralUtil.genUUID();
             expect(uuid1.length).toEqual(36);
             expect(uuid1.charAt(8)).toEqual('-');
             expect(uuid1.charAt(13)).toEqual('-');
@@ -58,13 +57,11 @@ describe('Stomp Parser [stomp.parser]', () => {
             expect(re.test(uuid2)).toBeTruthy();
             expect(re.test('abc-123-45666-1')).toBeFalsy();
             expect(re.test('who doesn\'t like boots?')).toBeFalsy();
-
-            done();
         }
     );
 
     it('We should be able to correctly marshall a STOMP message',
-        (done) => {
+        () => {
 
             let message1: string = StompParser.marshal(
                 StompClient.STOMP_CONNECT,
@@ -103,23 +100,19 @@ describe('Stomp Parser [stomp.parser]', () => {
             expect(message1).toEqual(expectedMessage1);
             expect(message2).toEqual(expectedMessage2);
             expect(message3).toEqual(expectedMessage3);
-
-            done();
         }
     );
 
     it('We should be able to ensure trimming works on the body',
-        (done) => {
+        () => {
             expect(StompParser.trim('  lots of space   ')).toEqual('lots of space');
             expect(StompParser.trim('lots of space   ')).toEqual('lots of space');
             expect(StompParser.trim('\t\t\ttabs?')).toEqual('tabs?');
-
-            done();
         }
     );
 
     it('We should be able to unmarshal a STOMP message.',
-        (done) => {
+        () => {
 
             let stompMessage1 = 'CONNECT\n' +
                 'test-header:hello\n' +
@@ -162,15 +155,13 @@ describe('Stomp Parser [stomp.parser]', () => {
             expect(bodyObject.look).toEqual('an-object');
             expect(bodyObject.with).toBeDefined();
             expect(bodyObject.with).toEqual('properties');
-
-            done();
         }
     );
 
     it('We should be able to extract bus commands from a bus message',
-        (done) => {
+        () => {
 
-            let id = StompParser.genUUID();
+            let id = GeneralUtil.genUUID();
             let busCommand =
                 StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, id);
 
@@ -182,15 +173,13 @@ describe('Stomp Parser [stomp.parser]', () => {
             expect(extracted.session).toEqual(id);
             expect(StompParser.extractStompBusCommandFromMessage(null)).toBeNull();
 
-            done();
-
         }
     );
 
     it('We should be able to extract a stomp message from a bus command message',
-        (done) => {
+        () => {
 
-            let id = StompParser.genUUID();
+            let id = GeneralUtil.genUUID();
 
             let stompMessage = StompParser.frame(StompClient.STOMP_CONNECT, {}, 'two big dogs with a ball');
 
@@ -208,16 +197,13 @@ describe('Stomp Parser [stomp.parser]', () => {
             expect(extracted.command).toEqual(StompClient.STOMP_CONNECT);
             expect(extracted.body).toEqual('two big dogs with a ball');
             expect(StompParser.extractStompMessageFromBusCommand(null)).toBeNull();
-
-            done();
-
         }
     );
 
     it('We should be able to extract a stomp message from a bus message',
-        (done) => {
+        () => {
 
-            let id = StompParser.genUUID();
+            let id = GeneralUtil.genUUID();
 
             let stompMessage = StompParser.frame(StompClient.STOMP_CONNECT, {}, 'two big dogs with a ball');
 
@@ -237,12 +223,31 @@ describe('Stomp Parser [stomp.parser]', () => {
             expect(extracted.command).toEqual(StompClient.STOMP_CONNECT);
             expect(extracted.body).toEqual('two big dogs with a ball');
             expect(StompParser.extractStompMessageFromBusMessage(null)).toBeNull();
+            
+        }
+    );
 
-            done();
+    it('We should be able to check supplied headers can be framed correctly.',
+        () => {
+
+            let msg = StompParser.frame('TEST', { potato: 'tasty'}, 'tasty potato?');
+            expect(msg.toString()).toEqual('TEST\npotato:tasty\n\ntasty potato?');
+
+            msg = StompParser.frame('TEST', null, 'tasty potato?');
+            expect(msg.toString()).toEqual('TEST\n\ntasty potato?');
+            
+        }
+    );
+
+    it('Check a subscription can be converted to a channel',
+        () => {
+
+           const subA = StompParser.convertSubscriptionToChannel('puppykitty/', 'kitty');
+           expect(subA).toEqual('puppy');
 
         }
     );
 
-
+    
 });
 

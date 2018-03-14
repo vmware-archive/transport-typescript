@@ -4,8 +4,11 @@
 
 import { MockSocket } from './stomp.mocksocket';
 import { StompConfig, StompSession } from './stomp.model';
+import { Logger } from '../log';
 
 describe('Stomp Model [stomp.config]', () => {
+
+    let log: Logger;
 
     describe('Stomp Configuration', () => {
 
@@ -18,6 +21,9 @@ describe('Stomp Model [stomp.config]', () => {
                     'user',
                     'pass'
                 );
+
+                log = new Logger();
+                log.silent(true);
 
                 expect(config.host).toBeDefined();
                 expect(config.port).toBeDefined();
@@ -36,6 +42,7 @@ describe('Stomp Model [stomp.config]', () => {
                     'user',
                     'pass',
                     true,
+                    null,
                     true
                 );
 
@@ -73,23 +80,44 @@ describe('Stomp Model [stomp.config]', () => {
 
         it('We should be able to generate a config statically',
             () => {
-                let gen: StompConfig = StompConfig.generate(
-                    '/somewhere',
-                    'thebesthost',
-                    31337,
+                const config = new StompConfig(
+                    '/endpoint',
+                    'somehost',
+                    12345,
+                    'user',
+                    'pass',
                     true,
-                    'darth',
-                    'vader'
+                    null,
+                    true,
+                    50, 
+                    50
                 );
 
-                expect(gen.endpoint).toEqual('/somewhere');
-                expect(gen.host).toEqual('thebesthost');
-                expect(gen.port).toEqual(31337);
-                expect(gen.useSSL).toEqual(true);
-                expect(gen.user).toEqual('darth');
-                expect(gen.pass).toEqual('vader');
+                expect(config.getConfig().heartbeatIn).toEqual(50);
+                expect(config.getConfig().heartbeatOut).toEqual(50);
+
             }
         );
+
+        it('We should be able to generate a config with a different heartbeat',
+        () => {
+            let gen: StompConfig = StompConfig.generate(
+                '/somewhere',
+                'thebesthost',
+                31337,
+                true,
+                'darth',
+                'vader'
+            );
+
+            expect(gen.endpoint).toEqual('/somewhere');
+            expect(gen.host).toEqual('thebesthost');
+            expect(gen.port).toEqual(31337);
+            expect(gen.useSSL).toEqual(true);
+            expect(gen.user).toEqual('darth');
+            expect(gen.pass).toEqual('vader');
+        }
+    );
 
         it('We should be able to create mock and real sockets',
             () => {
@@ -133,12 +161,41 @@ describe('Stomp Model [stomp.config]', () => {
                 );
 
                 config.testMode = true;
-                let session = new StompSession(config);
+                let session = new StompSession(config, log);
 
                 expect(session.connect).toBeTruthy();
                 expect(session.client).not.toBeNull();
                 expect(session.id).not.toBeNull();
                 expect(session.config).not.toBeNull();
+            }
+        );
+
+        it('We should be able to validate galatic subscriptions work correctly when adding and deleting.',
+            () => {
+
+                let config = new StompConfig(
+                    '/endpoint',
+                    'somehost',
+                    -1,
+                    'user',
+                    'pass'
+                );
+
+                config.testMode = true;
+                const session = new StompSession(config, log);
+
+                session.addGalacticSubscription('space-dogs', null);
+                expect(session.getGalacticSubscriptions().has('space-dogs')).toBeTruthy();
+
+                session.addGalacticSubscription('space-dogs', null);
+                expect(session.getGalacticSubscriptions().has('space-dogs')).toBeTruthy();
+
+                session.removeGalacticSubscription('space-dogs');
+                expect(session.getGalacticSubscriptions().has('space-dogs')).toBeFalsy();
+
+                session.removeGalacticSubscription('space-dogs');
+                expect(session.getGalacticSubscriptions().has('space-dogs')).toBeFalsy();
+
             }
         );
     });

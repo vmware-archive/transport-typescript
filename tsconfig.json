@@ -1,24 +1,47 @@
+// {
+//     "compilerOptions": {
+//         "baseUrl": "src",
+//         "declaration": false,
+//         "emitDecoratorMetadata": true,
+//         "experimentalDecorators": true,
+//         "lib": [
+//             "es6",
+//             "dom"
+//         ],
+//         "module": "umd",
+//         "moduleResolution": "node",
+//         "outDir": "./dist/out-tsc",
+//         "sourceMap": true,
+//         "target": "es5",
+//         "typeRoots": [
+//             "node_modules/@types"
+//         ]
+//     }
+// }
 {
-  "compilerOptions": {
-    "target": "es5",
-    "declaration": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "sourceMap": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "lib": [ "es2015", "dom" ],
-    "removeComments": false,
-    "noImplicitAny": true,
-    "types": [
-      "jasmine"
-    ],
-    "outDir": "dist/",
-    "rootDir": "src/"
-  },
-  "exclude": [
-    "node_modules/*",
-    "compiled/*",
-    "dist/"
-  ]
-}
+    "compilerOptions": {
+      "target": "es2015",
+      "declaration": true,
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "sourceMap": true,
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "lib": [
+        "dom",
+        "es5",
+        "es6",
+        "es7",
+        "es2015"
+      ],
+      "removeComments": false,
+      "noImplicitAny": true,
+      "types": [
+        "jasmine"
+      ]
+    },
+    "exclude": [
+      "node_modules/*"
+    ]
+  }
+  

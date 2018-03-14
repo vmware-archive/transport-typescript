@@ -2,7 +2,8 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import {Message, MessageType} from './message.model';
+import { Message} from './message.model';
+import { MessageType } from '../../bus.api';
 
 describe('Stream Model [stream]', () => {
 
@@ -50,5 +51,6 @@ describe('Stream Model [stream]', () => {
                 .toBe('fake error');
         }
     );
+
 });
 

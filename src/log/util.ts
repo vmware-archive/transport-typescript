@@ -2,10 +2,6 @@
  * Copyright(c) VMware Inc., 2016
  */
 
-
-import { Injectable } from '@angular/core';
-
-@Injectable()
 export class LogUtil {
     /**
      * Return a pretty printed string from JSON

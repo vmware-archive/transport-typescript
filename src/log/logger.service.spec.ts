@@ -1,8 +1,8 @@
 /**
  * Copyright(c) VMware Inc., 2016
  */
-import {LoggerService} from './logger.service';
-import {LogLevel} from './logger.model';
+import { Logger } from './logger.service';
+import { LogLevel } from './logger.model';
 
 function getName() {
     return 'logger.service.spec';
@@ -18,15 +18,15 @@ describe('Log Service [log/logger.service.spec ]', () => {
     const tag = '[' + getName() + ']: ';
     const response = tag + testMessage;
 
-    let log: LoggerService;
+    let log: Logger;
 
-    beforeEach(function () {
-        log = new LoggerService();
+    beforeEach(() => {
+        log = new Logger();
         log.silent(true);
     });
 
     it('Should check logger getters and setters',
-        function () {
+        () => {
             log.suppress(false);
             log.clear();
             expect(log.last())
@@ -91,7 +91,7 @@ describe('Log Service [log/logger.service.spec ]', () => {
     );
 
     it('Should check suppression',
-        function () {
+        () => {
             log.clear();
             log.suppress(true);
 
@@ -101,5 +101,70 @@ describe('Log Service [log/logger.service.spec ]', () => {
                 .toBe(response);
         }
     );
+
+    it('Check output with caller',
+        () => {
+            log.clear();
+            log.suppress(false);
+            log.silent(false);
+            log.setStylingVisble(false);
+
+            log.info('hello', 'puppy');
+            expect(log.last()).toBe('[puppy]: hello');
+
+        }
+    );
+
+    it('Check output without caller',
+        () => {
+            log.clear();
+            log.suppress(false);
+            log.silent(false);
+            log.setStylingVisble(false);
+
+            log.info('hello', null);
+            expect(log.last()).toBe('hello');
+        }
+    );
+
+    it('Check output with styling',
+        () => {
+            log.clear();
+            log.suppress(false);
+            log.silent(false);
+            log.setStylingVisble(true);
+
+            log.info('hello', null);
+            expect(log.last()).toBe('hello');
+        }
+    );
+
+    it('Check output with styling at all levels.',
+        () => {
+            log.clear();
+            log.suppress(false);
+            log.silent(false);
+            log.setStylingVisble(false);
+
+            log.info('hello', null);
+            expect(log.last()).toBe('hello');
+
+            log.debug('hello', null);
+            expect(log.last()).toBe('hello');
+
+            log.error('hello', null);
+            expect(log.last()).toBe('hello');
+
+            log.warn('hello', null);
+            expect(log.last()).toBe('hello');
+
+            log.verbose('hello', null);
+            expect(log.last()).toBe('hello');
+
+            log.verbose('hello', null);
+            expect(log.last()).toBe('hello');
+        }
+    );
+
 });
 

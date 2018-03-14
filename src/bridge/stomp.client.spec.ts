@@ -3,10 +3,12 @@
  */
 
 import { StompClient } from './stomp.client';
-import { Subject } from 'rxjs';
+import { Subject } from 'rxjs/Subject';
 import { StompParser } from './stomp.parser';
-import { Syslog } from '../log/syslog';
 import { StompMessage, StompConfig } from './stomp.model';
+import 'rxjs/add/operator/mergeMap';
+import { Logger } from '../log';
+import { GeneralUtil } from '../util/util';
 
 describe('Stomp Client [stomp.client]', () => {
 
@@ -15,6 +17,7 @@ describe('Stomp Client [stomp.client]', () => {
     let connected: Subject<Boolean>;
     let subId: string;
     let testDestination: string = 'test';
+    let log: Logger;
 
     beforeEach(() => {
         config = new StompConfig(
@@ -24,13 +27,15 @@ describe('Stomp Client [stomp.client]', () => {
             'user',
             'password',
             false,
+            null,
             false
         );
         config.testMode = true;
-        client = new StompClient();
+        log = new Logger();
+        client = new StompClient(log);
         client.useMockSocket();
-        subId = StompParser.genUUID();
-        Syslog.silent(true);
+        log.silent(true);
+        subId = GeneralUtil.genUUIDShort();
     });
 
 
@@ -187,7 +192,7 @@ describe('Stomp Client [stomp.client]', () => {
         it('We should be able send array buffer as string',
             (done) => {
 
-                client.connect(config).flatMap(() => {
+                client.connect(config).mergeMap(() => {
                     return client.subscribeToDestination(testDestination, subId);
                 }).subscribe((msg: StompMessage) => {
                     expect(msg.body).toEqual('binary fun in the sun');
@@ -207,7 +212,7 @@ describe('Stomp Client [stomp.client]', () => {
         it('We should be able process an array buffer if triggered by the user',
             (done) => {
 
-                client.connect(config).flatMap(() => {
+                client.connect(config).mergeMap(() => {
                     return client.subscribeToDestination(testDestination, subId);
                 }).subscribe((msg: StompMessage) => {
                     expect(msg.body).toEqual('what a lovely buffer');
@@ -230,7 +235,7 @@ describe('Stomp Client [stomp.client]', () => {
         it('We should be able process an array buffer if triggered by the socket',
             (done) => {
 
-                client.connect(config).flatMap(() => {
+                client.connect(config).mergeMap(() => {
                     return client.subscribeToDestination(testDestination, subId);
                 }).subscribe((msg: StompMessage) => {
                     expect(msg.body).toEqual('what a buffery text buffer');
@@ -362,6 +367,19 @@ describe('Stomp Client [stomp.client]', () => {
             }
         );
 
+
+        it('Check transaction ID is added if not ID if supplied',
+            () => {
+
+                spyOn(log, 'debug');
+                let headers: any = {};
+                client.beginTransaction(null, headers);
+                expect(headers.transaction).not.toBeNull();
+
+            }
+        );
+
+
         it('We should be able to send a transaction and get a receipt using a random ID',
             (done) => {
 
@@ -402,6 +420,7 @@ describe('Stomp Client [stomp.client]', () => {
                     'user',
                     'password',
                     false,
+                    null,
                     true
                 );
                 config.testMode = true;
@@ -479,6 +498,7 @@ describe('Stomp Client [stomp.client]', () => {
                     'user',
                     'password',
                     false,
+                    null,
                     true
                 );
                 config.testMode = true;
@@ -521,7 +541,7 @@ describe('Stomp Client [stomp.client]', () => {
         it('We should be able to handle STOMP errors via an echo',
             (done) => {
 
-                client.connect(config).flatMap(() => {
+                client.connect(config).mergeMap(() => {
                     return client.subscribeToDestination(testDestination, subId);
                 }).subscribe(
                     () => expect(true).toBeFalsy(), // should not hit
@@ -548,7 +568,7 @@ describe('Stomp Client [stomp.client]', () => {
         it('We should be able to handle STOMP errors via a server event',
             (done) => {
 
-                client.connect(config).flatMap(() => {
+                client.connect(config).mergeMap(() => {
                     return client.subscribeToDestination(testDestination, subId);
                 }).subscribe(
                     () => expect(true).toBeFalsy(), // should not hit
@@ -577,7 +597,7 @@ describe('Stomp Client [stomp.client]', () => {
         it('The client should be able to handle error conditions and out of sequence events',
             (done) => {
 
-                client.connect(config).flatMap(() => {
+                client.connect(config).mergeMap(() => {
                     return client.subscribeToDestination(testDestination, subId);
                 }).subscribe();
 
@@ -611,6 +631,18 @@ describe('Stomp Client [stomp.client]', () => {
             }
         );
 
+        it('Check a disconnect does not fire if there is no socket open',
+            () => {
+
+                spyOn(log, 'warn');
+                client.disconnect(config);
+                expect(log.warn).toHaveBeenCalledTimes(1);
+
+            }
+        );
+
+
+
         it('The client send heartbeats if configured',
             (done) => {
 
@@ -621,6 +653,7 @@ describe('Stomp Client [stomp.client]', () => {
                     'user',
                     'password',
                     false,
+                    null,
                     true,
                     0,
                     150
