@@ -25,7 +25,8 @@
         {
             "date": "04/06/18",
             "version": "0.7.1",
-            "notes": "Added logo and cleaned up package.json for integration into website"
+            "notes": "Added logo and cleaned up package.json for integration into website",
+            "uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/6"
         },
         {
             "date": "03/14/18",
