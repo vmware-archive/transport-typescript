@@ -1,4 +1,4 @@
-image: gnomeontherun/docker-node-chrome-headless:latest
+image: geekykaran/headless-chrome-node-docker:latest
 
 before_script:
   - npm install
