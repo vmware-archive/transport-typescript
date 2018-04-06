@@ -1,9 +1,9 @@
 {
   "name": "@vmw/bifrost",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "private": false,
   "license": "UNLICENSED",
-  "repository": "git@gitlab.eng.vmware.com:dshanley/bifrost.git",
+  "repository": "git@gitlab.eng.vmware.com:bifrost/typescript.git",
   "dependencies": {
     "rxjs": "5.5.6",
     "zone.js": "^0.8.8"

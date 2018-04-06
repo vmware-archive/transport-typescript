@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="2823px" height="1380px" viewBox="0 0 2823 1380" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
+    <title>Group 81</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M30,473 L2156,473 L2156,823 L30,823 L30,473 Z" id="path-1"></path>
+        <mask id="mask-2" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="2126" height="350" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <path d="M0,0 L2267,0 L2267,1196 L0,1196 L0,0 Z" id="path-3"></path>
+        <mask id="mask-4" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="2267" height="1196" fill="white">
+            <use xlink:href="#path-3"></use>
+        </mask>
+        <polygon id="path-5" points="241.35468 0 241.35468 115 0 115 0 4.04767379e-14"></polygon>
+        <polygon id="path-6" points="241.35468 0 241.35468 119 0 119 0 4.18846244e-14"></polygon>
+        <polygon id="path-7" points="241.35468 0 241.35468 121 0 121 0 4.25885677e-14"></polygon>
+        <rect id="path-8" x="145.5" y="-145.5" width="330" height="621"></rect>
+        <rect id="path-9" x="3" y="32" width="156" height="162"></rect>
+        <rect id="path-10" x="1408.5" y="-78.5" width="398" height="621"></rect>
+        <rect id="path-11" x="1487" y="2" width="239" height="549"></rect>
+        <rect id="path-12" x="1375.5" y="224.5" width="119" height="122"></rect>
+        <rect id="path-13" x="1548.5" y="223.5" width="119" height="122"></rect>
+        <rect id="path-14" x="1723.5" y="224.5" width="119" height="122"></rect>
+        <polygon id="path-15" points="661 0 661 59 0 59 0 2.07663264e-14"></polygon>
+        <rect id="path-16" x="994.5" y="-203.5" width="78" height="1775"></rect>
+        <rect id="path-17" x="980" y="408" width="138" height="334"></rect>
+        <rect id="path-18" x="897.5" y="554.5" width="77" height="56"></rect>
+        <rect id="path-19" x="970.5" y="554.5" width="77" height="56"></rect>
+        <rect id="path-20" x="1044.5" y="555.5" width="77" height="56"></rect>
+        <rect id="path-21" x="1127.5" y="555.5" width="77" height="56"></rect>
+        <polygon id="path-22" points="148 0 148 100 0 100 0 3.51971634e-14"></polygon>
+        <polygon id="path-23" points="279 0 279 119 0 119 0 4.18846244e-14"></polygon>
+        <polygon id="path-24" points="241.35468 0 241.35468 121 0 121 0 4.25885677e-14"></polygon>
+        <polyline id="path-25" points="1209 1019 1209 1338.90753 1856.39532 1338.90753"></polyline>
+        <rect id="path-26" x="2337.5" y="18.5" width="34" height="121"></rect>
+        <rect id="path-27" x="2337.5" y="-43.5" width="34" height="121"></rect>
+        <rect id="path-28" x="2337.5" y="86.5" width="34" height="121"></rect>
+        <rect id="path-29" x="2337.5" y="154.5" width="34" height="121"></rect>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group-81">
+            <use id="Rectangle-8" stroke-opacity="0.299988678" stroke="#979797" mask="url(#mask-2)" stroke-width="12" fill-opacity="0.0781533062" fill="#D8D8D8" stroke-dasharray="10,10" xlink:href="#path-1"></use>
+            <use id="Rectangle-6" stroke="#979797" mask="url(#mask-4)" stroke-width="2" stroke-dasharray="5" xlink:href="#path-3"></use>
+            <g id="Group-71" transform="translate(440.000000, 406.000000)" stroke="#D0021B" stroke-linecap="square">
+                <path d="M1.5,4.00847458 L1.5,239.991525" id="Line-2-Copy-4"></path>
+                <path id="Line-2-Copy-4-decoration-1" d="M1.5,239.991525 L4.5,229.191525 L-1.5,229.191525 L1.5,239.991525 Z"></path>
+                <path d="M87.5,1.00847458 L87.5,236.991525" id="Line-2-Copy-5" transform="translate(87.500000, 119.000000) scale(1, -1) translate(-87.500000, -119.000000) "></path>
+                <path id="Line-2-Copy-5-decoration-1" d="M87.5,236.991525 L90.5,226.191525 L84.5,226.191525 L87.5,236.991525 Z"></path>
+            </g>
+            <g id="object-service" transform="translate(163.000000, 895.000000)">
+                <g id="Group-4" transform="translate(0.177340, 1.000000)">
+                    <g id="Rectangle-1-Copy-120">
+                        <use fill-opacity="0.0484601449" fill="#4A90E2" fill-rule="evenodd" xlink:href="#path-5"></use>
+                        <path stroke="#4A90E2" stroke-width="1" d="M240.85468,0.5 L0.5,0.5 L0.5,114.5 L240.85468,114.5 L240.85468,0.5 Z"></path>
+                    </g>
+                    <text id="Sddc-State-Service" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#4A90E2">
+                        <tspan x="55.9279268" y="51">Sddc State </tspan>
+                        <tspan x="73.9894502" y="75">Service</tspan>
+                    </text>
+                </g>
+                <g id="Group-5" transform="translate(271.827586, 0.000000)">
+                    <g id="Rectangle-1-Copy-125">
+                        <use fill-opacity="0.0484601449" fill="#4A90E2" fill-rule="evenodd" xlink:href="#path-6"></use>
+                        <path stroke="#4A90E2" stroke-width="1" d="M240.85468,0.5 L0.5,0.5 L0.5,118.5 L240.85468,118.5 L240.85468,0.5 Z"></path>
+                    </g>
+                    <text id="Sddc-Mutation-Servic" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#4A90E2">
+                        <tspan x="39.9058122" y="52">Sddc Mutation </tspan>
+                        <tspan x="76.0288591" y="76">Service</tspan>
+                    </text>
+                </g>
+                <g id="Group-6" transform="translate(539.438424, 1.000000)">
+                    <g id="Rectangle-1-Copy-126">
+                        <use fill-opacity="0.0484601449" fill="#4A90E2" fill-rule="evenodd" xlink:href="#path-7"></use>
+                        <path stroke="#4A90E2" stroke-width="1" d="M240.85468,0.5 L0.5,0.5 L0.5,120.5 L240.85468,120.5 L240.85468,0.5 Z"></path>
+                    </g>
+                    <text id="Task-Service" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#4A90E2">
+                        <tspan x="47.8869112" y="62">Task Service</tspan>
+                    </text>
+                </g>
+            </g>
+            <polyline id="Path-43" stroke="#417505" points="821 1097.14679 981.560372 1097.14679 981.560372 788"></polyline>
+            <g id="navigator-component" transform="translate(164.000000, 76.000000)">
+                <g id="Rectangle-1-Copy-133" transform="translate(310.500000, 165.000000) rotate(90.000000) translate(-310.500000, -165.000000) ">
+                    <use fill-opacity="0.0138700181" fill="#9013FE" fill-rule="evenodd" xlink:href="#path-8"></use>
+                    <rect stroke="#9013FE" stroke-width="1" x="146" y="-145" width="329" height="620"></rect>
+                </g>
+                <g id="component" transform="translate(221.000000, 107.000000)">
+                    <g id="Rectangle-1-Copy-142" transform="translate(81.000000, 113.000000) rotate(90.000000) translate(-81.000000, -113.000000) ">
+                        <use fill-opacity="0.0784646739" fill="#9013FE" fill-rule="evenodd" xlink:href="#path-9"></use>
+                        <rect stroke="#9013FE" stroke-width="1" x="3.5" y="32.5" width="155" height="161"></rect>
+                    </g>
+                    <text id="UI-Component" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#9013FE">
+                        <tspan x="10.2539062" y="117">UI Component</tspan>
+                    </text>
+                    <path d="M53.5,0.5 L53.5,66.5" id="Line" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+                    <path id="Line-decoration-1" d="M53.5,66.5 L56.5,55.7 L50.5,55.7 L53.5,66.5 Z" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+                    <path d="M107.5,2.5 L107.5,68.5" id="Line-Copy-5" stroke="#9013FE" fill="#9013FE" stroke-linecap="square" transform="translate(107.500000, 35.500000) scale(1, -1) translate(-107.500000, -35.500000) "></path>
+                    <path id="Line-Copy-5-decoration-1" d="M107.5,68.5 L110.5,57.7 L104.5,57.7 L107.5,68.5 Z" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+                </g>
+                <text id="ListSddcComponent" font-family="Menlo-Bold, Menlo" font-size="20" font-weight="bold" fill="#9013FE">
+                    <tspan x="200.151367" y="43">ListSddcComponent</tspan>
+                </text>
+            </g>
+            <g id="Rectangle-1-Copy-133" transform="translate(1607.500000, 232.000000) rotate(90.000000) translate(-1607.500000, -232.000000) ">
+                <use fill-opacity="0.0138700181" fill="#9013FE" fill-rule="evenodd" xlink:href="#path-10"></use>
+                <rect stroke="#9013FE" stroke-width="1" x="1409" y="-78" width="397" height="620"></rect>
+            </g>
+            <g id="Rectangle-1-Copy-142" transform="translate(1606.500000, 276.500000) rotate(90.000000) translate(-1606.500000, -276.500000) ">
+                <use fill-opacity="0.0784646739" fill="#9013FE" fill-rule="evenodd" xlink:href="#path-11"></use>
+                <rect stroke="#9013FE" stroke-width="1" x="1487.5" y="2.5" width="238" height="548"></rect>
+            </g>
+            <path d="M1407.5,113.544776 L1407.5,185.455224" id="Line" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+            <path id="Line-decoration-1" d="M1407.5,185.455224 L1410.5,174.655224 L1404.5,174.655224 L1407.5,185.455224 Z" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+            <path d="M1461.5,115.544776 L1461.5,187.455224" id="Line-Copy-5" stroke="#9013FE" fill="#9013FE" stroke-linecap="square" transform="translate(1461.500000, 151.500000) scale(1, -1) translate(-1461.500000, -151.500000) "></path>
+            <path id="Line-Copy-5-decoration-1" d="M1461.5,187.455224 L1464.5,176.655224 L1458.5,176.655224 L1461.5,187.455224 Z" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+            <text id="SddcNetworkingCompon" font-family="Menlo-Bold, Menlo" font-size="20" font-weight="bold" fill="#9013FE">
+                <tspan x="1470.02832" y="79">SddcNetworkingComponent</tspan>
+            </text>
+            <g id="Rectangle-1-Copy-142" transform="translate(1435.000000, 285.500000) rotate(90.000000) translate(-1435.000000, -285.500000) ">
+                <use fill-opacity="0.0784646739" fill="#9013FE" fill-rule="evenodd" xlink:href="#path-12"></use>
+                <rect stroke="#9013FE" stroke-width="1" x="1376" y="225" width="118" height="121"></rect>
+            </g>
+            <text id="UI-Component" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#9013FE">
+                <tspan x="1424.95898" y="281">UI </tspan>
+                <tspan x="1382.81543" y="305">Component</tspan>
+            </text>
+            <path d="M1415,200.380597 L1415,250.619403" id="Line" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+            <path id="Line-decoration-1" d="M1415,250.619403 L1418,239.819403 L1412,239.819403 L1415,250.619403 Z" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+            <path d="M1456,202.380597 L1456,252.619403" id="Line-Copy-5" stroke="#9013FE" fill="#9013FE" stroke-linecap="square" transform="translate(1456.000000, 227.500000) scale(1, -1) translate(-1456.000000, -227.500000) "></path>
+            <path id="Line-Copy-5-decoration-1" d="M1456,252.619403 L1459,241.819403 L1453,241.819403 L1456,252.619403 Z" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+            <g id="Rectangle-1-Copy-142" transform="translate(1608.000000, 284.500000) rotate(90.000000) translate(-1608.000000, -284.500000) ">
+                <use fill-opacity="0.0784646739" fill="#9013FE" fill-rule="evenodd" xlink:href="#path-13"></use>
+                <rect stroke="#9013FE" stroke-width="1" x="1549" y="224" width="118" height="121"></rect>
+            </g>
+            <text id="UI-Component" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#9013FE">
+                <tspan x="1597.95898" y="280">UI </tspan>
+                <tspan x="1555.81543" y="304">Component</tspan>
+            </text>
+            <path d="M1588,199.380597 L1588,249.619403" id="Line" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+            <path id="Line-decoration-1" d="M1588,249.619403 L1591,238.819403 L1585,238.819403 L1588,249.619403 Z" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+            <path d="M1629,201.380597 L1629,251.619403" id="Line-Copy-5" stroke="#9013FE" fill="#9013FE" stroke-linecap="square" transform="translate(1629.000000, 226.500000) scale(1, -1) translate(-1629.000000, -226.500000) "></path>
+            <path id="Line-Copy-5-decoration-1" d="M1629,251.619403 L1632,240.819403 L1626,240.819403 L1629,251.619403 Z" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+            <g id="Rectangle-1-Copy-142" transform="translate(1783.000000, 285.500000) rotate(90.000000) translate(-1783.000000, -285.500000) ">
+                <use fill-opacity="0.0784646739" fill="#9013FE" fill-rule="evenodd" xlink:href="#path-14"></use>
+                <rect stroke="#9013FE" stroke-width="1" x="1724" y="225" width="118" height="121"></rect>
+            </g>
+            <text id="UI-Component" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#9013FE">
+                <tspan x="1772.95898" y="281">UI </tspan>
+                <tspan x="1730.81543" y="305">Component</tspan>
+            </text>
+            <path d="M1763,200.380597 L1763,250.619403" id="Line" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+            <path id="Line-decoration-1" d="M1763,250.619403 L1766,239.819403 L1760,239.819403 L1763,250.619403 Z" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+            <path d="M1804,202.380597 L1804,252.619403" id="Line-Copy-5" stroke="#9013FE" fill="#9013FE" stroke-linecap="square" transform="translate(1804.000000, 227.500000) scale(1, -1) translate(-1804.000000, -227.500000) "></path>
+            <path id="Line-Copy-5-decoration-1" d="M1804,252.619403 L1807,241.819403 L1801,241.819403 L1804,252.619403 Z" stroke="#9013FE" fill="#9013FE" stroke-linecap="square"></path>
+            <path d="M244.5,724.5 L244.5,892.511904" id="Line-2" stroke="#D0021B" stroke-linecap="square"></path>
+            <path id="Line-2-decoration-1" d="M244.5,892.511904 L247.5,881.711904 L241.5,881.711904 L244.5,892.511904 Z" stroke="#D0021B" stroke-linecap="square"></path>
+            <path d="M565.5,724.5 L565.5,892.593251" id="Line-2-Copy-14" stroke="#417505" stroke-linecap="square"></path>
+            <path id="Line-2-Copy-14-decoration-1" d="M565.5,892.593251 L568.5,881.793251 L562.5,881.793251 L565.5,892.593251 Z" stroke="#417505" stroke-linecap="square"></path>
+            <path d="M523.5,723.5 L523.5,892.547331" id="Line-2-Copy-2" stroke="#D0021B" stroke-linecap="square"></path>
+            <path id="Line-2-Copy-2-decoration-1" d="M523.5,892.547331 L526.5,881.747331 L520.5,881.747331 L523.5,892.547331 Z" stroke="#D0021B" stroke-linecap="square"></path>
+            <path d="M330.5,723.497024 L330.5,891.5" id="Line-2-Copy" stroke="#D0021B" stroke-linecap="square" transform="translate(330.500000, 807.500000) scale(1, -1) translate(-330.500000, -807.500000) "></path>
+            <path id="Line-2-Copy-decoration-1" d="M330.5,891.5 L333.5,880.7 L327.5,880.7 L330.5,891.5 Z" stroke="#D0021B" stroke-linecap="square"></path>
+            <path d="M609.5,722.488096 L609.5,890.5" id="Line-2-Copy-3" stroke="#D0021B" stroke-linecap="square" transform="translate(609.500000, 806.500000) scale(1, -1) translate(-609.500000, -806.500000) "></path>
+            <path id="Line-2-Copy-3-decoration-1" d="M609.5,890.5 L612.5,879.7 L606.5,879.7 L609.5,890.5 Z" stroke="#D0021B" stroke-linecap="square"></path>
+            <g id="Group-71" transform="translate(790.000000, 723.000000)" stroke="#D0021B" stroke-linecap="square">
+                <path d="M1.5,1.72457627 L1.5,171.275424" id="Line-2-Copy-4"></path>
+                <path id="Line-2-Copy-4-decoration-1" d="M1.5,171.275424 L4.5,160.475424 L-1.5,160.475424 L1.5,171.275424 Z"></path>
+                <path d="M87.5,0.724576271 L87.5,170.275424" id="Line-2-Copy-5" transform="translate(87.500000, 85.500000) scale(1, -1) translate(-87.500000, -85.500000) "></path>
+                <path id="Line-2-Copy-5-decoration-1" d="M87.5,170.275424 L90.5,159.475424 L84.5,159.475424 L87.5,170.275424 Z"></path>
+            </g>
+            <g id="Group-5" transform="translate(160.000000, 1065.000000)">
+                <g id="Rectangle-1-Copy-125">
+                    <use fill-opacity="0.0484601449" fill="#4A90E2" fill-rule="evenodd" xlink:href="#path-15"></use>
+                    <path stroke="#4A90E2" stroke-width="1" d="M660.5,0.5 L0.5,0.5 L0.5,58.5 L660.5,58.5 L660.5,0.5 Z"></path>
+                </g>
+                <text id="Preload-/-Bootstrap" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#4A90E2">
+                    <tspan x="166.446289" y="38.0615385">Preload / Bootstrap Service</tspan>
+                </text>
+            </g>
+            <polyline id="Path-6" stroke="#417505" points="1042.51845 643 1042.51845 788.282151 284 788.282151 284 892"></polyline>
+            <path id="Path-6-decoration-1" d="M1042.51845,643 L1045.51845,653.8 L1039.51845,653.8 L1042.51845,643 Z" stroke="#417505"></path>
+            <path id="Path-6-decoration-2" d="M284,892 L287,881.2 L281,881.2 L284,892 Z" stroke="#417505"></path>
+            <g id="Rectangle-1-Copy-131" transform="translate(1033.500000, 684.000000) rotate(90.000000) translate(-1033.500000, -684.000000) ">
+                <use fill-opacity="0.0234375" fill="#D0021B" fill-rule="evenodd" xlink:href="#path-16"></use>
+                <rect stroke="#D0021B" stroke-width="1" x="995" y="-203" width="77" height="1774"></rect>
+            </g>
+            <g id="Rectangle-1-Copy-132" transform="translate(1049.000000, 575.000000) rotate(90.000000) translate(-1049.000000, -575.000000) ">
+                <use fill-opacity="0.0358072917" fill="#7ED321" fill-rule="evenodd" xlink:href="#path-17"></use>
+                <rect stroke="#417505" stroke-width="1" x="980.5" y="408.5" width="137" height="333"></rect>
+            </g>
+            <g id="Rectangle-1-Copy-136" transform="translate(936.000000, 582.500000) rotate(90.000000) translate(-936.000000, -582.500000) ">
+                <use fill-opacity="0.191717618" fill="#7ED321" fill-rule="evenodd" xlink:href="#path-18"></use>
+                <rect stroke="#7ED321" stroke-width="1" x="898" y="555" width="76" height="55"></rect>
+            </g>
+            <g id="Rectangle-1-Copy-137" transform="translate(1009.000000, 582.500000) rotate(90.000000) translate(-1009.000000, -582.500000) ">
+                <use fill-opacity="0.191717618" fill="#7ED321" fill-rule="evenodd" xlink:href="#path-19"></use>
+                <rect stroke="#7ED321" stroke-width="1" x="971" y="555" width="76" height="55"></rect>
+            </g>
+            <g id="Rectangle-1-Copy-138" transform="translate(1083.000000, 583.500000) rotate(90.000000) translate(-1083.000000, -583.500000) ">
+                <use fill-opacity="0.191717618" fill="#7ED321" fill-rule="evenodd" xlink:href="#path-20"></use>
+                <rect stroke="#7ED321" stroke-width="1" x="1045" y="556" width="76" height="55"></rect>
+            </g>
+            <g id="Rectangle-1-Copy-141" transform="translate(1166.000000, 583.500000) rotate(90.000000) translate(-1166.000000, -583.500000) ">
+                <use fill-opacity="0.191717618" fill="#7ED321" fill-rule="evenodd" xlink:href="#path-21"></use>
+                <rect stroke="#7ED321" stroke-width="1" x="1128" y="556" width="76" height="55"></rect>
+            </g>
+            <text id="Event-Bus" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#D0021B">
+                <tspan x="161" y="687">Event Bus</tspan>
+            </text>
+            <text id="Model-Store" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#417505">
+                <tspan x="987.774414" y="536">Model Store</tspan>
+            </text>
+            <g id="Group-7" transform="translate(1919.000000, 634.000000)">
+                <g id="Rectangle-1-Copy-128">
+                    <use fill-opacity="0.0484601449" fill="#C7C7C7" fill-rule="evenodd" xlink:href="#path-22"></use>
+                    <path stroke="#9B9B9B" stroke-width="1" d="M147.5,0.5 L0.5,0.5 L0.5,99.5 L147.5,99.5 L147.5,0.5 Z"></path>
+                </g>
+                <text id="Broker-Connector" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#4A4A4A">
+                    <tspan x="38.7215601" y="45">Broker </tspan>
+                    <tspan x="20.6600366" y="69">Connector</tspan>
+                </text>
+            </g>
+            <path d="" id="Path-10" stroke="#979797"></path>
+            <polyline id="Path-12" stroke="#D0021B" points="161.084335 1094.51165 92 1094.51165 92 686 144.150224 686"></polyline>
+            <path id="Path-12-decoration-1" d="M144.150224,686 L133.350224,683 L133.350224,689 L144.150224,686 Z" stroke="#D0021B"></path>
+            <path d="M1556.5,431.5 L1556.5,641.961864" id="Line-2-Copy-4" stroke="#D0021B" stroke-linecap="square"></path>
+            <path id="Line-2-Copy-4-decoration-1" d="M1556.5,641.961864 L1559.5,631.161864 L1553.5,631.161864 L1556.5,641.961864 Z" stroke="#D0021B" stroke-linecap="square"></path>
+            <path d="M1642.5,431.038136 L1642.5,638.5" id="Line-2-Copy-5" stroke="#D0021B" stroke-linecap="square" transform="translate(1642.500000, 535.000000) scale(1, -1) translate(-1642.500000, -535.000000) "></path>
+            <path id="Line-2-Copy-5-decoration-1" d="M1642.5,638.5 L1645.5,627.7 L1639.5,627.7 L1642.5,638.5 Z" stroke="#D0021B" stroke-linecap="square"></path>
+            <path d="" id="Path-139" stroke="#979797"></path>
+            <polyline id="Path-140" stroke="#417505" points="708 406 708 566.646979 879.086476 566.646979"></polyline>
+            <path id="Path-140-decoration-1" d="M705,416.8 L708,406 L711,416.8" stroke="#417505"></path>
+            <path id="Path-140-decoration-2" d="M868.286476,569.646979 L879.086476,566.646979 L868.286476,563.646979" stroke="#417505"></path>
+            <polyline id="Path-140" stroke="#417505" transform="translate(1303.543238, 495.823490) scale(-1, 1) translate(-1303.543238, -495.823490) " points="1218 430 1218 561.646979 1389.08648 561.646979"></polyline>
+            <path id="Path-140-decoration-1" d="M1215,440.8 L1218,430 L1221,440.8" stroke="#417505"></path>
+            <path id="Path-140-decoration-2" d="M1378.28648,564.646979 L1389.08648,561.646979 L1378.28648,558.646979" stroke="#417505"></path>
+            <path d="M1211.5,721.5 L1211.5,896.5" id="Line-2-Copy-10" stroke="#D0021B" stroke-linecap="square"></path>
+            <path id="Line-2-Copy-10-decoration-1" d="M1211.5,896.5 L1214.5,885.7 L1208.5,885.7 L1211.5,896.5 Z" stroke="#D0021B" stroke-linecap="square"></path>
+            <path d="M1297.5,720.454292 L1297.5,895.5" id="Line-2-Copy-11" stroke="#D0021B" stroke-linecap="square" transform="translate(1297.500000, 808.000000) scale(1, -1) translate(-1297.500000, -808.000000) "></path>
+            <path id="Line-2-Copy-11-decoration-1" d="M1297.5,895.5 L1300.5,884.7 L1294.5,884.7 L1297.5,895.5 Z" stroke="#D0021B" stroke-linecap="square"></path>
+            <g id="Group-7-Copy-7" transform="translate(1857.000000, 1241.000000)">
+                <g id="Rectangle-1-Copy-128">
+                    <use fill-opacity="0.049535779" fill="#F5A623" fill-rule="evenodd" xlink:href="#path-23"></use>
+                    <path stroke="#DD8A02" stroke-width="1" d="M278.5,0.5 L0.5,0.5 L0.5,118.5 L278.5,118.5 L278.5,0.5 Z"></path>
+                </g>
+                <text id="VMC-Backend" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#D08201">
+                    <tspan x="73.2744141" y="67">VMC Backend</tspan>
+                </text>
+            </g>
+            <g id="Group-6" transform="translate(1141.000000, 896.000000)">
+                <g id="Rectangle-1-Copy-126">
+                    <use fill-opacity="0.0484601449" fill="#4A90E2" fill-rule="evenodd" xlink:href="#path-24"></use>
+                    <path stroke="#4A90E2" stroke-width="1" d="M240.85468,0.5 L0.5,0.5 L0.5,120.5 L240.85468,120.5 L240.85468,0.5 Z"></path>
+                </g>
+                <text id="Rest-Service" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#4A90E2">
+                    <tspan x="47.8869112" y="62">Rest Service</tspan>
+                </text>
+            </g>
+            <path d="" id="Path-136" stroke="#979797"></path>
+            <polyline id="Path-137" stroke="#979797" points="1294 1019 1294 1276.5918 1857.27322 1276.5918"></polyline>
+            <path id="Path-137-decoration-1" d="M1857.27322,1276.5918 L1846.47322,1273.5918 L1846.47322,1279.5918 L1857.27322,1276.5918 Z" stroke="#979797"></path>
+            <g id="Path-138" stroke="#979797">
+                <use xlink:href="#path-25"></use>
+                <use xlink:href="#path-25"></use>
+            </g>
+            <path id="Path-138-decoration-1" d="M1206,1029.8 L1209,1019 L1212,1029.8"></path>
+            <text id="REST" font-family="Menlo-Regular, Menlo" font-size="18" font-weight="normal" fill="#777D8E">
+                <tspan x="1551.32617" y="1379">REST</tspan>
+            </text>
+            <path d="M1991.5,740.5 L1991.5,1238.44779" id="Line-2-Copy-10" stroke="#D0021B" stroke-width="4" stroke-linecap="square"></path>
+            <text id="WebSocket-+-STOMP" font-family="Menlo-Regular, Menlo" font-size="18" font-weight="normal" fill="#F44336">
+                <tspan x="2019.38623" y="974">WebSocket + STOMP</tspan>
+            </text>
+            <g id="if_weather_29_2682822" transform="translate(2073.000000, 487.000000)" fill-rule="nonzero">
+                <path d="M65,0 C29.1177208,0.0391514579 0.0391514579,29.1177208 0,65 L12.3748634,65 C12.4373781,35.9932602 35.9364296,12.4942087 64.9431694,12.431694" id="Shape" fill="#F7563C"></path>
+                <path d="M65,12 C35.7550551,12.0630281 12.0630281,35.7550551 12,65 L24.4764865,65 C24.5237613,42.6390926 42.6390926,24.5237613 65,24.4764865" id="Shape" fill="#EFCC00"></path>
+                <path d="M65,25 C42.9150645,25.0155747 25.0155747,42.9150645 25,65 L37.2979174,65 C37.3134943,49.7093045 49.7092985,37.3198182 65,37.3120367" id="Shape" fill="#42BC59"></path>
+                <path d="M65,37 C49.5425518,37.0157408 37.0157408,49.5425518 37,65 L49.4650688,65 C49.4729408,56.4235572 56.4235572,49.4729408 65,49.4650688" id="Shape" fill="#0D98FF"></path>
+            </g>
+            <path d="M2049.90011,654.542416 L2049.90011,675.197758 L2059.05949,675.197758 C2063.45228,675.197758 2066.52874,674.450061 2068.28897,672.954644 C2070.0492,671.459227 2070.9293,668.857864 2070.9293,665.150476 C2070.9293,661.38078 2070.01026,658.670377 2068.17214,657.019188 C2066.33402,655.367998 2063.2965,654.542416 2059.05949,654.542416 L2049.90011,654.542416 Z M2049.90011,627.344658 L2049.90011,643.560503 L2059.05949,643.560503 C2062.5488,643.560503 2065.03333,642.937422 2066.51317,641.691242 C2067.99301,640.445061 2068.73292,638.388894 2068.73292,635.522678 C2068.73292,632.656462 2067.97743,630.576929 2066.46644,629.284017 C2064.95544,627.991104 2062.48649,627.344658 2059.05949,627.344658 L2049.90011,627.344658 Z M2036.58162,616.362745 L2059.05949,616.362745 C2066.81696,616.362745 2072.65056,617.834774 2076.56045,620.778876 C2080.47034,623.722978 2082.42526,628.123488 2082.42526,633.980537 C2082.42526,638.466788 2081.27256,641.971618 2078.96713,644.495134 C2076.66169,647.01865 2073.28148,648.482891 2068.82638,648.887899 C2074.1538,649.417526 2078.16489,651.208884 2080.85975,654.262027 C2083.55462,657.31517 2084.90203,661.583274 2084.90203,667.06647 C2084.90203,673.795845 2082.87702,678.671454 2078.82693,681.693443 C2074.77684,684.715431 2068.18776,686.226402 2059.05949,686.226402 L2036.58162,686.226402 L2036.58162,616.362745 Z M2092.26511,633.887074 L2119.3694,633.887074 L2119.3694,675.711805 L2136.37968,675.711805 L2136.37968,686.226402 L2088.62005,686.226402 L2088.62005,675.711805 L2105.67706,675.711805 L2105.67706,644.401671 L2092.26511,644.401671 L2092.26511,633.887074 Z M2104.37493,608.418383 L2118.06728,608.418383 L2118.06728,624.400571 L2104.37493,624.400571 L2104.37493,608.418383 Z M2160.50762,629.307383 L2160.50762,633.887074 L2176.58327,633.887074 L2176.58327,644.401671 L2160.50762,644.401671 L2160.50762,686.226402 L2146.81527,686.226402 L2146.81527,644.401671 L2134.1043,644.401671 L2134.1043,633.887074 L2146.81527,633.887074 L2146.81527,630.242014 C2146.81527,623.948801 2148.12374,619.587234 2150.74072,617.157182 C2153.3577,614.727129 2158.21774,613.512121 2165.32097,613.512121 L2176.58327,613.512121 L2176.58327,624.026718 L2165.88174,624.026718 C2163.82555,624.026718 2162.4314,624.400567 2161.69927,625.148275 C2160.96714,625.895984 2160.56993,627.282339 2160.50762,629.307383 Z M2223.47105,648.327121 C2221.97564,646.956322 2220.22322,645.928238 2218.21375,645.242839 C2216.20429,644.55744 2214.00014,644.214745 2211.60124,644.214745 C2208.70387,644.214745 2206.1726,644.720998 2204.00737,645.73352 C2201.84213,646.746042 2200.1676,648.218071 2198.98372,650.149651 C2198.23602,651.333523 2197.71419,652.766609 2197.41822,654.448953 C2197.12225,656.131297 2196.97427,658.685929 2196.97427,662.112926 L2196.97427,686.226402 L2183.28193,686.226402 L2183.28193,633.887074 L2196.97427,633.887074 L2196.97427,642.018362 C2198.31391,639.027529 2200.37008,636.714341 2203.14283,635.078728 C2205.91558,633.443116 2209.15561,632.625322 2212.86299,632.625322 C2214.73226,632.625322 2216.56256,632.851189 2218.35395,633.30293 C2220.14533,633.75467 2221.85102,634.416694 2223.47105,635.28902 L2223.47105,648.327121 Z M2253.73099,613.231732 L2264.75964,613.231732 L2264.75964,624.727692 L2253.73099,624.727692 L2253.73099,613.231732 Z M2235.27203,613.231732 L2246.30068,613.231732 L2246.30068,624.727692 L2235.27203,624.727692 L2235.27203,613.231732 Z M2249.99247,643.74743 C2246.72125,643.74743 2244.15104,645.188304 2242.28176,648.070097 C2240.41249,650.95189 2239.47787,654.962974 2239.47787,660.10347 C2239.47787,665.243965 2240.41249,669.255049 2242.28176,672.136842 C2244.15104,675.018635 2246.72125,676.45951 2249.99247,676.45951 C2253.29485,676.45951 2255.88063,675.018635 2257.74991,672.136842 C2259.61918,669.255049 2260.5538,665.243965 2260.5538,660.10347 C2260.5538,654.962974 2259.61918,650.95189 2257.74991,648.070097 C2255.88063,645.188304 2253.29485,643.74743 2249.99247,643.74743 Z M2225.78553,660.10347 C2225.78553,651.660595 2227.9741,644.970263 2232.35131,640.032272 C2236.72852,635.094281 2242.60885,632.625322 2249.99247,632.625322 C2257.40724,632.625322 2263.30315,635.094281 2267.68036,640.032272 C2272.05757,644.970263 2274.24614,651.660595 2274.24614,660.10347 C2274.24614,668.546344 2272.05757,675.236676 2267.68036,680.174667 C2263.30315,685.112659 2257.40724,687.581617 2249.99247,687.581617 C2242.60885,687.581617 2236.72852,685.112659 2232.35131,680.174667 C2227.9741,675.236676 2225.78553,668.546344 2225.78553,660.10347 Z M2315.13321,635.522678 L2315.13321,647.485953 C2312.6097,645.865918 2309.98497,644.643122 2307.25895,643.817527 C2304.53293,642.991932 2301.79916,642.579141 2299.05756,642.579141 C2296.00442,642.579141 2293.69902,643.023086 2292.1413,643.91099 C2290.58357,644.798894 2289.80472,646.115152 2289.80472,647.859805 C2289.80472,650.352167 2293.1382,652.37718 2299.80527,653.934906 L2300.31932,654.075101 L2304.24476,655.009731 C2309.22949,656.193603 2312.8823,658.101789 2315.20331,660.734346 C2317.52432,663.366902 2318.68481,666.926253 2318.68481,671.412503 C2318.68481,676.802235 2316.91682,680.844473 2313.38078,683.539339 C2309.84474,686.234204 2304.52519,687.581617 2297.42196,687.581617 C2294.27535,687.581617 2291.05091,687.309019 2287.74853,686.763815 C2284.44615,686.218611 2281.09709,685.400817 2277.70125,684.310409 L2277.70125,672.347134 C2280.72324,674.060632 2283.7997,675.369103 2286.93073,676.272584 C2290.06176,677.176065 2293.09149,677.627798 2296.02001,677.627798 C2299.22893,677.627798 2301.65894,677.160488 2303.31013,676.225852 C2304.96132,675.291217 2305.78691,673.936015 2305.78691,672.160208 C2305.78691,670.415555 2305.20277,669.075931 2304.03447,668.141295 C2302.86618,667.20666 2300.08568,666.20973 2295.69289,665.150476 L2291.90764,664.309309 C2286.67368,663.125437 2282.85731,661.271771 2280.45841,658.748255 C2278.05951,656.224739 2276.86008,652.844524 2276.86008,648.60751 C2276.86008,643.560478 2278.68259,639.635068 2282.32767,636.831161 C2285.97275,634.027255 2291.09759,632.625322 2297.70235,632.625322 C2300.66203,632.625322 2303.61387,632.866766 2306.55798,633.349661 C2309.50208,633.832556 2312.36046,634.556888 2315.13321,635.522678 Z M2348.68344,619.026443 L2348.68344,633.887074 L2366.58162,633.887074 L2366.58162,644.401671 L2348.68344,644.401671 L2348.68344,669.169389 C2348.68344,671.505978 2349.252,673.180508 2350.38914,674.19303 C2351.52628,675.205552 2353.41889,675.711805 2356.06702,675.711805 L2366.58162,675.711805 L2366.58162,686.226402 L2355.08566,686.226402 C2347.23472,686.226402 2341.92295,684.972452 2339.1502,682.464513 C2336.37745,679.956574 2334.99109,675.306832 2334.99109,668.515147 L2334.99109,644.401671 L2321.62587,644.401671 L2321.62587,633.887074 L2334.99109,633.887074 L2334.99109,619.026443 L2348.68344,619.026443 Z" id="Bifröst" fill="#647C8A" opacity="0.22486413" transform="translate(2201.581617, 648.000000) rotate(-90.000000) translate(-2201.581617, -648.000000) "></path>
+            <g id="Rectangle-1-Copy-133" transform="translate(2354.500000, 79.000000) rotate(90.000000) translate(-2354.500000, -79.000000) ">
+                <use fill-opacity="0.0138700181" fill="#9013FE" fill-rule="evenodd" xlink:href="#path-26"></use>
+                <rect stroke="#9013FE" stroke-width="1" x="2338" y="19" width="33" height="120"></rect>
+            </g>
+            <g id="Rectangle-1-Copy-208" transform="translate(2354.500000, 17.000000) rotate(90.000000) translate(-2354.500000, -17.000000) ">
+                <use fill-opacity="0.049535779" fill="#F5A623" fill-rule="evenodd" xlink:href="#path-27"></use>
+                <rect stroke="#DD8A02" stroke-width="1" x="2338" y="-43" width="33" height="120"></rect>
+            </g>
+            <g id="Rectangle-1-Copy-206" transform="translate(2354.500000, 147.000000) rotate(90.000000) translate(-2354.500000, -147.000000) ">
+                <use fill-opacity="0.0484601449" fill="#4A90E2" fill-rule="evenodd" xlink:href="#path-28"></use>
+                <rect stroke="#4A90E2" stroke-width="1" x="2338" y="87" width="33" height="120"></rect>
+            </g>
+            <g id="Rectangle-1-Copy-207" transform="translate(2354.500000, 215.000000) rotate(90.000000) translate(-2354.500000, -215.000000) ">
+                <use fill-opacity="0.0358072917" fill="#7ED321" fill-rule="evenodd" xlink:href="#path-29"></use>
+                <rect stroke="#417505" stroke-width="1" x="2338" y="155" width="33" height="120"></rect>
+            </g>
+            <text id="Backend-Service-+-Me" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#FF9800">
+                <tspan x="2438" y="23">Backend Service + Message Broker</tspan>
+            </text>
+            <text id="View-Component" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#9013FE">
+                <tspan x="2438" y="85">View Component</tspan>
+            </text>
+            <text id="Business-Logic-/-Ser" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#4A90E2">
+                <tspan x="2438" y="154">Business Logic / Service</tspan>
+            </text>
+            <text id="Store-/-Cache" font-family="Menlo-Regular, Menlo" font-size="20" font-weight="normal" fill="#4CAF50">
+                <tspan x="2438" y="221">Store / Cache</tspan>
+            </text>
+        </g>
+    </g>
+</svg>

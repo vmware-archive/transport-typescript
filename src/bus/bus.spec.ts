@@ -299,7 +299,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                 expect(bus.api.countListeners()).toEqual(3);
                 done();
             }
-            , 10);
+            , 50);
     });
 
     it('Check countListeners() is accurate against high level API (stream response)', (done) => {
