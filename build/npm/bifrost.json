@@ -25,75 +25,131 @@
         {
             "date": "04/06/18",
             "version": "0.7.1",
-            "notes": "Added logo and cleaned up package.json for integration into website",
-            "uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/6"
+            "notes": [
+                {
+                    "description": "Added logo and cleaned up package.json for integration into website",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/6"
+                }
+            ]
         },
         {
             "date": "03/14/18",
             "version": "0.7.0",
-            "notes": "New Transactions API, Cache Converted to Stores, Much more testing, decoupled from Angular",
-            "uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/5"
+            "notes": [
+                {
+                    "description": "New Transactions API, Cache Converted to Stores, Much more testing, decoupled from Angular",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/5"
+                }
+            ]
         },
         {
             "date": "02/09/18",
             "version": "0.5.6",
-            "notes": "Fix for VMCUI-955"
+            "notes": [
+                {
+                    "description": "Fix for VMCUI-955"
+                }
+            ]
         },
         {
             "date": "02/05/18",
             "version": "0.5.5",
-            "notes": "Fix for VMCUI-800"
+            "notes": [
+                {
+                    "description": "Fix for VMCUI-800"
+                }
+            ]
         },
         {
             "date": "11/03/17",
             "version": "0.6.0",
-            "notes": "Decoupled low-level API from main API, refactored older code, updated tests to new API",
-            "uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/1"
+            "notes": [
+                {
+                    "description": "Decoupled low-level API from main API, refactored older code, updated tests to new API",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/1"
+                }
+            ]
         },
         {
             "date": "09/21/17",
             "version": "0.5.1",
-            "notes": "BusCache / Model Store introduced, simplified broker connection and stream handling"
+            "notes": [
+                {
+                    "description": "BusCache / Model Store introduced, simplified broker connection and stream handling"
+                }
+            ]
         },
         {
             "date": "08/08/17",
             "version": "0.4.0",
-            "notes": "Generics introduced, responder code fixed"
+            "notes": [
+                {
+                    "description": "Generics introduced, responder code fixed"
+                }
+            ]
         },
         {
             "date": "06/23/17",
             "version": "0.3.0",
-            "notes": "Project structure change, bugfixes and new getObservable() feature added to MessageHandler"
+            "notes": [
+                {
+                    "description":  "Project structure change, bugfixes and new getObservable() feature added to MessageHandler"
+                }
+            ]
         },
         {
             "date": "03/27/17",
             "version": "0.1.19",
-            "notes": "Lots of cleanup, error fixes, more tests and documentation"
+            "notes": [
+                {
+                    "description":  "Lots of cleanup, error fixes, more tests and documentation"
+                }
+            ]
         },
         {
             "date": "03/06/17",
             "version": "0.1.11",
-            "notes": "Added schema support and schema handling"
+            "notes": [
+                {
+                    "description":  "Added schema support and schema handling"
+                }
+            ]
         },
         {
             "date": "02/08/17",
             "version": "0.1.8",
-            "notes": "More wrappers around simplified API"
+            "notes": [
+                {
+                    "description":  "More wrappers around simplified API"
+                }
+            ]
         },
         {
             "date": "01/30/17",
             "version": "0.1.7",
-            "notes": "Added simplified API"
+            "notes": [
+                {
+                    "description":  "Added simplified API"
+                }
+            ]
         },
         {
             "date": "01/06/17",
             "version": "0.1.6",
-            "notes": "Cleaned up build issues, fixed linting and refactors"
+            "notes": [
+                {
+                    "description":  "Cleaned up build issues, fixed linting and refactors"
+                }
+            ]
         },
         {
             "date": "01/05/17",
             "version": "0.1.0",
-            "notes": "Published 0.1.0 after extracting from VMC codebase"
+            "notes": [
+                {
+                    "description":  "Published 0.1.0 after extracting from VMC codebase"
+                }
+            ]
         }
     ]
 }
