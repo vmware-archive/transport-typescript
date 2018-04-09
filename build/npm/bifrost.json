@@ -23,6 +23,16 @@
     "license": "VMware Inc.",
     "changelogHistory": [
         {
+            "date": "04/07/18",
+            "version": "0.7.2",
+            "notes": [
+                {
+                    "description": "Updated changelog format in package.json, after feedback on component",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/7"
+                }
+            ]
+        },
+        {
             "date": "04/06/18",
             "version": "0.7.1",
             "notes": [
