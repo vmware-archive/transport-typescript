@@ -328,8 +328,6 @@ export abstract class EventBus {
      */
     abstract listenOnce<R>(channel: ChannelName, from?: SentFrom, id?: UUID): MessageHandler<R>;
 
-    abstract listenOnceForId<R>(channel: ChannelName, from?: SentFrom, id?: UUID): MessageHandler<R>;
-
     /**
      * Listen for all responses on a channel. Continue to handle until the stream is closed via the handler.
      *
