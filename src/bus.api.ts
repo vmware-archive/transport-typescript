@@ -39,7 +39,7 @@ export enum MessageType {
  * Simple interface to add in generics.
  */
 export interface MessageFunction<T> extends Function {
-    (exec: T): void;
+    (exec: T, uuid?: UUID, version?: number): void;
 }
 
 /**
@@ -122,7 +122,7 @@ export interface MessageResponder<T = any, E = any> {
 export abstract class EventBus {
 
 
-    public static version: string = '0.7.1';
+    public static version: string = '0.7.3';
 
     /**
      * Reference to Low Level API.

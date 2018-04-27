@@ -3,7 +3,7 @@
  */
 
 import {
-    ChannelName, EventBus, EventBusLowApi, MessageHandler, MessageResponder, MessageType,
+    ChannelName, EventBus, EventBusLowApi, MessageFunction, MessageHandler, MessageResponder, MessageType,
     SentFrom
 } from '../bus.api';
 import { Channel } from './model/channel.model';
@@ -487,7 +487,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         };
 
         return {
-            handle: (success: Function, error?: Function): Subscription => {
+            handle: (success: MessageFunction<any>, error?: MessageFunction<any>): Subscription => {
 
                 let _chan: Observable<Message>;
                 if (requestStream) {
@@ -518,11 +518,11 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                             let _pl = msg.payload;
                             if (msg.isError()) {
                                 if (error) {
-                                    error(_pl);
+                                    error(_pl, msg.id, msg.version);
                                 }
                             } else {
                                 if (success) {
-                                    success(_pl);
+                                    success(_pl, msg.id, msg.version);
                                 } else {
                                     this.log.error('unable to handle response, no handler function supplied', name);
                                 }
