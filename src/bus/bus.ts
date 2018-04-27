@@ -348,8 +348,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         requestPayload: T,
         returnChannel?: ChannelName,
         name = this.getName()): MessageHandler<R> {
-        console.log('high level request with id ' + uuid);
-
+        
         return this.api.request(
             new MessageHandlerConfig(sendChannel, requestPayload, false, returnChannel),
             name,
