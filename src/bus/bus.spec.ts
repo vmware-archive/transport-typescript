@@ -1575,6 +1575,79 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                 );
             }
         );
+
+        /* Simple API's with ID's and Versions */
+
+        it('requestOnceWithId() should work as expected.',
+            (done) => {
+                let idCount = 0;
+                let allCount = 0;
+                bus.respondStream('foxy-pop')
+                    .generate(() => 'bark');
+
+                const id: UUID = GeneralUtil.genUUIDShort();
+
+                bus.listenStream('foxy-pop')
+                    .handle(
+                        () => allCount++
+                    );
+
+                bus.sendRequestMessage('foxy-pop', true);
+
+                bus.requestOnceWithId(id, 'foxy-pop', true)
+                    .handle(
+                        () => idCount++
+                    );
+
+                bus.sendRequestMessage('foxy-pop', true);
+                bus.sendRequestMessageWithId('foxy-pop', true, id);
+
+                bus.api.tickEventLoop(
+                    () => {
+                        expect(allCount).toEqual(4);
+                        expect(idCount).toEqual(1);
+                        done();
+                    },
+                    5
+                );
+            });
+
+        it('requestStreamWithId() should work as expected.',
+            (done) => {
+                let idCount = 0;
+                let allCount = 0;
+                bus.respondStream('ember-puppy')
+                    .generate(() => 'woof');
+
+                const id: UUID = GeneralUtil.genUUIDShort();
+
+                bus.listenStream('ember-puppy')
+                    .handle(
+                        () => allCount++
+                    );
+
+                bus.sendRequestMessageWithId('ember-puppy', 1, '1234');
+
+                bus.requestStreamWithId(id, 'ember-puppy', 2)
+                    .handle(
+                        () => {
+                            idCount++
+                        }
+                    );
+
+                bus.sendRequestMessageWithId('ember-puppy', 3, '5678');
+                bus.sendRequestMessageWithId('ember-puppy', 4, id);
+
+                bus.api.tickEventLoop(
+                    () => {
+                        expect(allCount).toEqual(4);
+                        expect(idCount).toEqual(2);
+                        done();
+                    },
+                    50
+                );
+            });
+
     });
 
     /**
@@ -1717,7 +1790,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                         expect(resp.payload).toEqual('scooty butt chase jump');
                         done();
                     });
-                const monitor = bus.api.getMonitor()
+                bus.api.getMonitor()
                     .subscribe(
                     (message: Message) => {
                         const mo = message.payload as MonitorObject;
@@ -1749,6 +1822,8 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                     'payload or channel is empty.', 'EventBus');
 
             });
+
+
     });
 
 

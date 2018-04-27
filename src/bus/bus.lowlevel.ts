@@ -299,16 +299,14 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         setTimeout(func, delay);
     }
 
-    request<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom,
-                        schema?: any, id?: UUID): MessageHandler<R, E> {
+    request<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, id?: UUID): MessageHandler<R, E> {
 
-        // ignore schema for now.
         const handler: MessageHandler<R, E> = this.createMessageHandler(handlerConfig, false, name, id);
         this.send(handlerConfig.sendChannel, new Message(id).request(handlerConfig), name);
         return handler;
     }
 
-    respond<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, schema?: any): MessageResponder<R, E> {
+    respond<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom): MessageResponder<R, E> {
 
         return this.createMessageResponder(handlerConfig, name);
     }
@@ -508,7 +506,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
                         let validateId: boolean = false;
                         let proceedToHandle: boolean = true;
-                        
+
                         if (registeredId && msg.id) {
                             validateId = true;
                         }
