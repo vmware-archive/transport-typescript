@@ -3,7 +3,7 @@
  */
 
 import { UUID } from '../store/store.model';
-import { MessageType } from '../../bus.api';
+import { MessageType, SentFrom } from '../../bus.api';
 
 /**
  * A Message object represents a single message on the message bus.
@@ -47,7 +47,8 @@ export class Message {
     private _payload: any;
     private _isError: boolean = false;
     private versionNumber: number;
-    private mId: UUID;  
+    private mId: UUID;
+    private sentFrom: SentFrom;
 
     constructor(id?: UUID, version: number = 1) {
         this.mId = id;
@@ -103,5 +104,13 @@ export class Message {
     
     get version(): number {
         return this.versionNumber;
+    }
+
+    get sender(): SentFrom {
+        return this.sentFrom;
+    }
+
+    set sender(sender: SentFrom) {
+        this.sentFrom = sender;
     }
 }

@@ -36,10 +36,19 @@ export enum MessageType {
 }
 
 /**
- * Simple interface to add in generics.
+ * Message arguments are passed through to all message handlers (if available)
+ */
+export interface MessageArgs {
+    uuid: UUID;
+    version: number;
+    from: SentFrom;
+}
+
+/**
+ * Simple interface for functions to add in generics and value passthrough
  */
 export interface MessageFunction<T> extends Function {
-    (exec: T, uuid?: UUID, version?: number): void;
+    (exec: T, args?: MessageArgs): void;
 }
 
 /**

@@ -268,6 +268,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     }
 
     send(cname: ChannelName, message: Message, from?: SentFrom): boolean {
+        message.sender = from; // make sure we know where this message came from.
         let mo = new MonitorObject;
         if (!this.internalChannelMap.has(cname)) {
             mo = new MonitorObject().build(MonitorType.MonitorDropped, cname, from, message);
@@ -359,10 +360,12 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                         if (!msg.isError()) {
                             this.tickEventLoop(
                                 () => {
-                                    this.eventBusRef.sendResponseMessageWithId(
+                                    this.eventBusRef.sendResponseMessageWithIdAndVersion(
                                         handlerConfig.returnChannel,
-                                        generateSuccessResponse(pl),
+                                        generateSuccessResponse(pl,
+                                            {uuid: msg.id, version: msg.version, from: msg.sender}),
                                         msg.id,
+                                        msg.version,
                                         name
                                     );
                                 }
@@ -518,11 +521,11 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                             let _pl = msg.payload;
                             if (msg.isError()) {
                                 if (error) {
-                                    error(_pl, msg.id, msg.version);
+                                    error(_pl, { uuid: msg.id, version: msg.version, from: msg.sender});
                                 }
                             } else {
                                 if (success) {
-                                    success(_pl, msg.id, msg.version);
+                                    success(_pl, { uuid: msg.id, version: msg.version, from: msg.sender});
                                 } else {
                                     this.log.error('unable to handle response, no handler function supplied', name);
                                 }

@@ -23,6 +23,25 @@
     "license": "VMware Inc.",
     "changelogHistory": [
         {
+            "date": "05/01/18",
+            "version": "0.8.0",
+            "notes": [
+                {
+                    "description": "Added new simple API's for handling message ID's, versions and names.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/8"
+                },
+                {
+                    "description": "New optional MessageArgs object is passed to MessageFunction. Contains message ID, version and sender"
+                },
+                {
+                    "description": "Firefly project & DataService design require a new form of meta-transaction to solve the need for unique channels per conversation."
+                },
+                {
+                    "description": "Increased test coverage to 99.27%",
+                }
+            ]
+        },
+        {
             "date": "04/07/18",
             "version": "0.7.2",
             "notes": [

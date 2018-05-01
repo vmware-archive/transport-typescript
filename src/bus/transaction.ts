@@ -221,10 +221,7 @@ export class BusTransactionImpl implements BusTransaction {
                     this.bus.stores.createStore(req.store).whenReady(responseHandler);
                 }
             }, 
-            (error) => {
-                    // send to onError handler.
-                    this.bus.sendResponseMessage(this.transactionErrorChannel, error);
-            },
+            () => {},
             () => {
                 this.transactionCompleteHandler(responses);
             }

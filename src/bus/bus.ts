@@ -229,7 +229,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         id: UUID,
         from?: string): void {
 
-            this.api.send(cname, new Message(id).request(payload), name);
+            this.api.send(cname, new Message(id).request(payload), from);
     }
 
     public sendRequestMessageWithIdAndVersion<R>(
@@ -241,7 +241,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
             this.api.send(
                 cname,
                 new Message(id, version).request(payload),
-                name
+                from
             );
     }
 
@@ -273,7 +273,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
                     this.api.send(
                         cname,
                         new Message(id).response(payload),
-                        name
+                        from
                     );
                 }
             );
@@ -290,7 +290,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
                     this.api.send(
                         cname,
                         new Message(id, version).response(payload),
-                        name
+                        from
                     );
                 }
             );
