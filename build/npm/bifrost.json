@@ -37,7 +37,7 @@
                     "description": "Firefly project & DataService design require a new form of meta-transaction to solve the need for unique channels per conversation."
                 },
                 {
-                    "description": "Increased test coverage to 99.27%",
+                    "description": "Increased test coverage to 99.27%"
                 }
             ]
         },

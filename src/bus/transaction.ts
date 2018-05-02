@@ -221,7 +221,7 @@ export class BusTransactionImpl implements BusTransaction {
                     this.bus.stores.createStore(req.store).whenReady(responseHandler);
                 }
             }, 
-            () => {},
+            () => null,
             () => {
                 this.transactionCompleteHandler(responses);
             }

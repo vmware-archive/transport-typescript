@@ -131,7 +131,7 @@ export interface MessageResponder<T = any, E = any> {
 export abstract class EventBus {
 
 
-    public static version: string = '0.7.3';
+    public static version: string = '0.8.0';
 
     /**
      * Reference to Low Level API.

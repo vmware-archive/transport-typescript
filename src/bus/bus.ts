@@ -87,6 +87,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
     private internalChannelMap: Map<string, Channel>;
     private log: Logger;
+    private windowRef = window;
 
 
     // low level API
@@ -107,11 +108,11 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         this.stores = new StoreManager(this, this.log);
 
         // wire up singleton to the window object under a custom namespace.
-        window.AppEventBus = this as EventBus;
-        window.AppBrokerConnector = new BrokerConnector(this.log);
-        window.AppBrokerConnector.init(this);
-        window.AppSyslog = this.log;
-        window.AppStoreManager = this.stores;
+        this.windowRef.AppEventBus = this as EventBus;
+        this.windowRef.AppBrokerConnector = new BrokerConnector(this.log);
+        this.windowRef.AppBrokerConnector.init(this);
+        this.windowRef.window.AppSyslog = this.log;
+        this.windowRef.AppStoreManager = this.stores;
 
         if (!disableBootMessage) {
             this.log.setStylingVisble(true);
