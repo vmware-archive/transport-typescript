@@ -23,7 +23,7 @@
     "license": "VMware Inc.",
     "changelogHistory": [
         {
-            "date": "05/01/18",
+            "date": "05/03/18",
             "version": "0.8.0",
             "notes": [
                 {
@@ -34,10 +34,13 @@
                     "description": "New optional MessageArgs object is passed to MessageFunction. Contains message ID, version and sender"
                 },
                 {
+                    "description": "Added detail to debug levels in logging"
+                },
+                {
                     "description": "Firefly project & DataService design require a new form of meta-transaction to solve the need for unique channels per conversation."
                 },
                 {
-                    "description": "Increased test coverage to 99.27%"
+                    "description": "Increased test coverage to 99.21%"
                 }
             ]
         },
