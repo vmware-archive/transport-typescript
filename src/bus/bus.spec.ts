@@ -1,7 +1,7 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { EventBus, BifrostEventBus, BrokerConnectorChannel } from '../';
+import { EventBus, BifrostEventBus, BrokerConnectorChannel, MessageArgs } from '../';
 import { LogLevel } from '../log/logger.model';
 import { Message} from './model/message.model';
 import { Channel } from './model/channel.model';
@@ -654,6 +654,50 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             () => {
                 expect(bus.api.loggerInstance.warn)
                     .toHaveBeenCalledWith('💩 Message Was Dropped!', null);
+                done();
+            }
+            , 10);
+    });
+
+    it('Check monitor dump ignores easter egg.', (done) => {
+
+        spyOn(bus.api.loggerInstance, 'warn').and.callThrough();
+
+        bus.api.enableMonitorDump(true);
+        bus.api.silenceLog(false);
+        bus.api.setLogLevel(LogLevel.Debug);
+        const log: Logger = bus.api.logger();
+        log.setStylingVisble(false);
+        bus.api.suppressLog(true);
+
+        bus.sendRequestMessage('__maglingtonpuddles__', 'hi maggie!');
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(bus.api.loggerInstance.warn).not
+                    .toHaveBeenCalledWith('💩 Message Was Dropped!', null);
+                done();
+            }
+            , 10);
+    });
+
+    it('Check monitor dump recognises new galactic channel mappings.', (done) => {
+
+        spyOn(bus.api.loggerInstance, 'info').and.callThrough();
+
+        bus.api.enableMonitorDump(true);
+        bus.api.silenceLog(false);
+        bus.api.setLogLevel(LogLevel.Debug);
+        const log: Logger = bus.api.logger();
+        log.setStylingVisble(false);
+        bus.api.suppressLog(true);
+
+        bus.listenGalacticStream('space-car');
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(bus.api.loggerInstance.info)
+                    .toHaveBeenCalledWith('🌌 (galactic channel mapped)-> space-car', null);
                 done();
             }
             , 10);
@@ -1575,6 +1619,132 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                 );
             }
         );
+
+        /* Simple API's with ID's and Versions */
+
+        it('requestOnceWithId() should work as expected.',
+            (done) => {
+                let idCount = 0;
+                let allCount = 0;
+                bus.respondStream('foxy-pop')
+                    .generate(() => 'bark');
+
+                const id: UUID = GeneralUtil.genUUIDShort();
+
+                bus.listenStream('foxy-pop')
+                    .handle(
+                        () => allCount++
+                    );
+
+                bus.sendRequestMessage('foxy-pop', true);
+
+                bus.requestOnceWithId(id, 'foxy-pop', true)
+                    .handle(
+                        () => idCount++
+                    );
+
+                bus.sendRequestMessage('foxy-pop', true);
+                bus.sendRequestMessageWithId('foxy-pop', true, id);
+
+                bus.api.tickEventLoop(
+                    () => {
+                        expect(allCount).toEqual(4);
+                        expect(idCount).toEqual(1);
+                        done();
+                    },
+                    50
+                );
+            });
+
+        it('requestStreamWithId() should work as expected.',
+            (done) => {
+                let idCount = 0;
+                let allCount = 0;
+                bus.respondStream('ember-puppy')
+                    .generate(() => 'woof');
+
+                const id: UUID = GeneralUtil.genUUIDShort();
+
+                bus.listenStream('ember-puppy')
+                    .handle(
+                        () => allCount++
+                    );
+
+                bus.sendRequestMessageWithId('ember-puppy', 1, '1234');
+
+                bus.requestStreamWithId(id, 'ember-puppy', 2)
+                    .handle(
+                        () => {
+                            idCount++
+                        }
+                    );
+
+                bus.sendRequestMessageWithId('ember-puppy', 3, '5678');
+                bus.sendRequestMessageWithId('ember-puppy', 4, id);
+
+                bus.api.tickEventLoop(
+                    () => {
+                        expect(allCount).toEqual(4);
+                        expect(idCount).toEqual(2);
+                        done();
+                    },
+                    50
+                );
+            });
+
+        it('check ID and sender is correctly passed through with handler via MessageArgs.',
+            (done) => {
+
+            const chan = 'pup-talk';
+            bus.respondStream(chan, chan, 'ember')
+                    .generate(
+                        (payload: string, args: MessageArgs) => {
+                            expect(args.from).toEqual('cotton');
+                            expect(payload).toEqual('whats the chat?');
+                            return 'bark'
+                        });
+
+
+            bus.listenStream(chan).handle(
+                (response: string, args: MessageArgs) => {
+                        expect(args.from).toEqual('ember');
+                        expect(args.uuid).toEqual('1234');
+                        done();
+                    }
+                );
+
+            bus.sendRequestMessageWithId('pup-talk', 'whats the chat?', '1234', 'cotton');
+        });
+
+        it('check ID, version and sender is correctly passed through with handler via MessageArgs.',
+            (done) => {
+
+                const chan = 'pup-talk';
+                bus.respondStream(chan, chan, 'ember')
+                    .generate(
+                        (payload: string, args: MessageArgs) => {
+                            expect(args.from).toEqual('cotton');
+                            expect(payload).toEqual('whats the chat?');
+                            expect(args.version).toEqual(99);
+                            return 'bark'
+                        });
+
+
+                bus.listenStream(chan).handle(
+                    (response: string, args: MessageArgs) => {
+                        expect(args.from).toEqual('ember');
+                        expect(args.uuid).toEqual('1234');
+                        expect(args.version).toEqual(99);
+
+                        done();
+                    }
+                );
+
+                bus.sendRequestMessageWithIdAndVersion('pup-talk', 'whats the chat?',
+                    '1234', 99, 'cotton');
+
+            });
+
     });
 
     /**
@@ -1717,7 +1887,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                         expect(resp.payload).toEqual('scooty butt chase jump');
                         done();
                     });
-                const monitor = bus.api.getMonitor()
+                bus.api.getMonitor()
                     .subscribe(
                     (message: Message) => {
                         const mo = message.payload as MonitorObject;
@@ -1749,6 +1919,8 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                     'payload or channel is empty.', 'EventBus');
 
             });
+
+
     });
 
 

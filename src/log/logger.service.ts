@@ -196,14 +196,17 @@ export class Logger {
                 break;
 
             case LogLevel.Info:
+                output = '▫️️ [Inf]: ' + output;
                 this.outputWithOptionalStyle(console.log, output, this.infoCss);
                 break;
 
             case LogLevel.Debug:
+                output = '🔸 [Deb]: ' + output;
                 this.outputWithOptionalStyle(console.log, output, this.debugCss);
                 break;
 
             case LogLevel.Verbose:
+                output = '📍️ [Ver]: ' + output;
                 this.outputWithOptionalStyle(console.log, output, this.verboseCss);
                 break;
 

@@ -3,7 +3,7 @@
  */
 
 import {
-    ChannelName, EventBus, EventBusLowApi, MessageHandler, MessageResponder, MessageType,
+    ChannelName, EventBus, EventBusLowApi, MessageFunction, MessageHandler, MessageResponder, MessageType,
     SentFrom
 } from '../bus.api';
 import { Channel } from './model/channel.model';
@@ -268,6 +268,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     }
 
     send(cname: ChannelName, message: Message, from?: SentFrom): boolean {
+        message.sender = from; // make sure we know where this message came from.
         let mo = new MonitorObject;
         if (!this.internalChannelMap.has(cname)) {
             mo = new MonitorObject().build(MonitorType.MonitorDropped, cname, from, message);
@@ -299,16 +300,14 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         setTimeout(func, delay);
     }
 
-    request<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom,
-                        schema?: any, id?: UUID): MessageHandler<R, E> {
+    request<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, id?: UUID): MessageHandler<R, E> {
 
-        // ignore schema for now.
         const handler: MessageHandler<R, E> = this.createMessageHandler(handlerConfig, false, name, id);
         this.send(handlerConfig.sendChannel, new Message(id).request(handlerConfig), name);
         return handler;
     }
 
-    respond<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, schema?: any): MessageResponder<R, E> {
+    respond<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom): MessageResponder<R, E> {
 
         return this.createMessageResponder(handlerConfig, name);
     }
@@ -361,10 +360,12 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                         if (!msg.isError()) {
                             this.tickEventLoop(
                                 () => {
-                                    this.eventBusRef.sendResponseMessageWithId(
+                                    this.eventBusRef.sendResponseMessageWithIdAndVersion(
                                         handlerConfig.returnChannel,
-                                        generateSuccessResponse(pl),
+                                        generateSuccessResponse(pl,
+                                            {uuid: msg.id, version: msg.version, from: msg.sender}),
                                         msg.id,
+                                        msg.version,
                                         name
                                     );
                                 }
@@ -489,7 +490,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         };
 
         return {
-            handle: (success: Function, error?: Function): Subscription => {
+            handle: (success: MessageFunction<any>, error?: MessageFunction<any>): Subscription => {
 
                 let _chan: Observable<Message>;
                 if (requestStream) {
@@ -508,7 +509,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
                         let validateId: boolean = false;
                         let proceedToHandle: boolean = true;
-                        
+
                         if (registeredId && msg.id) {
                             validateId = true;
                         }
@@ -520,11 +521,11 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                             let _pl = msg.payload;
                             if (msg.isError()) {
                                 if (error) {
-                                    error(_pl);
+                                    error(_pl, { uuid: msg.id, version: msg.version, from: msg.sender});
                                 }
                             } else {
                                 if (success) {
-                                    success(_pl);
+                                    success(_pl, { uuid: msg.id, version: msg.version, from: msg.sender});
                                 } else {
                                     this.log.error('unable to handle response, no handler function supplied', name);
                                 }

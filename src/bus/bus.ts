@@ -87,6 +87,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
     private internalChannelMap: Map<string, Channel>;
     private log: Logger;
+    private windowRef = window;
 
 
     // low level API
@@ -105,13 +106,13 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
         // Store API
         this.stores = new StoreManager(this, this.log);
-        
+
         // wire up singleton to the window object under a custom namespace.
-        window.AppEventBus = this as EventBus;
-        window.AppBrokerConnector = new BrokerConnector(this.log);
-        window.AppBrokerConnector.init(this);
-        window.AppSyslog = this.log;
-        window.AppStoreManager = this.stores;
+        this.windowRef.AppEventBus = this as EventBus;
+        this.windowRef.AppBrokerConnector = new BrokerConnector(this.log);
+        this.windowRef.AppBrokerConnector.init(this);
+        this.windowRef.window.AppSyslog = this.log;
+        this.windowRef.AppStoreManager = this.stores;
 
         if (!disableBootMessage) {
             this.log.setStylingVisble(true);
@@ -121,7 +122,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         // set up logging.
         this.log.logLevel = logLevel;
         this.api.setLogLevel(logLevel);
-        
+
         // say hi to magnum.
         // this.easterEgg();
     }
@@ -224,37 +225,37 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
     }
 
     public sendRequestMessageWithId<R>(
-        cname: string, 
-        payload: R, 
-        id: UUID, 
+        cname: string,
+        payload: R,
+        id: UUID,
         from?: string): void {
-       
-            this.api.send(cname, new Message(id).request(payload), name);
+
+            this.api.send(cname, new Message(id).request(payload), from);
     }
 
     public sendRequestMessageWithIdAndVersion<R>(
-        cname: string, 
-        payload: R, 
-        id: UUID, 
-        version: number, 
+        cname: string,
+        payload: R,
+        id: UUID,
+        version: number,
         from?: string): void {
             this.api.send(
-                cname, 
+                cname,
                 new Message(id, version).request(payload),
-                name
+                from
             );
     }
 
 
     public sendResponseMessage(
-        cname: ChannelName, 
+        cname: ChannelName,
         payload: any,
         name = this.getName()): boolean {
 
         this.api.tickEventLoop(
             () => {
                 this.api.send(
-                    cname, 
+                    cname,
                     new Message().response(payload),
                     name
                 );
@@ -263,34 +264,34 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         return true;
     }
 
-    sendResponseMessageWithId<R>(
-        cname: string, 
-        payload: R, 
-        id: UUID, 
+    public sendResponseMessageWithId<R>(
+        cname: string,
+        payload: R,
+        id: UUID,
         from?: string): void {
             this.api.tickEventLoop(
                 () => {
                     this.api.send(
-                        cname, 
+                        cname,
                         new Message(id).response(payload),
-                        name
+                        from
                     );
                 }
             );
     }
-   
-    sendResponseMessageWithIdAndVersion<R>(
+
+    public sendResponseMessageWithIdAndVersion<R>(
         cname: string,
-        payload: R, 
+        payload: R,
         id: UUID,
-        version: number, 
+        version: number,
         from?: string): void {
             this.api.tickEventLoop(
                 () => {
                     this.api.send(
-                        cname, 
+                        cname,
                         new Message(id, version).response(payload),
-                        name
+                        from
                     );
                 }
             );
@@ -298,7 +299,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
 
     public sendErrorMessage(
-        cname: ChannelName, 
+        cname: ChannelName,
         payload: any,
         name = this.getName()): void {
 
@@ -307,7 +308,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
 
     public respondOnce<R>(
-        sendChannel: ChannelName, 
+        sendChannel: ChannelName,
         returnChannel?: ChannelName,
         name = this.getName()): MessageResponder<R> {
 
@@ -318,7 +319,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
     }
 
     public respondStream<R>(
-        sendChannel: ChannelName, 
+        sendChannel: ChannelName,
         returnChannel?: ChannelName,
         name = this.getName()): MessageResponder<R> {
 
@@ -342,6 +343,20 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
     }
 
+    public requestStreamWithId<T, R>(
+        uuid: UUID,
+        sendChannel: ChannelName,
+        requestPayload: T,
+        returnChannel?: ChannelName,
+        name = this.getName()): MessageHandler<R> {
+
+        return this.api.request(
+            new MessageHandlerConfig(sendChannel, requestPayload, false, returnChannel),
+            name,
+            uuid
+        );
+    }
+
     public requestOnce<T, R>(
         sendChannel: ChannelName,
         requestPayload: T,
@@ -351,6 +366,20 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         return this.api.request(
             new MessageHandlerConfig(sendChannel, requestPayload, true, returnChannel),
             name
+        );
+    }
+
+    public requestOnceWithId<T, R>(
+        uuid: UUID,
+        sendChannel: ChannelName,
+        requestPayload: T,
+        returnChannel?: ChannelName,
+        from?: SentFrom): MessageHandler<R> {
+
+        return this.api.request(
+            new MessageHandlerConfig(sendChannel, requestPayload, true, returnChannel),
+            name,
+            uuid
         );
     }
 
@@ -399,7 +428,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         successHandler: MessageFunction<GalacticResponse<R>>,
         errorHandler: MessageFunction<GalacticResponse<R>>,
         from?: string): void {
-        
+
         if (!channel || !request) {
             this.log.error('Cannot send Galactic Request, payload or channel is empty.', this.getName());
             return;
@@ -432,13 +461,13 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
     }
 
-    public createTransaction(type: TransactionType = TransactionType.ASYNC, 
+    public createTransaction(type: TransactionType = TransactionType.ASYNC,
                              name: string = 'Transaction' + GeneralUtil.genUUIDShort()): BusTransaction {
         return new BusTransactionImpl(this, this.log, type, name);
     }
 
     public easterEgg(): void {
-        
+
         const chan = this.api.getRequestChannel('__maglingtonpuddles__', this.getName(), true);
         chan.subscribe(
             () => {

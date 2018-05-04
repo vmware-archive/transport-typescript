@@ -36,10 +36,19 @@ export enum MessageType {
 }
 
 /**
- * Simple interface to add in generics.
+ * Message arguments are passed through to all message handlers (if available)
+ */
+export interface MessageArgs {
+    uuid: UUID;
+    version: number;
+    from: SentFrom;
+}
+
+/**
+ * Simple interface for functions to add in generics and value passthrough
  */
 export interface MessageFunction<T> extends Function {
-    (exec: T): void;
+    (exec: T, args?: MessageArgs): void;
 }
 
 /**
@@ -122,7 +131,7 @@ export interface MessageResponder<T = any, E = any> {
 export abstract class EventBus {
 
 
-    public static version: string = '0.7.1';
+    public static version: string = '0.8.0';
 
     /**
      * Reference to Low Level API.
@@ -249,6 +258,22 @@ export abstract class EventBus {
                                  returnChannel?: ChannelName, from?: SentFrom): MessageHandler<R>;
 
     /**
+     * Send a request payload to sendChannel with and ID and listen for responses (also with that ID)
+     * on returnChannel (defaults to sendChannel if left blank). Any additional responses will continue to be handled
+     * by the MessageHandler instance returned. The handle() method on the MessageHandler instance is used to process
+     * incoming responses. The handler will continue to trigger with each new response, until it is closed.
+     *
+     * @param {UUID} uuid UUID of the message you want to sent, can also be used as a filter for incoming messages.
+     * @param {ChannelName} sendChannel the channel on which you want to send your payload
+     * @param {T} requestPayload the payload you want to send.
+     * @param {ChannelName} returnChannel the return channel on which you want to listen.
+     * @param {SentFrom} from optional name of the actor implementing (for logging)
+     * @returns {MessageHandler<R>} reference to the MessageHandler, handle() function receives any inbound responses.
+     */
+    abstract requestStreamWithId<T, R>(uuid: UUID, sendChannel: ChannelName, requestPayload: T,
+                                       returnChannel?: ChannelName, from?: SentFrom): MessageHandler<R>;
+
+    /**
      * Send a request payload to sendChannel and listen for a single response on returnChannel
      * (defaults to sendChannel if left blank). The handle() method on the MessageHandler instance is used to
      * process incoming responses. The handler will stop processing any further responses after the first one.
@@ -261,6 +286,26 @@ export abstract class EventBus {
      */
     abstract requestOnce<T, R>(sendChannel: ChannelName, requestPayload: T, returnChannel?: ChannelName,
                                from?: SentFrom): MessageHandler<R>;
+
+
+    /**
+     * Send a request payload to sendChannel with a message ID. Listens for a single response on returnChannel,
+     * but only for a response with the same matching ID. Ideal for multi-message sessions where multiple consumers
+     * are requesting at the same time on the same.
+     * (defaults to sendChannel if left blank). The handle() method on the MessageHandler instance is used to
+     * process incoming responses. The handler will stop processing any further responses after the first one.
+     *
+     * @param {UUID} uuid the UUID of the message.
+     * @param {ChannelName} sendChannel the channel to send the request to
+     * @param {T} requestPayload the payload you want to send.
+     * @param {ChannelName} returnChannel the return channel to listen for responses on (defaults to send channel)
+     * @param {SentFrom} from options name of the actor implementing (for logging)
+     * @returns {MessageHandler<R>} reference to MessageHandler handle() function received any inbound responses.
+     */
+    abstract requestOnceWithId<T, R>(uuid: UUID, sendChannel: ChannelName, requestPayload: T,
+                                     returnChannel?: ChannelName, from?: SentFrom): MessageHandler<R>;
+
+
     /**
      * Send a request payload to Galactic channel and listen for response that matches UUID of Request.
      * (defaults to sendChannel if left blank). The handle() method on the MessageHandler instance is used to

@@ -1,10 +1,11 @@
 {
   "name": "@vmw/bifrost",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "private": false,
   "license": "UNLICENSED",
   "repository": "git@gitlab.eng.vmware.com:bifrost/typescript.git",
   "dependencies": {
+    "npm": "^6.0.0",
     "rxjs": "5.5.6",
     "zone.js": "^0.8.8"
   },
@@ -27,7 +28,6 @@
     "gulp-replace": "^0.5.4",
     "gulp-tslint": "^8.1.2",
     "gulp-typescript": "3.2.3",
-    "gulp-util": "^3.0.8",
     "gulp-webpack": "^1.5.0",
     "gulp-zip": "^3.1.0",
     "intl": "1.1.0",
@@ -44,7 +44,7 @@
     "systemjs": "0.19.27",
     "systemjs-builder": "^0.15.13",
     "tslint": "5.8.0",
-    "typescript": "^2.6.1",
+    "typescript": "^2.8.3",
     "uglifyjs-webpack-plugin": "^1.0.1",
     "webpack": "^3.8.1",
     "webpack-stream": "^4.0.0"
