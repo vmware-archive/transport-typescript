@@ -521,7 +521,6 @@ export class BrokerConnector implements EventBusEnabled {
     }
 
     public subscribeToDestination(data: StompSubscription): void {
-
         let session = this._sessions.get(data.session);
         if (session && session !== null) {
 
@@ -558,29 +557,33 @@ export class BrokerConnector implements EventBusEnabled {
             let subjectSubscription = subscriptionSubject.subscribe(
                 (msg: StompMessage) => {
 
-                    let busResponse: StompBusCommand =
-                        StompParser.generateStompBusCommand(
-                            StompClient.STOMP_MESSAGE,
-                            session.id,
-                            data.destination,
-                            StompParser.frame(
-                                StompClient.STOMP_MESSAGE,
-                                msg.headers,
-                                msg.body
-                            )
-                        );
-
                     let respChan =
                         StompParser.convertSubscriptionToChannel(data.destination, session.config.topicLocation);
-
                     let payload = JSON.parse(msg.body);
-                    this.bus.sendResponseMessage(respChan, payload);
 
+                    const respChannelObject = this.bus.api.getChannelObject(respChan);
+
+                    // bypass event loop for fast incoming socket events, the loop will slow things down.
+                    respChannelObject.stream.next(new Message().response(payload));
+
+                    //let busResponse: StompBusCommand =
+                    //     StompParser.generateStompBusCommand(
+                    //         StompClient.STOMP_MESSAGE,
+                    //         session.id,
+                    //         data.destination,
+                    //         StompParser.frame(
+                    //             StompClient.STOMP_MESSAGE,
+                    //             msg.headers,
+                    //             msg.body
+                    //         )
+                    //     );
+
+                    // disabled this, legacy.
                     // duplicate to stomp messages.
-                    this.bus.api.send(BrokerConnectorChannel.messages,
-                        new Message().response(busResponse),
-                        this.getName()
-                    );
+                    // this.bus.api.send(BrokerConnectorChannel.messages,
+                    //     new Message().response(busResponse),
+                    //     this.getName()
+                    // );
                 }
             );
 

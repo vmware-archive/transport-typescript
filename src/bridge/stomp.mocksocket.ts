@@ -103,6 +103,10 @@ export class MockSocket {
         }
     }
 
+    close() {
+        // do nothing.
+    }
+
     addEventListener(name: string, handler: any): void {
         if (this.events.hasOwnProperty(name)) {
             this.events[name].push(handler); // reassign

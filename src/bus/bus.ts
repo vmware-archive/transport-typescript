@@ -450,6 +450,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
                 if (resp.error) {
                     errorHandler(resp);
                 } else {
+                    this.log.debug('Galactic Response Incoming: ' + resp.id);
                     successHandler(resp);
                 }
                 sub.unsubscribe();
