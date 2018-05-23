@@ -24,6 +24,16 @@
     "changelogHistory": [
         {
             "date": "05/22/18",
+            "version": "0.8.2",
+            "notes": [
+                {
+                    "description": "Fixed typo in package.json",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/10"
+                }
+            ]
+        },
+        {
+            "date": "05/22/18",
             "version": "0.8.1",
             "notes": [
                 {
@@ -35,6 +45,7 @@
                 },
             ]
         },
+        {
             "date": "05/03/18",
             "version": "0.8.0",
             "notes": [
