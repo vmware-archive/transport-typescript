@@ -143,6 +143,7 @@ export class StompClient implements EventBusEnabled {
         if (this._socket) {
             headers.receipt = 'disconnect-' + GeneralUtil.genUUIDShort();
             this.transmit(StompClient.STOMP_DISCONNECT, headers);
+            this._socket.close();
         } else {
             this.log.warn('Uable to disconnect client, no socket open', this.getName());
         }
@@ -354,7 +355,6 @@ export class StompClient implements EventBusEnabled {
                 // the subscription ID should have been sent back from the server
                 if (frame.headers.subscription) {
                     if (this.getSubscription(frame.headers.subscription) !== null) {
-
                         this.getSubscription(frame.headers.subscription).next(frame);
                     }
                 }

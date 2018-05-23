@@ -23,6 +23,18 @@
     "license": "VMware Inc.",
     "changelogHistory": [
         {
+            "date": "05/22/18",
+            "version": "0.8.1",
+            "notes": [
+                {
+                    "description": "Added new performance tests to validate bus performance",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/9"
+                },
+                {
+                    "description": "Refined performance bottlenecks in broker connector"
+                },
+            ]
+        },
             "date": "05/03/18",
             "version": "0.8.0",
             "notes": [
