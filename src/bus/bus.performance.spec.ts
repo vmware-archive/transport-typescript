@@ -26,6 +26,7 @@ fdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         bus = BusTestUtil.bootBusWithOptions(LogLevel.Info, true);
         bus.logger.setStylingVisble(false);
         timeAfter = performance.now();
+        printTotalTime(timeAfter - timeBefore);
         expect(timeAfter - timeBefore).toBeLessThan(15);
 
     });
@@ -125,7 +126,7 @@ fdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         bus.sendRequestMessage(channelName, 'hello boot');
     });
 
-    it('Validate sending and hanlding 1 message in less than 20ms', (done) => {
+    it('Validate sending and handling 1 message in less than 20ms', (done) => {
 
         const channelName = GeneralUtil.genUUID();
         const channel: Observable<Message> = bus.api.getChannel(channelName);
@@ -228,7 +229,7 @@ fdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         bus.sendRequestMessage(channelName, 'hello maggie');
     });
 
-    it('Validate 1 channel with 5000 subscribers can handle all requests within 10ms', (done) => {
+    it('Validate 1 channel with 5,000 subscribers can handle all requests within 10ms', (done) => {
 
         const channelName = GeneralUtil.genUUID();
         const channel: Observable<Message> = bus.api.getChannel(channelName);
@@ -254,7 +255,7 @@ fdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         bus.sendRequestMessage(channelName, 'hello maggie');
     });
 
-    it('Validate 1 channel with 10000 subscribers can handle all requests within 10ms', (done) => {
+    it('Validate 1 channel with 10,000 subscribers can handle all requests within 15ms', (done) => {
 
         const channelName = GeneralUtil.genUUID();
         const channel: Observable<Message> = bus.api.getChannel(channelName);
@@ -269,7 +270,7 @@ fdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
                     if (subscriberEventCount >= 10000) {
                         timeAfter = performance.now();
                         printTotalTime(timeAfter - timeBefore);
-                        expect(timeAfter - timeBefore).toBeLessThan(10);
+                        expect(timeAfter - timeBefore).toBeLessThan(15);
                         done();
                     }
                 }
@@ -375,7 +376,7 @@ fdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         }
     });
 
-    fdescribe('Bifröst Local Network Performance Validation Testing', () => {
+    describe('Bifröst Local Network Performance Validation Testing', () => {
 
         it('Round-trip XHR call via bus enabled service should take less than 50ms', (done) => {
             runApiPerformanceTestOverXHR('localhost', 1, done, 50, 'seed');
@@ -505,10 +506,9 @@ fdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         it('Handle 500 Custom Logic requests via socket in under 550ms', (done) => {
             runCustomApiPerformanceTestOverSocket('localhost', 500, done, 550);
         });
-
     });
 
-    fdescribe('Bifröst Remote Network Performance Validation Testing', () => {
+    describe('Bifröst Remote Network Performance Validation Testing', () => {
 
         it('(Remote) Round-trip XHR call via bus enabled service should take less than 90ms', (done) => {
             runApiPerformanceTestOverXHR('quobix.com', 1, done, 90, 'seed');
@@ -589,7 +589,6 @@ fdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         it('(Remote) Handle 6 Custom Logic requests via socket in under 40ms', (done) => {
             runCustomApiPerformanceTestOverSocket('quobix.com', 6, done, 40);
         });
-
 
         it('(Remote) Handle 50 Custom Logic requests via XHR in under 350ms', (done) => {
             runCustomApiPerformanceTestOverXHR('quobix.com', 50, done, 350);
