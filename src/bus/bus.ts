@@ -33,6 +33,7 @@ import { StoreManager } from './store/store.manager';
 import { BusTransactionImpl } from './transaction';
 import { BrokerConnector } from '../bridge/broker-connector';
 import { GeneralUtil } from '../util/util';
+import { MessageProxy, MessageProxyConfig } from '../proxy/message.proxy';
 
 export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
@@ -88,7 +89,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
     private internalChannelMap: Map<string, Channel>;
     private log: Logger;
     private windowRef = window;
-
+    private messageProxy: MessageProxy;
 
     // low level API
     readonly api: EventBusLowApi;
@@ -133,6 +134,14 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
     public getName() {
         return 'EventBus';
+    }
+
+
+    public enableMessageProxy(config: MessageProxyConfig): void {
+
+        this.messageProxy = MessageProxy.getInstance();
+        this.messageProxy.enableProxy(config);
+
     }
 
     public connectBridge(

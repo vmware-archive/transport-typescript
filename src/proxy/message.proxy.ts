@@ -98,25 +98,24 @@ export class MessageProxy {
     public enableProxy(config: MessageProxyConfig): void {
 
         this.enabled = true;
+        this.targetOrigin = '*'; // default, which is wide open, so this should be set!
+        if (config) {
+            if (config.targetOrigin) {
+                this.targetOrigin = config.targetOrigin;
+            }
 
-        if (!config.targetOrigin) {
-            this.targetOrigin = '*'; // default, which is wide open, so this should be set!
-        } else {
-            this.targetOrigin = config.targetOrigin;
+            if (!config.targetAllFrames) {
+                this.targetAllFrames = false;
+            }
+
+            if (config.targetSpecificFrames && config.targetSpecificFrames.length > 0) {
+                this.targetedFrames = config.targetSpecificFrames;
+            }
+
+            if (config.proxyType) {
+                this.proxyType = config.proxyType;
+            }
         }
-
-        if (!config.targetAllFrames) {
-            this.targetAllFrames = false;
-        }
-
-        if (config.targetSpecificFrames && config.targetSpecificFrames.length > 0) {
-            this.targetedFrames = config.targetSpecificFrames;
-        }
-
-        if (config.proxyType) {
-            this.proxyType = config.proxyType;
-        }
-
         // based on the proxy configuration, start listening in the appropriate manner.
         if (this.proxyType === ProxyType.Parent) {
             this.listenAsParent();
@@ -133,7 +132,7 @@ export class MessageProxy {
 
         // listen for everything coming in, handle before event is bubbled down the stack
         globalAccessor.addEventListener('message', this.parentEventHandlerBinding, {capture: true});
-
+       
 
     }
 

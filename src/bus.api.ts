@@ -12,6 +12,7 @@ import { Logger } from './log/logger.service';
 import { LogLevel } from './log/logger.model';
 import { GalacticRequest } from './bus/model/request.model';
 import { GalacticResponse } from './bus/model/response.model';
+import { MessageProxyConfig } from './proxy/message.proxy';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -457,6 +458,13 @@ export abstract class EventBus {
      * @returns {Logger} singleton logger bound to bus.
      */
     abstract get logger(): Logger;
+
+    /**
+     * Enable message proxying between frames, or what ever else we can think of.
+     *
+     * @param {MessageProxyConfig} config
+     */
+    abstract enableMessageProxy(config: MessageProxyConfig): void;
 
 
 }

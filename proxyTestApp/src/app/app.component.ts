@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { BusUtil } from '@vmw/bifrost/util/bus.util';
 import { LogLevel } from '@vmw/bifrost/log';
+import { EventBus } from '@vmw/bifrost';
 
 BusUtil.bootBusWithOptions(LogLevel.Debug, false);
 
@@ -11,4 +12,12 @@ BusUtil.bootBusWithOptions(LogLevel.Debug, false);
 })
 export class AppComponent {
     title = 'app';
+
+    private bus: EventBus;
+
+    constructor() {
+        this.bus = BusUtil.getBusInstance();
+        this.bus.enableMessageProxy(null)
+    }
+
 }
