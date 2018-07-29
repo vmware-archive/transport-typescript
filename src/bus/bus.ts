@@ -6,7 +6,8 @@ import { Channel } from './model/channel.model';
 import { MonitorObject, MonitorType } from './model/monitor.model';
 import {
     Message,
-    MessageHandlerConfig} from './model/message.model';
+    MessageHandlerConfig
+} from './model/message.model';
 import { BusStoreApi } from '../store.api';
 import { UUID } from './store/store.model';
 import { BrokerConnectorChannel, StompBusCommand, StompConfig } from '../bridge/stomp.model';
@@ -26,13 +27,12 @@ import { Logger } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
 import { GalacticRequest } from './model/request.model';
 import { GalacticResponse } from './model/response.model';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { StoreManager } from './store/store.manager';
 import { BusTransactionImpl } from './transaction';
 import { BrokerConnector } from '../bridge/broker-connector';
 import { GeneralUtil } from '../util/util';
-import 'rxjs/add/operator/merge';
-import 'rxjs/add/observable/merge';
 
 export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
@@ -170,7 +170,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
                     readyHandler(command.session);
                 } else {
                     this.api.logger()
-                    .info('connection handler received command message: ' + command.command, this.getName());
+                        .info('connection handler received command message: ' + command.command, this.getName());
                 }
             }
         );
@@ -230,7 +230,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         id: UUID,
         from?: string): void {
 
-            this.api.send(cname, new Message(id).request(payload), from);
+        this.api.send(cname, new Message(id).request(payload), from);
     }
 
     public sendRequestMessageWithIdAndVersion<R>(
@@ -239,11 +239,11 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         id: UUID,
         version: number,
         from?: string): void {
-            this.api.send(
-                cname,
-                new Message(id, version).request(payload),
-                from
-            );
+        this.api.send(
+            cname,
+            new Message(id, version).request(payload),
+            from
+        );
     }
 
 
@@ -269,15 +269,15 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         payload: R,
         id: UUID,
         from?: string): void {
-            this.api.tickEventLoop(
-                () => {
-                    this.api.send(
-                        cname,
-                        new Message(id).response(payload),
-                        from
-                    );
-                }
-            );
+        this.api.tickEventLoop(
+            () => {
+                this.api.send(
+                    cname,
+                    new Message(id).response(payload),
+                    from
+                );
+            }
+        );
     }
 
     public sendResponseMessageWithIdAndVersion<R>(
@@ -286,15 +286,15 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         id: UUID,
         version: number,
         from?: string): void {
-            this.api.tickEventLoop(
-                () => {
-                    this.api.send(
-                        cname,
-                        new Message(id, version).response(payload),
-                        from
-                    );
-                }
-            );
+        this.api.tickEventLoop(
+            () => {
+                this.api.send(
+                    cname,
+                    new Message(id, version).response(payload),
+                    from
+                );
+            }
+        );
     }
 
 
@@ -437,12 +437,14 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         const conversationId: UUID = request.id;
 
         const stream: Observable<Message> = this.api.getGalacticChannel(channel)
-        .filter((message: Message) => {
-            return (message.isResponse());
-        }).filter((message: Message) => {
-            const resp: GalacticResponse<R> = message.payload as GalacticResponse<R>;
-            return conversationId === resp.id;
-        });
+            .pipe(
+                filter((message: Message) => {
+                    return (message.isResponse());
+                }),
+                filter((message: Message) => {
+                    const resp: GalacticResponse<R> = message.payload as GalacticResponse<R>;
+                    return conversationId === resp.id;
+                }));
 
         const sub = stream.subscribe(
             (msg: Message) => {
@@ -473,7 +475,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         chan.subscribe(
             () => {
                 const msg = 'Maggie wags his little nubby tail at you, ' +
-                            'as he sits under his little yellow boat on the beach';
+                    'as he sits under his little yellow boat on the beach';
                 this.sendResponseMessage('__maglingtonpuddles__', msg);
             }
         );

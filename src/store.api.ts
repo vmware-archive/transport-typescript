@@ -3,7 +3,7 @@
  */
 
 import { MessageFunction } from './bus.api';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { UUID, StoreType } from './bus/store/store.model';
 
 /**

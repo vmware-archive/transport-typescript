@@ -6,15 +6,12 @@ import { StoreType, UUID } from './bus/store/store.model';
 import { BusStoreApi } from './store.api';
 import { Message, MessageHandlerConfig } from './bus/model/message.model';
 import { Channel } from './bus/model/channel.model';
-import { Observable } from 'rxjs/Observable';
+import { Observable, Subject, Subscription } from 'rxjs';
 import { StompBusCommand } from './bridge/stomp.model';
-import { Subject } from 'rxjs/Subject';
 import { Logger } from './log/logger.service';
 import { LogLevel } from './log/logger.model';
 import { GalacticRequest } from './bus/model/request.model';
 import { GalacticResponse } from './bus/model/response.model';
-import { Subscription } from 'rxjs/Subscription';
-
 
 export type ChannelName = string;
 export type SentFrom = string;

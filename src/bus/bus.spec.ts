@@ -5,7 +5,7 @@ import { EventBus, BifrostEventBus, BrokerConnectorChannel, MessageArgs } from '
 import { LogLevel } from '../log/logger.model';
 import { Message} from './model/message.model';
 import { Channel } from './model/channel.model';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { Logger } from '../log/logger.service';
 import { StompParser } from '../bridge/stomp.parser';
 import { StompClient } from '../bridge/stomp.client';

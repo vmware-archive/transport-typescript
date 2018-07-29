@@ -3,8 +3,7 @@
  */
 
 import { StoreStream, MutateStream } from '../../store.api';
-import { Subscription } from 'rxjs/Subscription';
-import { Observable } from 'rxjs/Observable';
+import { Subscription, Observable } from 'rxjs';
 import { MessageFunction } from '../../bus.api';
 import { Logger } from '../../log';
 

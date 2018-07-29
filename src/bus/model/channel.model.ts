@@ -1,12 +1,11 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 import { Message } from './message.model';
 import { UUID } from '../store/store.model';
 import { StompParser } from '../../bridge/stomp.parser';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/filter';
+
 /**
  * A Channel object represents a single channel on the message bus.
  * This enables many-to-many transactions. Anyone can send a packet on a stream, and anyone can subscribe to a stream.

@@ -2,7 +2,7 @@ import { UUID, StoreType } from './store/store.model';
 import { MessageFunction } from '../bus.api';
 import { BusTransaction, TransactionReceipt, TransactionType, EventBus, ChannelName } from '../bus.api';
 import { TransactionRequest, TransactionRequestImpl, TransactionReceiptImpl } from './model/transaction.model';
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 import { GeneralUtil } from '../util/util';
 import { Logger } from '../log/logger.service';
 

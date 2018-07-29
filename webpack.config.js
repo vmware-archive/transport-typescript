@@ -1,26 +1,21 @@
 var webpack = require('webpack');
 var UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+var webpackRxjsExternals = require('webpack-rxjs-externals');
 
 module.exports = {
     entry: './dist',
+    mode: 'production',
     output: {
-      filename: 'bifrost.umd.min.js',
-      // export to AMD, CommonJS, or window
-      libraryTarget: 'umd',
-      // the name exported to window
-      library: 'bifrost'
+        filename: 'bifrost.umd.min.js',
+        // export to AMD, CommonJS, or window
+        libraryTarget: 'umd',
+        // the name exported to window
+        library: 'bifrost'
     },
     plugins: [
-      new UglifyJSPlugin()
+        new UglifyJSPlugin()
     ],
-    externals: {
-        'rxjs' : 'rxjs',
-        'rxjs/Observable' : 'rxjs/Observable',
-        'rxjs/Subscription' : 'rxjs/Subscription',
-        'rxjs/ReplaySubject' : 'rxjs/ReplaySubject',
-        'rxjs/Subject' : 'rxjs/Subject',
-        'rxjs/add/operator/merge' : 'rxjs.merge',
-        'rxjs/add/operator/map' : 'rxjs.map',
-        'rxjs/add/operator/filter' : 'rxjs.filter',
-    }
-  };
+    externals: [
+        webpackRxjsExternals()
+    ]
+};

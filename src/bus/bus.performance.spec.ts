@@ -1,8 +1,8 @@
 import { LogLevel } from '../log/logger.model';
-import { EventBus, Message, MessageArgs, UUID } from '../index';
+import { EventBus, Message, MessageArgs } from '../index';
 import { BusTestUtil } from '../util/test.util';
 import { GeneralUtil } from '../util/util';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { GalacticRequest } from './model/request.model';
 
 let bus: EventBus;

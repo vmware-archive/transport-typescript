@@ -2,10 +2,8 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import { Subject } from 'rxjs/Subject';
-import { Subscription } from 'rxjs/Subscription';
+import { Subject, Subscription } from 'rxjs';
 import { StompClient } from './stomp.client';
-import { StompParser } from './stomp.parser';
 import { MockSocket } from './stomp.mocksocket';
 import { UUID } from '../bus/store/store.model';
 import { Logger } from '../log';
