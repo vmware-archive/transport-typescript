@@ -8,7 +8,7 @@
         "url" : "git@gitlab.eng.vmware.com:bifrost/typescript.git"
     },
     "peerDependencies": {
-        "rxjs": "^5.0.1"
+        "rxjs": "^6.0.0"
     },
     "publishConfig": {
         "registry": "http://build-artifactory.eng.vmware.com:80/artifactory/api/npm/npm"

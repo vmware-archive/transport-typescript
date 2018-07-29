@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { BusUtil } from '@vmw/bifrost/util/bus.util';
+import { LogLevel } from '@vmw/bifrost/log';
 
-BusUtil.bootBus();
+BusUtil.bootBusWithOptions(LogLevel.Debug, false);
 
 @Component({
     selector: 'app-root',
@@ -10,5 +11,4 @@ BusUtil.bootBus();
 })
 export class AppComponent {
     title = 'app';
-
 }
