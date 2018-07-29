@@ -1,10 +1,8 @@
-import {Observable} from 'rxjs/Observable';
-import {Subject} from 'rxjs/Subject';
-import {StompParser} from './stomp.parser';
-import { StompMessage, StompConfig, BifrostSocket } from './stomp.model';
-import {fromEvent} from 'rxjs/observable/fromEvent';
-import {map} from 'rxjs/operator/map';
-import {mergeMap} from 'rxjs/operator/mergeMap';
+import { Observable, Subject, fromEvent, pipe } from 'rxjs';
+import { StompParser } from './stomp.parser';
+import { StompMessage, StompConfig } from './stomp.model';
+import { map } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/operators';
 import { GeneralUtil } from '../util/util';
 import { Logger } from '../log';
 import { EventBusEnabled } from '../bus';
@@ -63,8 +61,8 @@ export class StompClient implements EventBusEnabled {
 
     constructor(private log: Logger) {
 
-        this._transactionReceipts = new Map < string, Subject < StompMessage >>();
-        this._subscriptions = new Map < string, Subject < StompMessage >>();
+        this._transactionReceipts = new Map<string, Subject<StompMessage>>();
+        this._subscriptions = new Map<string, Subject<StompMessage>>();
 
         this._stompConnectedObserver = new Subject<Boolean>();
         this._ackObserver = new Subject<StompMessage>();
@@ -256,7 +254,7 @@ export class StompClient implements EventBusEnabled {
             this.sendStompErrorToSubscribers(frame.headers, 'Error occurred with WebSocket');
         }
     }
-    
+
     private onClose(config: StompConfig) {
         setTimeout(() => {
             this._subscriptions.forEach((subscriber: Subject<StompMessage>, id: string) => {
@@ -286,7 +284,7 @@ export class StompClient implements EventBusEnabled {
             login: this._config.getConfig().user,
             passcode: this._config.getConfig().pass,
             'heart-beat': this._config.getConfig().heartbeatOut +
-            ',' + this._config.getConfig().heartbeatIn
+                ',' + this._config.getConfig().heartbeatIn
         });
 
         if (this._config.getConfig().heartbeatOut
@@ -435,25 +433,33 @@ export class StompClient implements EventBusEnabled {
 
         // create local observers for socket events
         this._socketOpenObserver = fromEvent(ws, 'open')
-            .map((response: Event): Event => {
-                return response;
-            });
+            .pipe(
+                map((response: Event): Event => {
+                    return response;
+                })
+            );
 
         this._socketCloseObserver = fromEvent(ws, 'close')
-            .map((response: CloseEvent): any => { // refactor this into a type and define the API correctly.
-                return { event: response, config: config };
-            });
+            .pipe(
+                map((response: CloseEvent): any => { // refactor this into a type and define the API correctly.
+                    return {event: response, config: config};
+                })
+            );
 
         this._socketErrorObserver = fromEvent(ws, 'error')
-            .map((response: Error): Error => {
-                return response;
-            });
+            .pipe(
+                map((response: Error): Error => {
+                    return response;
+                })
+            );
 
         // wire observers.
         this._socketMessageObserver = fromEvent(ws, 'message')
-            .map((response: MessageEvent): MessageEvent => {
-                return response;
-            });
+            .pipe(
+                map((response: MessageEvent): MessageEvent => {
+                    return response;
+                })
+            );
 
         this._socketOpenObserver
             .subscribe((evt: Event) => this.onOpen(evt));
