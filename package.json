@@ -2,7 +2,7 @@
   "name": "@vmw/bifrost",
   "version": "0.9.0",
   "private": false,
-  "license": "UNLICENSED",
+  "license": "0BSD",
   "repository": "git@gitlab.eng.vmware.com:bifrost/typescript.git",
   "dependencies": {
     "npm": "^6.2.0",

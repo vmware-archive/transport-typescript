@@ -18,7 +18,6 @@ var npmFolder = "dist/npm/";
 
 /**
  * The deliverables for bifrost are:
- *   - the compiled js files in es5 with es2015 module format
  *   - the minified umd JS bundle
  *   - the Typescript declaration files
  *   - the source maps.
@@ -26,7 +25,6 @@ var npmFolder = "dist/npm/";
 gulp.task("npm:publish:bundles", function () {
     gulp.src([
         'dist/**/*.d.ts',
-        'dist/**/*.js',
         'dist/**/*.js.map',
     ]).pipe(gulp.dest(npmFolder + "/bifrost"));
 });
