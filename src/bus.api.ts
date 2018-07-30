@@ -463,7 +463,7 @@ export abstract class EventBus {
      * Enable message proxying between frames, or what ever else we can think of.
      *
      * @param {MessageProxyConfig} config
-     * @returns {ProxyControl}
+     * @returns {IFrameProxyControl}
      */
     abstract enableMessageProxy(config: MessageProxyConfig): ProxyControl;
 

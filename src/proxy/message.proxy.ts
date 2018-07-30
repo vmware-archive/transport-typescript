@@ -2,12 +2,11 @@
  * Copyright(c) VMware Inc. 2018
  */
 import { ChannelName, EventBus, MessageType } from '../bus.api';
-import { BusUtil } from '../util/bus.util';
 import { ProxyControlImpl } from './proxy.control';
 
 export const GLOBAL = window;
 
-export interface ProxyControl {
+export interface IFrameProxyControl {
     listeningAs(): ProxyType;
     isListening(): boolean;
     listen(): void;
@@ -20,7 +19,13 @@ export interface ProxyControl {
     getTargetedFrames(): string[];
     targetAllFrames(allFrames: boolean): void;
     isTargetingAllFrames(): boolean;
+    getAuthorizedChannels(): ChannelName[];
+    addAuthorizedChannel(channel: ChannelName): void;
+    removeAuthorizedChannel(channel: ChannelName): void;
+
 }
+
+export type ProxyControl = IFrameProxyControl;
 
 export class BusProxyMessage {
     payload: any;
@@ -47,28 +52,11 @@ export interface MessageProxyConfig {
  */
 export class MessageProxy {
 
-    protected static _instance: MessageProxy;
-
-    /**
-     * Kill instance of service.
-     */
-    public static destroy(): void {
-        this._instance = null;
-
+    constructor(private bus: EventBus) {
+    // do something
     }
 
-    public static getInstance(): MessageProxy {
-        return this._instance || (this._instance = new MessageProxy());
-    }
-
-    private bus: EventBus;
-
-    private proxyControl: ProxyControl;
-
-    constructor() {
-        this.bus = BusUtil.getBusInstance();
-    }
-
+    private proxyControl: IFrameProxyControl;
 
     /**
      * Enable proxy, pass in a configuration to set things in motion.
@@ -78,7 +66,7 @@ export class MessageProxy {
     public enableProxy(config: MessageProxyConfig): ProxyControl {
 
         if (!this.proxyControl) {
-            this.proxyControl = new ProxyControlImpl(config);
+            this.proxyControl = new ProxyControlImpl(this.bus, config);
         }
         return this.proxyControl;
 

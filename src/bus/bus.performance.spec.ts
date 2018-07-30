@@ -14,7 +14,7 @@ let printTimeLogs: boolean = true;
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000000;
 
-fdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
+xdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
 
     let timeBefore: number;
     let timeAfter: number;

@@ -7,7 +7,6 @@ import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor
 import { EventBus } from '../bus.api';
 import { LogLevel } from '../log/logger.model';
 import { GeneralUtil } from '../util/util';
-import 'rxjs/add/operator/take';
 import { Logger } from '../log';
 import { MockSocket } from './stomp.mocksocket';
 import { BifrostEventBus } from '../bus/bus';

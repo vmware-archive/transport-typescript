@@ -14,6 +14,9 @@ module.exports = function (config) {
             'proxyTestApp/**/*.ts'
             //'src/ng/bifrost.module.ts'
         ],
+        specReporter: {
+            suppressSkipped: true
+        },
         plugins: [
             require('karma-jasmine'),
             require('karma-spec-reporter'),

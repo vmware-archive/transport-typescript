@@ -1,13 +1,12 @@
 /**
  * Copyright(c) VMware Inc. 2018
  */
-import { BusProxyMessage, GLOBAL, MessageProxyConfig, ProxyControl, ProxyType } from './message.proxy';
+import { BusProxyMessage, GLOBAL, MessageProxyConfig, IFrameProxyControl, ProxyType } from './message.proxy';
 import { LogLevel } from '../log/logger.model';
 import { LogUtil } from '../log/util';
-import { EventBus } from '../bus.api';
-import { BusUtil } from '../util/bus.util';
+import { ChannelName, EventBus } from '../bus.api';
 
-export class ProxyControlImpl implements ProxyControl {
+export class ProxyControlImpl implements IFrameProxyControl {
 
     /**
      * Handle inbound postMessage events.
@@ -38,37 +37,49 @@ export class ProxyControlImpl implements ProxyControl {
     private targetedFrames: string[];
 
     /**
-     * Bus instance.
+     * Only authorized channels will be rebroadcast and handled, prevents unwanted payloads reaching private
+     * internal channels, not intended to be exposed.
      */
-    private bus: EventBus;
+    private authorizedChannels: ChannelName[];
 
     /**
      * Type of proxy operating.
      */
     private proxyType: ProxyType;
 
+    private listening: boolean = false;
+
     /**
      * Default proxy type is parent.
      * @param {ProxyType} proxyType
      */
-    constructor(private config: MessageProxyConfig) {
+    constructor(private bus: EventBus, private config: MessageProxyConfig) {
         // do something
         this.listen();
-        this.bus = BusUtil.getBusInstance();
         this.targetOrigin = ['*']; // default, which is wide open, so this should be set!
         if (config) {
             if (config.targetOrigin) {
                 this.targetOrigin = config.targetOrigin;
             }
 
+            // pull out properties from config,
             if (!config.targetAllFrames) {
                 this.targetAllFrames(false);
             }
 
             if (config.targetSpecificFrames && config.targetSpecificFrames.length > 0) {
                 this.targetedFrames = config.targetSpecificFrames;
+            } else {
+                this.targetedFrames = []; // don't want it to be empty.
             }
 
+            if (config.protectedChannels && config.protectedChannels.length > 0) {
+                this.authorizedChannels = config.protectedChannels;
+            } else {
+                this.authorizedChannels = []; // don't want this empty either.
+            }
+
+            // configure listening type.
             if (config.proxyType) {
                 this.proxyType = config.proxyType;
             }
@@ -76,31 +87,10 @@ export class ProxyControlImpl implements ProxyControl {
 
     }
 
-    addAllowedTargetOrigin(origin: string): void {
-        // something
-    }
-
-    addTargetedFrame(frameId: string): void {
-        if (this.targetedFrames.indexOf(frameId) < 0) {
-            this.targetedFrames.push(frameId);
-        }
-    }
-
-    getAllowedOrigins(): string[] {
-        return undefined;
-    }
-
-    getTargetedFrames(): string[] {
-        return undefined;
-    }
-
-    isListening(): boolean {
-        return false;
-    }
 
     listen(): void {
-        if (this.enabled) {
-
+        if (this.enabled && !this.listening) {
+            this.listening = true;
             switch (this.config.proxyType) {
                 case ProxyType.Parent:
                     this.parentEventHandlerBinding = this.parentEventHandler.bind(this);
@@ -114,12 +104,9 @@ export class ProxyControlImpl implements ProxyControl {
                 case ProxyType.Hybrid:
                     break;
 
-                    default:
+                default:
                     break;
             }
-
-
-
         }
     }
 
@@ -182,30 +169,81 @@ export class ProxyControlImpl implements ProxyControl {
         }
     }
 
-
-
     listeningAs(): ProxyType {
         return this.proxyType;
     }
 
-    removeAllowedTargetOrigin(origin: string): void {
-        // something
-    }
 
-    removeTargetedFrame(frameId: string): void {
-        // something
-    }
 
     stopListening(): void {
-        // something
+        this.listening = false;
     }
 
     targetAllFrames(allFrames: boolean): void {
-        this.targetAllFramesValue = allFrames;
+
+        // can only be applied if there are no target frames registered;
+        if (!this.targetedFrames || this.targetedFrames.length <=0) {
+            this.targetAllFramesValue = allFrames;
+        }
     }
 
     isTargetingAllFrames(): boolean {
         return this.targetAllFramesValue;
+    }
+
+    addAllowedTargetOrigin(origin: string): void {
+        if (this.targetOrigin.indexOf(origin) < 0) {
+            this.targetOrigin.push(origin);
+        }
+    }
+
+    addTargetedFrame(frameId: string): void {
+        if (this.targetedFrames.indexOf(frameId) < 0) {
+            this.targetedFrames.push(frameId);
+        }
+    }
+
+    addAuthorizedChannel(channel: ChannelName): void {
+        if (this.authorizedChannels.indexOf(channel) < 0) {
+            this.authorizedChannels.push(channel);
+        }
+    }
+
+    removeAllowedTargetOrigin(origin: string): void {
+        const index = this.targetOrigin.indexOf(origin);
+        if (index >= 0) {
+            this.targetOrigin.splice(index, 1);
+        }
+    }
+
+    removeAuthorizedChannel(channel: ChannelName): void {
+        const index = this.authorizedChannels.indexOf(channel);
+        if (index >= 0) {
+            this.authorizedChannels.splice(index, 1);
+        }
+    }
+
+    removeTargetedFrame(frameId: string): void {
+        const index = this.targetedFrames.indexOf(frameId);
+        if (index >= 0) {
+            this.targetedFrames.splice(index, 1);
+        }
+    }
+
+    getAuthorizedChannels(): ChannelName[] {
+        return this.authorizedChannels;
+    }
+
+    getAllowedOrigins(): string[] {
+        return this.targetOrigin;
+    }
+
+    getTargetedFrames(): string[] {
+        return this.targetedFrames;
+    }
+
+    isListening(): boolean {
+        return this.listening;
     }
 
 

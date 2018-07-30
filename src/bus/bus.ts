@@ -90,6 +90,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
     private log: Logger;
     private windowRef = window;
     private messageProxy: MessageProxy;
+    private proxyControl: ProxyControl;
 
     // low level API
     readonly api: EventBusLowApi;
@@ -139,9 +140,9 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
     public enableMessageProxy(config: MessageProxyConfig): ProxyControl {
 
-        this.messageProxy = MessageProxy.getInstance();
-        this.messageProxy.enableProxy(config);
-        return null;
+        this.messageProxy = new MessageProxy(this);
+        this.proxyControl = this.messageProxy.enableProxy(config);
+        return this.proxyControl;
 
     }
 
