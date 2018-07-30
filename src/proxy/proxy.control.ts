@@ -42,6 +42,10 @@ export class ProxyControlImpl implements ProxyControl {
      */
     private bus: EventBus;
 
+    /**
+     * Type of proxy operating.
+     */
+    private proxyType: ProxyType;
 
     /**
      * Default proxy type is parent.
@@ -66,7 +70,7 @@ export class ProxyControlImpl implements ProxyControl {
             }
 
             if (config.proxyType) {
-                //this.proxyType = config.proxyType;
+                this.proxyType = config.proxyType;
             }
         }
 
@@ -181,7 +185,7 @@ export class ProxyControlImpl implements ProxyControl {
 
 
     listeningAs(): ProxyType {
-        return undefined;
+        return this.proxyType;
     }
 
     removeAllowedTargetOrigin(origin: string): void {
@@ -197,7 +201,11 @@ export class ProxyControlImpl implements ProxyControl {
     }
 
     targetAllFrames(allFrames: boolean): void {
-        // something
+        this.targetAllFramesValue = allFrames;
+    }
+
+    isTargetingAllFrames(): boolean {
+        return this.targetAllFramesValue;
     }
 
 

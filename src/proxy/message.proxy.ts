@@ -19,6 +19,7 @@ export interface ProxyControl {
     removeTargetedFrame(frameId: string): void;
     getTargetedFrames(): string[];
     targetAllFrames(allFrames: boolean): void;
+    isTargetingAllFrames(): boolean;
 }
 
 export class BusProxyMessage {
