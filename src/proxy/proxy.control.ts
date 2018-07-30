@@ -1,7 +1,7 @@
 /**
  * Copyright(c) VMware Inc. 2018
  */
-import { BusProxyMessage, GLOBAL, MessageProxyConfig, IFrameProxyControl, ProxyType } from './message.proxy';
+import { BusProxyMessage, MessageProxyConfig, IFrameProxyControl, ProxyType } from './message.proxy';
 import { LogLevel } from '../log/logger.model';
 import { LogUtil } from '../log/util';
 import { ChannelName, EventBus } from '../bus.api';
@@ -55,7 +55,7 @@ export class ProxyControlImpl implements IFrameProxyControl {
      */
     constructor(private bus: EventBus, private config: MessageProxyConfig) {
         // do something
-        this.listen();
+
         this.targetOrigin = ['*']; // default, which is wide open, so this should be set!
         if (config) {
             if (config.targetOrigin) {
@@ -84,6 +84,7 @@ export class ProxyControlImpl implements IFrameProxyControl {
                 this.proxyType = config.proxyType;
             }
         }
+        this.listen();
 
     }
 
@@ -93,8 +94,9 @@ export class ProxyControlImpl implements IFrameProxyControl {
             this.listening = true;
             switch (this.config.proxyType) {
                 case ProxyType.Parent:
+
                     this.parentEventHandlerBinding = this.parentEventHandler.bind(this);
-                    GLOBAL.addEventListener('message', this.parentEventHandlerBinding, {capture: true});
+                    window.addEventListener('message', this.parentEventHandlerBinding, {capture: true});
                     break;
 
                 case ProxyType.Child:
@@ -148,10 +150,7 @@ export class ProxyControlImpl implements IFrameProxyControl {
                         'Proxy Message invalid - ignored. Payload is empty', 'MessageProxy');
                     return;
                 }
-
-                console.log('looks good!', data);
-
-
+                
             } else {
                 this.bus.logger.debug(
                     'Message Ignored, not intended for the bus.', 'MessageProxy');
@@ -163,7 +162,7 @@ export class ProxyControlImpl implements IFrameProxyControl {
         } else {
 
             this.bus.logger.debug(
-                'Message Ignored, it contained no payload', 'MessageProxy');
+                'Message Ignored, it contains no payload', 'MessageProxy');
             return;
 
         }

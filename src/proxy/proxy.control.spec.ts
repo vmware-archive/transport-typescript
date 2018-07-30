@@ -3,7 +3,7 @@
  */
 
 import { EventBus } from '../bus.api';
-import { Logger } from '../log';
+import { Logger, LogLevel } from '../log';
 import { BusTestUtil } from '../util/test.util';
 import { IFrameProxyControl, ProxyType } from './message.proxy';
 
@@ -14,9 +14,10 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     beforeEach(
         () => {
-            bus = BusTestUtil.bootBus();
+            bus = BusTestUtil.bootBusWithOptions(LogLevel.Debug, true);
             bus.api.loggerInstance.setStylingVisble(false);
             //bus.api.enableMonitorDump(true);
+            bus.api.logger().silent(true);
             log = bus.api.logger();
         }
     );
@@ -27,7 +28,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             proxyType: ProxyType.Parent,
             targetOrigin: ['http://somewhere.out.there'],
             targetAllFrames: true,
-            targetSpecificFrames: null,
+            targetSpecificFrames: null
         });
 
         expect(control.isListening()).toBeTruthy();
@@ -44,7 +45,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             proxyType: ProxyType.Parent,
             targetOrigin: ['http://space.dogs'],
             targetAllFrames: false,
-            targetSpecificFrames: null,
+            targetSpecificFrames: null
         });
 
         // check listening
@@ -106,9 +107,125 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
         expect(control.getAuthorizedChannels().length).toEqual(1);
         expect(control.getAuthorizedChannels()[0]).toEqual('new-chan');
 
+    });
 
+    describe('Validation & Rule Checking', () => {
+
+        beforeEach(
+            () => {
+                bus = BusTestUtil.bootBusWithOptions(LogLevel.Debug, true);
+                bus.api.logger().silent(true);
+                log = bus.api.logger();
+            }
+        );
+
+        it('Expect the proxy ignores messages with unregistered origin', (done) => {
+            spyOn(log, 'warn').and.callThrough();
+
+            bus.enableMessageProxy({
+                protectedChannels: ['auth-chan1'],
+                proxyType: ProxyType.Parent,
+                targetOrigin: ['http://something.else'], // not what will come through
+                targetAllFrames: true,
+                targetSpecificFrames: null
+            });
+
+            bus.api.tickEventLoop(
+                () => {
+                    window.postMessage('hello melody!','*'); // send message, origin is local karma
+                }
+            );
+
+            bus.api.tickEventLoop(
+                () => {
+                    expect(log.warn)
+                        .toHaveBeenCalledWith('Message refused, origin not registered: http://localhost:9876'
+                            , 'MessageProxy');
+                    done();
+                },5
+            );
+        });
+
+        it('Expect the proxy ignores messages not intended for the bus (regular string)', (done) => {
+            spyOn(log, 'debug').and.callThrough();
+
+            bus.enableMessageProxy({
+                protectedChannels: ['auth-chan1'],
+                proxyType: ProxyType.Parent,
+                targetOrigin: ['http://localhost:9876'], // local karma
+                targetAllFrames: true,
+                targetSpecificFrames: null
+            });
+
+            bus.api.tickEventLoop(
+                () => {
+                    window.postMessage('hello melody!','*'); // send message, origin is local karma
+                }
+            );
+
+            bus.api.tickEventLoop(
+                () => {
+                    expect(log.debug)
+                        .toHaveBeenCalledWith('Message Ignored, not intended for the bus.', 'MessageProxy');
+                    done();
+                },5
+            );
+        });
+
+        it('Expect the proxy ignores messages not intended for the bus (object)', (done) => {
+            spyOn(log, 'debug').and.callThrough();
+
+            bus.enableMessageProxy({
+                protectedChannels: ['auth-chan1'],
+                proxyType: ProxyType.Parent,
+                targetOrigin: ['http://localhost:9876'], // local karma
+                targetAllFrames: true,
+                targetSpecificFrames: null
+            });
+
+            bus.api.tickEventLoop(
+                () => {
+                    window.postMessage({ data: 'hi fox!'},'*'); // send message, origin is local karma
+                }
+            );
+
+            bus.api.tickEventLoop(
+                () => {
+                    expect(log.debug)
+                        .toHaveBeenCalledWith('Message Ignored, not intended for the bus.', 'MessageProxy');
+                    done();
+                },5
+            );
+        });
+
+        it('Expect the proxy ignores messages with no payload', (done) => {
+            spyOn(bus.logger, 'debug').and.callThrough();
+
+            bus.enableMessageProxy({
+                protectedChannels: ['auth-chan1'],
+                proxyType: ProxyType.Parent,
+                targetOrigin: ['http://localhost:9876'], // local karma
+                targetAllFrames: true,
+                targetSpecificFrames: null
+            });
+
+            bus.api.tickEventLoop(
+                () => {
+                    window.postMessage('','*'); // send message, origin is local karma
+                }
+            );
+
+            bus.api.tickEventLoop(
+                () => {
+                    expect(bus.logger.debug)
+                        .toHaveBeenCalledWith('Message Ignored, it contains no payload', 'MessageProxy');
+                    done();
+                },5
+            );
+        });
 
     });
+
 
 
 });
