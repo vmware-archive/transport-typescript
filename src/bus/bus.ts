@@ -33,7 +33,7 @@ import { StoreManager } from './store/store.manager';
 import { BusTransactionImpl } from './transaction';
 import { BrokerConnector } from '../bridge/broker-connector';
 import { GeneralUtil } from '../util/util';
-import { MessageProxy, MessageProxyConfig } from '../proxy/message.proxy';
+import { MessageProxy, MessageProxyConfig, ProxyControl } from '../proxy/message.proxy';
 
 export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
@@ -137,10 +137,11 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
     }
 
 
-    public enableMessageProxy(config: MessageProxyConfig): void {
+    public enableMessageProxy(config: MessageProxyConfig): ProxyControl {
 
         this.messageProxy = MessageProxy.getInstance();
         this.messageProxy.enableProxy(config);
+        return null;
 
     }
 

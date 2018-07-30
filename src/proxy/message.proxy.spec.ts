@@ -21,7 +21,7 @@ describe('Message Proxy [proxy/message.proxy.ts]', () => {
     );
 
     it('Basic start up works as expected.', () => {
-        //expect(transaction).not.toBeUndefined();
+        //bus.enableMessageProxy()
     });
 
 });
