@@ -174,7 +174,6 @@ export class ProxyControlImpl implements IFrameProxyControl {
     }
 
 
-
     stopListening(): void {
         this.listening = false;
     }
@@ -182,7 +181,7 @@ export class ProxyControlImpl implements IFrameProxyControl {
     targetAllFrames(allFrames: boolean): void {
 
         // can only be applied if there are no target frames registered;
-        if (!this.targetedFrames || this.targetedFrames.length <=0) {
+        if (!this.targetedFrames || this.targetedFrames.length <= 0) {
             this.targetAllFramesValue = allFrames;
         }
     }
