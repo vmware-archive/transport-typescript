@@ -1,10 +1,18 @@
 /**
  * Copyright(c) VMware Inc. 2018
  */
-import { EventBus } from '../bus.api';
+import { ChannelName, EventBus, MessageType } from '../bus.api';
 import { BusUtil } from '../util/bus.util';
+import { LogLevel } from '../log/logger.model';
+import { LogUtil } from '../log/util';
 
 const globalAccessor = window;
+
+export class BusProxyMessage {
+    payload: any;
+    channel: ChannelName;
+    type: MessageType;
+}
 
 export enum ProxyType {
     Parent = 'parent',
@@ -12,7 +20,7 @@ export enum ProxyType {
 }
 
 export interface MessageProxyConfig {
-    targetOrigin: string;
+    targetOrigin: string[];
     targetAllFrames: boolean;
     targetSpecificFrames: string[];
     protectedChannels: string[];
@@ -47,9 +55,9 @@ export class MessageProxy {
     private enabled: boolean = false;
 
     /**
-     * Definition of the target origin to be used, for security purposes.
+     * Definition of the target origin(s) to be acceptable, for security purposes.
      */
-    private targetOrigin: string;
+    private targetOrigin: string[];
 
     /**
      * Target all frames? The proxy will broadcast to everyone listening. Defaults to true
@@ -98,7 +106,7 @@ export class MessageProxy {
     public enableProxy(config: MessageProxyConfig): void {
 
         this.enabled = true;
-        this.targetOrigin = '*'; // default, which is wide open, so this should be set!
+        this.targetOrigin = ['*']; // default, which is wide open, so this should be set!
         if (config) {
             if (config.targetOrigin) {
                 this.targetOrigin = config.targetOrigin;
@@ -125,19 +133,67 @@ export class MessageProxy {
     }
 
     private parentEventHandler(event: MessageEvent): void {
-        console.log('hey hey, we got an event');
+
+        // check origin
+        let originOk;
+        for (let origin of this.targetOrigin) {
+            originOk = origin === '*'; // if this is in place, we don't care.
+            if (!originOk && origin === event.origin) {
+                originOk = true;
+            }
+        }
+
+        if (!originOk) {
+            this.bus.logger.warn(
+                'Message refused, origin not registered: ' + event.origin, 'MessageProxy');
+            return;
+        }
+
+        // check if the message contains a payload, and check if it is a serialized bus message.
+        if (event.data && event.data !== '') {
+            const data: any = event.data;
+            if (data instanceof BusProxyMessage) {
+
+                // validate proxy message
+                //if (data.channel)
+
+
+
+
+            } else {
+                this.bus.logger.debug(
+                    'Message Ignored, not intended for the bus.', 'MessageProxy');
+                this.bus.logger.group(LogLevel.Info, '📦 Message Payload (Ignored)');
+                this.bus.logger.debug(LogUtil.pretty(data));
+                this.bus.logger.groupEnd(LogLevel.Info);
+                return;
+            }
+        } else {
+
+            this.bus.logger.debug(
+                'Message Ignored, it contained no payload', 'MessageProxy');
+            return;
+
+        }
     }
 
     private listenAsParent() {
 
         // listen for everything coming in, handle before event is bubbled down the stack
         globalAccessor.addEventListener('message', this.parentEventHandlerBinding, {capture: true});
-       
+
 
     }
 
     // private listenAsChild() {
     //
+    // }
+
+    // public validateProxyMessage(message: BusProxyMessage): boolean {
+    //     if (!message) {
+    //
+    //
+    //     }
     // }
 
 
