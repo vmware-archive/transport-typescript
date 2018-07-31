@@ -4,15 +4,17 @@
 import { MessageProxyConfig, IFrameProxyControl, ProxyType, BusProxyMessage } from './message.proxy';
 import { LogLevel } from '../log/logger.model';
 import { LogUtil } from '../log/util';
-import { ChannelName, EventBus, MessageHandler, MessageType } from '../bus.api';
-import { Message } from '../bus';
+import { ChannelName, EventBus, EventBusEnabled, MessageType } from '../bus.api';
 import { Observable } from 'rxjs';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
-import { StompClient } from '../bridge/stomp.client';
-import { StompValidator } from '../bridge/stomp.validator';
 import { Subscription } from 'rxjs/internal/Subscription';
+import { Message } from '../bus/model/message.model';
 
-export class ProxyControlImpl implements IFrameProxyControl {
+export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
+
+    getName(): string {
+        return "ProxyControl";
+    }
 
     /**
      * Handle inbound postMessage events.
@@ -59,6 +61,8 @@ export class ProxyControlImpl implements IFrameProxyControl {
 
     private listening: boolean = false;
 
+    private parentOriginValue: string;
+
     /**
      * Default proxy type is parent.
      * @param {ProxyType} proxyType
@@ -68,8 +72,8 @@ export class ProxyControlImpl implements IFrameProxyControl {
 
         this.targetOrigin = ['*']; // default, which is wide open, so this should be set!
         if (config) {
-            if (config.targetOrigin) {
-                this.targetOrigin = config.targetOrigin;
+            if (config.acceptedOrigins) {
+                this.targetOrigin = config.acceptedOrigins;
             }
 
             // pull out properties from config,
@@ -89,13 +93,19 @@ export class ProxyControlImpl implements IFrameProxyControl {
                 this.authorizedChannels = []; // don't want this empty either.
             }
 
+            if(config.parentOrigin) {
+                this.parentOriginValue = config.parentOrigin;
+            } else {
+                this.parentOriginValue = '*';
+            }
+
             // configure listening type.
             if (config.proxyType) {
                 this.proxyType = config.proxyType;
             }
         } else {
             this.bus.logger.error(
-                'Message Proxy cannot start. No configuration has been set.', 'MessageProxy');
+                'Message Proxy cannot start. No configuration has been set.', this.getName());
             return;
         }
 
@@ -142,17 +152,17 @@ export class ProxyControlImpl implements IFrameProxyControl {
                 let mo = message.payload as MonitorObject;
                 switch (mo.type) {
                     case MonitorType.MonitorData:
+
+                        // is this for an authorized channel?
                         for (let chan of this.authorizedChannels) {
-                            if (mo.channel === chan) {
-                                this.sendMessageToChildFrames(message, chan);
+                            if (mo.channel === chan && !mo.data.proxyRebroadcast) {
+                                this.sendMessageToChildFrames(mo.data, chan);
                             }
                         }
                         break;
                     default:
                         break;
                 }
-
-
             }
         )
 
@@ -161,8 +171,42 @@ export class ProxyControlImpl implements IFrameProxyControl {
 
     private sendMessageToChildFrames(message: Message, chan: ChannelName): void {
         this.bus.logger.debug(
-            'Authorized message received on: [' + chan + '], sending to child frames', 'MessageProxy');
-        console.log('woooo');
+            'Authorized message received on: [' + chan + '], sending to child frames', this.getName());
+
+        const domWindow: any = window;
+
+        // if targeting all frames, extract all frames on the page and post messages to them.
+        if (this.targetAllFramesValue) {
+            const frames: any = domWindow.frames;
+            const frameCount = domWindow.frames.length;
+            const proxyMessage: BusProxyMessage = new BusProxyMessage(message.payload, chan, message.type);
+
+            //console.log(`there are ${frameCount} frames in the window`);
+            if (frameCount > 0) {
+
+                for(let i = 0; i < frameCount; i++) {
+              //      console.log('sending to frame ', i);
+                    frames[i].postMessage(proxyMessage, this.parentOriginValue);
+                }
+
+            }
+
+        }
+
+
+
+
+        /*
+        let myWindow: any = window;
+
+        if (myWindow.frames[myWindow.frames.length - 1]) {
+            console.log(`VmcUiToolkitImpl: Posting a message. Origin: ${this.acceptedOrigins}. Message: ${message}`);
+            myWindow.frames[myWindow.frames.length - 1].postMessage(message, this.acceptedOrigins);
+        } else {
+            console.error('no child window');
+        }
+         */
+
 
     }
 
@@ -180,7 +224,7 @@ export class ProxyControlImpl implements IFrameProxyControl {
 
         if (!originOk) {
             this.bus.logger.warn(
-                'Message refused, origin not registered: ' + event.origin, 'MessageProxy');
+                'Message refused, origin not registered: ' + event.origin, this.getName());
             return;
         }
 
@@ -192,24 +236,24 @@ export class ProxyControlImpl implements IFrameProxyControl {
                 // validate proxy message
                 if (data.channel === null || data.channel === '') {
                     this.bus.logger.warn(
-                        'Proxy Message invalid - ignored. No channel supplied', 'MessageProxy');
+                        'Proxy Message invalid - ignored. No channel supplied', this.getName());
                     return;
                 }
                 if (data.type === null || data.type === '') {
                     this.bus.logger.warn(
-                        'Proxy Message invalid - ignored. No message type supplied', 'MessageProxy');
+                        'Proxy Message invalid - ignored. No message type supplied', this.getName());
                     return;
                 }
                 if (data.payload === null || data.payload === '') {
                     this.bus.logger.warn(
-                        'Proxy Message invalid - ignored. Payload is empty', 'MessageProxy');
+                        'Proxy Message invalid - ignored. Payload is empty', this.getName());
                     return;
                 }
 
                 // looks like the message is valid, lets check the channel for authorization.
                 if (!this.validateChannel(data.channel)) {
                     this.bus.logger.warn(
-                        'Proxy Message valid, but channel is not authorized: [' + data.channel + ']', 'MessageProxy');
+                        'Proxy Message valid, but channel is not authorized: [' + data.channel + ']', this.getName());
                     return;
                 } else {
 
@@ -220,7 +264,7 @@ export class ProxyControlImpl implements IFrameProxyControl {
 
             } else {
                 this.bus.logger.debug(
-                    'Message Ignored, not intended for the bus.', 'MessageProxy');
+                    'Message Ignored, not intended for the bus.', this.getName());
                 this.bus.logger.group(LogLevel.Info, '📦 Message Payload (Ignored)');
                 this.bus.logger.debug(LogUtil.pretty(data));
                 this.bus.logger.groupEnd(LogLevel.Info);
@@ -229,7 +273,7 @@ export class ProxyControlImpl implements IFrameProxyControl {
         } else {
 
             this.bus.logger.debug(
-                'Message Ignored, it contains no payload', 'MessageProxy');
+                'Message Ignored, it contains no payload', this.getName());
             return;
 
         }
@@ -240,17 +284,27 @@ export class ProxyControlImpl implements IFrameProxyControl {
     }
 
     private proxyMessage(message: BusProxyMessage, origin: string): void {
+        let msg: Message;
         switch (message.type) {
             case MessageType.MessageTypeRequest:
-                this.bus.sendRequestMessage(message.channel, message.payload, 'MessageProxy-' + origin);
+
+                // build a message manually and set the proxy rebroadcast flag.
+                msg = new Message().request(message.payload);
+                msg.proxyRebroadcast = true; // this will prevent the messge from being re-picked up by the proxy.
+                this.bus.api.send(message.channel, msg, this.getName() + '-' + origin)
                 break;
 
             case MessageType.MessageTypeResponse:
-                this.bus.sendResponseMessage(message.channel, message.payload, 'MessageProxy-' + origin);
+
+                msg = new Message().response(message.payload);
+                msg.proxyRebroadcast = true; // this will prevent the messge from being re-picked up by the proxy.
+                this.bus.api.send(message.channel, msg, this.getName() + '-' + origin)
                 break;
 
             case MessageType.MessageTypeError:
-                this.bus.sendErrorMessage(message.channel, message.payload, 'MessageProxy-' + origin);
+                msg = new Message().error(message.payload);
+                msg.proxyRebroadcast = true; // this will prevent the messge from being re-picked up by the proxy.
+                this.bus.api.send(message.channel, msg, this.getName() + '-' + origin)
                 break;
 
         }
@@ -332,5 +386,11 @@ export class ProxyControlImpl implements IFrameProxyControl {
         return this.listening;
     }
 
+    getParentOrigin(): string {
+        return this.parentOriginValue;
+    }
 
+    setParentOrigin(origin: string): void {
+        this.parentOriginValue = origin;
+    }
 }

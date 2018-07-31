@@ -22,6 +22,8 @@ export interface IFrameProxyControl {
     getAuthorizedChannels(): ChannelName[];
     addAuthorizedChannel(channel: ChannelName): void;
     removeAuthorizedChannel(channel: ChannelName): void;
+    getParentOrigin(): string;
+    setParentOrigin(origin: string): void;
 
 }
 
@@ -50,7 +52,8 @@ export enum ProxyType {
 }
 
 export interface MessageProxyConfig {
-    targetOrigin: string[];
+    parentOrigin: string;
+    acceptedOrigins: string[];
     targetAllFrames: boolean;
     targetSpecificFrames: string[];
     protectedChannels: string[];

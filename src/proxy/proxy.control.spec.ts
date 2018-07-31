@@ -6,8 +6,9 @@ import { EventBus, MessageType } from '../bus.api';
 import { Logger, LogLevel } from '../log';
 import { BusTestUtil } from '../util/test.util';
 import { BusProxyMessage, IFrameProxyControl, ProxyType } from './message.proxy';
+import { Message } from '../bus';
 
-describe('Proxy Controls [proxy/proxy.control.ts]', () => {
+fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     let bus: EventBus;
     let log: Logger;
@@ -26,7 +27,8 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: ['auth-chan1'],
             proxyType: ProxyType.Parent,
-            targetOrigin: ['http://somewhere.out.there'],
+            parentOrigin: 'http://localhost',
+            acceptedOrigins: ['http://somewhere.out.there'],
             targetAllFrames: true,
             targetSpecificFrames: null
         });
@@ -42,15 +44,16 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
     it('Check proxy can handle no config being supplied.', () => {
         spyOn(log, 'error').and.callThrough();
         bus.enableMessageProxy(null);
-        expect(log.error).toHaveBeenCalledWith('Message Proxy cannot start. No configuration has been set.', 'MessageProxy');
+        expect(log.error).toHaveBeenCalledWith('Message Proxy cannot start. No configuration has been set.', 'ProxyControl');
 
     });
 
     it('Check config works with and without targeted frames.', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: null,
+            parentOrigin: null,
             proxyType: null,
-            targetOrigin: null,
+            acceptedOrigins: null,
             targetAllFrames: false,
             targetSpecificFrames: ['frame1', 'frame2']
         });
@@ -61,9 +64,10 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     it('Check config works with and without protected channels.', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
-            protectedChannels: ['chan1','chan2'],
+            protectedChannels: ['chan1', 'chan2'],
             proxyType: null,
-            targetOrigin: null,
+            parentOrigin: null,
+            acceptedOrigins: null,
             targetAllFrames: false,
             targetSpecificFrames: null
         });
@@ -76,10 +80,16 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: ['auth-chan1'],
             proxyType: ProxyType.Parent,
-            targetOrigin: ['http://space.dogs'],
+            parentOrigin: 'http://melody.baby',
+            acceptedOrigins: ['http://space.dogs'],
             targetAllFrames: false,
             targetSpecificFrames: null
         });
+
+        expect(control.getParentOrigin()).toEqual('http://melody.baby');
+        control.setParentOrigin('http://puppy.time');
+
+        expect(control.getParentOrigin()).toEqual('http://puppy.time');
 
         // check listening
         control.stopListening();
@@ -145,8 +155,9 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
     it('Check dynamic configuration edge cases: allowed origins', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: null,
+            parentOrigin: null,
             proxyType: null,
-            targetOrigin: null,
+            acceptedOrigins: null,
             targetAllFrames: false,
             targetSpecificFrames: null
         });
@@ -172,7 +183,8 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: null,
             proxyType: null,
-            targetOrigin: null,
+            parentOrigin: null,
+            acceptedOrigins: null,
             targetAllFrames: false,
             targetSpecificFrames: null
         });
@@ -195,7 +207,8 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: null,
             proxyType: ProxyType.Parent,
-            targetOrigin: null,
+            acceptedOrigins: null,
+            parentOrigin: null,
             targetAllFrames: false,
             targetSpecificFrames: null
         });
@@ -209,7 +222,8 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: null,
             proxyType: ProxyType.Child,
-            targetOrigin: null,
+            acceptedOrigins: null,
+            parentOrigin: null,
             targetAllFrames: false,
             targetSpecificFrames: null
         });
@@ -222,7 +236,8 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: null,
             proxyType: ProxyType.Hybrid,
-            targetOrigin: null,
+            acceptedOrigins: null,
+            parentOrigin: null,
             targetAllFrames: false,
             targetSpecificFrames: null
         });
@@ -235,7 +250,8 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: null,
             proxyType: null,
-            targetOrigin: null,
+            acceptedOrigins: null,
+            parentOrigin: null,
             targetAllFrames: false,
             targetSpecificFrames: null
         });
@@ -270,14 +286,15 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.enableMessageProxy({
                 protectedChannels: ['auth-chan1'],
                 proxyType: ProxyType.Parent,
-                targetOrigin: ['http://something.else'], // not what will come through
+                acceptedOrigins: ['http://something.else'], // not what will come through
                 targetAllFrames: true,
+                parentOrigin: null,
                 targetSpecificFrames: null
             });
 
             bus.api.tickEventLoop(
                 () => {
-                    window.postMessage('hello melody!','*'); // send message, origin is local karma
+                    window.postMessage('hello melody!', '*'); // send message, origin is local karma
                 }
             );
 
@@ -285,9 +302,9 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 () => {
                     expect(log.warn)
                         .toHaveBeenCalledWith('Message refused, origin not registered: http://localhost:9876'
-                            , 'MessageProxy');
+                            , 'ProxyControl');
                     done();
-                },5
+                }, 5
             );
         });
 
@@ -297,23 +314,24 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.enableMessageProxy({
                 protectedChannels: ['auth-chan1'],
                 proxyType: ProxyType.Parent,
-                targetOrigin: ['http://localhost:9876'], // local karma
+                acceptedOrigins: ['http://localhost:9876'], // local karma
                 targetAllFrames: true,
+                parentOrigin: null,
                 targetSpecificFrames: null
             });
 
             bus.api.tickEventLoop(
                 () => {
-                    window.postMessage('hello melody!','*'); // send message, origin is local karma
+                    window.postMessage('hello melody!', '*'); // send message, origin is local karma
                 }
             );
 
             bus.api.tickEventLoop(
                 () => {
                     expect(log.debug)
-                        .toHaveBeenCalledWith('Message Ignored, not intended for the bus.', 'MessageProxy');
+                        .toHaveBeenCalledWith('Message Ignored, not intended for the bus.', 'ProxyControl');
                     done();
-                },5
+                }, 5
             );
         });
 
@@ -323,23 +341,24 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.enableMessageProxy({
                 protectedChannels: ['auth-chan1'],
                 proxyType: ProxyType.Parent,
-                targetOrigin: ['http://localhost:9876'], // local karma
+                acceptedOrigins: ['http://localhost:9876'], // local karma
                 targetAllFrames: true,
+                parentOrigin: null,
                 targetSpecificFrames: null
             });
 
             bus.api.tickEventLoop(
                 () => {
-                    window.postMessage({ data: 'hi fox!'},'*'); // send message, origin is local karma
+                    window.postMessage({data: 'hi fox!'}, '*'); // send message, origin is local karma
                 }
             );
 
             bus.api.tickEventLoop(
                 () => {
                     expect(log.debug)
-                        .toHaveBeenCalledWith('Message Ignored, not intended for the bus.', 'MessageProxy');
+                        .toHaveBeenCalledWith('Message Ignored, not intended for the bus.', 'ProxyControl');
                     done();
-                },5
+                }, 5
             );
         });
 
@@ -349,23 +368,24 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.enableMessageProxy({
                 protectedChannels: ['auth-chan1'],
                 proxyType: ProxyType.Parent,
-                targetOrigin: ['http://localhost:9876'], // local karma
+                acceptedOrigins: ['http://localhost:9876'], // local karma
                 targetAllFrames: true,
+                parentOrigin: null,
                 targetSpecificFrames: null
             });
 
             bus.api.tickEventLoop(
                 () => {
-                    window.postMessage('','*'); // send message, origin is local karma
+                    window.postMessage('', '*'); // send message, origin is local karma
                 }
             );
 
             bus.api.tickEventLoop(
                 () => {
                     expect(bus.logger.debug)
-                        .toHaveBeenCalledWith('Message Ignored, it contains no payload', 'MessageProxy');
+                        .toHaveBeenCalledWith('Message Ignored, it contains no payload', 'ProxyControl');
                     done();
-                },5
+                }, 5
             );
         });
 
@@ -376,8 +396,9 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.enableMessageProxy({
                 protectedChannels: ['auth-chan1'],
                 proxyType: ProxyType.Parent,
-                targetOrigin: ['http://localhost:9876'], // local karma
+                acceptedOrigins: ['http://localhost:9876'], // local karma
                 targetAllFrames: true,
+                parentOrigin: null,
                 targetSpecificFrames: null
             });
 
@@ -386,16 +407,16 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
                     const invalidProxyMessage =
                         new BusProxyMessage('time for a walk, pups', '', MessageType.MessageTypeRequest);
-                    window.postMessage(invalidProxyMessage,'*', ); // send message, origin is local karma
+                    window.postMessage(invalidProxyMessage, '*',); // send message, origin is local karma
                 }
             );
 
             bus.api.tickEventLoop(
                 () => {
                     expect(bus.logger.warn)
-                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. No channel supplied', 'MessageProxy');
+                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. No channel supplied', 'ProxyControl');
                     done();
-                },5
+                }, 5
             );
         });
 
@@ -405,8 +426,9 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.enableMessageProxy({
                 protectedChannels: ['auth-chan1'],
                 proxyType: ProxyType.Parent,
-                targetOrigin: ['http://localhost:9876'], // local karma
+                acceptedOrigins: ['http://localhost:9876'], // local karma
                 targetAllFrames: true,
+                parentOrigin: null,
                 targetSpecificFrames: null
             });
 
@@ -415,16 +437,16 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
                     const invalidProxyMessage =
                         new BusProxyMessage('who wants a treat?', 'somechan', null);
-                    window.postMessage(invalidProxyMessage,'*', ); // send message, origin is local karma
+                    window.postMessage(invalidProxyMessage, '*',); // send message, origin is local karma
                 },
             );
 
             bus.api.tickEventLoop(
                 () => {
                     expect(bus.logger.warn)
-                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. No message type supplied', 'MessageProxy');
+                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. No message type supplied', 'ProxyControl');
                     done();
-                },5
+                }, 5
             );
         });
 
@@ -434,8 +456,9 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.enableMessageProxy({
                 protectedChannels: ['auth-chan1'],
                 proxyType: ProxyType.Parent,
-                targetOrigin: ['http://localhost:9876'], // local karma
+                acceptedOrigins: ['http://localhost:9876'], // local karma
                 targetAllFrames: true,
+                parentOrigin: null,
                 targetSpecificFrames: null
             });
 
@@ -443,17 +466,17 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 () => {
 
                     const invalidProxyMessage =
-                        new BusProxyMessage('', 'somechan',  MessageType.MessageTypeRequest);
-                    window.postMessage(invalidProxyMessage,'*', ); // send message, origin is local karma
+                        new BusProxyMessage('', 'somechan', MessageType.MessageTypeRequest);
+                    window.postMessage(invalidProxyMessage, '*',); // send message, origin is local karma
                 }
             );
 
             bus.api.tickEventLoop(
                 () => {
                     expect(bus.logger.warn)
-                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. Payload is empty', 'MessageProxy');
+                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. Payload is empty', 'ProxyControl');
                     done();
-                },5
+                }, 5
             );
         });
 
@@ -463,8 +486,9 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.enableMessageProxy({
                 protectedChannels: ['auth-chan1'],
                 proxyType: ProxyType.Parent,
-                targetOrigin: ['http://localhost:9876'], // local karma
+                acceptedOrigins: ['http://localhost:9876'], // local karma
                 targetAllFrames: true,
+                parentOrigin: null,
                 targetSpecificFrames: null
             });
 
@@ -472,17 +496,17 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 () => {
 
                     const invalidProxyMessage =
-                        new BusProxyMessage(null, 'somechan',  MessageType.MessageTypeRequest);
-                    window.postMessage(invalidProxyMessage,'*', ); // send message, origin is local karma
+                        new BusProxyMessage(null, 'somechan', MessageType.MessageTypeRequest);
+                    window.postMessage(invalidProxyMessage, '*',); // send message, origin is local karma
                 }
             );
 
             bus.api.tickEventLoop(
                 () => {
                     expect(bus.logger.warn)
-                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. Payload is empty', 'MessageProxy');
+                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. Payload is empty', 'ProxyControl');
                     done();
-                },5
+                }, 5
             );
         });
 
@@ -492,8 +516,9 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.enableMessageProxy({
                 protectedChannels: ['auth-chan1'],
                 proxyType: ProxyType.Parent,
-                targetOrigin: ['http://localhost:9876'], // local karma
+                acceptedOrigins: ['http://localhost:9876'], // local karma
                 targetAllFrames: true,
+                parentOrigin: null,
                 targetSpecificFrames: null
             });
 
@@ -501,17 +526,17 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 () => {
 
                     const invalidProxyMessage =
-                        new BusProxyMessage('mr. hacker', 'somechan',  MessageType.MessageTypeRequest);
-                    window.postMessage(invalidProxyMessage,'*', ); // send message, origin is local karma
+                        new BusProxyMessage('mr. hacker', 'somechan', MessageType.MessageTypeRequest);
+                    window.postMessage(invalidProxyMessage, '*',); // send message, origin is local karma
                 }
             );
 
             bus.api.tickEventLoop(
                 () => {
                     expect(bus.logger.warn)
-                        .toHaveBeenCalledWith('Proxy Message valid, but channel is not authorized: [somechan]', 'MessageProxy');
+                        .toHaveBeenCalledWith('Proxy Message valid, but channel is not authorized: [somechan]', 'ProxyControl');
                     done();
-                },5
+                }, 5
             );
         });
     });
@@ -539,8 +564,9 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.enableMessageProxy({
                 protectedChannels: ['ember-radio'],
                 proxyType: ProxyType.Parent,
-                targetOrigin: ['http://localhost:9876'], // local karma
+                acceptedOrigins: ['http://localhost:9876'], // local karma
                 targetAllFrames: true,
+                parentOrigin: null,
                 targetSpecificFrames: null
             });
 
@@ -568,8 +594,9 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.enableMessageProxy({
                 protectedChannels: ['melody-radio'],
                 proxyType: ProxyType.Parent,
-                targetOrigin: ['http://localhost:9876'], // local karma
+                acceptedOrigins: ['http://localhost:9876'], // local karma
                 targetAllFrames: true,
+                parentOrigin: null,
                 targetSpecificFrames: null
             });
 
@@ -584,7 +611,6 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
         });
 
         it('If a valid error message is received for an authorized channel, it is proxied.', (done) => {
-
             bus.listenStream('melody-cry')
                 .handle(
                     () => {
@@ -600,8 +626,9 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.enableMessageProxy({
                 protectedChannels: ['melody-cry'],
                 proxyType: ProxyType.Parent,
-                targetOrigin: ['http://localhost:9876'], // local karma
+                acceptedOrigins: ['http://localhost:9876'], // local karma
                 targetAllFrames: true,
+                parentOrigin: null,
                 targetSpecificFrames: null
             });
 
@@ -614,5 +641,59 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 }
             );
         });
+
+        it('If operating in parent mode and there are iframes in the dom, proxy should proxy.', (done) => {
+
+            // inject a frame into to the dom.
+            const frame1 = document.createElement('iframe');
+            const frame2 = document.createElement('iframe');
+            document.body.appendChild(frame1);
+            document.body.appendChild(frame2);
+            const frames: any = window.frames;
+
+            expect(frames.length).toEqual(2);
+
+            let completeCount = 0;
+            const frameHandler = (evt: MessageEvent) => {
+                const proxyMessage: BusProxyMessage = evt.data;
+                const message: string = proxyMessage.payload;
+                expect(message).toEqual('milk-time');
+                completeCount++;
+            }
+
+            // check the frame got the
+            frames[0].addEventListener('message',frameHandler, {capture: true});
+            frames[1].addEventListener('message',frameHandler, {capture: true});
+
+            bus.listenRequestStream('melody-happy')
+                .handle(
+                    (payload: string) => {
+                        expect(payload).toEqual('milk-time');
+                    },
+                );
+
+
+            bus.enableMessageProxy({
+                protectedChannels: ['melody-happy'],
+                proxyType: ProxyType.Parent,
+                acceptedOrigins: ['http://localhost:9876'], // local karma
+                targetAllFrames: true,
+                parentOrigin: 'http://localhost:9876',
+                targetSpecificFrames: null
+            });
+
+            bus.sendRequestMessage('melody-happy', 'milk-time');
+
+            bus.api.tickEventLoop(
+                () => {
+                    expect(completeCount).toEqual(2);
+                    done();
+                },10
+            )
+
+
+
+        });
+
     });
 });

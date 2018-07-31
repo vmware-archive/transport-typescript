@@ -73,7 +73,7 @@ module.exports = function (config) {
         // how many browser should be started simultaneous
         concurrency: Infinity,
 
-        browserNoActivityTimeout: 10000
+        browserNoActivityTimeout: 9999999
     });
 };
   
