@@ -7,7 +7,7 @@ import { Logger, LogLevel } from '../log';
 import { BusTestUtil } from '../util/test.util';
 import { BusProxyMessage, IFrameProxyControl, ProxyType } from './message.proxy';
 
-fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
+describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     let bus: EventBus;
     let log: Logger;
@@ -91,6 +91,10 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
         expect(control.getParentOrigin()).toEqual('http://puppy.time');
 
         // check listening
+        control.stopListening();
+        expect(control.isListening()).toBeFalsy();
+
+        // re-check listening
         control.stopListening();
         expect(control.isListening()).toBeFalsy();
 

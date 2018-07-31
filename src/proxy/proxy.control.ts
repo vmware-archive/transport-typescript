@@ -15,7 +15,7 @@ const domWindow: any = window;
 export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
     getName(): string {
-        return "ProxyControl";
+        return 'ProxyControl';
     }
 
     /**
@@ -134,6 +134,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                     break;
 
                 case ProxyType.Hybrid:
+                    // TODO: Build clean chaining mechanism for handling nested operations.
                     break;
 
                 default:
@@ -201,10 +202,9 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
             `Authorized message received on: [${chan}], sending to parent frame`, this.getName());
 
         const proxyMessage: BusProxyMessage = new BusProxyMessage(message.payload, chan, message.type);
-        domWindow.parent.postMessage(proxyMessage, this.parentOriginValue)
+        domWindow.parent.postMessage(proxyMessage, this.parentOriginValue);
 
     }
-
 
     private sendMessageToChildFrames(message: Message, chan: ChannelName): void {
         this.bus.logger.debug(
@@ -228,7 +228,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
             for (let frameId of this.targetedFrames) {
                 const frame = domWindow.document.getElementById(frameId).contentWindow;
                 if (frame) {
-                    frame.postMessage(proxyMessage, this.parentOriginValue)
+                    frame.postMessage(proxyMessage, this.parentOriginValue);
                 }
             }
         }
@@ -315,20 +315,20 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                 // build a message manually and set the proxy rebroadcast flag.
                 msg = new Message().request(message.payload);
                 msg.proxyRebroadcast = true; // this will prevent the messge from being re-picked up by the proxy.
-                this.bus.api.send(message.channel, msg, this.getName() + '-' + origin)
+                this.bus.api.send(message.channel, msg, this.getName() + '-' + origin);
                 break;
 
             case MessageType.MessageTypeResponse:
 
                 msg = new Message().response(message.payload);
                 msg.proxyRebroadcast = true; // this will prevent the messge from being re-picked up by the proxy.
-                this.bus.api.send(message.channel, msg, this.getName() + '-' + origin)
+                this.bus.api.send(message.channel, msg, this.getName() + '-' + origin);
                 break;
 
             case MessageType.MessageTypeError:
                 msg = new Message().error(message.payload);
                 msg.proxyRebroadcast = true; // this will prevent the messge from being re-picked up by the proxy.
-                this.bus.api.send(message.channel, msg, this.getName() + '-' + origin)
+                this.bus.api.send(message.channel, msg, this.getName() + '-' + origin);
                 break;
 
         }
@@ -340,7 +340,11 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
 
     stopListening(): void {
-        this.listening = false;
+        if (this.listening) {
+            this.listening = false;
+            this.monitorSubscription.unsubscribe();
+            domWindow.removeEventListener('message', this.postMessageEventHandlerBinding);
+        }
     }
 
     targetAllFrames(allFrames: boolean): void {

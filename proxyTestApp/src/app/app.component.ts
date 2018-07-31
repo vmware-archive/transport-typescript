@@ -19,12 +19,24 @@ export class AppComponent {
     constructor() {
         this.bus = BusUtil.getBusInstance();
         this.bus.enableMessageProxy({
-            protectedChannels: ['auth-chan1'],
+            protectedChannels: ['chan1', 'chan2', 'chan3'],
             proxyType: ProxyType.Parent,
-            targetOrigin: ['http://localhost:4200'],
+            parentOrigin: 'http://localhost:4200',
+            acceptedOrigins: ['http://localhost:4200'],
             targetAllFrames: true,
             targetSpecificFrames: null,
         })
     }
 
 }
+
+
+/*
+
+  parentOrigin: string;
+    acceptedOrigins: string[];
+    targetAllFrames: boolean;
+    targetSpecificFrames: string[];
+    protectedChannels: string[];
+    proxyType: ProxyType;
+ */

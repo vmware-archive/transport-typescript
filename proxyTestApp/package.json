@@ -20,10 +20,14 @@
     "@angular/platform-browser": "^6.0.3",
     "@angular/platform-browser-dynamic": "^6.0.3",
     "@angular/router": "^6.0.3",
+    "@clr/angular": "^0.12.6",
     "@vmw/bifrost": "^0.8.2",
     "core-js": "^2.5.4",
     "rxjs": "^6.0.0",
-    "zone.js": "^0.8.26"
+    "zone.js": "^0.8.26",
+    "@clr/ui": "^0.12.6",
+    "@clr/icons": "^0.12.6",
+    "@webcomponents/custom-elements": "^1.0.0"
   },
   "devDependencies": {
     "@angular/compiler-cli": "^6.0.3",
