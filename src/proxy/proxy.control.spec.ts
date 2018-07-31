@@ -7,7 +7,7 @@ import { Logger, LogLevel } from '../log';
 import { BusTestUtil } from '../util/test.util';
 import { BusProxyMessage, IFrameProxyControl, ProxyType } from './message.proxy';
 
-fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
+describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     let bus: EventBus;
     let log: Logger;
@@ -512,6 +512,106 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
                         .toHaveBeenCalledWith('Proxy Message valid, but channel is not authorized: [somechan]', 'MessageProxy');
                     done();
                 },5
+            );
+        });
+    });
+
+    describe('Parent Proxying Behaviors', () => {
+
+        beforeEach(
+            () => {
+                bus = BusTestUtil.bootBusWithOptions(LogLevel.Debug, true);
+                bus.api.logger().silent(true);
+                log = bus.api.logger();
+            }
+        );
+
+        it('If a valid request message is received for an authorized channel, it is proxied.', (done) => {
+
+            bus.listenRequestStream('ember-radio')
+                .handle(
+                    (payload: string) => {
+                        expect(payload).toEqual('is it dinner time?');
+                        done();
+                    }
+                );
+
+            bus.enableMessageProxy({
+                protectedChannels: ['ember-radio'],
+                proxyType: ProxyType.Parent,
+                targetOrigin: ['http://localhost:9876'], // local karma
+                targetAllFrames: true,
+                targetSpecificFrames: null
+            });
+
+            bus.api.tickEventLoop(
+                () => {
+
+                    const validProxyMessage =
+                        new BusProxyMessage('is it dinner time?', 'ember-radio', MessageType.MessageTypeRequest);
+                    window.postMessage(validProxyMessage, '*'); // send message, origin is local karma
+                }
+            );
+
+        });
+
+        it('If a valid response message is received for an authorized channel, it is proxied.', (done) => {
+
+            bus.listenStream('melody-radio')
+                .handle(
+                    (payload: string) => {
+                        expect(payload).toEqual('can I get some more milk?');
+                        done();
+                    }
+                );
+
+            bus.enableMessageProxy({
+                protectedChannels: ['melody-radio'],
+                proxyType: ProxyType.Parent,
+                targetOrigin: ['http://localhost:9876'], // local karma
+                targetAllFrames: true,
+                targetSpecificFrames: null
+            });
+
+            bus.api.tickEventLoop(
+                () => {
+
+                    const validProxyMessage =
+                        new BusProxyMessage('can I get some more milk?', 'melody-radio', MessageType.MessageTypeResponse);
+                    window.postMessage(validProxyMessage, '*'); // send message, origin is local karma
+                }
+            );
+        });
+
+        it('If a valid error message is received for an authorized channel, it is proxied.', (done) => {
+
+            bus.listenStream('melody-cry')
+                .handle(
+                    () => {
+                        // if we end up in here, something's gone wrong.
+                        expect(false).toBeTruthy();
+                    },
+                    (payload: string) => {
+                        expect(payload).toEqual('I need to be changed');
+                        done();
+                    }
+                );
+
+            bus.enableMessageProxy({
+                protectedChannels: ['melody-cry'],
+                proxyType: ProxyType.Parent,
+                targetOrigin: ['http://localhost:9876'], // local karma
+                targetAllFrames: true,
+                targetSpecificFrames: null
+            });
+
+            bus.api.tickEventLoop(
+                () => {
+
+                    const validProxyMessage =
+                        new BusProxyMessage('I need to be changed', 'melody-cry', MessageType.MessageTypeError);
+                    window.postMessage(validProxyMessage, '*'); // send message, origin is local karma
+                }
             );
         });
     });

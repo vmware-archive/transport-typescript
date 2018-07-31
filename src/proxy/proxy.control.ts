@@ -4,14 +4,20 @@
 import { MessageProxyConfig, IFrameProxyControl, ProxyType, BusProxyMessage } from './message.proxy';
 import { LogLevel } from '../log/logger.model';
 import { LogUtil } from '../log/util';
-import { ChannelName, EventBus, MessageType } from '../bus.api';
+import { ChannelName, EventBus, MessageHandler, MessageType } from '../bus.api';
+import { Message } from '../bus';
+import { Observable } from 'rxjs';
+import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
+import { StompClient } from '../bridge/stomp.client';
+import { StompValidator } from '../bridge/stomp.validator';
+import { Subscription } from 'rxjs/internal/Subscription';
 
 export class ProxyControlImpl implements IFrameProxyControl {
 
     /**
      * Handle inbound postMessage events.
      */
-    private parentEventHandlerBinding: EventListenerObject;
+    private postMessageEventHandlerBinding: EventListenerObject;
 
 
     /**
@@ -41,6 +47,10 @@ export class ProxyControlImpl implements IFrameProxyControl {
      * internal channels, not intended to be exposed.
      */
     private authorizedChannels: ChannelName[];
+
+    private monitorChannel: Observable<Message>;
+    private monitorSubscription: Subscription;
+
 
     /**
      * Type of proxy operating.
@@ -88,23 +98,26 @@ export class ProxyControlImpl implements IFrameProxyControl {
                 'Message Proxy cannot start. No configuration has been set.', 'MessageProxy');
             return;
         }
+
+        // connect to monitor;
+        this.monitorChannel = this.bus.api.getChannel(MonitorChannel.stream);
         this.listen();
 
     }
 
-
     listen(): void {
         if (this.enabled && !this.listening) {
             this.listening = true;
+            this.postMessageEventHandlerBinding = this.parentEventHandler.bind(this);
+
             switch (this.config.proxyType) {
                 case ProxyType.Parent:
-
-                    this.parentEventHandlerBinding = this.parentEventHandler.bind(this);
-                    window.addEventListener('message', this.parentEventHandlerBinding, {capture: true});
+                    this.listenForPostMessageEvents();
+                    this.relayMessagesToChildren();
                     break;
 
                 case ProxyType.Child:
-                    // do something
+                    this.listenForPostMessageEvents();
                     break;
 
                 case ProxyType.Hybrid:
@@ -115,6 +128,44 @@ export class ProxyControlImpl implements IFrameProxyControl {
             }
         }
     }
+
+    private listenForPostMessageEvents(): void {
+        window.addEventListener('message', this.postMessageEventHandlerBinding, {capture: true});
+    }
+
+    private relayMessagesToChildren(): void {
+
+        // use the low level bus API's for this work.
+        this.monitorSubscription = this.monitorChannel.subscribe(
+            (message: Message) => {
+
+                let mo = message.payload as MonitorObject;
+                switch (mo.type) {
+                    case MonitorType.MonitorData:
+                        for (let chan of this.authorizedChannels) {
+                            if (mo.channel === chan) {
+                                this.sendMessageToChildFrames(message, chan);
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+
+            }
+        )
+
+
+    }
+
+    private sendMessageToChildFrames(message: Message, chan: ChannelName): void {
+        this.bus.logger.debug(
+            'Authorized message received on: [' + chan + '], sending to child frames', 'MessageProxy');
+        console.log('woooo');
+
+    }
+
 
     private parentEventHandler(event: MessageEvent): void {
 
