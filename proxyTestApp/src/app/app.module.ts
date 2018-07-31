@@ -8,11 +8,13 @@ import { RouterModule, Routes } from '@angular/router';
 import { ChildFrameAComponent } from './child-frame-a/child-frame-a.component';
 import { ChildFrameBComponent } from './child-frame-b/child-frame-b.component';
 import { ChildFrameCComponent } from './child-frame-c/child-frame-c.component';
+import { MainComponent } from './main/main.component';
 
 const appRoutes: Routes = [
     { path: 'frameA', component: ChildFrameAComponent },
     { path: 'frameB', component: ChildFrameBComponent },
     { path: 'frameC', component: ChildFrameCComponent },
+    { path: '', component: MainComponent },
 
 ];
 
@@ -22,7 +24,8 @@ const appRoutes: Routes = [
         AppComponent,
         ChildFrameAComponent,
         ChildFrameBComponent,
-        ChildFrameCComponent
+        ChildFrameCComponent,
+        MainComponent
     ],
     imports: [
         BrowserModule,
@@ -30,7 +33,7 @@ const appRoutes: Routes = [
         BrowserAnimationsModule,
         RouterModule.forRoot(
             appRoutes,
-            { enableTracing: true } // <-- debugging purposes only
+            { enableTracing: false}
         )
     ],
     providers: [],

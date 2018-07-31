@@ -14,19 +14,7 @@ BusUtil.bootBusWithOptions(LogLevel.Debug, false);
 export class AppComponent {
     title = 'app';
 
-    private bus: EventBus;
 
-    constructor() {
-        this.bus = BusUtil.getBusInstance();
-        this.bus.enableMessageProxy({
-            protectedChannels: ['chan1', 'chan2', 'chan3'],
-            proxyType: ProxyType.Parent,
-            parentOrigin: 'http://localhost:4200',
-            acceptedOrigins: ['http://localhost:4200'],
-            targetAllFrames: true,
-            targetSpecificFrames: null,
-        })
-    }
 
 }
 

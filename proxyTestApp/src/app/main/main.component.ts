@@ -1,15 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { EventBus, MessageHandler } from '@vmw/bifrost';
 import { BusUtil } from '@vmw/bifrost/util/bus.util';
-import { LogLevel } from '@vmw/bifrost/log';
+import { EventBus, MessageHandler } from '@vmw/bifrost';
 import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
+import { LogLevel } from '@vmw/bifrost/log';
 
 @Component({
-    selector: 'app-child-frame-b',
-    templateUrl: './child-frame-b.component.html',
-    styleUrls: ['./child-frame-b.component.css']
+    selector: 'app-main',
+    templateUrl: './main.component.html',
+    styleUrls: ['./main.component.css']
 })
-export class ChildFrameBComponent implements OnInit {
+export class MainComponent implements OnInit {
 
     private bus: EventBus;
     public generalChatMessages: string[];
@@ -26,10 +26,10 @@ export class ChildFrameBComponent implements OnInit {
 
         this.bus.enableMessageProxy({
             protectedChannels: ['general-chat', 'special-chat'],
-            proxyType: ProxyType.Child,
+            proxyType: ProxyType.Parent,
             parentOrigin: 'http://localhost:4200',
             acceptedOrigins: ['http://localhost:4200'],
-            targetAllFrames: false,
+            targetAllFrames: true,
             targetSpecificFrames: null,
         });
 
@@ -42,7 +42,7 @@ export class ChildFrameBComponent implements OnInit {
     }
 
     public saySomething() {
-        this.bus.sendResponseMessage('general-chat', 'Child B: Hi!');
+        this.bus.sendResponseMessage('general-chat','Parent: Hey Everyone!');
     }
 
 }
