@@ -6,7 +6,6 @@ import { EventBus, MessageType } from '../bus.api';
 import { Logger, LogLevel } from '../log';
 import { BusTestUtil } from '../util/test.util';
 import { BusProxyMessage, IFrameProxyControl, ProxyType } from './message.proxy';
-import { Message } from '../bus';
 
 fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
@@ -543,6 +542,8 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     describe('Parent Proxying Behaviors', () => {
 
+        let frame1: any, frame2: any, frame3: any;
+
         beforeEach(
             () => {
                 bus = BusTestUtil.bootBusWithOptions(LogLevel.Debug, true);
@@ -550,6 +551,20 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 log = bus.api.logger();
             }
         );
+
+        afterEach(
+            () => {
+                if(frame1) {
+                    frame1.remove();
+                }
+                if(frame2) {
+                    frame2.remove();
+                }
+                if(frame3) {
+                    frame3.remove();
+                }
+            }
+        )
 
         it('If a valid request message is received for an authorized channel, it is proxied.', (done) => {
 
@@ -642,11 +657,11 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             );
         });
 
-        it('If operating in parent mode and there are iframes in the dom, proxy should proxy.', (done) => {
+        it('If operating in parent mode and all frames are targeted, proxy should proxy.', (done) => {
 
             // inject a frame into to the dom.
-            const frame1 = document.createElement('iframe');
-            const frame2 = document.createElement('iframe');
+            frame1 = document.createElement('iframe');
+            frame2 = document.createElement('iframe');
             document.body.appendChild(frame1);
             document.body.appendChild(frame2);
             const frames: any = window.frames;
@@ -672,7 +687,6 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     },
                 );
 
-
             bus.enableMessageProxy({
                 protectedChannels: ['melody-happy'],
                 proxyType: ProxyType.Parent,
@@ -687,11 +701,108 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.api.tickEventLoop(
                 () => {
                     expect(completeCount).toEqual(2);
+                    // frame1.remove();
+                    // frame2.remove();
                     done();
                 },10
+            );
+        });
+
+        it('If operating in parent mode and there are select iframes in the dom, proxy should proxy.', (done) => {
+
+            // inject a frame into to the dom.
+            frame1 = document.createElement('iframe');
+            frame1.id = 'frame-1';
+            frame2 = document.createElement('iframe');
+            frame2.id = 'frame-2';
+            frame3 = document.createElement('iframe');
+            frame3.id = 'frame-3';
+
+            document.body.appendChild(frame1);
+            document.body.appendChild(frame2);
+            document.body.appendChild(frame3);
+            const frames: any = window.frames;
+
+            expect(frames.length).toEqual(3);
+
+            let completeCount = 0;
+            const frameHandler = (evt: MessageEvent) => {
+                const proxyMessage: BusProxyMessage = evt.data;
+                const message: string = proxyMessage.payload;
+                expect(proxyMessage.channel).toEqual('melody-sleepy');
+                expect(proxyMessage.type).toEqual(MessageType.MessageTypeRequest);
+                expect(message).toEqual('will we sleep?');
+                completeCount++;
+            }
+
+            // check the frame got the
+            frames[0].addEventListener('message',frameHandler, {capture: true});
+            frames[1].addEventListener('message',frameHandler, {capture: true});
+
+            bus.listenRequestStream('melody-sleepy')
+                .handle(
+                    (payload: string) => {
+                        expect(payload).toEqual('will we sleep?');
+                    },
+                );
+
+            bus.enableMessageProxy({
+                protectedChannels: ['melody-sleepy'],
+                proxyType: ProxyType.Parent,
+                acceptedOrigins: ['http://localhost:9876'], // local karma
+                targetAllFrames: false,
+                parentOrigin: 'http://localhost:9876',
+                targetSpecificFrames: ['frame-1', 'frame-2']
+            });
+
+            bus.sendRequestMessage('melody-sleepy', 'will we sleep?');
+
+            bus.api.tickEventLoop(
+                () => {
+                    expect(completeCount).toEqual(2); // three frames, two events.
+                    done();
+                },20
             )
 
+        });
 
+        it('If operating in child mode, check messages are proxied up correctly.', (done) => {
+
+            let complete: boolean = false;
+            const msgHandler = (evt: MessageEvent) => {
+                const proxyMessage: BusProxyMessage = evt.data;
+                const message: string = proxyMessage.payload;
+                expect(message).toEqual('giggles');
+                complete = true;
+            }
+
+            // karma runs in an iframe. so we have to hook into our parent frame.
+            window.parent.addEventListener('message', msgHandler, {capture: true});
+
+            bus.listenRequestStream('melody-tickles')
+                .handle(
+                    (payload: string) => {
+                        expect(payload).toEqual('giggles');
+                    },
+                );
+
+            bus.enableMessageProxy({
+                protectedChannels: ['melody-tickles'],
+                proxyType: ProxyType.Child,
+                acceptedOrigins: ['http://localhost:9876'], // local karma
+                targetAllFrames: true,
+                parentOrigin: 'http://localhost:9876',
+                targetSpecificFrames: null
+            });
+
+            bus.sendRequestMessage('melody-tickles', 'giggles');
+
+            bus.api.tickEventLoop(
+                () => {
+                    expect(complete).toBeTruthy();
+                    done();
+                },1000
+            )
 
         });
 

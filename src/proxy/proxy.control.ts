@@ -10,6 +10,8 @@ import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor
 import { Subscription } from 'rxjs/internal/Subscription';
 import { Message } from '../bus/model/message.model';
 
+const domWindow: any = window;
+
 export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
     getName(): string {
@@ -93,7 +95,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                 this.authorizedChannels = []; // don't want this empty either.
             }
 
-            if(config.parentOrigin) {
+            if (config.parentOrigin) {
                 this.parentOriginValue = config.parentOrigin;
             } else {
                 this.parentOriginValue = '*';
@@ -122,12 +124,13 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
             switch (this.config.proxyType) {
                 case ProxyType.Parent:
-                    this.listenForPostMessageEvents();
+                    this.listenForInboundMessageEvents();
                     this.relayMessagesToChildren();
                     break;
 
                 case ProxyType.Child:
-                    this.listenForPostMessageEvents();
+                    this.listenForInboundMessageEvents();
+                    this.relayMessagesToParent();
                     break;
 
                 case ProxyType.Hybrid:
@@ -139,8 +142,9 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         }
     }
 
-    private listenForPostMessageEvents(): void {
-        window.addEventListener('message', this.postMessageEventHandlerBinding, {capture: true});
+
+    private listenForInboundMessageEvents(): void {
+        domWindow.addEventListener('message', this.postMessageEventHandlerBinding, {capture: true});
     }
 
     private relayMessagesToChildren(): void {
@@ -164,50 +168,70 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                         break;
                 }
             }
-        )
+        );
+    }
 
+    private relayMessagesToParent(): void {
+
+        // use the low level bus API's for this work.
+        this.monitorSubscription = this.monitorChannel.subscribe(
+            (message: Message) => {
+
+                let mo = message.payload as MonitorObject;
+                switch (mo.type) {
+                    case MonitorType.MonitorData:
+
+                        // is this for an authorized channel?
+                        for (let chan of this.authorizedChannels) {
+                            if (mo.channel === chan && !mo.data.proxyRebroadcast) {
+                                this.sendMessageToParent(mo.data, chan);
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        );
 
     }
 
+    private sendMessageToParent(message: Message, chan: ChannelName): void {
+        this.bus.logger.debug(
+            `Authorized message received on: [${chan}], sending to parent frame`, this.getName());
+
+        const proxyMessage: BusProxyMessage = new BusProxyMessage(message.payload, chan, message.type);
+        domWindow.parent.postMessage(proxyMessage, this.parentOriginValue)
+
+    }
+
+
     private sendMessageToChildFrames(message: Message, chan: ChannelName): void {
         this.bus.logger.debug(
-            'Authorized message received on: [' + chan + '], sending to child frames', this.getName());
+            `Authorized message received on: [${chan}], sending to child frames`, this.getName());
 
-        const domWindow: any = window;
+
+        const proxyMessage: BusProxyMessage = new BusProxyMessage(message.payload, chan, message.type);
 
         // if targeting all frames, extract all frames on the page and post messages to them.
         if (this.targetAllFramesValue) {
             const frames: any = domWindow.frames;
             const frameCount = domWindow.frames.length;
-            const proxyMessage: BusProxyMessage = new BusProxyMessage(message.payload, chan, message.type);
-
-            //console.log(`there are ${frameCount} frames in the window`);
             if (frameCount > 0) {
-
-                for(let i = 0; i < frameCount; i++) {
-              //      console.log('sending to frame ', i);
+                for (let i = 0; i < frameCount; i++) {
                     frames[i].postMessage(proxyMessage, this.parentOriginValue);
                 }
-
             }
-
         }
 
-
-
-
-        /*
-        let myWindow: any = window;
-
-        if (myWindow.frames[myWindow.frames.length - 1]) {
-            console.log(`VmcUiToolkitImpl: Posting a message. Origin: ${this.acceptedOrigins}. Message: ${message}`);
-            myWindow.frames[myWindow.frames.length - 1].postMessage(message, this.acceptedOrigins);
-        } else {
-            console.error('no child window');
+        if (this.targetedFrames.length > 0) {
+            for (let frameId of this.targetedFrames) {
+                const frame = domWindow.document.getElementById(frameId).contentWindow;
+                if (frame) {
+                    frame.postMessage(proxyMessage, this.parentOriginValue)
+                }
+            }
         }
-         */
-
-
     }
 
 
