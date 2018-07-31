@@ -49,6 +49,7 @@ export class Message {
     private versionNumber: number;
     private mId: UUID;
     private sentFrom: SentFrom;
+    private proxyRebroadcastFlag: boolean = false;
 
     constructor(id?: UUID, version: number = 1) {
         this.mId = id;
@@ -112,5 +113,13 @@ export class Message {
 
     set sender(sender: SentFrom) {
         this.sentFrom = sender;
+    }
+
+    get proxyRebroadcast() {
+        return this.proxyRebroadcastFlag;
+    }
+
+    set proxyRebroadcast(flag: boolean) {
+        this.proxyRebroadcastFlag = flag;
     }
 }
