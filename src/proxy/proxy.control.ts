@@ -1,10 +1,10 @@
 /**
  * Copyright(c) VMware Inc. 2018
  */
-import { BusProxyMessage, MessageProxyConfig, IFrameProxyControl, ProxyType } from './message.proxy';
+import { MessageProxyConfig, IFrameProxyControl, ProxyType, BusProxyMessage } from './message.proxy';
 import { LogLevel } from '../log/logger.model';
 import { LogUtil } from '../log/util';
-import { ChannelName, EventBus } from '../bus.api';
+import { ChannelName, EventBus, MessageType } from '../bus.api';
 
 export class ProxyControlImpl implements IFrameProxyControl {
 
@@ -83,6 +83,10 @@ export class ProxyControlImpl implements IFrameProxyControl {
             if (config.proxyType) {
                 this.proxyType = config.proxyType;
             }
+        } else {
+            this.bus.logger.error(
+                'Message Proxy cannot start. No configuration has been set.', 'MessageProxy');
+            return;
         }
         this.listen();
 
@@ -132,25 +136,37 @@ export class ProxyControlImpl implements IFrameProxyControl {
         // check if the message contains a payload, and check if it is a serialized bus message.
         if (event.data && event.data !== '') {
             const data: any = event.data;
-            if (data instanceof BusProxyMessage) {
+            if (data.hasOwnProperty('channel') && data.hasOwnProperty('type') && data.hasOwnProperty('payload')) {
 
                 // validate proxy message
-                if (!data.channel) {
+                if (data.channel === null || data.channel === '') {
                     this.bus.logger.warn(
                         'Proxy Message invalid - ignored. No channel supplied', 'MessageProxy');
                     return;
                 }
-                if (!data.type) {
+                if (data.type === null || data.type === '') {
                     this.bus.logger.warn(
                         'Proxy Message invalid - ignored. No message type supplied', 'MessageProxy');
                     return;
                 }
-                if (!data.payload) {
+                if (data.payload === null || data.payload === '') {
                     this.bus.logger.warn(
                         'Proxy Message invalid - ignored. Payload is empty', 'MessageProxy');
                     return;
                 }
-                
+
+                // looks like the message is valid, lets check the channel for authorization.
+                if (!this.validateChannel(data.channel)) {
+                    this.bus.logger.warn(
+                        'Proxy Message valid, but channel is not authorized: [' + data.channel + ']', 'MessageProxy');
+                    return;
+                } else {
+
+                    // everything checks out! lets proxy!
+                    this.proxyMessage(data, event.origin);
+
+                }
+
             } else {
                 this.bus.logger.debug(
                     'Message Ignored, not intended for the bus.', 'MessageProxy');
@@ -164,6 +180,27 @@ export class ProxyControlImpl implements IFrameProxyControl {
             this.bus.logger.debug(
                 'Message Ignored, it contains no payload', 'MessageProxy');
             return;
+
+        }
+    }
+
+    private validateChannel(requestedChannel: ChannelName): boolean {
+        return this.authorizedChannels.includes(requestedChannel);
+    }
+
+    private proxyMessage(message: BusProxyMessage, origin: string): void {
+        switch (message.type) {
+            case MessageType.MessageTypeRequest:
+                this.bus.sendRequestMessage(message.channel, message.payload, 'MessageProxy-' + origin);
+                break;
+
+            case MessageType.MessageTypeResponse:
+                this.bus.sendResponseMessage(message.channel, message.payload, 'MessageProxy-' + origin);
+                break;
+
+            case MessageType.MessageTypeError:
+                this.bus.sendErrorMessage(message.channel, message.payload, 'MessageProxy-' + origin);
+                break;
 
         }
     }

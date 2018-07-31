@@ -28,9 +28,19 @@ export interface IFrameProxyControl {
 export type ProxyControl = IFrameProxyControl;
 
 export class BusProxyMessage {
-    payload: any;
-    channel: ChannelName;
-    type: MessageType;
+    public payload: any;
+    public channel: ChannelName;
+    public type: MessageType;
+
+    constructor(
+        payload: any,
+        channel: ChannelName,
+        type: MessageType) {
+
+        this.payload = payload;
+        this.channel = channel;
+        this.type = type;
+    }
 }
 
 export enum ProxyType {
