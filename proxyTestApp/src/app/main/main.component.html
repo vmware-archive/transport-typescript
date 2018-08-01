@@ -1,73 +1,75 @@
-<div class="main-container">
-  <header class="header-6">
-    <div class="branding">
-      <a href="#" >
-        <clr-icon shape="cloud-traffic"></clr-icon>
-        <span class="title">Bifröst Proxy App Sandbox</span>
-      </a>
-    </div>
-    <div class="header-nav">
-
-    </div>
-    <div class="header-actions">
-
-    </div>
-  </header>
-
-  <div class="content-container">
-    <div class="content-area">
-
-
-      <div class="clr-row">
-        <div class="clr-col-6">
-          <div id="avatar">
-            {{id}}
-          </div>
-          <button class="btn btn-primary" (click)="saySomething()">Speak Back</button>
-
+<clr-main-container>
+    <clr-header class="header-3">
+        <div class="branding">
+            <a href="#" class="logo">
+                <clr-icon shape="cloud-traffic"></clr-icon>
+                <span class="title">Bifröst EventProxy Demo</span>
+            </a>
         </div>
-        <div class="clr-col-6">
-          <div class="chat" *ngFor="let message of generalChatMessages">
-            {{ message }}
-          </div>
-        </div>
+    </clr-header>
 
-      </div>
-
-      <div class="clr-row">
-        <div class="clr-col-12">
-          <h3>Frame A</h3>
-          <iframe id="frame-a" src="/frameA">
-
-          </iframe>
-        </div>
-
-      </div>
-
-      <div class="clr-row">
-        <div class="clr-col-12">
-          <h3>Frame B</h3>
-          <iframe id="frame-b" src="/frameB">
-
-          </iframe>
-        </div>
-
-      </div>
+    <vmw-toast-container class="toast-container-7"
+                         [notifications]="notifications"
+                         [mode]="'dynamic'"
+                         [fadeOutDelayInMs]="2500">
+    </vmw-toast-container>
 
 
+    <div class="control-panel">
 
-
-
-
-
-
-
-
-
-
-
-
+            control panel.
 
     </div>
-  </div>
-</div>
+
+    <div class="frame-container">
+        <div class="frame1">
+
+            <div class="app-container">
+                <div class="chat-side">
+                    <div class="avatar">
+                        🦄
+                    </div>
+                    <h2>Sparkle</h2>
+                </div>
+
+                <div class="chat-main">
+                    <button class="btn btn-primary" (click)="saySomething()">Speak Back</button>
+
+                    <div class="chat-window">
+
+
+                    </div>
+
+                    <div class="chat-iput">
+
+
+                    </div>
+                </div>
+            </div>
+
+
+
+
+        </div>
+
+        <div class="frame2">
+            <iframe id="frame-a" src="/frameA" scrolling="no">
+
+            </iframe>
+        </div>
+
+        <div class="frame3">
+            <iframe id="frame-b" src="/frameB"  scrolling="no">
+
+            </iframe>
+        </div>
+
+
+        <div class="frame4">
+            <iframe id="frame-c" src="/frameC" scrolling="no">
+
+            </iframe>
+        </div>
+    </div>
+
+</clr-main-container>

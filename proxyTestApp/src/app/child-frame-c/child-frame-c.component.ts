@@ -1,15 +1,19 @@
 import { Component, OnInit } from '@angular/core';
+import { EventBus } from '@vmw/bifrost';
 
 @Component({
-  selector: 'app-child-frame-c',
-  templateUrl: './child-frame-c.component.html',
-  styleUrls: ['./child-frame-c.component.css']
+    selector: 'app-child-frame-c',
+    templateUrl: './child-frame-c.component.html',
+    styleUrls: ['./child-frame-c.component.css']
 })
 export class ChildFrameCComponent implements OnInit {
 
-  constructor() { }
+    public id = EventBus.id;
 
-  ngOnInit() {
-  }
+    constructor() {
+    }
+
+    ngOnInit() {
+    }
 
 }

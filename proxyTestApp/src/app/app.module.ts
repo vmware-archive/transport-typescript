@@ -9,6 +9,7 @@ import { ChildFrameAComponent } from './child-frame-a/child-frame-a.component';
 import { ChildFrameBComponent } from './child-frame-b/child-frame-b.component';
 import { ChildFrameCComponent } from './child-frame-c/child-frame-c.component';
 import { MainComponent } from './main/main.component';
+import { VmwComponentsModule } from '@vmw/ngx-components';
 
 const appRoutes: Routes = [
     { path: 'frameA', component: ChildFrameAComponent },
@@ -31,6 +32,7 @@ const appRoutes: Routes = [
         BrowserModule,
         ClarityModule,
         BrowserAnimationsModule,
+        VmwComponentsModule.forRoot(),
         RouterModule.forRoot(
             appRoutes,
             { enableTracing: false}

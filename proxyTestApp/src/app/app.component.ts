@@ -1,8 +1,6 @@
 import { Component } from '@angular/core';
 import { BusUtil } from '@vmw/bifrost/util/bus.util';
 import { LogLevel } from '@vmw/bifrost/log';
-import { EventBus } from '@vmw/bifrost';
-import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
 
 BusUtil.bootBusWithOptions(LogLevel.Debug, false);
 
@@ -14,17 +12,4 @@ BusUtil.bootBusWithOptions(LogLevel.Debug, false);
 export class AppComponent {
     title = 'app';
 
-
-
 }
-
-
-/*
-
-  parentOrigin: string;
-    acceptedOrigins: string[];
-    targetAllFrames: boolean;
-    targetSpecificFrames: string[];
-    protectedChannels: string[];
-    proxyType: ProxyType;
- */

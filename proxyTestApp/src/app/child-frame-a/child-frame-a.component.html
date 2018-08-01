@@ -1,19 +1,23 @@
-<div class="clr-row">
-    <div class="clr-col-4">
-        <div id="avatar">
+<div class="app-container">
+    <div class="chat-side">
+        <div class="avatar">
             🦄
         </div>
-        <button class="btn btn-primary" (click)="saySomething()">Speak</button>
-
+        <h2>Sparkle</h2>
     </div>
-    <div class="clr-col-8">
-        <div class="chat" *ngFor="let message of generalChatMessages">
-            {{ message }}
+
+    <div class="chat-main">
+
+        <div class="chat-window">
+            <div class="chat" *ngFor="let message of generalChatMessages">
+                {{ message }}
+            </div>
+
+        </div>
+
+        <div class="chat-iput">
+            <button class="btn btn-primary" (click)="saySomething()">Speak</button>
+
         </div>
     </div>
-
 </div>
-
-{{ id }}
-
-
