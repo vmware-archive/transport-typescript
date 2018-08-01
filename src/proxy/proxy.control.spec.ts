@@ -5,7 +5,7 @@
 import { EventBus, MessageType } from '../bus.api';
 import { Logger, LogLevel } from '../log';
 import { BusTestUtil } from '../util/test.util';
-import { BusProxyMessage, IFrameProxyControl, ProxyType } from './message.proxy';
+import { BusProxyMessage, IFrameProxyControl, ProxyControlPayload, ProxyType } from './message.proxy';
 
 describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
@@ -558,17 +558,17 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
         afterEach(
             () => {
-                if(frame1) {
+                if (frame1) {
                     frame1.remove();
                 }
-                if(frame2) {
+                if (frame2) {
                     frame2.remove();
                 }
-                if(frame3) {
+                if (frame3) {
                     frame3.remove();
                 }
             }
-        )
+        );
 
         it('If a valid request message is received for an authorized channel, it is proxied.', (done) => {
 
@@ -681,8 +681,8 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             }
 
             // check the frame got the
-            frames[0].addEventListener('message',frameHandler, {capture: true});
-            frames[1].addEventListener('message',frameHandler, {capture: true});
+            frames[0].addEventListener('message', frameHandler, {capture: true});
+            frames[1].addEventListener('message', frameHandler, {capture: true});
 
             bus.listenRequestStream('melody-happy')
                 .handle(
@@ -708,7 +708,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     // frame1.remove();
                     // frame2.remove();
                     done();
-                },10
+                }, 10
             );
         });
 
@@ -740,8 +740,8 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             }
 
             // check the frame got the
-            frames[0].addEventListener('message',frameHandler, {capture: true});
-            frames[1].addEventListener('message',frameHandler, {capture: true});
+            frames[0].addEventListener('message', frameHandler, {capture: true});
+            frames[1].addEventListener('message', frameHandler, {capture: true});
 
             bus.listenRequestStream('melody-sleepy')
                 .handle(
@@ -765,7 +765,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 () => {
                     expect(completeCount).toEqual(2); // three frames, two events.
                     done();
-                },20
+                }, 20
             )
 
         });
@@ -804,9 +804,143 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.api.tickEventLoop(
                 () => {
                     expect(complete).toBeTruthy();
+                    window.parent.removeEventListener('message', msgHandler);
                     done();
-                },1000
+                }, 1000
             )
+
+        });
+
+    });
+
+    fdescribe('Proxy Control Behaviors', () => {
+
+        beforeEach(
+            () => {
+                bus = BusTestUtil.bootBusWithOptions(LogLevel.Debug, true);
+                bus.api.logger().silent(true);
+                log = bus.api.logger();
+            }
+        );
+
+        it('Check child bus registration is captured and handled by parent', (done) => {
+
+            let complete: boolean = false;
+            const msgHandler = (evt: MessageEvent) => {
+                const proxyMessage: BusProxyMessage = evt.data;
+                window.postMessage(proxyMessage, '*');
+
+            }
+
+            // karma runs in an iframe. so we have to hook into our parent frame.
+            window.parent.addEventListener('message', msgHandler, {capture: true});
+
+
+            const control = bus.enableMessageProxy({
+                protectedChannels: ['melody-tickles'],
+                proxyType: ProxyType.Child,
+                acceptedOrigins: ['http://localhost:9876'], // local karma
+                targetAllFrames: true,
+                parentOrigin: 'http://localhost:9876',
+                targetSpecificFrames: null
+            });
+
+            bus.api.tickEventLoop(
+                () => {
+                    expect(control.getKnownBusInstances().size).toEqual(1);
+                    expect(control.getKnownBusInstances().get(EventBus.id).active).toBeTruthy();
+                    expect(control.getKnownBusInstances().get(EventBus.id).type).toEqual(ProxyType.Child);
+
+                    window.parent.removeEventListener('message', msgHandler);
+                    control.stopListening();
+
+                    done();
+                }, 10
+            )
+
+        });
+
+        it('Check child bus can chose to enable its state with parent', (done) => {
+
+            let complete: boolean = false;
+            const msgHandler = (evt: MessageEvent) => {
+                const proxyMessage: BusProxyMessage = evt.data;
+
+                // post a message to the window, because of Karma's iframe set up we need to manually perform this
+                window.postMessage(proxyMessage, '*');
+            };
+
+            // karma runs in an iframe. so we have to hook into our parent frame.
+            window.parent.addEventListener('message', msgHandler, {capture: true});
+
+            const control = bus.enableMessageProxy({
+                protectedChannels: ['melody-tickles'],
+                proxyType: ProxyType.Child,
+                acceptedOrigins: ['http://localhost:9876'], // local karma
+                targetAllFrames: true,
+                parentOrigin: 'http://localhost:9876',
+                targetSpecificFrames: null
+            });
+
+            bus.api.tickEventLoop(
+                () => {
+
+                    expect(control.getKnownBusInstances().size).toEqual(1);
+                    expect(control.getKnownBusInstances().get(EventBus.id).active).toBeTruthy();
+                    expect(control.getKnownBusInstances().get(EventBus.id).type).toEqual(ProxyType.Child);
+
+                    window.parent.removeEventListener('message', msgHandler);
+                    control.stopListening();
+                    done();
+
+                },10
+            );
+
+        });
+
+        it('Check child bus can chose to disable its state with parent', (done) => {
+
+            let complete: boolean = false;
+            const msgHandler = (evt: MessageEvent) => {
+                const proxyMessage: BusProxyMessage = evt.data;
+
+                // post a message to the window, because of Karma's iframe set up we need to manually perform this
+                window.postMessage(proxyMessage, '*');
+            };
+
+            // karma runs in an iframe. so we have to hook into our parent frame.
+            window.parent.addEventListener('message', msgHandler, {capture: true});
+
+            const control = bus.enableMessageProxy({
+                protectedChannels: ['melody-tickles'],
+                proxyType: ProxyType.Child,
+                acceptedOrigins: ['http://localhost:9876'], // local karma
+                targetAllFrames: true,
+                parentOrigin: 'http://localhost:9876',
+                targetSpecificFrames: null
+            });
+
+            bus.api.tickEventLoop(
+                () => {
+
+                  control.stopListening();
+
+                },10
+            );
+
+            bus.api.tickEventLoop(
+                () => {
+
+                    expect(control.getKnownBusInstances().size).toEqual(1);
+                    expect(control.getKnownBusInstances().get(EventBus.id).active).toBeFalsy();
+                    expect(control.getKnownBusInstances().get(EventBus.id).type).toEqual(ProxyType.Child);
+
+                    window.parent.removeEventListener('message', msgHandler);
+                    control.stopListening();
+                    done();
+
+                },15
+            );
 
         });
 

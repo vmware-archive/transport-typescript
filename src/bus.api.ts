@@ -13,6 +13,7 @@ import { LogLevel } from './log/logger.model';
 import { GalacticRequest } from './bus/model/request.model';
 import { GalacticResponse } from './bus/model/response.model';
 import { MessageProxyConfig, ProxyControl } from './proxy/message.proxy';
+import { GeneralUtil } from './util/util';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -30,8 +31,10 @@ declare global {
 export enum MessageType {
     MessageTypeRequest,
     MessageTypeResponse,
-    MessageTypeError
+    MessageTypeError,
+    MessageTypeControl
 }
+
 
 /**
  * Message arguments are passed through to all message handlers (if available)
@@ -129,6 +132,8 @@ export interface MessageResponder<T = any, E = any> {
 export abstract class EventBus {
 
     public static version: string = '0.9.0';
+
+    public static id: string = `eventbus-${GeneralUtil.genUUIDShort()}`;
 
     /**
      * Reference to Low Level API.

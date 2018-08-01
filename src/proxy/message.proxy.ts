@@ -24,15 +24,38 @@ export interface IFrameProxyControl {
     removeAuthorizedChannel(channel: ChannelName): void;
     getParentOrigin(): string;
     setParentOrigin(origin: string): void;
+    getKnownBusInstances(): Map<string, ProxyState>;
 
 }
 
 export type ProxyControl = IFrameProxyControl;
 
+
+export enum ProxyControlType {
+    RegisterEventBus,
+    BusStopListening,
+    BusStartListening
+}
+
+
+
+export interface ProxyState {
+    type: ProxyType;
+    active: boolean;
+}
+
+export interface ProxyControlPayload {
+    proxyType: ProxyType;
+    command: ProxyControlType;
+    body: string;
+}
+
+
 export class BusProxyMessage {
     public payload: any;
     public channel: ChannelName;
     public type: MessageType;
+    public control: ProxyControlType = null;
 
     constructor(
         payload: any,
@@ -84,6 +107,5 @@ export class MessageProxy {
         return this.proxyControl;
 
     }
-
 
 }
