@@ -52,6 +52,7 @@ export interface ProxyControlPayload {
 
 
 export class BusProxyMessage {
+    public from: string;
     public payload: any;
     public channel: ChannelName;
     public type: MessageType;
@@ -60,11 +61,13 @@ export class BusProxyMessage {
     constructor(
         payload: any,
         channel: ChannelName,
-        type: MessageType) {
+        type: MessageType,
+        from?: string) {
 
         this.payload = payload;
         this.channel = channel;
         this.type = type;
+        this.from = from;
     }
 }
 

@@ -14,7 +14,7 @@ export class ChildFrameAComponent implements OnInit {
 
     public generalChatMessages: string[];
     private generalChat: MessageHandler;
-
+    public id = EventBus.id;
     constructor() {
         this.bus = BusUtil.getBusInstance();
         this.bus.api.setLogLevel(LogLevel.Verbose);

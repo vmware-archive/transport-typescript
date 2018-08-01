@@ -16,6 +16,7 @@ import { Observable } from 'rxjs';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { Message } from '../bus/model/message.model';
+import { GeneralUtil } from '../util/util';
 
 const domWindow: any = window;
 
@@ -188,8 +189,10 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                     case MonitorType.MonitorData:
 
                         // is this for an authorized channel?
+                        let auth = false;
                         for (let chan of this.authorizedChannels) {
-                            if (mo.channel === chan && !mo.data.proxyRebroadcast) {
+
+                            if (mo.channel === chan) {
                                 this.sendMessageToChildFrames(mo.data, chan);
                             }
                         }
@@ -230,7 +233,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         this.bus.logger.debug(
             `Authorized message received on: [${chan}], sending to parent frame`, this.getName());
 
-        const proxyMessage: BusProxyMessage = new BusProxyMessage(message.payload, chan, message.type);
+        const proxyMessage: BusProxyMessage = new BusProxyMessage(message.payload, chan, message.type,  EventBus.id);
         domWindow.parent.postMessage(proxyMessage, this.parentOriginValue);
 
     }
@@ -241,7 +244,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
             this.getName());
 
         const proxyMessage: BusProxyMessage =
-            new BusProxyMessage(control, this.proxyControlChannel, MessageType.MessageTypeControl);
+            new BusProxyMessage(control, this.proxyControlChannel, MessageType.MessageTypeControl, EventBus.id);
         proxyMessage.control = control.command;
 
         domWindow.parent.postMessage(proxyMessage, this.parentOriginValue);
@@ -253,7 +256,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
             `Authorized message received on: [${chan}], sending to child frames`, this.getName());
 
 
-        const proxyMessage: BusProxyMessage = new BusProxyMessage(message.payload, chan, message.type);
+        const proxyMessage: BusProxyMessage = new BusProxyMessage(message.payload, chan, message.type, message.id);
 
         // if targeting all frames, extract all frames on the page and post messages to them.
         if (this.targetAllFramesValue) {
@@ -278,6 +281,14 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
 
     private parentEventHandler(event: MessageEvent): void {
+
+        // drop the message if it originated from this bus, otherwise we will see duplicates.
+        if (event.data && event.data.from) {
+            if (event.data.from === `proxy-${EventBus.id}`) {
+                return;
+            }
+        }
+
         // check origin
         let originOk;
         for (let origin of this.targetOrigin) {
@@ -391,20 +402,20 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
             case MessageType.MessageTypeRequest:
 
                 // build a message manually and set the proxy rebroadcast flag.
-                msg = new Message().request(message.payload);
+                msg = new Message(`proxy-${message.from}`).request(message.payload);
                 msg.proxyRebroadcast = true; // this will prevent the messge from being re-picked up by the proxy.
                 this.bus.api.send(message.channel, msg, this.getName() + '-' + origin);
                 break;
 
             case MessageType.MessageTypeResponse:
 
-                msg = new Message().response(message.payload);
+                msg = new Message(`proxy-${message.from}`).response(message.payload);
                 msg.proxyRebroadcast = true; // this will prevent the messge from being re-picked up by the proxy.
                 this.bus.api.send(message.channel, msg, this.getName() + '-' + origin);
                 break;
 
             case MessageType.MessageTypeError:
-                msg = new Message().error(message.payload);
+                msg = new Message(`proxy-${message.from}`).error(message.payload);
                 msg.proxyRebroadcast = true; // this will prevent the messge from being re-picked up by the proxy.
                 this.bus.api.send(message.channel, msg, this.getName() + '-' + origin);
                 break;
@@ -509,6 +520,4 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
     getKnownBusInstances(): Map<string, ProxyState> {
         return new Map(this.knownBusInstances.entries());
     }
-
-
 }

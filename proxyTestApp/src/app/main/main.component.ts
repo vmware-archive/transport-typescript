@@ -14,6 +14,7 @@ export class MainComponent implements OnInit {
     private bus: EventBus;
     public generalChatMessages: string[];
     private generalChat: MessageHandler;
+    public id = EventBus.id;
 
     constructor() {
         this.bus = BusUtil.getBusInstance();
