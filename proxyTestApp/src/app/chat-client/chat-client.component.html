@@ -1,12 +1,13 @@
 <div class="app-container">
-    <div class="chat-side">
-        <div class="avatar">
+    <div class="chat-side {{theme}}">
+        <div class="avatar {{theme}}">
             {{ avatar }}
         </div>
         <h2>{{ name }}</h2>
+        <h6>{{ id }}</h6>
     </div>
     <div class="chat-main">
-        <div class="chat-window">
+        <div class="chat-window {{theme}}">
             <div class="chat-message" *ngFor="let msg of generalChatMessages">
                 <div class="chat-chevron">
                     &gt;

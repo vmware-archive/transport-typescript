@@ -14,13 +14,17 @@ export class ChatClientComponent implements OnInit {
 
     @Input() name: string;
     @Input() avatar: string;
+    @Input() theme: string;
+
 
     private bus: EventBus;
 
     public generalChatMessages: string[];
     private generalChat: MessageHandler;
     public id = EventBus.id;
-    public chat;
+    public chat: string;
+
+
 
     constructor() {
         this.bus = BusUtil.getBusInstance();

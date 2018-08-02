@@ -9,12 +9,47 @@
     height: 298px;
     float: left;
     border-right: 1px solid #c1c1c1;
+}
+
+.chat-side.blue {
+    background-color: #010140;
+}
+
+.chat-side.purple {
     background-color: #281336;
 }
 
-.chat-side h2 {
+.chat-side.green {
+    background-color: #04360f;
+}
+
+.chat-side.pink {
+    background-color: #04360f;
+}
+
+.chat-side h2, h6 {
+    text-align: center;
+
+}
+
+.chat-side.purple h2, .chat-side.purple h6 {
     text-align: center;
     color: #a858af;
+}
+
+.chat-side.blue h2, .chat-side.blue h6 {
+    text-align: center;
+    color: #a5a5f7;
+}
+
+.chat-side.green h2, .chat-side.green h6 {
+    text-align: center;
+    color: #79f77c;
+}
+
+.chat-side h6 {
+    margin-top: 0;
+    font-size: 0.5rem;
 }
 
 .chat-main {
@@ -65,9 +100,23 @@
     width: 100%;
     min-width: 150px;
     height: 248px;
-    margin-left: 20%;
+    max-height: 300px;
+
+}
+
+.chat-window.purple {
+    width: 100%;
     border-bottom: 1px dotted #d172d27a;
 }
+
+.chat-window.blue {
+    border-bottom: 1px dotted rgba(84, 90, 210, 0.48);
+}
+
+.chat-window.green {
+    border-bottom: 1px dotted rgb(36, 72, 36);
+}
+
 
 .avatar {
     width: 120px;
@@ -81,3 +130,16 @@
     line-height: 137px;
     text-align: center;
 }
+
+.avatar.blue {
+    background-color: rgba(196, 198, 251, 0.48);
+}
+
+.avatar.purple {
+    background-color: #d172d27a;
+}
+
+.avatar.green {
+    background-color: rgba(39, 165, 35, 0.48);
+}
+
