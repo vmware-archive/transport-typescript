@@ -90,13 +90,13 @@ export interface BusStoreApi {
 
 /**
  * BusStore is a stateful in memory cache for objects. All state changes (any time the cache is modified)
- * will broadcast that updated object to any subscribers of the BusStore listening for those specific objects
+ * will broadcast that updated object to any subscribers of the BusStore online for those specific objects
  * or all objects of a certain type and state changes.
  */
 export interface BusStore<T> {
 
     /**
-     * Place an object into the cache, will broadcast to all subscribers listening for state changes.
+     * Place an object into the cache, will broadcast to all subscribers online for state changes.
      * @param {UUID} id string ID of your object, UUID is highly recommended.
      * @param {T} value the object you wish to cache
      * @param {S} state the state change event you want to broadcast with this action (created, updated etc).
@@ -153,7 +153,7 @@ export interface BusStore<T> {
      * Subscribe to state changes for a specific object.
      * @param {UUID} id the ID of the object you wish to receive updates.
      * @param {S} stateChangeType the state change type you wish to listen to
-     * @returns {StoreStream<T>} stream that will tick the object you're listening for.
+     * @returns {StoreStream<T>} stream that will tick the object you're online for.
      */
     onChange<S>(id: UUID, ...stateChangeType: S[]): StoreStream<T>;
 
@@ -164,7 +164,7 @@ export interface BusStore<T> {
      *            type. object can be a new empty instance of the type you want to watch, or an exisiting instance of
      *            something. The actual property values of the supplied object are ignored.
      * @param {S} stateChangeType the state change type you with to listen to
-     * @returns {StoreStream<T>} stream that will tick the object you're listening for.
+     * @returns {StoreStream<T>} stream that will tick the object you're online for.
      */
     onAllChanges<S>(typeInstance: T, ...stateChangeType: S[]): StoreStream<T>;
 
@@ -172,7 +172,7 @@ export interface BusStore<T> {
      * Subscribe to mutation requests via mutate()
      * @param {T} objectType the object you want to listen for.
      * @param {M} mutationType optional mutation type
-     * @returns {StoreStream<T>} stream that will tick mutation requests you're listening for.
+     * @returns {StoreStream<T>} stream that will tick mutation requests you're online for.
      */
     onMutationRequest<M = any>(objectType: T, ...mutationType: M[]): MutateStream<T>;
 

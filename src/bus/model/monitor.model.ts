@@ -30,7 +30,11 @@ export enum MonitorType {
     MonitorData,
     MonitorGalacticData,
     MonitorError,
-    MonitorDropped
+    MonitorDropped,
+    MonitorChildProxyRegistered,
+    MonitorChildProxyListening,
+    MonitorChildProxyNotListening,
+    MonitorChildProxyUnRegistered
 }
 
 export class MonitorObject {

@@ -44,7 +44,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
     private targetOrigin: string[];
 
     /**
-     * Target all frames? The proxy will broadcast to everyone listening. Defaults to true
+     * Target all frames? The proxy will broadcast to everyone online. Defaults to true
      * @type {boolean}
      */
     private targetAllFramesValue: boolean = true;
@@ -111,7 +111,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                 this.parentOriginValue = '*';
             }
 
-            // configure listening type.
+            // configure online type.
             if (config.proxyType) {
                 this.proxyType = config.proxyType;
             }
@@ -129,7 +129,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         // create bus instance map
         this.knownBusInstances = new Map<string, ProxyState>();
 
-        // start listening by default
+        // start online by default
         this.listen();
 
     }
@@ -231,14 +231,15 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         this.bus.logger.debug(
             `Authorized message received on: [${chan}], sending to parent frame`, this.getName());
 
-        const proxyMessage: BusProxyMessage = new BusProxyMessage(message.payload, chan, message.type,  EventBus.id);
+        const proxyMessage: BusProxyMessage = new BusProxyMessage(message.payload, chan, message.type, EventBus.id);
         domWindow.parent.postMessage(proxyMessage, this.parentOriginValue);
 
     }
 
     private sendControlToParent(control: ProxyControlPayload): void {
         this.bus.logger.debug(
-            `Authorized control message received on: [${this.proxyControlChannel}], sending to parent frame`,
+            `Authorized control message command: '${control.command}' ` +
+            `received, sending to parent frame`,
             this.getName());
 
         const proxyMessage: BusProxyMessage =
@@ -336,13 +337,24 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                     if (data.control != null) {
                         const payload: ProxyControlPayload = data.payload;
                         let state: ProxyState;
-                        switch (data.control) {
+                        let mo: MonitorObject;
 
+                        switch (data.control) {
                             // register bus.
                             case ProxyControlType.RegisterEventBus:
-                                this.knownBusInstances.set(payload.body, {type: payload.proxyType, active: true});
-                                this.bus.logger.info(
-                                    `Child Event Bus Registered: ${payload.body}`, this.getName());
+
+                                // only proceed if bus is a new reg.
+                                if (!this.knownBusInstances.has(payload.body)) {
+
+                                    this.knownBusInstances.set(payload.body, {type: payload.proxyType, active: true});
+                                    this.bus.logger.info(
+                                        `Child Event Bus Registered: ${payload.body}`, this.getName());
+
+                                    // inform monitor
+                                    mo = new MonitorObject().build(MonitorType.MonitorChildProxyRegistered,
+                                        this.proxyControlChannel, payload.body, payload.body);
+                                    this.bus.api.getMonitorStream().send(new Message().response(mo));
+                                }
 
                                 break;
 
@@ -353,6 +365,11 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                                     state.active = true;
                                 }
                                 this.knownBusInstances.set(payload.body, state);
+
+                                // inform monitor
+                                mo = new MonitorObject().build(MonitorType.MonitorChildProxyListening,
+                                    this.proxyControlChannel, payload.body, payload.body);
+                                this.bus.api.getMonitorStream().send(new Message().response(mo));
                                 break;
 
                             // set instance to inactive.
@@ -362,6 +379,11 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                                     state.active = false;
                                 }
                                 this.knownBusInstances.set(payload.body, state);
+
+                                // inform monitor
+                                mo = new MonitorObject().build(MonitorType.MonitorChildProxyNotListening,
+                                    this.proxyControlChannel, payload.body, payload.body);
+                                this.bus.api.getMonitorStream().send(new Message().response(mo));
                                 break;
 
                             default:

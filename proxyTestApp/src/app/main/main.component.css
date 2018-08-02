@@ -32,6 +32,50 @@ a.logo {
     height: 200px;
     min-height: 200px;
     background: #efefef;
+    display: flex;
+    flex-direction: row;
+    align-items: left;
+}
+
+.bus-stats {
+    padding-left: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+
+}
+
+.second-row {
+    margin-top: 70px;
+}
+
+.stat {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.statistic-name {
+    font-size: 1.2em;
+    flex: 1 1 auto;
+    margin-right: 28px;
+    text-align: right;
+}
+.statistic-value {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    background-color: #5aa914;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 1.6em;
+    text-align: center;
+    line-height: 1.8;
+}
+
+.statistic-value.grey {
+    background-color: rgba(105, 105, 105, 0.59);
+    color: #fff;
 }
 
 .frame-container {
@@ -46,7 +90,6 @@ a.logo {
     height: 300px;
     min-width: 400px;
     margin: auto;
-//float: left;
     border-right: 1px solid #c1c1c1;
     border-bottom: 1px solid #c1c1c1;
     border-top: 1px solid #c1c1c1;
@@ -56,10 +99,8 @@ a.logo {
 
 .frame2 {
     width: 50%;
-    //margin-left: 50%;
     margin: auto;
     height: 300px;
-    //min-width: 400px;
     border-bottom: 1px solid #c1c1c1;
     border-top: 1px solid #c1c1c1;
 }
@@ -67,10 +108,7 @@ a.logo {
 .frame3{
     width: 50%;
     margin: auto;
-    //width: 50%;
-    //min-width: 400px;
     height: 300px;
-    //float: left;
     border-right: 1px solid #c1c1c1;
     border-bottom: 1px solid #c1c1c1;
 
@@ -78,10 +116,8 @@ a.logo {
 
 .frame4 {
     width: 50%;
-    //margin-left: 50%;
     height: 300px;
     margin: auto;
-// min-width: 400px;
     border-right: 1px solid #c1c1c1;
     border-bottom: 1px solid #c1c1c1;
 }

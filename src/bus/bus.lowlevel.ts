@@ -548,7 +548,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                             }
                         } else {
                             this.log.debug('* Dropping Message ' + msg.id
-                                + ', handler only listening for ' + registeredId, name);
+                                + ', handler only online for ' + registeredId, name);
                         }
                     },
                     (errorData: any) => {

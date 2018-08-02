@@ -32,9 +32,9 @@ export type ProxyControl = IFrameProxyControl;
 
 
 export enum ProxyControlType {
-    RegisterEventBus,
-    BusStopListening,
-    BusStartListening
+    RegisterEventBus = 'Registration',
+    BusStopListening = 'Stop Listening',
+    BusStartListening = 'Start Listening'
 }
 
 

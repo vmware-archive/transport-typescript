@@ -5,6 +5,16 @@
         </div>
         <h2>{{ name }}</h2>
         <h6>{{ id }}</h6>
+        <div class="controls">
+            <div class="btn-group">
+                <button class="btn btn-inverse" (click)="goOffline()" *ngIf="isOnline">
+                    <clr-icon shape="volume-mute"></clr-icon>
+                </button>
+                <button class="btn btn-inverse" (click)="goOnline()" *ngIf="!isOnline">
+                    <clr-icon shape="volume-up"></clr-icon>
+                </button>
+            </div>
+        </div>
     </div>
     <div class="chat-main">
         <div class="chat-window {{theme}}">

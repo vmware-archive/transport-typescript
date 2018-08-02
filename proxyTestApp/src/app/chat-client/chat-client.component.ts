@@ -1,8 +1,7 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { EventBus, MessageHandler } from '@vmw/bifrost';
 import { BusUtil } from '@vmw/bifrost/util/bus.util';
 import { ChatMessage } from '../chat-message';
-import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
 
 
 @Component({
@@ -15,16 +14,15 @@ export class ChatClientComponent implements OnInit {
     @Input() name: string;
     @Input() avatar: string;
     @Input() theme: string;
-
+    @Output() online = new EventEmitter<boolean>();
 
     private bus: EventBus;
-
-    public generalChatMessages: string[];
     private generalChat: MessageHandler;
+    public isOnline: boolean = false;
+
     public id = EventBus.id;
     public chat: string;
-
-
+    public generalChatMessages: string[];
 
     constructor() {
         this.bus = BusUtil.getBusInstance();
@@ -33,21 +31,13 @@ export class ChatClientComponent implements OnInit {
 
     ngOnInit() {
 
-        this.bus.enableMessageProxy({
-            protectedChannels: ['general-chat'],
-            proxyType: ProxyType.Child,
-            parentOrigin: 'http://localhost:4200',
-            acceptedOrigins: ['http://localhost:4200'],
-            targetAllFrames: false,
-            targetSpecificFrames: null,
-        });
-
         this.generalChat = this.bus.listenStream('general-chat');
         this.generalChat.handle(
             (message: string) => {
                 this.generalChatMessages.push(message);
             }
         );
+        this.isOnline = true;
     }
 
     public onKey(event: KeyboardEvent): void {
@@ -61,6 +51,16 @@ export class ChatClientComponent implements OnInit {
             this.chat = '';
             this.bus.sendResponseMessage('general-chat', message);
         }
+    }
+
+    public goOffline(): void {
+        this.isOnline = false;
+        this.online.emit(false);
+    }
+
+    public goOnline(): void {
+        this.isOnline = true;
+        this.online.emit(true);
     }
 
 }

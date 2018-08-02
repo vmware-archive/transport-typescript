@@ -640,7 +640,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
     });
 
     describe('Galactic channel events and message bus monitor consumption', () => {
-        it('We should be able to ensure that the stomp service is listening on the monitor channel',
+        it('We should be able to ensure that the stomp service is online on the monitor channel',
 
             (done) => {
 

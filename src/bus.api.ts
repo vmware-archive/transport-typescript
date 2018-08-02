@@ -118,7 +118,7 @@ export interface MessageResponder<T = any, E = any> {
     close(): boolean;
 
     /**
-     * Check if the responder is still listening/active.
+     * Check if the responder is still online/active.
      */
     isClosed(): boolean;
 
@@ -352,7 +352,7 @@ export abstract class EventBus {
 
 
     /**
-     * Listen to a channel for a single request, handle the request then stop listening for any other new requests.
+     * Listen to a channel for a single request, handle the request then stop online for any other new requests.
      *
      * @param {ChannelName} channel the channel to listen to for requests
      * @param {SentFrom} from optional name of actor implementing (for logging)

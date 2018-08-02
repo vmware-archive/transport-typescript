@@ -90,11 +90,11 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
         expect(control.getParentOrigin()).toEqual('http://puppy.time');
 
-        // check listening
+        // check online
         control.stopListening();
         expect(control.isListening()).toBeFalsy();
 
-        // re-check listening
+        // re-check online
         control.stopListening();
         expect(control.isListening()).toBeFalsy();
 
@@ -206,7 +206,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     });
 
-    it('Check configuration listening type (parent)', () => {
+    it('Check configuration online type (parent)', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: null,
             proxyType: ProxyType.Parent,
@@ -221,7 +221,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
     });
 
 
-    it('Check configuration listening type (child)', () => {
+    it('Check configuration online type (child)', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: null,
             proxyType: ProxyType.Child,
@@ -235,7 +235,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     });
 
-    it('Check configuration listening type (hybrid)', () => {
+    it('Check configuration online type (hybrid)', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: null,
             proxyType: ProxyType.Hybrid,

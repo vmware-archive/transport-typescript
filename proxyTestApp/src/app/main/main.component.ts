@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { BusUtil } from '@vmw/bifrost/util/bus.util';
-import { EventBus, MessageHandler } from '@vmw/bifrost';
+import { EventBus, Message, MessageHandler, MonitorObject, MonitorType } from '@vmw/bifrost';
 import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
 import { LogLevel } from '@vmw/bifrost/log';
 import { ToastNotification } from '@vmw/ngx-components';
@@ -19,6 +19,8 @@ export class MainComponent implements OnInit {
     public id = EventBus.id;
     public notifications: ToastNotification[];
     public consoleEvents: string[];
+    public activeChildren: number = 0;
+    public registeredChildren: number = 0;
 
     constructor() {
         this.bus = BusUtil.getBusInstance();
@@ -26,10 +28,12 @@ export class MainComponent implements OnInit {
         this.bus.api.enableMonitorDump(true);
         this.generalChatMessages = [];
         this.consoleEvents = [];
+
+
     }
 
     ngOnInit() {
-
+        this.listenToBusMonitor();
         this.bus.enableMessageProxy({
             protectedChannels: ['general-chat', 'special-chat'],
             proxyType: ProxyType.Parent,
@@ -49,9 +53,26 @@ export class MainComponent implements OnInit {
         this.notifications = [];
     }
 
-    public saySomething() {
-        this.bus.sendResponseMessage('general-chat','Parent: Hey Everyone!');
+    private listenToBusMonitor(): void {
+        this.bus.api.getMonitor().subscribe(
+            (msg: Message) => {
+                const mo: MonitorObject = msg.payload as MonitorObject;
+                switch (mo.type) {
+                    case MonitorType.MonitorChildProxyRegistered:
+                        this.registeredChildren++;
+                        this.activeChildren++;
+                        break;
+
+                    case MonitorType.MonitorChildProxyNotListening:
+                        this.activeChildren--;
+                        break;
+
+                    case MonitorType.MonitorChildProxyListening:
+                        this.activeChildren++;
+                        break;
+
+                }
+            }
+        );
     }
-
 }
-

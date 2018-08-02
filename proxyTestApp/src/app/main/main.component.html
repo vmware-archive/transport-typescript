@@ -17,8 +17,29 @@
 
     <div class="control-panel">
 
-            <h1>{{id}}</h1>
+        <div class="bus-stats">
+            <h2>Bus Statistics</h2>
+            <div class="stat">
+                <div class="statistic-name">Registered Children</div>
+                <div class="statistic-value grey">{{registeredChildren}}</div>
+            </div>
 
+            <div class="stat">
+                <div class="statistic-name">Active Children</div>
+                <div class="statistic-value">{{activeChildren}}</div>
+            </div>
+        </div>
+        <!--<div class="bus-stats second-row">-->
+            <!--<div class="stat">-->
+                <!--<div class="statistic-name">Messages Handled</div>-->
+                <!--<div class="statistic-value">23</div>-->
+            <!--</div>-->
+
+            <!--<div class="stat">-->
+                <!--<div class="statistic-name">Active Children</div>-->
+                <!--<div class="statistic-value">23</div>-->
+            <!--</div>-->
+        <!--</div>-->
     </div>
 
     <div class="frame-container">
@@ -35,12 +56,12 @@
         </div>
 
         <div class="frame3">
-            <!--<iframe id="frame-b" src="/frameB"  scrolling="no"></iframe>-->
+            <iframe id="frame-b" src="/frameB"  scrolling="no"></iframe>
         </div>
 
 
         <div class="frame4">
-            <!--<iframe id="frame-c" src="/frameC" scrolling="no"></iframe>-->
+            <iframe id="frame-c" src="/frameC" scrolling="no"></iframe>
         </div>
     </div>
 

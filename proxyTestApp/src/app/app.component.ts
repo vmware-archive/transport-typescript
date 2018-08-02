@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { BusUtil } from '@vmw/bifrost/util/bus.util';
 import { LogLevel } from '@vmw/bifrost/log';
 
@@ -9,13 +9,6 @@ BusUtil.bootBusWithOptions(LogLevel.Debug, false);
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
-    title = 'app';
-
-    public loading = true;
-
-    ngOnInit() {
-       // this.loading = false;
-    }
+export class AppComponent {
 
 }
