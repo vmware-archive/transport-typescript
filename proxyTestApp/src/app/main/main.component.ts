@@ -4,6 +4,7 @@ import { EventBus, MessageHandler } from '@vmw/bifrost';
 import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
 import { LogLevel } from '@vmw/bifrost/log';
 import { ToastNotification } from '@vmw/ngx-components';
+import { ChatMessage } from '../chat-message';
 
 @Component({
     selector: 'app-main',
@@ -13,7 +14,7 @@ import { ToastNotification } from '@vmw/ngx-components';
 export class MainComponent implements OnInit {
 
     private bus: EventBus;
-    public generalChatMessages: string[];
+    public generalChatMessages: ChatMessage[];
     private generalChat: MessageHandler;
     public id = EventBus.id;
     public notifications: ToastNotification[];
@@ -40,7 +41,7 @@ export class MainComponent implements OnInit {
 
         this.generalChat = this.bus.listenStream('general-chat');
         this.generalChat.handle(
-            (message: string) => {
+            (message: ChatMessage) => {
                 this.generalChatMessages.push(message);
             }
         );
@@ -53,3 +54,4 @@ export class MainComponent implements OnInit {
     }
 
 }
+

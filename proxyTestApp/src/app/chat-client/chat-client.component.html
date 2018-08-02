@@ -1,0 +1,23 @@
+<div class="app-container">
+    <div class="chat-side">
+        <div class="avatar">
+            {{ avatar }}
+        </div>
+        <h2>{{ name }}</h2>
+    </div>
+    <div class="chat-main">
+        <div class="chat-window">
+            <div class="chat-message" *ngFor="let msg of generalChatMessages">
+                <div class="chat-chevron">
+                    &gt;
+                </div>
+                <div class="chat-body">
+                    {{ msg.body }}
+                </div>
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" [(ngModel)]="chat" placeholder="Say Something" (keyup)="onKey($event)"/>
+        </div>
+    </div>
+</div>

@@ -74,9 +74,10 @@
     height: 120px;
     background-color: #d172d27a;
     border-radius: 50%;
-    margin-top: 9px;
+    margin-top: 22px;
     margin-left: auto;
     margin-right: auto;
-    font-size: 100px;
-    line-height: 128px;
+    font-size: 110px;
+    line-height: 137px;
+    text-align: center;
 }

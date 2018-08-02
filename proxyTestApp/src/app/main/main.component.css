@@ -35,15 +35,18 @@ a.logo {
 }
 
 .frame-container {
+    display: flex;
     width: 100%;
     height: 600px;
+    flex-wrap: wrap;
 }
 
 .frame1 {
     width: 50%;
     height: 300px;
     min-width: 400px;
-    float: left;
+    margin: auto;
+    //float: left;
     border-right: 1px solid #c1c1c1;
     border-bottom: 1px solid #c1c1c1;
     border-top: 1px solid #c1c1c1;
@@ -52,27 +55,33 @@ a.logo {
 }
 
 .frame2 {
-    margin-left: 50%;
+    width: 50%;
+    //margin-left: 50%;
+    margin: auto;
     height: 300px;
-    min-width: 400px;
+    //min-width: 400px;
     border-bottom: 1px solid #c1c1c1;
     border-top: 1px solid #c1c1c1;
 }
 
 .frame3{
     width: 50%;
-    min-width: 400px;
+    margin: auto;
+    //width: 50%;
+    //min-width: 400px;
     height: 300px;
-    float: left;
+    //float: left;
     border-right: 1px solid #c1c1c1;
     border-bottom: 1px solid #c1c1c1;
 
 }
 
 .frame4 {
-    margin-left: 50%;
+    width: 50%;
+    //margin-left: 50%;
     height: 300px;
-    min-width: 400px;
+    margin: auto;
+// min-width: 400px;
     border-right: 1px solid #c1c1c1;
     border-bottom: 1px solid #c1c1c1;
 }
@@ -106,7 +115,7 @@ a.logo {
     background-color: #fcfcfc;
 }
 
-.chat-iput {
+.chat-input {
     width: 80%;
     min-width: 400px;
     height: 198px;

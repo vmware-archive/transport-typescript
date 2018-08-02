@@ -6,7 +6,6 @@ import {
     IFrameProxyControl,
     ProxyType,
     BusProxyMessage,
-    ProxyControl,
     ProxyControlType, ProxyControlPayload, ProxyState
 } from './message.proxy';
 import { LogLevel } from '../log/logger.model';
@@ -16,7 +15,6 @@ import { Observable } from 'rxjs';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { Message } from '../bus/model/message.model';
-import { GeneralUtil } from '../util/util';
 
 const domWindow: any = window;
 
