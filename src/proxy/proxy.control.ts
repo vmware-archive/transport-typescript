@@ -36,7 +36,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
      * Track is proxy is operating.
      * @type {boolean}
      */
-    private enabled: boolean = true;
+    private registered: boolean = false;
 
     /**
      * Definition of the target origin(s) to be acceptable, for security purposes.
@@ -135,7 +135,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
     }
 
     listen(): void {
-        if (this.enabled && !this.listening) {
+        if (!this.listening) {
             this.listening = true;
             this.postMessageEventHandlerBinding = this.parentEventHandler.bind(this);
 
@@ -147,7 +147,11 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
                 case ProxyType.Child:
                     this.listenForInboundMessageEvents();
-                    this.registerChildBusWithParent();
+                    if (this.registered) {
+                        this.informParentChildBusIsListening();
+                    } else {
+                        this.registerChildBusWithParent();
+                    }
                     this.relayMessagesToParent();
                     break;
 
@@ -169,11 +173,36 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
             proxyType: this.proxyType
         };
         this.sendControlToParent(proxyCommand);
+        this.registered = true;
+
+    }
+
+    private informParentChildBusIsListening(): void {
+
+        const proxyCommand: ProxyControlPayload = {
+            command: ProxyControlType.BusStartListening,
+            body: EventBus.id,
+            proxyType: this.proxyType
+        };
+        this.sendControlToParent(proxyCommand);
+
+    }
+
+    private informParentChildBusStoppedListening(): void {
+
+        const proxyCommand: ProxyControlPayload = {
+            command: ProxyControlType.BusStopListening,
+            body: EventBus.id,
+            proxyType: this.proxyType
+        };
+        this.sendControlToParent(proxyCommand);
 
     }
 
     private listenForInboundMessageEvents(): void {
-        domWindow.addEventListener('message', this.postMessageEventHandlerBinding, {capture: true});
+        if (!this.registered) {
+            domWindow.addEventListener('message', this.postMessageEventHandlerBinding, {capture: true});
+        }
     }
 
     private relayMessagesToChildren(): void {
@@ -280,6 +309,10 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
 
     private parentEventHandler(event: MessageEvent): void {
+
+        if (!this.listening) {
+            return; // ignore everything, not interested.
+        }
 
         // drop the message if it originated from this bus, otherwise we will see duplicates.
         if (event.data && event.data.from) {
@@ -452,7 +485,6 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         if (this.listening) {
             this.listening = false;
             this.monitorSubscription.unsubscribe();
-            domWindow.removeEventListener('message', this.postMessageEventHandlerBinding);
             const control: ProxyControlPayload = {
                 proxyType: this.proxyType,
                 command: ProxyControlType.BusStopListening,

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { EventBus, MessageHandler } from '@vmw/bifrost';
 import { BusUtil } from '@vmw/bifrost/util/bus.util';
 import { ChatMessage } from '../chat-message';
@@ -9,12 +9,13 @@ import { ChatMessage } from '../chat-message';
   templateUrl: './chat-client.component.html',
   styleUrls: ['./chat-client.component.css']
 })
-export class ChatClientComponent implements OnInit {
+export class ChatClientComponent implements OnInit, AfterViewChecked {
 
     @Input() name: string;
     @Input() avatar: string;
     @Input() theme: string;
     @Output() online = new EventEmitter<boolean>();
+    @ViewChild('scrollable') private chatContainer: ElementRef;
 
     private bus: EventBus;
     private generalChat: MessageHandler;
@@ -22,7 +23,7 @@ export class ChatClientComponent implements OnInit {
 
     public id = EventBus.id;
     public chat: string;
-    public generalChatMessages: string[];
+    public generalChatMessages: ChatMessage[];
 
     constructor() {
         this.bus = BusUtil.getBusInstance();
@@ -33,11 +34,15 @@ export class ChatClientComponent implements OnInit {
 
         this.generalChat = this.bus.listenStream('general-chat');
         this.generalChat.handle(
-            (message: string) => {
+            (message: ChatMessage) => {
                 this.generalChatMessages.push(message);
             }
         );
         this.isOnline = true;
+    }
+
+    ngAfterViewChecked() {
+        this.scrollToBottom();
     }
 
     public onKey(event: KeyboardEvent): void {
@@ -50,6 +55,7 @@ export class ChatClientComponent implements OnInit {
             };
             this.chat = '';
             this.bus.sendResponseMessage('general-chat', message);
+
         }
     }
 
@@ -61,6 +67,10 @@ export class ChatClientComponent implements OnInit {
     public goOnline(): void {
         this.isOnline = true;
         this.online.emit(true);
+    }
+
+    scrollToBottom(): void {
+        this.chatContainer.nativeElement.scrollTop = this.chatContainer.nativeElement.scrollHeight;
     }
 
 }
