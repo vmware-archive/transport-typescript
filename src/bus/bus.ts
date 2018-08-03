@@ -88,7 +88,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
     private internalChannelMap: Map<string, Channel>;
     private log: Logger;
-    private windowRef = window;
+    private windowRef: any = window;
     private messageProxy: MessageProxy;
     private proxyControl: ProxyControl;
 
@@ -110,7 +110,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         this.stores = new StoreManager(this, this.log);
 
         // wire up singleton to the window object under a custom namespace.
-        this.windowRef.AppEventBus = this as EventBus;
+        this.windowRef.AppEventBus = this;
         this.windowRef.AppBrokerConnector = new BrokerConnector(this.log);
         this.windowRef.AppBrokerConnector.init(this);
         this.windowRef.window.AppSyslog = this.log;

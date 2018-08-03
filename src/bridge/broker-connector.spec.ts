@@ -37,10 +37,10 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
     beforeEach(
         () => {
-
+            const windowRef: any = window;
             bus = BifrostEventBus.rebootWithOptions(LogLevel.Error, true);
-            bc = window.AppBrokerConnector;
-            log = window.AppSyslog;
+            bc = windowRef.AppBrokerConnector;
+            log = windowRef.AppSyslog;
 
             config = createStandardConfig();
             configNoTopics = createStandardConfig(false); // no topics.

@@ -1,18 +1,26 @@
 import { Component, OnInit } from '@angular/core';
-import { BusUtil } from '@vmw/bifrost/util/bus.util';
-import { EventBus, Message, MessageHandler, MonitorObject, MonitorType } from '@vmw/bifrost';
+
+import { EventBus, Message, MonitorObject, MonitorType } from '@vmw/bifrost';
 import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
 import { LogLevel } from '@vmw/bifrost/log';
 import { ToastNotification } from '@vmw/ngx-components';
 import { ChatMessage } from '../chat-message';
-import { AbstractCore } from '@vmw/bifrost/core/abstract.core';
+import { AbstractBase, AbstractCore } from '@vmw/bifrost/core';
+import { EventBusEnabled } from '../../../../src/bus.api';
+import { BusStoreApi } from '../../../../src/store.api';
+import { Logger } from '../../../../src/log';
+
+
+
+
+
 
 @Component({
     selector: 'app-main',
     templateUrl: './main.component.html',
     styleUrls: ['./main.component.css']
 })
-export class MainComponent extends AbstractCore implements OnInit {
+export class MainComponent extends AbstractBase implements OnInit {
 
     public generalChatMessages: ChatMessage[];
     public id = EventBus.id;
@@ -22,7 +30,7 @@ export class MainComponent extends AbstractCore implements OnInit {
     public registeredChildren: number = 0;
 
     constructor() {
-        super();
+        super('peep');
         this.bus.api.setLogLevel(LogLevel.Verbose);
         this.bus.api.enableMonitorDump(true);
         this.generalChatMessages = [];

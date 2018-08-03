@@ -13,8 +13,8 @@ import { LogUtil } from '../log/util';
 import { ChannelName, EventBus, EventBusEnabled, MessageType } from '../bus.api';
 import { Observable } from 'rxjs';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
-import { Subscription } from 'rxjs/internal/Subscription';
 import { Message } from '../bus/model/message.model';
+//import { Subscription } from 'rxjs';
 
 const domWindow: any = window;
 
@@ -61,7 +61,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
     private authorizedChannels: ChannelName[];
 
     private monitorChannel: Observable<Message>;
-    private monitorSubscription: Subscription;
+    private monitorSubscription: any;
 
     private knownBusInstances: Map<string, ProxyState>;
 

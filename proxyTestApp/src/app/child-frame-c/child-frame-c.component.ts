@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { EventBus } from '@vmw/bifrost';
-import { BusUtil } from '@vmw/bifrost/util/bus.util';
-import { ProxyType } from '@vmw/bifrost/proxy';
-import { ActivatedRoute } from '@angular/router';
+import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
+import { ProxyControl } from '@vmw/bifrost/proxy';
 import { AbstractBase } from '@vmw/bifrost/core';
 
 @Component({
@@ -12,9 +10,11 @@ import { AbstractBase } from '@vmw/bifrost/core';
 })
 export class ChildFrameCComponent extends AbstractBase implements OnInit {
 
-    constructor(route: ActivatedRoute) {
+    private proxyControl: ProxyControl;
+    private proxyActive: boolean = false;
 
-        this.bus = BusUtil.getBusInstance();
+    constructor() {
+        super('ChildFrameCComponent');
     }
 
     ngOnInit(): void {

@@ -24,7 +24,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
     }
 
     private constructor() {
-        super('Rest Service');
+        super('rest');
     }
     //
     // constructor(private http: HttpClient) {

@@ -4,6 +4,7 @@
 import { EventBus } from '../../bus.api';
 import { BusStoreApi } from '../../store.api';
 import { Logger } from '../../log/index';
+import { BusUtil } from '../../util/bus.util';
 
 export abstract class AbstractCore {
     protected readonly bus: EventBus;
@@ -11,9 +12,8 @@ export abstract class AbstractCore {
     protected readonly log: Logger;
 
     constructor() {
-        const globalAccessor = window; // todo: pull from environment, window is not to be hardcoded
-        this.bus = globalAccessor.AppEventBus;
-        this.storeManager = globalAccessor.AppStoreManager;
-        this.log = globalAccessor.AppSyslog;
+        this.bus = BusUtil.getBusInstance();
+        this.storeManager = this.bus.stores;
+        this.log = this.bus.logger;
     }
 }

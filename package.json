@@ -6,12 +6,12 @@
   "repository": "git@gitlab.eng.vmware.com:bifrost/typescript.git",
   "dependencies": {
     "npm": "^6.2.0",
-    "rxjs": "6.0.0",
+    "rxjs": "^6.2.2",
     "zone.js": "^0.8.26"
   },
   "devDependencies": {
     "@types/jasmine": "^2.8.8",
-    "@types/node": "^6.0.114",
+    "@types/node": "^10.1.4",
     "@types/selenium-webdriver": "^2.53.43",
     "@vmw/tango": "^0.6.1",
     "core-js": "^2.5.7",

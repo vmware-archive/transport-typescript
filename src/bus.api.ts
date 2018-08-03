@@ -21,10 +21,10 @@ export type SentFrom = string;
 declare global {
     interface Window { 
     
-        AppEventBus: EventBus;
-        AppBrokerConnector: BrokerConnector;
-        AppSyslog: Logger;
-        AppStoreManager: BusStoreApi;
+        // AppEventBus: EventBus;
+        // AppBrokerConnector: BrokerConnector;
+        // AppSyslog: Logger;
+        // AppStoreManager: BusStoreApi;
     }
 }
 
