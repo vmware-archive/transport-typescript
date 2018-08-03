@@ -21,7 +21,7 @@
             <div class=chat-container #scrollable>
                 <div class="chat-message" *ngFor="let msg of generalChatMessages">
 
-                    <div class="chat-body">
+                    <div class="chat-body" *ngIf="!msg.controlEvent">
                         <div class="chat-avatar">
                             {{msg.avatar}}
                         </div>
@@ -33,11 +33,24 @@
                             <div>{{msg.body}}</div>
                         </div>
                     </div>
+
+                    <div class="chat-body" *ngIf="msg.controlEvent">
+                        <div class="message control" *ngIf="!msg.error">
+                            <div>{{msg.controlEvent}} ({{msg.time | date:'shortTime'}})</div>
+                        </div>
+                        <div class="message error" *ngIf="msg.error">
+                            <div>{{msg.controlEvent}} ({{msg.time | date:'shortTime'}})</div>
+                        </div>
+                    </div>
+
+
                 </div>
             </div>
         </div>
         <div class="chat-input">
             <input type="text" [(ngModel)]="chat" placeholder="Say Something" (keyup)="onKey($event)"/>
+            <span class="status {{status}}">{{status}}</span>
         </div>
+
     </div>
 </div>

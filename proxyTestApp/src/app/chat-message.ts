@@ -3,4 +3,6 @@ export interface ChatMessage {
     avatar: string;
     body: string;
     time: any;
+    controlEvent: string;
+    error: boolean;
 }

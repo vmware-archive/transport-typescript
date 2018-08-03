@@ -15,7 +15,6 @@ export class MainComponent implements OnInit {
 
     private bus: EventBus;
     public generalChatMessages: ChatMessage[];
-    private generalChat: MessageHandler;
     public id = EventBus.id;
     public notifications: ToastNotification[];
     public consoleEvents: string[];
@@ -43,13 +42,6 @@ export class MainComponent implements OnInit {
             targetSpecificFrames: null,
         });
 
-        this.generalChat = this.bus.listenStream('general-chat');
-        this.generalChat.handle(
-            (message: ChatMessage) => {
-                this.generalChatMessages.push(message);
-            }
-        );
-
         this.notifications = [];
     }
 
@@ -61,17 +53,33 @@ export class MainComponent implements OnInit {
                     case MonitorType.MonitorChildProxyRegistered:
                         this.registeredChildren++;
                         this.activeChildren++;
+                        this.postToast('Bus Registered', `Child Bus ${mo.from} has registered`, false);
                         break;
 
                     case MonitorType.MonitorChildProxyNotListening:
                         this.activeChildren--;
+                        this.postToast('Bus Disconnected', `Child Bus ${mo.from} has stopped listening`, true);
                         break;
 
                     case MonitorType.MonitorChildProxyListening:
                         this.activeChildren++;
+                        this.postToast('Bus Connected', `Child Bus ${mo.from} has started listening`, false);
                         break;
 
                 }
+            }
+        );
+    }
+
+    private postToast(title: string, description: string, error: boolean): void {
+        this.notifications.push(
+            {
+                title: title,
+                description: description,
+                date: new Date(),
+                link: null,
+                error: error,
+                fade: false
             }
         );
     }

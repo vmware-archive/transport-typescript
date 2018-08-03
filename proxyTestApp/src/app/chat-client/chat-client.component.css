@@ -9,6 +9,12 @@
     height: 298px;
     float: left;
     border-right: 1px solid #c1c1c1;
+    position: relative;
+}
+
+.notActive {
+    position: absolute;
+    font-size: 100px;
 }
 
 .chat-side.blue {
@@ -85,6 +91,7 @@
     padding: 5px;
 }
 
+
 .chat-body {
     width: 100%;
     display: flex;
@@ -113,17 +120,47 @@
 }
 
 .chat-input {
-    width: 100%;
     min-width: 400px;
     height: 90px;
     margin-left: 20%;
     padding-left: 6px;
     padding-top: 10px;
+    padding-right: 20px;
+
 }
+
+
 
 .chat-input input {
     width: 300px;
     margin-left: 10px;
+    margin-right: 20px;
+}
+
+.chat-input .status {
+    text-transform: uppercase;
+    font-size:1em;
+    font-weight: 800;
+    float: right;
+    pading-top: 3px;
+}
+
+.chat-input .status.online {
+    color: green;
+}
+
+.chat-input .status.offline {
+    color: red;
+}
+
+.chat-body .message.control {
+    margin-left: 5px;
+    color: #a5a2a2;
+    font-weight: 600;
+}
+.chat-body .message.error {
+    margin-left: 5px;
+    color: #a5000f
 }
 
 .chat-window {

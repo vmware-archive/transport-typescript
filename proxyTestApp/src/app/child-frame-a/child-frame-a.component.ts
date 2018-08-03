@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ProxyControl, ProxyType } from '@vmw/bifrost/proxy/message.proxy';
 import { EventBus } from '@vmw/bifrost';
 import { BusUtil } from '@vmw/bifrost/util/bus.util';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
     selector: 'app-child-frame-a',
@@ -14,7 +15,8 @@ export class ChildFrameAComponent implements OnInit {
     private proxyControl: ProxyControl;
     private proxyActive: boolean = false;
 
-    constructor() {
+    constructor(route: ActivatedRoute) {
+
         this.bus = BusUtil.getBusInstance();
     }
 
