@@ -1,7 +1,8 @@
 import { AfterViewChecked, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { EventBus, MessageHandler } from '@vmw/bifrost';
-import { BusUtil } from '@vmw/bifrost/util/bus.util';
+import { AbstractBase } from '@vmw/bifrost/core';
 import { ChatMessage } from '../chat-message';
+
 
 
 @Component({
@@ -9,7 +10,7 @@ import { ChatMessage } from '../chat-message';
     templateUrl: './chat-client.component.html',
     styleUrls: ['./chat-client.component.css']
 })
-export class ChatClientComponent implements OnInit, AfterViewChecked {
+export class ChatClientComponent extends AbstractBase implements OnInit, AfterViewChecked {
 
     @Input() name: string;
     @Input() avatar: string;
@@ -17,7 +18,6 @@ export class ChatClientComponent implements OnInit, AfterViewChecked {
     @Output() online = new EventEmitter<boolean>();
     @ViewChild('scrollable') private chatContainer: ElementRef;
 
-    private bus: EventBus;
     private generalChat: MessageHandler;
     public isOnline: boolean = false;
     public status: string = 'offline';
@@ -27,7 +27,7 @@ export class ChatClientComponent implements OnInit, AfterViewChecked {
     public generalChatMessages: ChatMessage[];
 
     constructor() {
-        this.bus = BusUtil.getBusInstance();
+        super('ChatClient');
         this.generalChatMessages = [];
     }
 

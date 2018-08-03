@@ -1,23 +1,19 @@
 import { Component, OnInit } from '@angular/core';
-import { EventBus } from '@vmw/bifrost';
-import { BusUtil } from '@vmw/bifrost/util/bus.util';
-import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
-import { ActivatedRoute } from '@angular/router';
+import { ProxyControl, ProxyType } from '@vmw/bifrost/proxy';
+import { AbstractBase } from '@vmw/bifrost/core';
 
 @Component({
     selector: 'app-child-frame-b',
     templateUrl: './child-frame-b.component.html',
     styleUrls: ['./child-frame-b.component.css']
 })
-export class ChildFrameBComponent implements OnInit {
+export class ChildFrameBComponent extends AbstractBase implements OnInit {
 
-    private bus: EventBus;
     private proxyControl: ProxyControl;
     private proxyActive: boolean = false;
 
-    constructor(route: ActivatedRoute) {
-
-        this.bus = BusUtil.getBusInstance();
+    constructor() {
+        super('ChildFrameBComponent');
     }
 
     ngOnInit(): void {

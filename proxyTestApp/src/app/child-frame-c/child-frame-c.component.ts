@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { EventBus } from '@vmw/bifrost';
 import { BusUtil } from '@vmw/bifrost/util/bus.util';
-import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
+import { ProxyType } from '@vmw/bifrost/proxy';
 import { ActivatedRoute } from '@angular/router';
+import { AbstractBase } from '@vmw/bifrost/core';
 
 @Component({
     selector: 'app-child-frame-c',
     templateUrl: './child-frame-c.component.html',
     styleUrls: ['./child-frame-c.component.css']
 })
-export class ChildFrameCComponent implements OnInit {
+export class ChildFrameCComponent extends AbstractBase implements OnInit {
 
     constructor(route: ActivatedRoute) {
 

@@ -5,15 +5,15 @@ import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
 import { LogLevel } from '@vmw/bifrost/log';
 import { ToastNotification } from '@vmw/ngx-components';
 import { ChatMessage } from '../chat-message';
+import { AbstractCore } from '@vmw/bifrost/core/abstract.core';
 
 @Component({
     selector: 'app-main',
     templateUrl: './main.component.html',
     styleUrls: ['./main.component.css']
 })
-export class MainComponent implements OnInit {
+export class MainComponent extends AbstractCore implements OnInit {
 
-    private bus: EventBus;
     public generalChatMessages: ChatMessage[];
     public id = EventBus.id;
     public notifications: ToastNotification[];
@@ -22,13 +22,11 @@ export class MainComponent implements OnInit {
     public registeredChildren: number = 0;
 
     constructor() {
-        this.bus = BusUtil.getBusInstance();
+        super();
         this.bus.api.setLogLevel(LogLevel.Verbose);
         this.bus.api.enableMonitorDump(true);
         this.generalChatMessages = [];
         this.consoleEvents = [];
-
-
     }
 
     ngOnInit() {
