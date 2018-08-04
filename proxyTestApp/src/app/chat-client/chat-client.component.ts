@@ -3,7 +3,7 @@ import { EventBus, MessageHandler } from '@vmw/bifrost';
 import { AbstractBase } from '@vmw/bifrost/core';
 import { ChatMessage, GeneralChatChannel } from '../chat-message';
 import { ServbotService } from '../../services/servbot/servbot.service';
-import { RequestType, ServbotResponse } from '../../services/servbot/servbot.model';
+import { ChatCommand, ServbotResponse } from '../../services/servbot/servbot.model';
 import { GeneralUtil } from '@vmw/bifrost/util/util';
 
 @Component({
@@ -115,12 +115,12 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
 
     private handleChatCommand(): void {
 
-        if (this.chat === '/msg-stats') {
+        if (this.chat === '/help') {
 
             this.bus.requestOnceWithId(
                 GeneralUtil.genUUID(),
                 ServbotService.queryChannel,
-                {request: RequestType.MessageStats}
+                {command: ChatCommand.Help}
             ).handle(
                 (resp: ServbotResponse) => {
                     this.generalChatMessages.push({
@@ -131,9 +131,30 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
                         controlEvent: `Servbot: ${resp.body}`,
                         error: false
                     });
+                    this.chat = '';
                 }
             );
+        }
 
+        if (this.chat === '/msg-stats') {
+
+            this.bus.requestOnceWithId(
+                GeneralUtil.genUUID(),
+                ServbotService.queryChannel,
+                {command: ChatCommand.MessageStats}
+            ).handle(
+                (resp: ServbotResponse) => {
+                    this.generalChatMessages.push({
+                        from: 'servbot',
+                        avatar: '🤖',
+                        body: resp.body,
+                        time: Date.now(),
+                        controlEvent: `Servbot: ${resp.body}`,
+                        error: false
+                    });
+                    this.chat = '';
+                }
+            );
         }
     }
 

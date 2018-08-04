@@ -68,7 +68,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
     //     let observer: Observable<HttpResponse<any>>; // todo: type the generic, any is not right
     //     this.updateDevModeHeaders();
     //
-    //     switch (restObject.request) {
+    //     switch (restObject.command) {
     //         case HttpRequest.Get:
     //             observer = this.http.get(restObject.uri, {
     //                 observe: 'response',
@@ -174,7 +174,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
     // }
     //
     // private handleData(data: any, restObject: RestObject, args: MessageArgs) {
-    //     this.log.group(LogLevel.Debug, 'Http ' + HttpRequest[restObject.request] + ' ' + restObject.uri);
+    //     this.log.group(LogLevel.Debug, 'Http ' + HttpRequest[restObject.command] + ' ' + restObject.uri);
     //     this.log.debug('** Received response: ' + data, this.getName());
     //     this.log.debug('** Request was: ' + restObject, this.getName());
     //     this.log.debug('** Headers were: ' + this.headers, this.getName());
@@ -185,7 +185,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
     // }
     //
     // private handleError(error: RestError, restObject: RestObject, args: MessageArgs) {
-    //     this.log.group(LogLevel.Error, 'Http Error: ' + HttpRequest[restObject.request] + ' ' +
+    //     this.log.group(LogLevel.Error, 'Http Error: ' + HttpRequest[restObject.command] + ' ' +
     // restObject.uri + ' -' + ' ' + error.status);
     //     this.log.error(error, this.getName());
     //     this.log.error('** Request was: ' + restObject.body, this.getName());

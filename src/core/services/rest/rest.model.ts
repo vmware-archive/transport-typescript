@@ -59,12 +59,12 @@ export class RestObject {
     }
 
     //
-    // get request() {
+    // get command() {
     //     return this._request;
     // }
     //
-    // set request(request: HttpRequest) {
-    //     this._request = request;
+    // set command(command: HttpRequest) {
+    //     this._request = command;
     // }
     //
     // get uri() {

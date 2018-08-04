@@ -1,13 +1,14 @@
-export enum RequestType {
-        Connect = 'Connect',
-        GetMotd = 'GetMotd',
-        MessageStats = 'MessageStats',
-        GetJoke = 'GetJoke',
-        PostMessage = 'PostMessage'
+export enum ChatCommand {
+    Connect = 'Connect',
+    GetMotd = 'GetMotd',
+    MessageStats = 'MessageStats',
+    Help = 'Help',
+    GetJoke = 'GetJoke',
+    PostMessage = 'PostMessage'
 }
 
 export interface ServbotRequest {
-    request: RequestType;
+    command: ChatCommand;
 }
 
 export interface ServbotResponse {

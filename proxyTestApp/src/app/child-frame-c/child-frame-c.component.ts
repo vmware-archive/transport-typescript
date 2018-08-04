@@ -3,6 +3,7 @@ import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
 import { ProxyControl } from '@vmw/bifrost/proxy';
 import { AbstractBase } from '@vmw/bifrost/core';
 import { GeneralChatChannel } from '../chat-message';
+import { ServbotService } from '../../services/servbot/servbot.service';
 
 @Component({
     selector: 'app-child-frame-c',
@@ -21,7 +22,7 @@ export class ChildFrameCComponent extends AbstractBase implements OnInit {
     ngOnInit(): void {
 
         this.proxyControl = this.bus.enableMessageProxy({
-            protectedChannels: [GeneralChatChannel],
+            protectedChannels: [GeneralChatChannel, ServbotService.queryChannel],
             proxyType: ProxyType.Child,
             parentOrigin: 'http://localhost:4200',
             acceptedOrigins: ['http://localhost:4200'],

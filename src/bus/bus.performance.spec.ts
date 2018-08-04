@@ -442,11 +442,11 @@ xdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
             runApiPerformanceTestOverSocket('localhost', 500, done, 720, 'GetSeeds');
         });
 
-        it('Handle 1 Custom Logic request via socket in under 10ms', (done) => {
+        it('Handle 1 Custom Logic command via socket in under 10ms', (done) => {
             runCustomApiPerformanceTestOverSocket('localhost', 1, done, 10);
         });
 
-        it('Handle 1 Custom Logic request via XHR in under 50ms', (done) => {
+        it('Handle 1 Custom Logic command via XHR in under 50ms', (done) => {
             runCustomApiPerformanceTestOverXHR('localhost', 1, done, 50);
         });
 
@@ -574,11 +574,11 @@ xdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
             runApiPerformanceTestOverSocket('quobix.com', 500, done, 900, 'GetSeeds');
         });
 
-        it('(Remote) Handle 1 Custom Logic request via XHR in under 50ms', (done) => {
+        it('(Remote) Handle 1 Custom Logic command via XHR in under 50ms', (done) => {
             runCustomApiPerformanceTestOverXHR('quobix.com', 1, done, 50);
         });
 
-        it('(Remote) Handle 1 Custom Logic request via socket in under 30ms', (done) => {
+        it('(Remote) Handle 1 Custom Logic command via socket in under 30ms', (done) => {
             runCustomApiPerformanceTestOverSocket('quobix.com', 1, done, 30);
         });
 

@@ -1,6 +1,6 @@
 import { AbstractService } from '@vmw/bifrost/core';
-import { GalacticResponse, MessageArgs } from '@vmw/bifrost';
-import { RequestType, ServbotRequest, ServbotResponse } from './servbot.model';
+import { EventBus, GalacticResponse, MessageArgs } from '@vmw/bifrost';
+import { ChatCommand, ServbotRequest, ServbotResponse } from './servbot.model';
 import { ChatMessage, GeneralChatChannel } from '../../app/chat-message';
 
 
@@ -10,7 +10,7 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
     public static serviceChannel = 'servbot';
 
     constructor() {
-        super('ServBot Service', ServbotService.queryChannel);
+        super('ServBot', ServbotService.queryChannel);
         this.log.info("ServBot Service Online");
     }
 
@@ -18,7 +18,7 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
 
         this.bus.connectBridge(
             () => {
-                this.log.info("ServBotService connected to broker successfully");
+                this.log.info(`ServBotService connected to broker successfully on bus ${EventBus.id}`);
             },
             '/bifrost',
             '/topic',
@@ -31,12 +31,12 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
 
         // listen to general chat and relay to servbot.
         this.listenToChat();
-
     }
 
     protected handleServiceRequest(requestObject: ServbotRequest, requestArgs?: MessageArgs): void {
-        switch (requestObject.request) {
-            case RequestType.Connect:
+        switch (requestObject.command) {
+
+            case ChatCommand.Connect:
                 this.connectService();
                 break;
 
@@ -44,12 +44,12 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
                 this.delegate(requestObject);
                 break;
         }
-
     }
 
     private delegate(requestObject: ServbotRequest): void {
+        console.log('galactic delegation', requestObject);
         this.makeGalacticRequest(
-            this.buildGalacticRequest(RequestType[requestObject.request], null),
+            this.buildGalacticRequest(ChatCommand[requestObject.command], null),
             ServbotService.serviceChannel,
             this.handleQueryResponse.bind(this));
     }
@@ -61,10 +61,24 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
     private listenToChat() {
         this.bus.listenStream(GeneralChatChannel).handle(
             (chatMessage: ChatMessage) => {
-                const payload = this.buildGalacticRequest(RequestType[RequestType.PostMessage], chatMessage)
+                const payload = this.buildGalacticRequest(ChatCommand[ChatCommand.PostMessage], chatMessage)
                 this.bus.sendGalacticMessage(ServbotService.serviceChannel, payload, this.getName())
+            },
+            (error) => {
+                console.log('MUM! MY MUM.....', error);
             }
         );
+
+        // tell everyone that servbot is online!
+        this.bus.sendResponseMessage<ChatMessage>(GeneralChatChannel,
+            {
+                from: this.getName(),
+                avatar: '🤖',
+                body: 'Type /help to see a list of commands',
+                time: Date.now(),
+                controlEvent: null,
+                error: false
+            })
     }
 
 }

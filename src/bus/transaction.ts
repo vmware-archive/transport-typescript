@@ -56,7 +56,7 @@ export class BusTransactionImpl implements BusTransaction {
     public sendRequest<Req>(channel: string, payload: Req): void {
       
         if (this.completed) {
-            this.transactionCompletedMessage('cannot queue a new request via sendRequest()');
+            this.transactionCompletedMessage('cannot queue a new command via sendRequest()');
             throw this.transactionCompleteError;
         }
         const req: TransactionRequest = new TransactionRequestImpl<Req>(channel, payload);

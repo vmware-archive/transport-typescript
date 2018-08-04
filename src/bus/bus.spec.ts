@@ -730,7 +730,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('respondOnce() and requestOnce() on differing request/response channels.',
+        it('respondOnce() and requestOnce() on differing command/response channels.',
             (done) => {
 
                 bus.respondOnce(testChannel, '#some-different-return')
@@ -751,7 +751,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('request once with a different return channel',
+        it('command once with a different return channel',
             (done) => {
 
                 const channel1 = '#test-channel1';
@@ -775,7 +775,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('request stream with a different return channel',
+        it('command stream with a different return channel',
             (done) => {
 
                 const channel1 = '#test-channel1';
@@ -906,7 +906,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('listenRequestOnce() [listen to a single request]',
+        it('listenRequestOnce() [listen to a single command]',
             (done) => {
 
                 let c: number = 0;
@@ -939,7 +939,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('listenRequestStream() [ listen for multiple request messages on a channel ]',
+        it('listenRequestStream() [ listen for multiple command messages on a channel ]',
             (done) => {
 
                 let h: number = 0;
@@ -969,7 +969,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('sendRequest() [ simple API wrapper for sending request messages (wraps MessageHandlerConfig) ]',
+        it('sendRequest() [ simple API wrapper for sending command messages (wraps MessageHandlerConfig) ]',
             (done) => {
 
                 bus.listenRequestOnce(testChannel)
@@ -998,7 +998,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('sendRequestMessage() [ lower level wrapper for sending request messages ]',
+        it('sendRequestMessage() [ lower level wrapper for sending command messages ]',
             (done) => {
 
                 let _chan = bus.api.getRequestChannel(testChannel, 'sendRequestMessage()');
@@ -1014,7 +1014,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('sendRequestMessageWithId() [ test we can send a request with an ID and pick it up] ',
+        it('sendRequestMessageWithId() [ test we can send a command with an ID and pick it up] ',
             (done) => {
                 const id = GeneralUtil.genUUIDShort();
 
@@ -1030,7 +1030,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('sendRequestMessageWithIdAndVersion() [ test we can send a request with an' +
+        it('sendRequestMessageWithIdAndVersion() [ test we can send a command with an' +
                         ' ID + version and pick it up] ',
             (done) => {
                 const id = GeneralUtil.genUUIDShort();
@@ -1064,7 +1064,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('sendRequestMessageWithId() [ test we can send a request with and ID and pick it up] ',
+        it('sendRequestMessageWithId() [ test we can send a command with and ID and pick it up] ',
             (done) => {
                 const id = GeneralUtil.genUUIDShort();
 
@@ -1080,7 +1080,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('sendRequestMessageWithIdAndVersion() [ test we can send a request with and' +
+        it('sendRequestMessageWithIdAndVersion() [ test we can send a command with and' +
             ' ID + version and pick it up] ',
             (done) => {
                 const id = GeneralUtil.genUUIDShort();
@@ -1191,7 +1191,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                 stream.handle(
                     (val: number) => {
                         if (val <= 9) {
-                            // send the value right back down the stream again as another request.
+                            // send the value right back down the stream again as another command.
                             stream.tick(val);
                             return;
                         }

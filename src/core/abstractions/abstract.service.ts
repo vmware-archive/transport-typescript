@@ -46,9 +46,11 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
 
         this.bus.listenRequestStream(requestChannel, this.getName())
             .handle((requestObject: ReqT, args: RequestorArguments) => {
-
-                this.handleServiceRequest(requestObject, args);
-            });
+                    this.handleServiceRequest(requestObject, args);
+                },
+                (error) => {
+                    console.log('the error went bad: ', error);
+                });
     }
 
     // Required method in the derived service
@@ -88,7 +90,7 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
     //     } else {
     //         id = GeneralUtil.genUUIDShort();
     //     }
-    //     const transaction = this.bus.createTransaction(TransactionType.ASYNC, 'service-api-request-' + id);
+    //     const transaction = this.bus.createTransaction(TransactionType.ASYNC, 'service-api-command-' + id);
     //     transaction.sendRequest(RestChannel.all, restRequestObject);
     //
     //     transaction.onComplete(
@@ -142,7 +144,7 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
     }
 
     /**
-     * Make a galactic request to any services operating on the extended bus
+     * Make a galactic command to any services operating on the extended bus
      *
      * @param {GalacticRequest<GReqT>} request
      * @param {string} channel
@@ -162,7 +164,7 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
     }
 
     /**
-     * Build a galactic request object
+     * Build a galactic command object
      *
      * @param {string} requestType
      * @param {T} payload

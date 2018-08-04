@@ -313,7 +313,7 @@ describe('Stomp Client [stomp.client]', () => {
             }
         );
 
-        it('We should be able to subscribe to a destination without an additional STOMP request',
+        it('We should be able to subscribe to a destination without an additional STOMP command',
             (done) => {
 
                 client.connect(config).subscribe(() => {
@@ -492,7 +492,7 @@ describe('Stomp Client [stomp.client]', () => {
 
     describe('Given we can commit and abort transactions', () => {
 
-        it('We should be able to request and respond to ACK requests',
+        it('We should be able to command and respond to ACK requests',
             (done) => {
 
                 config = new StompConfig(

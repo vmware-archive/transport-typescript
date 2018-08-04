@@ -31,33 +31,33 @@ export abstract class AbstractBase extends AbstractCore implements EventBusEnabl
         this.name = name;
     }
 
-    // protected restServiceRequest(request: OperationRequest, from: SentFrom = this.name): BusTransaction {
+    // protected restServiceRequest(command: OperationRequest, from: SentFrom = this.name): BusTransaction {
     //
     //     const restRequestObject: RestObject
-    //         = new RestObject(request.method, request.uri, RestChannel.all, request.body, request.params);
+    //         = new RestObject(command.method, command.uri, RestChannel.all, command.body, command.params);
     //
-    //     this.log.debug("restServiceRequest fired for URI: " + request.uri + " with id: " + request.id, from);
+    //     this.log.debug("restServiceRequest fired for URI: " + command.uri + " with id: " + command.id, from);
     //
     //     let id: UUID;
     //
-    //     if (request.args) {
-    //         id = request.args.uuid;
+    //     if (command.args) {
+    //         id = command.args.uuid;
     //     } else {
     //         id = GeneralUtil.genUUIDShort();
     //     }
-    //     const transaction = this.bus.createTransaction(TransactionType.ASYNC, 'component-api-request-' + id);
+    //     const transaction = this.bus.createTransaction(TransactionType.ASYNC, 'component-api-command-' + id);
     //     transaction.sendRequest(RestChannel.all, restRequestObject);
     //
     //     transaction.onComplete(
     //         (restResponseObject: RestObject[]) => {
     //             this.log.debug('Received REST response: ' + restResponseObject[0].response, this.getName());
-    //             request.successHandler(restResponseObject[0].response);
+    //             command.successHandler(restResponseObject[0].response);
     //         }
     //     );
     //
     //     transaction.onError<RestError>(
     //         (error: RestError) => {
-    //             request.errorHandler(error);
+    //             command.errorHandler(error);
     //         }
     //     );
     //

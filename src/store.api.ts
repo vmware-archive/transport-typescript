@@ -131,12 +131,12 @@ export interface BusStore<T> {
     remove<S>(id: UUID, state: S): boolean;
 
     /**
-     * Send a mutation request to any subscribers handling mutations.
+     * Send a mutation command to any subscribers handling mutations.
      * @param {V} value to be mutated
      * @param {M} mutationType the type of the mutation
      * @param {MessageFunction<S>} successHandler provide object S to mutator function on successful mutation.
      * @param {MessageFunction<E>} errorHandler provide object E to mutator function on error.
-     * @returns {boolean} true if mutation request was placed in stream
+     * @returns {boolean} true if mutation command was placed in stream
      */
     mutate<V, M, E, S>(value: V, mutationType: M,
                        successHandler: MessageFunction<S>, errorHandler?: MessageFunction<E>): boolean;

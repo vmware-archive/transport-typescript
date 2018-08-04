@@ -570,7 +570,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             }
         );
 
-        it('If a valid request message is received for an authorized channel, it is proxied.', (done) => {
+        it('If a valid command message is received for an authorized channel, it is proxied.', (done) => {
 
             bus.listenRequestStream('ember-radio')
                 .handle(

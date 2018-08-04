@@ -215,7 +215,7 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
             this.getName()
         );
 
-        this.log.debug('🗄️ Store: Fired mutation request', this.type);
+        this.log.debug('🗄️ Store: Fired mutation command', this.type);
         return true;
     }
 

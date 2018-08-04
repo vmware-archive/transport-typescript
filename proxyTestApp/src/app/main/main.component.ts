@@ -4,11 +4,11 @@ import { EventBus, Message, MonitorObject, MonitorType } from '@vmw/bifrost';
 import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
 import { LogLevel } from '@vmw/bifrost/log';
 import { ToastNotification } from '@vmw/ngx-components';
-import { ChatMessage } from '../chat-message';
+import { ChatMessage, GeneralChatChannel } from '../chat-message';
 import { AbstractBase } from '@vmw/bifrost/core';
 import { ServbotService } from '../../services/servbot/servbot.service';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
-import { RequestType } from '../../services/servbot/servbot.model';
+import { ChatCommand } from '../../services/servbot/servbot.model';
 
 @Component({
     selector: 'app-main',
@@ -37,7 +37,7 @@ export class MainComponent extends AbstractBase implements OnInit {
     ngOnInit() {
         this.listenToBusMonitor();
         this.bus.enableMessageProxy({
-            protectedChannels: ['general-chat', 'special-chat'],
+            protectedChannels: [GeneralChatChannel, ServbotService.queryChannel],
             proxyType: ProxyType.Parent,
             parentOrigin: 'http://localhost:4200',
             acceptedOrigins: ['http://localhost:4200'],
@@ -49,7 +49,7 @@ export class MainComponent extends AbstractBase implements OnInit {
     }
 
     public connectServbot() {
-        this.bus.sendRequestMessage(ServbotService.queryChannel, {request: RequestType.Connect})
+        this.bus.sendRequestMessage(ServbotService.queryChannel, {command: ChatCommand.Connect})
     }
 
     private listenToBusMonitor(): void {

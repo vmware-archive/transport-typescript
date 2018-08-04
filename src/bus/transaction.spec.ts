@@ -28,7 +28,7 @@ describe('Bus Transactions [transaction.ts]', () => {
         expect(transaction).not.toBeUndefined();
     });
 
-    it('Should be able to run a single request and trigger onComplete', (done) => {
+    it('Should be able to run a single command and trigger onComplete', (done) => {
         bus.respondStream(chan)
             .generate(
                 () => 'pong'
