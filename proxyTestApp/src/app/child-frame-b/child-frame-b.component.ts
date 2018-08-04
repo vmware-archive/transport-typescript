@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ProxyControl, ProxyType } from '@vmw/bifrost/proxy';
 import { AbstractBase } from '@vmw/bifrost/core';
+import { GeneralChatChannel } from '../chat-message';
 
 @Component({
     selector: 'app-child-frame-b',
@@ -19,7 +20,7 @@ export class ChildFrameBComponent extends AbstractBase implements OnInit {
     ngOnInit(): void {
 
         this.proxyControl = this.bus.enableMessageProxy({
-            protectedChannels: ['general-chat'],
+            protectedChannels: [GeneralChatChannel],
             proxyType: ProxyType.Child,
             parentOrigin: 'http://localhost:4200',
             acceptedOrigins: ['http://localhost:4200'],

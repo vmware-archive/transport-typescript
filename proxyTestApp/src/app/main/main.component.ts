@@ -49,7 +49,7 @@ export class MainComponent extends AbstractBase implements OnInit {
     }
 
     public connectServbot() {
-        this.bus.sendRequestMessage(ServbotService.channel, {request: RequestType.Connect})
+        this.bus.sendRequestMessage(ServbotService.queryChannel, {request: RequestType.Connect})
     }
 
     private listenToBusMonitor(): void {
@@ -71,6 +71,10 @@ export class MainComponent extends AbstractBase implements OnInit {
                     case MonitorType.MonitorChildProxyListening:
                         this.activeChildren++;
                         this.postToast('Bus Connected', `Child Bus ${mo.from} has started listening`, false);
+                        break;
+
+                    case MonitorType.MonitorBrokerConnectorConnected:
+                        this.postToast('Bifröst Extended', `Broker connector has extended bus`, false);
                         break;
 
                 }

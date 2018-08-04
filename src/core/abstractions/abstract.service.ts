@@ -171,7 +171,7 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
      * @returns {GalacticRequest<T>}
      */
     protected buildGalacticRequest<T>(requestType: string, payload: T,
-                                      uuid: UUID = GeneralUtil.genUUIDShort(),
+                                      uuid: UUID = GeneralUtil.genUUID(),
                                       version: number = 1): GalacticRequest<T> {
 
         return new GalacticRequest(requestType, payload, uuid, version);

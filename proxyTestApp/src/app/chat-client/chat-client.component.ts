@@ -1,9 +1,10 @@
 import { AfterViewChecked, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { EventBus, MessageHandler } from '@vmw/bifrost';
 import { AbstractBase } from '@vmw/bifrost/core';
-import { ChatMessage } from '../chat-message';
-
-
+import { ChatMessage, GeneralChatChannel } from '../chat-message';
+import { ServbotService } from '../../services/servbot/servbot.service';
+import { RequestType, ServbotResponse } from '../../services/servbot/servbot.model';
+import { GeneralUtil } from '@vmw/bifrost/util/util';
 
 @Component({
     selector: 'chat-client',
@@ -33,7 +34,7 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
 
     ngOnInit() {
 
-        this.generalChat = this.bus.listenStream('general-chat');
+        this.generalChat = this.bus.listenStream(GeneralChatChannel);
         this.generalChat.handle(
             (message: ChatMessage) => {
                 if (!this.isOnline) {
@@ -61,6 +62,10 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
     public onKey(event: KeyboardEvent): void {
         if (event.key === 'Enter') {
 
+            if (this.chat.startsWith('/')) {
+                this.handleChatCommand();
+                return;
+            }
             const message: ChatMessage = {
                 from: this.name,
                 avatar: this.avatar,
@@ -70,7 +75,7 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
                 error: false
             };
             this.chat = '';
-            this.bus.sendResponseMessage('general-chat', message);
+            this.bus.sendResponseMessage(GeneralChatChannel, message);
         }
     }
 
@@ -106,6 +111,30 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
 
     scrollToBottom(): void {
         this.chatContainer.nativeElement.scrollTop = this.chatContainer.nativeElement.scrollHeight;
+    }
+
+    private handleChatCommand(): void {
+
+        if (this.chat === '/msg-stats') {
+
+            this.bus.requestOnceWithId(
+                GeneralUtil.genUUID(),
+                ServbotService.queryChannel,
+                {request: RequestType.MessageStats}
+            ).handle(
+                (resp: ServbotResponse) => {
+                    this.generalChatMessages.push({
+                        from: 'servbot',
+                        avatar: '🤖',
+                        body: resp.body,
+                        time: Date.now(),
+                        controlEvent: `Servbot: ${resp.body}`,
+                        error: false
+                    });
+                }
+            );
+
+        }
     }
 
 }

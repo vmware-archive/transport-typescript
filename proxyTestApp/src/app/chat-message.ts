@@ -6,3 +6,5 @@ export interface ChatMessage {
     controlEvent: string;
     error: boolean;
 }
+
+export const GeneralChatChannel = 'general-chat';

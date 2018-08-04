@@ -1,22 +1,24 @@
 import { AbstractService } from '@vmw/bifrost/core';
-import { GalacticRequest, GalacticResponse, MessageArgs } from '@vmw/bifrost';
+import { GalacticResponse, MessageArgs } from '@vmw/bifrost';
 import { RequestType, ServbotRequest, ServbotResponse } from './servbot.model';
+import { ChatMessage, GeneralChatChannel } from '../../app/chat-message';
 
 
-export class ServbotService extends AbstractService<ServbotRequest, ServbotResponse>{
+export class ServbotService extends AbstractService<ServbotRequest, ServbotResponse> {
 
-    public static channel = 'servbot-query';
+    public static queryChannel = 'servbot-query';
+    public static serviceChannel = 'servbot';
 
     constructor() {
-        super('servbot', ServbotService.channel);
-        this.log.info("ServBot Online");
+        super('ServBot Service', ServbotService.queryChannel);
+        this.log.info("ServBot Service Online");
     }
 
     private connectService() {
 
         this.bus.connectBridge(
             () => {
-               this.log.info("ServBotService connected to broker successfully");
+                this.log.info("ServBotService connected to broker successfully");
             },
             '/bifrost',
             '/topic',
@@ -27,30 +29,42 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
             '/pub'
         );
 
+        // listen to general chat and relay to servbot.
+        this.listenToChat();
+
     }
 
     protected handleServiceRequest(requestObject: ServbotRequest, requestArgs?: MessageArgs): void {
-            switch(requestObject.request) {
-                case RequestType.Connect:
-                    this.connectService();
-                    break;
+        switch (requestObject.request) {
+            case RequestType.Connect:
+                this.connectService();
+                break;
 
-                case RequestType.UserStats:
-                    this.delegate(requestObject);
-                    break;
-            }
+            default:
+                this.delegate(requestObject);
+                break;
+        }
 
     }
 
     private delegate(requestObject: ServbotRequest): void {
-        //this.makeG
-        const req: GalacticRequest<any> = this.buildGalacticRequest(RequestType[requestObject.request], null);
-        this.makeGalacticRequest(req, 'servbot', this.handleQueryResponse);
+        this.makeGalacticRequest(
+            this.buildGalacticRequest(RequestType[requestObject.request], null),
+            ServbotService.serviceChannel,
+            this.handleQueryResponse.bind(this));
     }
 
-    private handleQueryResponse(response: GalacticResponse<ServbotResponse>): void {
-        console.log(`The fucking thing only went and worked! ${response}`);
+    private handleQueryResponse(response: GalacticResponse<string>): void {
+        this.postResponse(ServbotService.queryChannel, {body: response[0]})
     }
 
+    private listenToChat() {
+        this.bus.listenStream(GeneralChatChannel).handle(
+            (chatMessage: ChatMessage) => {
+                const payload = this.buildGalacticRequest(RequestType[RequestType.PostMessage], chatMessage)
+                this.bus.sendGalacticMessage(ServbotService.serviceChannel, payload, this.getName())
+            }
+        );
+    }
 
 }

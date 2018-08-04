@@ -1,9 +1,9 @@
 export enum RequestType {
         Connect = 'Connect',
-        UserStats = 'UserStats',
         GetMotd = 'GetMotd',
         MessageStats = 'MessageStats',
-        GetJoke = 'GetJoke'
+        GetJoke = 'GetJoke',
+        PostMessage = 'PostMessage'
 }
 
 export interface ServbotRequest {
@@ -11,6 +11,5 @@ export interface ServbotRequest {
 }
 
 export interface ServbotResponse {
-    originalRequest: ServbotRequest;
     body: string;
 }

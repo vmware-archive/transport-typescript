@@ -34,7 +34,9 @@ export enum MonitorType {
     MonitorChildProxyRegistered,
     MonitorChildProxyListening,
     MonitorChildProxyNotListening,
-    MonitorChildProxyUnRegistered
+    MonitorChildProxyUnRegistered,
+    MonitorBrokerConnectorConnected,
+    MonitorBrokerConnectorDisconnected,
 }
 
 export class MonitorObject {
