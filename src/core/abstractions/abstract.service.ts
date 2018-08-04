@@ -1,6 +1,10 @@
-import { MessageArgs } from '../../bus.api';
+import { MessageArgs, MessageFunction } from '../../bus.api';
 import { AbstractBase } from './abstract.base';
 import { HttpRequest, RestError } from '../services/rest/rest.model';
+import { GalacticRequest } from '../../bus/model/request.model';
+import { GalacticResponse } from '../../bus/model/response.model';
+import { UUID } from '../../bus';
+import { GeneralUtil } from '../../util/util';
 
 export const SERVICE_ERROR = 505;
 export type RequestorArguments = MessageArgs;
@@ -135,5 +139,41 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
      */
     protected postError(channel: string, err: RestError): void {
         this.bus.sendErrorMessage(channel, err, this.getName());
+    }
+
+    /**
+     * Make a galactic request to any services operating on the extended bus
+     *
+     * @param {GalacticRequest<GReqT>} request
+     * @param {string} channel
+     * @param {MessageFunction<GRespT>} handler
+     */
+    protected makeGalacticRequest<GReqT, GRespT>(request: GalacticRequest<GReqT>,
+                                                 channel: string,
+                                                 handler: MessageFunction<GRespT>) {
+
+        this.bus.requestGalactic(channel, request,
+            (response: GalacticResponse<GRespT>, args: MessageArgs) => {
+                if (handler) {
+                    handler(response.payload, args);
+                }
+            }
+        );
+    }
+
+    /**
+     * Build a galactic request object
+     *
+     * @param {string} requestType
+     * @param {T} payload
+     * @param {UUID} uuid
+     * @param {number} version
+     * @returns {GalacticRequest<T>}
+     */
+    protected buildGalacticRequest<T>(requestType: string, payload: T,
+                                      uuid: UUID = GeneralUtil.genUUIDShort(),
+                                      version: number = 1): GalacticRequest<T> {
+
+        return new GalacticRequest(requestType, payload, uuid, version);
     }
 }

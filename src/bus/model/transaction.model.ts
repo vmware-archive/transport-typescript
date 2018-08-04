@@ -1,6 +1,4 @@
 import { UUID, StoreType } from '../store/store.model';
-import { BusTransactionImpl } from '../transaction';
-import { StoreReadyResult, BusStore } from '../../store.api';
 import { StompParser } from '../../bridge/stomp.parser';
 import { TransactionReceipt } from '../../bus.api';
 

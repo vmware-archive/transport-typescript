@@ -1,26 +1,56 @@
-import { AbstractBase } from '@vmw/bifrost/core/abstractions/abstract.base';
+import { AbstractService } from '@vmw/bifrost/core';
+import { GalacticRequest, GalacticResponse, MessageArgs } from '@vmw/bifrost';
+import { RequestType, ServbotRequest, ServbotResponse } from './servbot.model';
 
-export class ServbotService extends AbstractBase{
 
-    private static _instance: ServbotService;
+export class ServbotService extends AbstractService<ServbotRequest, ServbotResponse>{
 
-    /**
-     * Destroy the manager completely.
-     */
-    public static destroy(): void {
-        this._instance = null;
+    public static channel = 'servbot-query';
+
+    constructor() {
+        super('servbot', ServbotService.channel);
+        this.log.info("ServBot Online");
     }
 
-    /**
-     * Get reference to singleton ApiOperations instance.
-     * @returns {ApiOperations}
-     */
-    public static getInstance(): ServbotService {
-        return this._instance || (this._instance = new this());
+    private connectService() {
+
+        this.bus.connectBridge(
+            () => {
+               this.log.info("ServBotService connected to broker successfully");
+            },
+            '/bifrost',
+            '/topic',
+            '/queue',
+            1,
+            'localhost',
+            8080,
+            '/pub'
+        );
+
     }
 
-    private constructor() {
-        super('servbot');
+    protected handleServiceRequest(requestObject: ServbotRequest, requestArgs?: MessageArgs): void {
+            switch(requestObject.request) {
+                case RequestType.Connect:
+                    this.connectService();
+                    break;
+
+                case RequestType.UserStats:
+                    this.delegate(requestObject);
+                    break;
+            }
+
     }
+
+    private delegate(requestObject: ServbotRequest): void {
+        //this.makeG
+        const req: GalacticRequest<any> = this.buildGalacticRequest(RequestType[requestObject.request], null);
+        this.makeGalacticRequest(req, 'servbot', this.handleQueryResponse);
+    }
+
+    private handleQueryResponse(response: GalacticResponse<ServbotResponse>): void {
+        console.log(`The fucking thing only went and worked! ${response}`);
+    }
+
 
 }

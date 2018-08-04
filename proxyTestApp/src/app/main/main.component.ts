@@ -5,15 +5,10 @@ import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
 import { LogLevel } from '@vmw/bifrost/log';
 import { ToastNotification } from '@vmw/ngx-components';
 import { ChatMessage } from '../chat-message';
-import { AbstractBase, AbstractCore } from '@vmw/bifrost/core';
-import { EventBusEnabled } from '../../../../src/bus.api';
-import { BusStoreApi } from '../../../../src/store.api';
-import { Logger } from '../../../../src/log';
-
-
-
-
-
+import { AbstractBase } from '@vmw/bifrost/core';
+import { ServbotService } from '../../services/servbot/servbot.service';
+import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
+import { RequestType } from '../../services/servbot/servbot.model';
 
 @Component({
     selector: 'app-main',
@@ -30,11 +25,13 @@ export class MainComponent extends AbstractBase implements OnInit {
     public registeredChildren: number = 0;
 
     constructor() {
-        super('peep');
+        super('MainComponent');
         this.bus.api.setLogLevel(LogLevel.Verbose);
         this.bus.api.enableMonitorDump(true);
         this.generalChatMessages = [];
         this.consoleEvents = [];
+
+        ServiceLoader.addService(ServbotService);
     }
 
     ngOnInit() {
@@ -49,6 +46,10 @@ export class MainComponent extends AbstractBase implements OnInit {
         });
 
         this.notifications = [];
+    }
+
+    public connectServbot() {
+        this.bus.sendRequestMessage(ServbotService.channel, {request: RequestType.Connect})
     }
 
     private listenToBusMonitor(): void {
