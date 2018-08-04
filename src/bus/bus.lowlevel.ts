@@ -649,10 +649,10 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         let message = mo.data as Message;
 
         this.log.group(LogLevel.Info, tag);
-        if (message.isRequest()) {
+        if (message.type === MessageType.MessageTypeRequest) {
             this.log.info('📤 Request (outbound)', null);
         } else {
-            if (message.isError()) {
+            if (message.type === MessageType.MessageTypeError) {
                 this.log.info('⁉️ ERROR!', null);
             } else {
                 this.log.info('📥 Response (inbound)', 'message type');
@@ -662,7 +662,9 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         if (dropped) {
             this.log.warn('💩 Message Was Dropped!', null);
         }
-        this.log.group(LogLevel.Info, message.isError() ? '⚠️ Error Payload' : '📦 Message Payload');
+        this.log.group(LogLevel.Info,
+            message.type === MessageType.MessageTypeError ? '⚠️ Error Payload' : '📦 Message Payload');
+
 
         this.log.info(LogUtil.pretty(message.payload), null);
         this.log.groupEnd(LogLevel.Info);
@@ -730,10 +732,10 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                                 break;
 
                             case MonitorType.MonitorData:
-                                if (pload.isRequest()) {
+                                if (pload.type === MessageType.MessageTypeRequest) {
                                     type = 'Request';
                                 }
-                                if (pload.isError()) {
+                                if (pload.type === MessageType.MessageTypeError) {
                                     type = 'Error';
                                 }
                                 this.dumpData(mo, '💬 (' + type + ')-> ' + mo.channel + ' [' + mo.from + ']');

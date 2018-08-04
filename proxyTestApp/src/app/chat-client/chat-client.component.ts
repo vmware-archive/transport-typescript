@@ -49,6 +49,9 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
                 } else {
                     this.generalChatMessages.push(message);
                 }
+            },
+            (error) => {
+                console.log('nope...', error);
             }
         );
         this.isOnline = true;
@@ -120,7 +123,9 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
             this.bus.requestOnceWithId(
                 GeneralUtil.genUUID(),
                 ServbotService.queryChannel,
-                {command: ChatCommand.Help}
+                {command: ChatCommand.Help},
+                ServbotService.queryChannel,
+                EventBus.id
             ).handle(
                 (resp: ServbotResponse) => {
                     this.generalChatMessages.push({

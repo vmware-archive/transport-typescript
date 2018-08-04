@@ -49,7 +49,7 @@ export class MainComponent extends AbstractBase implements OnInit {
     }
 
     public connectServbot() {
-        this.bus.sendRequestMessage(ServbotService.queryChannel, {command: ChatCommand.Connect})
+        this.bus.sendRequestMessage(ServbotService.queryChannel, {command: ChatCommand.Connect}, EventBus.id);
     }
 
     private listenToBusMonitor(): void {

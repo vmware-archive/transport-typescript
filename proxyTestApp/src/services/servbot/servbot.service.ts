@@ -34,15 +34,20 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
     }
 
     protected handleServiceRequest(requestObject: ServbotRequest, requestArgs?: MessageArgs): void {
-        switch (requestObject.command) {
 
-            case ChatCommand.Connect:
-                this.connectService();
-                break;
+        if(requestObject && requestObject.command) {
+            switch (requestObject.command) {
 
-            default:
-                this.delegate(requestObject);
-                break;
+                case ChatCommand.Connect:
+                    this.connectService();
+                    break;
+
+                default:
+                    this.delegate(requestObject);
+                    break;
+            }
+        } else {
+            this.log.warn('Unable to proceeed, no valid commands passed.')
         }
     }
 
@@ -63,9 +68,6 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
             (chatMessage: ChatMessage) => {
                 const payload = this.buildGalacticRequest(ChatCommand[ChatCommand.PostMessage], chatMessage)
                 this.bus.sendGalacticMessage(ServbotService.serviceChannel, payload, this.getName())
-            },
-            (error) => {
-                console.log('MUM! MY MUM.....', error);
             }
         );
 
