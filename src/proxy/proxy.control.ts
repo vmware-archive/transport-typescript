@@ -262,7 +262,9 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         this.bus.logger.debug(
             `Authorized message received on: [${chan}], sending to parent frame`, this.getName());
 
-        const proxyMessage: BusProxyMessage = new BusProxyMessage(message, chan, message.type, EventBus.id);
+        const proxyMessage: BusProxyMessage = new BusProxyMessage(JSON.stringify(message),
+            chan, message.type, EventBus.id);
+
         domWindow.parent.postMessage(proxyMessage, this.parentOriginValue);
 
     }
@@ -274,7 +276,8 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
             this.getName());
 
         const proxyMessage: BusProxyMessage =
-            new BusProxyMessage(control, this.proxyControlChannel, MessageType.MessageTypeControl, EventBus.id);
+            new BusProxyMessage(JSON.stringify(control), this.proxyControlChannel,
+                MessageType.MessageTypeControl, EventBus.id);
         proxyMessage.control = control.command;
 
         domWindow.parent.postMessage(proxyMessage, this.parentOriginValue);
@@ -286,7 +289,8 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
             `Authorized message received on: [${chan}], from ${message.sender}, sending to children`, this.getName());
 
 
-        const proxyMessage: BusProxyMessage = new BusProxyMessage(message, chan, message.type, message.sender);
+        const proxyMessage: BusProxyMessage =
+            new BusProxyMessage(JSON.stringify(message), chan, message.type, message.sender);
 
         // if targeting all frames, extract all frames on the page and post messages to them.
         if (this.targetAllFramesValue) {
@@ -316,7 +320,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
             return; // ignore everything, not interested.
         }
 
-        console.log(`handling event from ${event.data.from} on bus ${EventBus.id}`);
+        //console.log(`handling event from ${event.data.from} on bus ${EventBus.id}`);
         // drop the message if it originated from this bus, otherwise we will see duplicates.
         if (event.data && event.data.from) {
             if (event.data.from === EventBus.id) {
@@ -341,6 +345,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
         // check if the message contains a payload, and check if it is a serialized bus message.
         if (event.data && event.data !== '') {
+
             const data: any = event.data;
 
             if (data.hasOwnProperty('channel') && data.hasOwnProperty('type') && data.hasOwnProperty('payload')) {
@@ -368,11 +373,13 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                         'Proxy Message valid, but channel is not authorized: [' + data.channel + ']', this.getName());
                     return;
                 } else {
+                    const payload: ProxyControlPayload = JSON.parse(data.payload) as ProxyControlPayload;
+                    data.payload = payload; // copy deserialized object back in.
 
                     // everything checks out!
                     // determine if this event is a control event or a regular message to proxy
                     if (data.control != null) {
-                        const payload: ProxyControlPayload = data.payload;
+
                         let state: ProxyState;
                         let mo: MonitorObject;
 
@@ -428,7 +435,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                         }
 
                     } else {
-                        this.proxyMessage(data, event.origin);
+                        this.proxyMessage(data);
                     }
                 }
 
@@ -453,59 +460,45 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         return this.authorizedChannels.includes(requestedChannel);
     }
 
-    private rebuildMessage(message: any, type: MessageType): Message {
-
+    private rebuildMessage(message: any, type: MessageType, sender: string): Message {
+        let msg: Message;
         switch (type) {
             case MessageType.MessageTypeRequest:
-                let msg = new Message(message.mId).request(message._payload);
-                return msg;
+                msg = new Message(message.id).request(message.payload);
+                break;
 
             case MessageType.MessageTypeResponse:
-                return new Message(message.mId).response(message._payload);
+                msg = new Message(message.id).response(message.payload);
+                break;
 
             case MessageType.MessageTypeError:
-                return new Message(message.mId).error(message._payload);
+                msg = new Message(message.id).error(message.payload);
+                break;
 
         }
-        return null;
+        msg.sender = sender;
+        return msg;
     }
 
-    private proxyMessage(message: BusProxyMessage, origin: string): void {
+    private proxyMessage(message: BusProxyMessage): void {
 
 
         let msg = message.payload;
-
-        console.log('CHIPS', msg);
+        msg.proxyRebroadcast = true;
 
         switch (message.type) {
 
             case MessageType.MessageTypeRequest:
-                // build a message manually and set the proxy rebroadcast flag.
-                msg = this.rebuildMessage(message.payload, message.type);
-                msg.proxyRebroadcast = true; // this will prevent the messge from being re-picked up by the proxy.
-                //this.bus.api.send(message.channel, msg, message.from);
-                // console.log(`sending proxy message from ${message.from} to ${message.channel} with id: ${msg.id}`,
-                //     msg._payload._body);
-
-
-                if (msg._payload) {
-                    this.bus.sendRequestMessageWithId(message.channel, msg._payload, msg.mId, message.from);
-                }
+                this.bus.sendRequestMessageWithId(message.channel, msg.payload, msg.id, message.from);
                 break;
 
             case MessageType.MessageTypeResponse:
+                this.bus.sendResponseMessageWithId(message.channel, msg.payload, msg.id, message.from);
 
-                msg = this.rebuildMessage(message.payload, message.type);
-                msg.proxyRebroadcast = true; // this will prevent the messge from being re-picked up by the proxy.
-                if (msg._payload) {
-                    this.bus.sendResponseMessageWithId(message.channel, msg._payload, msg.mId, message.from);
-                }
                 break;
 
             case MessageType.MessageTypeError:
-                msg = this.rebuildMessage(message.payload, message.type);
-                msg.proxyRebroadcast = true; // this will prevent the messge from being re-picked up by the proxy.
-                this.bus.sendErrorMessage(message.channel, msg._payload, message.from);
+                this.bus.sendErrorMessage(message.channel, msg.payload, message.from);
                 break;
 
         }

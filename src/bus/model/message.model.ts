@@ -10,56 +10,52 @@ import { MessageType, SentFrom } from '../../bus.api';
  * Messages can contain either a data payload or an error payload.
  * Messages can be a command, or a response. An error notification is always a response.
  * The content of the payload is opaque and its format is only decodable by the sender(s) and the receiver(s)
- * At present, there is only a placeholder for the Message Schema. This is expected to be replaced with JSON-schema
+ *
+ * This has beeen simplified to remove TypeScript getters and setters, this is because, when using postMesssage()
+ * and various other mechanisms because of The structured clone algorithm issue and deserialzing object properties.
+ * You end up with an untyped object that only has the private properties ('_privateVar') exposed, none of the
+ * methods either. Causes a dirty object that breaks most typed logic at runtime.
+ *
+ * https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
  */
 
 export class MessageHandlerConfig {
-    private _sendChannel: string;
-    private _returnChannel: string;
-    private _body: any;
-    singleResponse: boolean;
+    public isHandlerConfig: boolean = true; // make it easy to determine we're dealing with a wrapped payload
+    public sendChannel: string;
+    public returnChannel: string;
+    public body: any;
+    public singleResponse: boolean;
 
     constructor(sendChannel: string, body: any, singleResponse: boolean = true, returnChannel?: string) {
-        this._returnChannel = returnChannel;
-        this._sendChannel = sendChannel;
-        this._body = body;
-        if (!this._returnChannel) {
-            this._returnChannel = sendChannel;
+        this.returnChannel = returnChannel;
+        this.sendChannel = sendChannel;
+        this.body = body;
+        if (!this.returnChannel) {
+            this.returnChannel = sendChannel;
         }
         this.singleResponse = singleResponse;
     }
 
-    get returnChannel(): string {
-        return this._returnChannel;
-    }
-
-    get sendChannel(): string {
-        return this._sendChannel;
-    }
-
-    get body(): any {
-        return this._body;
-    }
 }
 
 export class Message {
-    private _type: MessageType;
-    private _payload: any;
-    private _isError: boolean = false;
-    private versionNumber: number;
-    private mId: UUID;
-    private sentFrom: SentFrom;
-    private proxyRebroadcastFlag: boolean = false;
+    public type: MessageType;
+    public payload: any;
+    public messageError: boolean = false;
+    public version: number;
+    public id: UUID;
+    public sender: SentFrom;
+    public proxyRebroadcast: boolean = false;
 
     constructor(id?: UUID, version: number = 1) {
-        this.mId = id;
-        this.versionNumber = version;
+        this.id = id;
+        this.version = version;
     }
 
     private build(type?: MessageType, payload?: any, error = false) {
-        this._isError = error;
-        this._payload = payload;
-        this._type = type;
+        this.messageError = error;
+        this.payload = payload;
+        this.type = type;
         return this;
     }
 
@@ -76,50 +72,16 @@ export class Message {
     }
 
     isRequest(): boolean {
-        return this._type === MessageType.MessageTypeRequest;
+        return this.type === MessageType.MessageTypeRequest;
     }
 
     isResponse(): boolean {
-        return this._type === MessageType.MessageTypeResponse;
+        return this.type === MessageType.MessageTypeResponse;
     }
 
     isError(): boolean {
-        return this._type === MessageType.MessageTypeError;
+        return this.messageError;
     }
 
-    get payload(): any {
-        return this._payload;
-    }
 
-    set payload(payload: any) {
-        this._payload = payload;
-    }
-
-    get type(): MessageType {
-        return this._type;
-    }
-
-    get id(): UUID {
-        return this.mId;
-    }
-    
-    get version(): number {
-        return this.versionNumber;
-    }
-
-    get sender(): SentFrom {
-        return this.sentFrom;
-    }
-
-    set sender(sender: SentFrom) {
-        this.sentFrom = sender;
-    }
-
-    get proxyRebroadcast() {
-        return this.proxyRebroadcastFlag;
-    }
-
-    set proxyRebroadcast(flag: boolean) {
-        this.proxyRebroadcastFlag = flag;
-    }
 }

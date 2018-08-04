@@ -55,7 +55,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
             .pipe(
                 map(
                     (msg: Message) => {
-                        if (msg.payload && msg.payload.hasOwnProperty('_sendChannel')) {
+                        if (msg.payload && msg.payload.hasOwnProperty('sendChannel')) {
                             msg.payload = msg.payload.body;
                         }
                         return msg;
@@ -153,7 +153,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                 map(
                     (msg: Message) => {
                         // just an FYI -  I hate this... I made a bad choice and I will fix it!
-                        if (msg.payload.hasOwnProperty('_sendChannel')) {
+                        if (msg.payload.hasOwnProperty('sendChannel')) {
                             msg.payload = msg.payload.body;
                         }
                         return msg;
