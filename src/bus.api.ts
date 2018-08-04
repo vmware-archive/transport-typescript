@@ -1,7 +1,6 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { BrokerConnector } from './index';
 import { StoreType, UUID } from './bus/store/store.model';
 import { BusStoreApi } from './store.api';
 import { Message, MessageHandlerConfig } from './bus/model/message.model';
@@ -124,7 +123,6 @@ export interface MessageResponder<T = any, E = any> {
 
     /**
      * Get an observable for incoming (command & error) payloads
-     * @param messageType optional filter for responses, requests or errors. If left blank, you get the firehose.
      */
     getObservable(): Observable<T>;
 }
@@ -133,7 +131,7 @@ export abstract class EventBus {
 
     public static version: string = '0.9.0';
 
-    public static id: string = `eventbus-${GeneralUtil.genUUIDShort()}`;
+    public static id: string = `eventbus-${GeneralUtil.genUUIDShort()}-${EventBus.version}`;
 
     /**
      * Reference to Low Level API.
@@ -165,20 +163,23 @@ export abstract class EventBus {
      * @param {R} payload the payload to be sent
      * @param {UUID} id the ID you want to attach to your command
      * @param {SentFrom} from  optional name of the sending actor (for logging)
+     * @param proxyBroadcast optional flag, only required when messages originated in another bus.
      */
-    abstract sendRequestMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, from?: SentFrom): void;
-    
+    abstract sendRequestMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, from?: SentFrom,
+                                         proxyBroadcast?: boolean): void;
+
     /**
      * Send a command payload to a channel with a supplied ID in the command
-     * 
+     *
      * @param {ChannelName} cname channel to send the payload to
      * @param {R} payload the payload to be sent
      * @param {UUID} id the ID you want to attach to your command
      * @param {number} version version of command you want to sent (defaults to 1)
      * @param {SentFrom} from  optional name of the sending actor (for logging)
-     */                                     
+     * @param proxyBroadcast optional flag, only required when messages originated in another bus.
+     */
     abstract sendRequestMessageWithIdAndVersion<R>(cname: ChannelName, payload: R, id: UUID, version: number,
-                                                   from?: SentFrom): void;
+                                                   from?: SentFrom, proxyBroadcast?: boolean): void;
 
     /**
      * Send response payload to a channel.
@@ -195,8 +196,10 @@ export abstract class EventBus {
      * @param {R} payload the payload you want to send in response 
      * @param {UUID} id the ID you want to attach to your response
      * @param {SentFrom} from optional name of the sending actor (for logging)
+     * @param proxyBroadcast optional flag, only required when messages originated in another bus.
      */
-    abstract sendResponseMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, from?: SentFrom): void;
+    abstract sendResponseMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, from?: SentFrom,
+                                          proxyBroadcast?: boolean): void;
 
     
     /**
@@ -206,17 +209,19 @@ export abstract class EventBus {
      * @param {UUID} id the ID you want to attach to your response
      * @param {number} version version of command you want to sent (defaults to 1)
      * @param {SentFrom} from optional name of the sending actor (for logging)
+     * @param proxyBroadcast optional flag, only required when messages originated in another bus.
      */                                      
     abstract sendResponseMessageWithIdAndVersion<R>(cname: ChannelName, payload: R, id: UUID, version: number, 
-                                                    from?: SentFrom): void;
+                                                    from?: SentFrom, proxyBroadcast?: boolean): void;
     /**
      * Send error payload to channel.
      *
      * @param {ChannelName} cname the channel to send the payload to
      * @param {E} payload the payload to be send
      * @param {SentFrom} from optional name of sending actor (for logging)
+     * @param proxyBroadcast optional flag, only required when messages originated in another bus.
      */
-    abstract sendErrorMessage<E>(cname: ChannelName, payload: E, from?: SentFrom): void;
+    abstract sendErrorMessage<E>(cname: ChannelName, payload: E, from?: SentFrom, proxyBroadcast?: boolean): void;
 
     /**
      * Listen for a command on sendChannel and return a single response via the generate() method on MessageResponder.

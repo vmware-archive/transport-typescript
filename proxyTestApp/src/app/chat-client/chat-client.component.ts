@@ -78,7 +78,7 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
                 error: false
             };
             this.chat = '';
-            this.bus.sendResponseMessage(GeneralChatChannel, message);
+            this.bus.sendResponseMessage(GeneralChatChannel, message, EventBus.id);
         }
     }
 

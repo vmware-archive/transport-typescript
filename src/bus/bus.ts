@@ -239,9 +239,10 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         cname: string,
         payload: R,
         id: UUID,
-        from?: string): void {
+        from?: string,
+        proxyBroadcast: boolean = false): void {
 
-        this.api.send(cname, new Message(id).request(payload), from);
+        this.api.send(cname, new Message(id, 1, proxyBroadcast).request(payload), from);
     }
 
     public sendRequestMessageWithIdAndVersion<R>(
@@ -249,10 +250,11 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         payload: R,
         id: UUID,
         version: number,
-        from?: string): void {
+        from?: string,
+        proxyBroadcast: boolean = false): void {
         this.api.send(
             cname,
-            new Message(id, version).request(payload),
+            new Message(id, version, proxyBroadcast).request(payload),
             from
         );
     }
@@ -279,12 +281,13 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         cname: string,
         payload: R,
         id: UUID,
-        from?: string): void {
+        from?: string,
+        proxyBroadcast: boolean = false): void {
         this.api.tickEventLoop(
             () => {
                 this.api.send(
                     cname,
-                    new Message(id).response(payload),
+                    new Message(id, 1, proxyBroadcast).response(payload),
                     from
                 );
             }
@@ -296,12 +299,13 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         payload: R,
         id: UUID,
         version: number,
-        from?: string): void {
+        from?: string,
+        proxyBroadcast: boolean = false): void {
         this.api.tickEventLoop(
             () => {
                 this.api.send(
                     cname,
-                    new Message(id, version).response(payload),
+                    new Message(id, version, proxyBroadcast).response(payload),
                     from
                 );
             }
@@ -312,9 +316,10 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
     public sendErrorMessage(
         cname: ChannelName,
         payload: any,
-        name = this.getName()): void {
+        name = this.getName(),
+        proxyBroadcast: boolean = false): void {
 
-        this.api.send(cname, new Message().error(payload), name);
+        this.api.send(cname, new Message(GeneralUtil.genUUIDShort(), 1, proxyBroadcast).error(payload), name);
     }
 
 

@@ -47,9 +47,10 @@ export class Message {
     public sender: SentFrom;
     public proxyRebroadcast: boolean = false;
 
-    constructor(id?: UUID, version: number = 1) {
+    constructor(id?: UUID, version: number = 1, proxy: boolean = false) {
         this.id = id;
         this.version = version;
+        this.proxyRebroadcast = proxy;
     }
 
     private build(type?: MessageType, payload?: any, error = false) {

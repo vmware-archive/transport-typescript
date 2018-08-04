@@ -21,9 +21,10 @@ const domWindow: any = window;
 export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
     private readonly proxyControlChannel: string = '__proxycontrol__';
+    public readonly proxyId: string = EventBus.id;
 
     getName(): string {
-        return `${EventBus.id}`;
+        return this.proxyId;
     }
 
     /**
@@ -489,16 +490,16 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         switch (message.type) {
 
             case MessageType.MessageTypeRequest:
-                this.bus.sendRequestMessageWithId(message.channel, msg.payload, msg.id, message.from);
+                this.bus.sendRequestMessageWithId(message.channel, msg.payload, msg.id, message.from, true);
                 break;
 
             case MessageType.MessageTypeResponse:
-                this.bus.sendResponseMessageWithId(message.channel, msg.payload, msg.id, message.from);
+                this.bus.sendResponseMessageWithId(message.channel, msg.payload, msg.id, message.from, true);
 
                 break;
 
             case MessageType.MessageTypeError:
-                this.bus.sendErrorMessage(message.channel, msg.payload, message.from);
+                this.bus.sendErrorMessage(message.channel, msg.payload, message.from, true);
                 break;
 
         }
