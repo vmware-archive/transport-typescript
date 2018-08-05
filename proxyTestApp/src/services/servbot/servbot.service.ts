@@ -52,15 +52,14 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
     }
 
     private delegate(requestObject: ServbotRequest): void {
-        console.log('galactic delegation', requestObject);
         this.makeGalacticRequest(
             this.buildGalacticRequest(ChatCommand[requestObject.command], null),
             ServbotService.serviceChannel,
             this.handleQueryResponse.bind(this));
     }
 
-    private handleQueryResponse(response: GalacticResponse<string>): void {
-        this.postResponse(ServbotService.queryChannel, {body: response[0]})
+    private handleQueryResponse(response: GalacticResponse<any>): void {
+        this.postResponse(ServbotService.queryChannel, {body: response})
     }
 
     private listenToChat() {

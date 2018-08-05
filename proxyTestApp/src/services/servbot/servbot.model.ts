@@ -1,9 +1,9 @@
 export enum ChatCommand {
     Connect = 'Connect',
-    GetMotd = 'GetMotd',
+    Motd = 'Motd',
     MessageStats = 'MessageStats',
     Help = 'Help',
-    GetJoke = 'GetJoke',
+    Joke = 'Joke',
     PostMessage = 'PostMessage'
 }
 
@@ -12,5 +12,5 @@ export interface ServbotRequest {
 }
 
 export interface ServbotResponse {
-    body: string;
+    body: any;
 }

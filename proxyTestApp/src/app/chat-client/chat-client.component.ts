@@ -118,49 +118,44 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
 
     private handleChatCommand(): void {
 
-        if (this.chat === '/help') {
+        if(this.chat.startsWith('/')) {
 
-            this.bus.requestOnceWithId(
-                GeneralUtil.genUUID(),
-                ServbotService.queryChannel,
-                {command: ChatCommand.Help},
-                ServbotService.queryChannel,
-                EventBus.id
-            ).handle(
-                (resp: ServbotResponse) => {
-                    this.generalChatMessages.push({
-                        from: 'servbot',
-                        avatar: '🤖',
-                        body: resp.body,
-                        time: Date.now(),
-                        controlEvent: `Servbot: ${resp.body}`,
-                        error: false
-                    });
-                    this.chat = '';
-                }
-            );
-        }
+            let commandString = this.chat.replace('/','');
+            commandString = commandString.charAt(0).toUpperCase() + commandString.slice(1);
 
-        if (this.chat === '/msg-stats') {
+            let command: ChatCommand = ChatCommand[commandString];
 
-            this.bus.requestOnceWithId(
-                GeneralUtil.genUUID(),
-                ServbotService.queryChannel,
-                {command: ChatCommand.MessageStats}
-            ).handle(
-                (resp: ServbotResponse) => {
-                    this.generalChatMessages.push({
-                        from: 'servbot',
-                        avatar: '🤖',
-                        body: resp.body,
-                        time: Date.now(),
-                        controlEvent: `Servbot: ${resp.body}`,
-                        error: false
-                    });
-                    this.chat = '';
-                }
-            );
+            if(command) {
+                this.bus.requestOnceWithId(
+                    GeneralUtil.genUUID(),
+                    ServbotService.queryChannel,
+                    {command: command},
+                    ServbotService.queryChannel,
+                    EventBus.id
+                ).handle(
+                    (resp: ServbotResponse) => {
+                        this.generalChatMessages.push({
+                            from: 'servbot',
+                            avatar: '🤖',
+                            body: resp.body,
+                            time: Date.now(),
+                            controlEvent: `Servbot: ${resp.body}`,
+                            error: false
+                        });
+
+                    }
+                );
+            } else {
+                this.generalChatMessages.push({
+                    from: this.name,
+                    avatar: this.avatar,
+                    body: this.chat,
+                    time: Date.now(),
+                    controlEvent: `Bad command '${commandString.toLowerCase()}'`,
+                    error: true
+                });
+            }
+            this.chat = '';
         }
     }
-
 }
