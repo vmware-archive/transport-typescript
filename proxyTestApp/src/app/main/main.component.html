@@ -14,7 +14,6 @@
                          [fadeOutDelayInMs]="2500">
     </vmw-toast-container>
 
-
     <div class="control-panel">
 
         <div class="bus-stats">
@@ -30,19 +29,12 @@
             </div>
         </div>
         <div>
-            <div class="servbot">
-                <div class="servbot-icon">🤖</div>
-                <div class="servebot-state">Online</div>
-                <button (click)="connectServbot()">Connect</button>
-            </div>
+            <servbot></servbot>
         </div>
-        <!--<div>-->
-            <!--<div class="servbot">-->
-                <!--<div class="servbot-icon">🤖</div>-->
-                <!--<div class="servebot-state">state</div>-->
-            <!--</div>-->
+        <div>
+            <vmcbot></vmcbot>
+        </div>
 
-        <!--</div>-->
     </div>
 
     <div class="frame-container">

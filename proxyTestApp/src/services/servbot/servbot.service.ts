@@ -7,6 +7,7 @@ import { ChatMessage, GeneralChatChannel } from '../../app/chat-message';
 export class ServbotService extends AbstractService<ServbotRequest, ServbotResponse> {
 
     public static queryChannel = 'servbot-query';
+    public static onlineChannel = 'servbot-online';
     public static serviceChannel = 'servbot';
 
     constructor() {
@@ -19,6 +20,7 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
         this.bus.connectBridge(
             () => {
                 this.log.info(`ServBotService connected to broker successfully on bus ${EventBus.id}`);
+                this.bus.sendResponseMessage(ServbotService.onlineChannel, true);
             },
             '/bifrost',
             '/topic',

@@ -177,18 +177,3 @@ a.logo {
     line-height: 128px;
 }
 
-.servbot {
-    width: 200px;
-    height: 160px;
-    border-radius: 20px;
-    margin-left: 20px;
-    border: 1px solid #BDBABF;
-    background-color: #fff;
-    text-align:center;
-    padding-top: 30px;
-}
-
-.servbot-icon {
-    font-size: 90px;
-    line-height: 1;
-}

@@ -1,0 +1,9 @@
+<div class="vmcbot">
+    <img src="assets/vmcicon.svg">
+
+    <div class="servebot-state">
+        <span class="badge" *ngIf="!online">shit</span>
+        <span class="badge badge-success" *ngIf="online">pop</span>
+    </div>
+    <button class="btn btn-sm btn-primary" (click)="connectServbot()" *ngIf="!online">Connect</button>
+</div>

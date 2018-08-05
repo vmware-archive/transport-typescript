@@ -24,6 +24,8 @@ export class MainComponent extends AbstractBase implements OnInit {
     public activeChildren: number = 0;
     public registeredChildren: number = 0;
 
+
+
     constructor() {
         super('MainComponent');
         this.bus.api.setLogLevel(LogLevel.Verbose);
@@ -48,9 +50,6 @@ export class MainComponent extends AbstractBase implements OnInit {
         this.notifications = [];
     }
 
-    public connectServbot() {
-        this.bus.sendRequestMessage(ServbotService.queryChannel, {command: ChatCommand.Connect}, EventBus.id);
-    }
 
     private listenToBusMonitor(): void {
         this.bus.api.getMonitor().subscribe(

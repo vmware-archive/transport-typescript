@@ -12,6 +12,8 @@ import { MainComponent } from './main/main.component';
 import { VmwComponentsModule } from '@vmw/ngx-components';
 import { FormsModule } from '@angular/forms';
 import { ChatClientComponent } from './chat-client/chat-client.component';
+import { ServbotComponent } from './servbot/servbot.component';
+import { VmcbotComponent } from './vmcbot/vmcbot.component';
 
 const appRoutes: Routes = [
     { path: 'frameA', component: ChildFrameAComponent },
@@ -29,7 +31,9 @@ const appRoutes: Routes = [
         ChildFrameBComponent,
         ChildFrameCComponent,
         MainComponent,
-        ChatClientComponent
+        ChatClientComponent,
+        ServbotComponent,
+        VmcbotComponent
     ],
     imports: [
         FormsModule,
