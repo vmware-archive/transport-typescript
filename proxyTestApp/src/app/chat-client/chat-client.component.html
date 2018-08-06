@@ -20,7 +20,6 @@
         <div class="chat-window {{theme}}">
             <div class=chat-container #scrollable>
                 <div class="chat-message" *ngFor="let msg of generalChatMessages">
-
                     <div class="chat-body" *ngIf="!msg.controlEvent">
                         <div class="chat-avatar">
                             {{msg.avatar}}
@@ -34,7 +33,7 @@
                         </div>
                     </div>
 
-                    <div class="chat-body" *ngIf="msg.controlEvent">
+                    <div class="chat-body" *ngIf="msg.controlEvent && !msg.task">
                         <div class="message control" *ngIf="!msg.error">
                             <div>{{msg.controlEvent}} ({{msg.time | date:'shortTime'}})</div>
                         </div>
@@ -42,9 +41,8 @@
                             <div>{{msg.controlEvent}} ({{msg.time | date:'shortTime'}})</div>
                         </div>
                     </div>
-
-
                 </div>
+                <vmc-task [task]="task" *ngIf="task != null"></vmc-task>
             </div>
         </div>
         <div class="chat-input">

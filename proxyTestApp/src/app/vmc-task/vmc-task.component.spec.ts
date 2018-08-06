@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { VMCBot } from './vmcbot.component';
+import { VmcTaskComponent } from './vmc-task.component';
 
-describe('VMCBot', () => {
-  let component: VMCBot;
-  let fixture: ComponentFixture<VMCBot>;
+describe('VmcTaskComponent', () => {
+  let component: VmcTaskComponent;
+  let fixture: ComponentFixture<VmcTaskComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ VMCBot ]
+      declarations: [ VmcTaskComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(VMCBot);
+    fixture = TestBed.createComponent(VmcTaskComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

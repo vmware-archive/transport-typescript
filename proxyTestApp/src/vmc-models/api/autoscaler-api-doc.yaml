@@ -1,0 +1,1082 @@
+# This document was created using swagger.io using spec.json
+# There should be no Errors/Warnings in the doc
+# Please upload this yaml in the editor at
+# editor.swagger.io to verify against swagger standards.
+# For vapi extensions - see https://confluence.eng.vmware.com/display/VAP/VAPI+Swagger+Vendor+Extensions
+# Created on: 02/02/17
+# Last updated: 02/03/17.
+
+swagger: '2.0'
+info:
+  description: |
+    Autoscaler APIs
+    =======================
+    * All Autoscaler APIs require a valid authentication token; which can be obtained by issuing a `POST` to
+      `/api/csp/am/api/auth/api-tokens/authorize` with a query parameter `refresh_token={refresh_token}` eg.
+      ```
+      curl -s -X POST \
+          -H "Content-Type: application/json" \
+          https://console.cloud.vmware.com/csp/gateway/am/api/auth/api-tokens/authorize?refresh_token={{refresh-token}}
+      ```
+    * This CSP API is defined at: `https://console.cloud.vmware.com/csp/gateway/api-docs#!/Authentication/getAccessTokenByApiRefreshToken`
+
+    * The `refresh_token` used to get a valid authentication token can be obtained after successful login to
+      following URL via a web browser: https://console.cloud.vmware.com/csp/gateway/portal/#/user/account. Be sure to
+      get use the `manage account` and not the `Access Key`.
+    * Most Autoscaler APIs require an org identifier.
+      This can be obtained by issuing a `GET` on `/vmc/api/orgs` and extracting the `id` field
+
+  version: '1.0'
+  title: Autoscaler APIs
+  termsOfService: 'https://vmc.vmware.com/terms-and-conditions'
+  contact:
+    name: VMware
+  license:
+    name: 'Copyright (c) 2018 VMware, Inc. All rights reserved.'
+  x-vmw-vapi-codegenconfig:
+    packagename: com.vmware.skyscraper.autoscaler
+    tag-resources-by-url-path: true
+host: internal.vmc.vmware.com
+basePath: /vmc/autoscaler/api
+schemes:
+  - https
+securityDefinitions:
+  api_key:
+    type: apiKey
+    name: csp-auth-token
+    in: header
+security:
+  - api_key: []
+tags:
+  - name: autoscaler
+    description: Operations on autoscaler.
+  - name: features
+    description: Operations on Features
+  - name: operator
+    description: Operations limited to user with operator privileges
+  - name: sddc
+    description: Operations on SDDCs
+  - name: host
+    description: Operations on Hosts
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+#
+# AutoscalerController
+#
+  /operator/event:
+      post:
+        tags:
+          - autoscaler
+        summary: Send event to autoscaler.
+        x-vmw-vapi-methodname: update
+        x-vmw-vapi-servicename: autoscaler
+        parameters:
+          - name: Event
+            in: body
+            description: event
+            required: true
+            schema:
+              $ref: '#/definitions/Event'
+        responses:
+          '200':
+            description: OK
+            schema:
+              $ref: '#/definitions/Task'
+          '400':
+            description: Invalid action or bad argument
+            schema:
+              $ref: '#/definitions/ErrorResponse'
+          '401':
+            description: Unauthorized
+          '403':
+            description: Forbidden
+            schema:
+              $ref: '#/definitions/ErrorResponse'
+          '404':
+            description: Invalid identifier
+            schema:
+              $ref: '#/definitions/ErrorResponse'
+  /operator/awsevent:
+      post:
+        tags:
+          - autoscaler
+        summary: Send aws scheduled event to autoscaler.
+        x-vmw-vapi-methodname: update
+        x-vmw-vapi-servicename: autoscaler
+        parameters:
+          - name: awsEvent
+            in: body
+            description: aws event
+            required: true
+            schema:
+              $ref: '#/definitions/AwsEvent'
+        responses:
+          '200':
+            description: OK
+          '400':
+            description: Invalid action or bad argument
+            schema:
+              $ref: '#/definitions/ErrorResponse'
+          '401':
+            description: Unauthorized
+          '403':
+            description: Forbidden
+            schema:
+              $ref: '#/definitions/ErrorResponse'
+          '404':
+            description: Invalid identifier
+            schema:
+              $ref: '#/definitions/ErrorResponse'
+  /operator/sddcs/{sddc}/policy:
+    put:
+      tags:
+        - autoscaler
+      summary: Set policies for the SDDC.
+      description: |
+         Set autoscaler related policies for the SDDC.
+         Enable_ha: enables or disables HA from the SDDC. By default HA (Host Remediation) is enabled.
+         The API call returns the policies currently set for the SDDC.
+      x-vmw-vapi-methodname: put
+      x-vmw-vapi-servicename: autoscaler
+      parameters:
+        - $ref: '#/parameters/sddcParam'
+        - name: policy
+          in: body
+          description: policy
+          required: true
+          schema:
+            $ref: '#/definitions/Policy'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Policy'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Cannot find the policy with given identifier
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    get:
+      tags:
+        - autoscaler
+      summary: Get the current policy setting for the SDDC.
+      description: |
+         Get the current autoscaler related policy setting for the SDDC.
+         Enable_ha: enables or disables HA from the SDDC. By default HA (Host Remediation) is enabled.
+      x-vmw-vapi-methodname: get
+      x-vmw-vapi-servicename: autoscaler
+      parameters:
+        - $ref: '#/parameters/sddcParam'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Policy'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Cannot find the policy with given identifier
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  # This method conflicts with /operator/sddcs/{sddc} in vmc-api-doc.yaml -- commenting out as we don't use it
+  # /operator/sddcs/{sddc}:
+  #   get:
+  #     tags:
+  #       - sddc
+  #       - operator
+  #     summary: Get Autoscaler SDDC
+  #     description: Get Autoscaler SDDC Object (internal use only).
+  #     x-vmw-vapi-methodname: get
+  #     x-vmc-ui-servicename: sddcs
+  #     parameters:
+  #       - $ref: '#/parameters/sddcParam'
+  #     responses:
+  #       '200':
+  #         description: OK
+  #         schema:
+  #           $ref: '#/definitions/Sddc'
+  #       '401':
+  #         description: Unauthorized
+  #       '403':
+  #         description: Forbidden
+  #       '404':
+  #         description: Cannot find the SDDC with given identifier
+  #         schema:
+  #           $ref: '#/definitions/ErrorResponse'
+  /operator/sddcs/{sddc}/hosts/{host}:
+    delete:
+      tags:
+        - sddc
+        - host
+        - operator
+      summary: Clear the host from the Autoscaler SDDC
+      description: Clear the host info from the Autoscaler SDDC (internal use only).
+      x-vmw-vapi-methodname: delete
+      x-vmc-ui-servicename: hosts
+      parameters:
+        - $ref: '#/parameters/sddcParam'
+        - $ref: '#/parameters/hostParam'
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Cannot find the Host with given identifiers
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /orgs/{org}/sddcs/{sddc}/clusters/{cluster}/edrs-policy:
+    post:
+      tags:
+        - edrs
+      summary: Change the current EDRS policy on a cluster.
+      description: Change the current EDRS policy on a cluster.
+      x-vmw-vapi-methodname: post
+      x-vmc-ui-servicename: autoscaler
+      parameters:
+        - $ref: '#/parameters/orgParam'
+        - $ref: '#/parameters/sddcParam'
+        - $ref: '#/parameters/clusterParam'
+        - name: edrsPolicy
+          in: body
+          description: EDRS policy
+          required: true
+          schema:
+            $ref: '#/definitions/EdrsPolicy'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Task'
+        '400':
+          description: Invalid action or bad argument
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    get:
+      tags:
+        - edrs
+      summary: Get the current EDRS policy on a cluster.
+      description: Get the current EDRS policy on a cluster.
+      x-vmw-vapi-methodname: get
+      x-vmc-ui-servicename: autoscaler
+      parameters:
+        - $ref: '#/parameters/orgParam'
+        - $ref: '#/parameters/sddcParam'
+        - $ref: '#/parameters/clusterParam'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/EdrsPolicy'
+        '400':
+          description: Invalid action or bad argument
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /orgs/{org}/sddcs/{sddc}/edrs-policy:
+    get:
+      tags:
+        - edrs
+      summary: Get the EDRS policy on every cluster in an SDDC.
+      description: Get the EDRS policy on every cluster in an SDDC.
+      x-vmw-vapi-methodname: get
+      x-vmc-ui-servicename: autoscaler
+      parameters:
+        - $ref: '#/parameters/orgParam'
+        - $ref: '#/parameters/sddcParam'
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/EdrsClusterInfo'
+        '400':
+          description: Invalid action or bad argument
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /operator/sddcs/{sddc}/clusters/{cluster}/edrs-policy:
+      post:
+        tags:
+          - edrs
+        summary: Customize the current EDRS policy on a cluster.
+        description: Customize the current EDRS policy on a cluster.
+        x-vmw-vapi-methodname: post
+        x-vmc-ui-servicename: autoscaler
+        x-vmw-vapi-lifecyle-internal:
+        parameters:
+          - $ref: '#/parameters/sddcParam'
+          - $ref: '#/parameters/clusterParam'
+          - name: edrsPolicyOptionsOverrides
+            in: body
+            description: Custom EDRS policy
+            required: true
+            schema:
+              $ref: '#/definitions/EdrsPolicyOptionsOverrides'
+        responses:
+          '200':
+            description: OK
+            schema:
+              $ref: '#/definitions/Task'
+          '400':
+            description: Invalid action or bad argument
+            schema:
+              $ref: '#/definitions/ErrorResponse'
+          '401':
+            description: Unauthorized
+          '403':
+            description: Forbidden
+      get:
+        tags:
+          - edrs
+        summary: Get the current EDRS policy values on a cluster.
+        description: Get the current EDRS policy values on a cluster.
+        x-vmw-vapi-methodname: get
+        x-vmc-ui-servicename: autoscaler
+        x-vmw-vapi-lifecyle-internal:
+        parameters:
+          - $ref: '#/parameters/sddcParam'
+          - $ref: '#/parameters/clusterParam'
+        responses:
+          '200':
+            description: OK
+            schema:
+              $ref: '#/definitions/EdrsPolicyOptionsOverrides'
+          '400':
+            description: Invalid action or bad argument
+            schema:
+              $ref: '#/definitions/ErrorResponse'
+          '401':
+            description: Unauthorized
+          '403':
+            description: Forbidden
+# Feature Service APIs
+  /orgs/{org}/features:
+    get:
+      tags:
+        - features
+      summary: Get evaluation status for all features in the context of an org
+      x-vmw-vapi-methodname: list
+      x-vmc-ui-servicename: features
+      x-vmw-vapi-lifecyle-internal:
+      parameters:
+        - $ref: '#/parameters/orgParam'
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/FeatureEvaluationStatus'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /orgs/{org}/features/{featureId}:
+    get:
+      tags:
+        - features
+      summary: Get evaluation status of a feature in the context of an org
+      x-vmw-vapi-methodname: get
+      x-vmc-ui-servicename: features
+      x-vmw-vapi-lifecyle-internal:
+      parameters:
+        - $ref: '#/parameters/orgParam'
+        - $ref: '#/parameters/featureIdParam'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/FeatureEvaluationStatus'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    patch:
+      tags:
+        - features
+        - all-access
+      summary: API will allow to patch a feature configuration for a given org.
+      x-vmw-vapi-methodname: patch
+      x-vmc-ui-servicename: features
+      x-vmw-vapi-lifecyle-internal:
+      parameters:
+        - $ref: '#/parameters/orgParam'
+        - $ref: '#/parameters/featureIdParam'
+        - $ref: '#/parameters/featureActionQueryParam'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/FeatureEvaluationStatus'
+        '400':
+          description: Invalid patch request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Feature does not exist
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /operator/features:
+    get:
+      tags:
+        - features
+      summary: List all Features
+      x-vmw-vapi-methodname: list
+      x-vmc-ui-servicename: features
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/SksFeature'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /operator/features/{featureId}:
+    get:
+      tags:
+        - features
+      summary: Get a feature with given id
+      x-vmw-vapi-methodname: get
+      x-vmc-ui-servicename: features
+      parameters:
+        - $ref: '#/parameters/featureIdParam'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/SksFeature'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Feature does not exist
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    patch:
+      tags:
+        - features
+      summary: Update a feature with given id
+      x-vmw-vapi-methodname: update
+      x-vmc-ui-servicename: features
+      parameters:
+        - $ref: '#/parameters/featureIdParam'
+        - in: body
+          name: feature
+          description: Feature to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/SksFeaturePatchRequest'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/SksFeature'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Feature does not exist
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+definitions:
+  Policy:
+    type: object
+    required:
+      - enable_ha
+    properties:
+      enable_ha:
+        type: boolean
+        description: True if HA is enabled
+  ErrorResponse:
+    type: object
+    required:
+      - error_code
+      - error_messages
+      - status
+      - path
+      - retryable
+    properties:
+      error_code:
+        type: string
+        description: unique error code
+      error_messages:
+        type: array
+        description: localized error messages
+        items:
+          type: string
+      status:
+        type: integer
+        description: HTTP status code
+      path:
+        type: string
+        description: Originating request URI
+      retryable:
+        type: boolean
+        description: If true, client should retry operation
+  Event:
+    type: object
+    discriminator: esx_id
+    required:
+      - org_id
+      - sddc_id
+      - cluster_id
+      - esx_id
+      - property
+      - property_value
+    properties:
+      org_id:
+        type: string
+        description: VMC identifier for the user org
+      sddc_id:
+        type: string
+        description: VMC sddc identifier
+      cluster_id:
+        type: string
+        description: vSphere cluster identifier
+      esx_id:
+        type: string
+        description: ESX host identifier
+      property:
+        type: string
+        description: Component reporting faiure eg. VC, FDM, AWS etc.
+      property_value:
+        type: object
+        description: The failure eg. hostDown, networkParitioned, instance-retirement etc.
+  AwsEvent:
+    type: object
+    discriminator: instance_id
+    required:
+      - instance_id
+      - account_id
+      - start_time
+      - type
+    properties:
+      instance_id:
+        type: string
+        description: AWS instance id of the host.
+      account_id:
+        type: string
+        description: Customer account id the instance belongs to.
+      start_time:
+        type: string
+        format: date
+        description: The date & time when the AWS event for the host is scheduled.
+      type:
+        type: string
+        description: Type of the scheduled event (retirement, reboot, ...)
+      description:
+        type: string
+        description: Description of the AWS scheduled event.
+  SksFeature:
+    type: object
+    description:
+      Represent a skyscraper feature object.
+    required:
+      - id
+      - description
+      - enable
+    properties:
+      id:
+        type: string
+      description:
+        type: string
+      enable:
+        type: boolean
+      type:
+        type: string
+        enum:
+          - INTERNAL
+          - CUSTOMER
+      category:
+        type: string
+        enum:
+          - UI
+          - SERVICE
+          - E2E
+      toggle_type:
+        type: string
+        enum:
+          - GLOBAL
+          - TARGET_BY_SCOPE
+      state:
+        type: string
+        enum:
+          - ACTIVE
+          - OBSOLETE
+          - NOT_FOUND
+      applicable_scope:
+        $ref: '#/definitions/ApplicableScope'
+      namespace:
+         type: string
+      is_base_feature:
+         type: boolean
+      additional_properties:
+          type: object
+          additionalProperties:
+            type: string
+  ApplicableScope:
+    type: object
+    description:
+      Represent the scope in which a feature will be applicable.
+    properties:
+      whitelisted_keys:
+        type: array
+        items:
+          type: string
+      blacklisted_keys:
+        type: array
+        items:
+          type: string
+      rollout_percent:
+        type: integer
+        format: int32
+  FeatureEvaluationStatus:
+    type: object
+    description:
+      Represent the evaluation status of the feature in context of resourceKey(Example orgId).
+    properties:
+      applicable_status:
+        type: boolean
+        readOnly: true
+  SksFeatureDetails:
+    type: object
+    description:
+      Represent a complete feature and evaluation status in context of resourceKey(Example orgId).
+    properties:
+      feature:
+         $ref: '#/definitions/SksFeature'
+      status:
+         $ref: '#/definitions/FeatureEvaluationStatus'
+  SksFeaturePatchRequest:
+    description:
+      Patch request to update SksFeature.
+    type: object
+    properties:
+      description:
+        type: string
+      enable:
+        type: boolean
+      applicable_scope:
+          $ref: '#/definitions/ApplicableScopePatchRequest'
+  ApplicableScopePatchRequest:
+    description:
+      Patch request to update ApplicableScope of SksFeature.
+    type: object
+    properties:
+      rollout_percent:
+        type: integer
+        format: int32
+      whitelisted_keys:
+        type: array
+        items:
+          type: string
+      add_whitelisted_keys:
+        type: array
+        items:
+          type: string
+      remove_whitelisted_keys:
+        type: array
+        items:
+          type: string
+      blacklisted_keys:
+        type: array
+        items:
+          type: string
+      add_blacklisted_keys:
+        type: array
+        items:
+          type: string
+      remove_blacklisted_keys:
+        type: array
+        items:
+          type: string
+  Sddc:
+    type: object
+    required:
+      - id
+    allOf:
+      - $ref: '#/definitions/AbstractEntity'
+      - properties:
+          id:
+            type: string
+  AbstractEntity:
+    type: object
+    required:
+      - created
+      - user_id
+      - user_name
+      - updated
+      - updated_by_user_id
+      - updated_by_user_name
+    properties:
+      created:
+        type: string
+        format: date-time
+      user_id:
+        description: User id that last updated this record
+        type: string
+      user_name:
+        description: User name that last updated this record
+        type: string
+      updated:
+        type: string
+        format: date-time
+      updated_by_user_id:
+        description: User id that last updated this record
+        type: string
+      updated_by_user_name:
+        description: User name that last updated this record
+        type: string
+  Task:
+    type: object
+    required:
+      - start_time
+      - status
+      - sub_status
+      - task_type
+    allOf:
+      - $ref: '#/definitions/AbstractEntity'
+      - properties:
+          end_time:
+            type: string
+            format: date-time
+          error_message:
+            type: string
+          org_id:
+            type: string
+            example: 1d1c83ee-e0b7-4de9-b660-9a9ca1d22f32
+          params:
+            type: object
+          resource_id:
+            type: string
+            description: UUID of resources task is acting upon
+          resource_type:
+            type: string
+            description: Type of resource being acted upon
+          recorded_features:
+            x-vmw-vmc-exclude: client
+            type: object
+            properties:
+              values:
+                type: object
+                description: A map of string properties to boolean values. This structure holds the feature state
+                additionalProperties:
+                  type: boolean
+          start_time:
+            type: string
+            format: date-time
+          status:
+            type: string
+            enum:
+              - STARTED
+              - CANCELING
+              - FINISHED
+              - FAILED
+              - CANCELED
+          sub_status:
+            type: string
+          task_type:
+            type: string
+          task_version:
+            type: string
+          task_progress_phases:
+            description: Task progress phases involved in current task execution
+            type: array
+            items:
+              $ref: '#/definitions/TaskProgressPhase'
+          progress_percent:
+            description: Estimated progress percentage the task executed
+            type: integer
+            format: int32
+            example: 75
+          estimated_remaining_minutes:
+            description: >-
+              Estimated remaining time in minute of the task execution, < 0
+              means no estimation for the task.
+            type: integer
+            format: int32
+            example: 4
+          phase_in_progress:
+            description: >-
+              The current in progress phase ID in the task execution, if none in
+              progress, empty string returned.
+            type: string
+          service_errors:
+             description: Service errors returned from SDDC services.
+             type: array
+             items:
+               $ref: '#/definitions/ServiceError'
+          task_sub_status_transitions:
+             description: A record of each time the task changed sub-status with its associated timestamp.
+             x-vmw-vmc-exclude: client
+             type: array
+             items:
+               $ref: '#/definitions/TaskSubStatusTransition'
+          task_error_details:
+             description: A record of errors codes that occurred to cause this task to fail.
+             x-vmw-vmc-exclude: client
+             type: array
+             items:
+               $ref: '#/definitions/TaskErrorDetails'
+
+  TaskProgressPhase:
+    description: >-
+      A task progress can be (but does NOT have to be) divided to more
+      meaningful progress phases.
+    type: object
+    required:
+      - id
+      - name
+      - progress_percent
+    properties:
+      id:
+        description: The identifier of the task progress phase
+        type: string
+      name:
+        description: The display name of the task progress phase
+        type: string
+      progress_percent:
+        description: The percentage of the phase that has completed
+        type: integer
+        format: int32
+  ServiceError:
+    description: >-
+      Detailed service errors associated with a task.
+    type: object
+    required:
+      - error_code
+      - original_service
+      - original_service_error_code
+    properties:
+      error_code:
+        description: Localizable error code.
+        type: string
+      original_service:
+        description: The original service name of the error.
+        type: string
+      original_service_error_code:
+        description: The original error code of the service.
+        type: string
+      default_message:
+        description: Error message in English.
+        type: string
+      localized_message:
+        description: The localized message.
+        type: string
+      params:
+        description: The parameters of the service error.
+        type: array
+        items:
+          type: string
+  TaskSubStatusTransition:
+    description: Represents a transition from one sub status to the next.
+    type: object
+    required:
+      - new_sub_status
+      - old_sub_status
+      - transition_time
+    properties:
+      new_sub_status:
+        description: The new sub status to which the task has transitioned.
+        type: string
+      old_sub_status:
+        description: The task's sub status before the transition.
+        type: string
+      transition_time:
+        description: The timestamp at which the transition occurred.
+        type: string
+  TaskErrorDetails:
+    description: Represents error details associated with the task.
+    type: object
+    required:
+      - error_details
+      - task_phase
+      - status
+      - sub_status
+    properties:
+      error_details:
+        description: Internal Error Details containin an error code
+        $ref: '#/definitions/InternalErrorDetails'
+      task_phase:
+        description: The phase the task was in when it failed.
+        type: string
+      status:
+        description: The status the task was in before it failed.
+        type: string
+      sub_status:
+        description: The sub_status that task was in before it failed.
+        type: string
+  InternalErrorDetails:
+    type: object
+    required:
+      - error_code
+    properties:
+      error_code:
+        description: Internal Error Code representing the cause of the failure
+        $ref: '#/definitions/InternalErrorCode'
+  InternalErrorCode:
+    type: object
+    required:
+      - error_code
+    properties:
+      error_code:
+        description: A code indicating the root cause of the failure.
+        type: string
+  EdrsPolicy:
+    type: object
+    required:
+      - enable_edrs
+    properties:
+      enable_edrs:
+        type: boolean
+        description: True if EDRS is enabled
+      min_hosts:
+        type: integer
+        description: The minimum number of hosts that the cluster can scale in to.
+      max_hosts:
+        type: integer
+        description: The maximum number of hosts that the cluster can scale out to.
+      policy_type:
+        type: string
+        enum:
+          - cost
+          - performance
+        description: The EDRS policy type. This can either be 'cost' or 'performance'.
+  EdrsClusterInfo:
+    type: object
+    required:
+      - cluster_id
+      - edrs_policy
+    properties:
+      cluster_id:
+        type: string
+        description: The cluster identifier
+      status_key:
+        type: string
+        enum:
+          - skyscraper.autoscaler.elastic.drs.min.hosts
+          - skyscraper.autoscaler.elastic.drs.max.hosts
+          - skyscraper.autoscaler.elastic.drs.failed.hosts
+        description: Key identifying the status type
+      status_message:
+        type: string
+        description: The status description
+      edrs_policy:
+        $ref: '#/definitions/EdrsPolicy'
+  EdrsPolicyOptionsOverrides:
+    type: object
+    properties:
+      scale_in:
+        type: boolean
+        description: True means that EDRS is allowed to scale in if the conditions are met.
+      scale_out:
+        type: boolean
+        description: True means that EDRS is allowed to scale out if the conditions are met.
+      cpu_min:
+        type: integer
+        description: The lower bound for CPU usage before a scale in operation.
+      cpu_max:
+        type: integer
+        description: The upper bound for CPU usage before a scale out operation.
+      cpu_ewma_min:
+        type: integer
+        description: The weight associated with the average cpu usage for scale in.
+      cpu_ewma_max:
+        type: integer
+        description: The weight associated with the average cpu usage for scale out.
+      memory_min:
+        type: integer
+        description: The lower bound for memory usage before a scale in operation.
+      memory_max:
+        type: integer
+        description: The upper bound for memory usage before a scale out operation.
+      memory_ewma_min:
+        type: integer
+        description: The weight associated with the average memory usage for scale in.
+      memory_ewma_max:
+        type: integer
+        description: The weight associated with the average memory usage for scale out.
+      storage_min:
+        type: integer
+        description: The lower bound for storage space usage before a scale in operation.
+      storage_max:
+        type: integer
+        description: The upper bound for storage space usage before a scale out operation.
+      storage_ewma_min:
+        type: integer
+        description: The weight associated with the average disk usage for scale in.
+      storage_ewma_max:
+        type: integer
+        description: The weight associated with the average disk usage for scale out.
+parameters:
+  sddcParam:
+    name: sddc
+    in: path
+    description: Sddc identifier
+    required: true
+    type: string
+  hostParam:
+    name: host
+    in: path
+    description: host identifier
+    required: true
+    type: string
+  featureIdParam:
+    name: featureId
+    in: path
+    description: Feature identifier
+    required: true
+    type: string
+  featureActionQueryParam:
+    name: action
+    in: query
+    description: >
+      Feature action query parameter
+       * `whitelist` - add the current org to the whitelistedKeys in feature configuration
+       * `blacklist` - add the current org to the blacklistedKeys in feature configuration
+       * `remove` - remove the current org (either in blacklistKeys/whitelistKeys) from feature configuration
+    required: true
+    type: string
+  orgParam:
+    name: org
+    in: path
+    description: org identifier
+    required: true
+    type: string
+  clusterParam:
+    name: cluster
+    in: path
+    description: cluster identifier
+    required: true
+    type: string

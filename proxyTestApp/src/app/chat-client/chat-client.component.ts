@@ -5,6 +5,7 @@ import { ChatMessage, GeneralChatChannel } from '../chat-message';
 import { ServbotService } from '../../services/servbot/servbot.service';
 import { ChatCommand, ServbotResponse } from '../../services/servbot/servbot.model';
 import { GeneralUtil } from '@vmw/bifrost/util/util';
+import { BaseTask } from '../../vmc-models/api/vmc-api';
 
 @Component({
     selector: 'chat-client',
@@ -26,6 +27,7 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
     public id = EventBus.id;
     public chat: string;
     public generalChatMessages: ChatMessage[];
+    public task: BaseTask;
 
     constructor() {
         super('ChatClient');
@@ -44,10 +46,16 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
                         body: this.chat,
                         time: Date.now(),
                         controlEvent: 'Your message was not broadcast, you are offline',
-                        error: true
+                        error: true,
+                        task: null
                     });
                 } else {
-                    this.generalChatMessages.push(message);
+                    if (message.task) {
+                        this.task = message.task;
+                    } else {
+                        this.generalChatMessages.push(message);
+                    }
+
                 }
             },
             (error) => {
@@ -75,7 +83,8 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
                 body: this.chat,
                 time: Date.now(),
                 controlEvent: null,
-                error: false
+                error: false,
+                task: null
             };
             this.chat = '';
             this.bus.sendResponseMessage(GeneralChatChannel, message, EventBus.id);
@@ -93,7 +102,8 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
             body: this.chat,
             time: Date.now(),
             controlEvent: 'You are now offline',
-            error: false
+            error: false,
+            task: null
         });
     }
 
@@ -108,7 +118,8 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
             body: this.chat,
             time: Date.now(),
             controlEvent: 'You are now online',
-            error: false
+            error: false,
+            task: null
         });
     }
 
@@ -140,7 +151,8 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
                             body: resp.body,
                             time: Date.now(),
                             controlEvent: `Servbot: ${resp.body}`,
-                            error: false
+                            error: false,
+                            task: null
                         });
 
                     }
@@ -152,7 +164,8 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
                     body: this.chat,
                     time: Date.now(),
                     controlEvent: `Bad command '${commandString.toLowerCase()}'`,
-                    error: true
+                    error: true,
+                    task: null
                 });
             }
             this.chat = '';

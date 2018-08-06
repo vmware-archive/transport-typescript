@@ -8,7 +8,7 @@ import { ChatMessage, GeneralChatChannel } from '../chat-message';
 import { AbstractBase } from '@vmw/bifrost/core';
 import { ServbotService } from '../../services/servbot/servbot.service';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
-import { ChatCommand } from '../../services/servbot/servbot.model';
+import { VMCBotService } from '../../services/vmcbot/vmcbot.service';
 
 @Component({
     selector: 'app-main',
@@ -34,6 +34,8 @@ export class MainComponent extends AbstractBase implements OnInit {
         this.consoleEvents = [];
 
         ServiceLoader.addService(ServbotService);
+        ServiceLoader.addService(VMCBotService);
+
     }
 
     ngOnInit() {
@@ -41,8 +43,8 @@ export class MainComponent extends AbstractBase implements OnInit {
         this.bus.enableMessageProxy({
             protectedChannels: [GeneralChatChannel, ServbotService.queryChannel],
             proxyType: ProxyType.Parent,
-            parentOrigin: 'http://localhost:4200',
-            acceptedOrigins: ['http://localhost:4200'],
+            parentOrigin: 'http://localhost:4300',
+            acceptedOrigins: ['http://localhost:4300'],
             targetAllFrames: true,
             targetSpecificFrames: null,
         });

@@ -27,7 +27,7 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
             '/queue',
             1,
             'localhost',
-            8080,
+            8090,
             '/pub'
         );
 
@@ -49,7 +49,7 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
                     break;
             }
         } else {
-            this.log.warn('Unable to proceeed, no valid commands passed.')
+            this.log.warn('Unable to proceed, no valid commands passed.')
         }
     }
 
@@ -80,7 +80,9 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
                 body: 'Type /help to see a list of commands',
                 time: Date.now(),
                 controlEvent: null,
-                error: false
+                error: false,
+                task: null
+
             })
     }
 

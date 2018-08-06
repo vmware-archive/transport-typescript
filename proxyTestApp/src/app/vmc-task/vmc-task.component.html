@@ -1,0 +1,30 @@
+<div class="task-body">
+    <div class="vmc-icon">
+        <img src="assets/vmcicon.svg">
+    </div>
+    <div class="details">
+
+        <span class="sddc-name" *ngIf="task.params.sddcConfig">SDDC: {{task.params.sddcConfig.name}} <br/></span>
+        <span class="sddc-name" *ngIf="task.params.esxConfig">SDDC: ESX Provision <br/></span>
+
+        <span class="task-type">{{task.task_type | taskType}}</span>: <span class="task-status">{{task.status | titlecase}}</span>
+
+        <div>
+            Currently: <span class="currently">{{task.sub_status | subTaskType | titlecase}}</span>
+        </div>
+
+        <div class="task-phases" *ngFor="let status of task.task_progress_phases">
+            <div class="task-phase">
+
+                <label>{{status.name}}</label>
+                <div class="progress labeled">
+                    <progress max="100" value="{{task.progress_percent}}" data-displayval="0%"></progress>
+                    <span>{{task.progress_percent}}%</span>
+                </div>
+            </div>
+        </div>
+        <span *ngIf="task.estimated_remaining_minutes >= 0" class="time-remaining">
+            Time remaining: <strong>{{task.estimated_remaining_minutes}}</strong> mins
+        </span>
+    </div>
+</div>

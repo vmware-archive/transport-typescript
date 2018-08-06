@@ -13,7 +13,9 @@ import { VmwComponentsModule } from '@vmw/ngx-components';
 import { FormsModule } from '@angular/forms';
 import { ChatClientComponent } from './chat-client/chat-client.component';
 import { ServbotComponent } from './servbot/servbot.component';
-import { VmcbotComponent } from './vmcbot/vmcbot.component';
+import { VMCBotComponent } from './vmcbot/vmcbot.component';
+import { TaskSubTitlePipe, TaskTitlePipe } from './chat-client/task-title.pipe';
+import { VmcTaskComponent } from './vmc-task/vmc-task.component';
 
 const appRoutes: Routes = [
     { path: 'frameA', component: ChildFrameAComponent },
@@ -33,7 +35,10 @@ const appRoutes: Routes = [
         MainComponent,
         ChatClientComponent,
         ServbotComponent,
-        VmcbotComponent
+        VMCBotComponent,
+        TaskTitlePipe,
+        TaskSubTitlePipe,
+        VmcTaskComponent,
     ],
     imports: [
         FormsModule,

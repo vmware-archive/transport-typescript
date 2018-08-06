@@ -23,8 +23,8 @@ export class ChildFrameAComponent extends AbstractCore implements OnInit {
         this.proxyControl = this.bus.enableMessageProxy({
             protectedChannels: [GeneralChatChannel, ServbotService.queryChannel],
             proxyType: ProxyType.Child,
-            parentOrigin: 'http://localhost:4200',
-            acceptedOrigins: ['http://localhost:4200'],
+            parentOrigin: 'http://localhost:4300',
+            acceptedOrigins: ['http://localhost:4300'],
             targetAllFrames: false,
             targetSpecificFrames: null,
         });
