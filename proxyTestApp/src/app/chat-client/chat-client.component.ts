@@ -146,8 +146,8 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
                 ).handle(
                     (resp: ServbotResponse) => {
                         this.generalChatMessages.push({
-                            from: 'servbot',
-                            avatar: '🤖',
+                            from: null,
+                            avatar: null,
                             body: resp.body,
                             time: Date.now(),
                             controlEvent: `Servbot: ${resp.body}`,
