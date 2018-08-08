@@ -7,7 +7,7 @@
  */
 
 export class RestChannel {
-    static all = 'services::Rest';
+    static all = 'services::REST';
 }
 
 export enum HttpRequest {
@@ -40,22 +40,20 @@ export class RestError extends GeneralError {
 }
 
 export class RestObject {
-    private _request: HttpRequest;
-    private _uri: string;
-    private _responseChannel: string;
-    //private _params: HttpParams;
-    private _body: any;
-    private _response: any;
-    private _error: any;
-    private _refreshRetries: number;
+    public request: HttpRequest;
+    public uri: string;
+    public body: any;
+    public response: any;
+    public error: any;
+    public headers: any;
+    public queryStringParams: any;
+    public refreshRetries: number;
 
-    constructor(request: HttpRequest, uri: string, responseChannel: string, body: any = {}) {
-        this._request = request;
-        this._uri = uri;
-        this._responseChannel = responseChannel;
-
-        this._body = body;
-        //this._params = params;
+    constructor(request: HttpRequest, uri: string, body: any = {}, headers: any = {}, queryStringParams: any = {}) {
+        this.request = request;
+        this.uri = uri;
+        this.body = body;
+        this.headers = headers;
     }
 
     //

@@ -312,6 +312,36 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         );
     }
 
+    sendErrorMessageWithId<E>(
+        cname: ChannelName,
+        payload: E,
+        id: UUID,
+        from?: SentFrom,
+        proxyBroadcast?: boolean): void {
+
+        this.api.send(
+            cname,
+            new Message(id, 1, proxyBroadcast).response(payload),
+            from
+        );
+
+    }
+
+    sendErrorMessageWithIdAndVersion<E>(
+        cname: ChannelName,
+        payload: E,
+        id: UUID,
+        version: number,
+        from?: SentFrom,
+        proxyBroadcast?: boolean): void {
+
+        this.api.send(
+            cname,
+            new Message(id, version, proxyBroadcast).response(payload),
+            from
+        );
+    }
+
 
     public sendErrorMessage(
         cname: ChannelName,

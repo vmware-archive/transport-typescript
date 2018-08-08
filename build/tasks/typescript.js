@@ -29,7 +29,11 @@ gulp.task('typescript:bifrost', function () {
 /**
  * Tests
  */
-var testsSources = ['src/**/*.spec.ts', 'src/**/*.mock.ts'];
+var testsSources = [
+    'src/**/*.spec.ts',
+    'src/**/*.mock.ts',
+    '!node_modules/**/*'
+];
 
 gulp.task('typescript:tests', function () {
     return typescriptCompile(testsSources, {

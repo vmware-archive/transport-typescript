@@ -1,31 +1,44 @@
 import { AbstractBase } from '../../abstractions/abstract.base';
-import { EventBusEnabled } from '../../../bus.api';
+import { EventBusEnabled, MessageArgs } from '../../../bus.api';
+import { TangoTransportAdapterInterface } from '@vmw/tango';
+import { HttpRequest, RestChannel, RestError, RestErrorType, RestObject } from './rest.model';
+import { LogLevel } from '../../../log';
+
+
+
+const REFRESH_RETRIES = 3;
 
 /**
  * REST Service that operates standard functions on behald of consumers and services.
  */
 export class RestService extends AbstractBase implements EventBusEnabled {
 
-    private static _instance: RestService;
+    private httpClient: TangoTransportAdapterInterface;
+    private headers: any;
 
     /**
-     * Destroy the service completely.
+     * Pass in an implementation of the TangoTransportAdaptorInterface. This allows a drop in supplier for
+     * HTTP Calls and what not, decoupled from the actual HTTP implementation, relying on Tango to do the work for us.
+     *
+     * @param {TangoTransportAdapterInterface} httpClient
      */
-    public static destroy(): void {
-        this._instance = null;
+     constructor(httpClient: TangoTransportAdapterInterface) {
+        super('RESTService');
+        this.httpClient = httpClient;
+        this.listenForRequests();
+
     }
 
-    /**
-     * Get reference to singleton RestService instance.
-     * @returns {ApiOperations}
-     */
-    public static getInstance(): RestService {
-        return this._instance || (this._instance = new this());
+
+    private listenForRequests() {
+        this.bus.listenRequestStream(RestChannel.all)
+            .handle((restObject: RestObject, args: MessageArgs) => {
+                restObject.refreshRetries = 0;
+                this.doHttpRequest(restObject, args);
+            });
     }
 
-    private constructor() {
-        super('rest');
-    }
+
     //
     // constructor(private http: HttpClient) {
     //     super('rest.service');
@@ -41,169 +54,131 @@ export class RestService extends AbstractBase implements EventBusEnabled {
     // getName() {
     //     return 'RestService';
     // }
+
+    private handleData(data: any, restObject: RestObject, args: MessageArgs) {
+        this.log.group(LogLevel.Verbose, 'REST Request ' + HttpRequest[restObject.request] + ' ' + restObject.uri);
+        this.log.verbose('** Received response: ' + data, this.getName());
+        this.log.verbose('** Request was: ' + restObject, this.getName());
+        this.log.verbose('** Headers were: ' + this.headers, this.getName());
+        this.log.groupEnd(LogLevel.Verbose);
+
+        // set response in rest request object
+        restObject.response = data;
+
+        // send the object back to whomever was listening for this specific request.
+        this.bus.sendResponseMessageWithIdAndVersion(RestChannel.all,
+            restObject, args.uuid, args.version, this.getName());
+    }
+
+    private handleError(error: RestError, restObject: RestObject, args: MessageArgs) {
+        this.log.group(LogLevel.Error, 'Http Error: ' + HttpRequest[restObject.request] + ' ' +
+            restObject.uri + ' -' + ' ' + error.status);
+
+        this.log.error(error, this.getName());
+        this.log.error('** Request was: ' + restObject.body, this.getName());
+        this.log.error('** Headers were: ' + this.headers, this.getName());
+        this.log.groupEnd(LogLevel.Error);
+
+        switch (error.status) {
+            case 401:
+
+                // retry the all to give the backend time to refresh any expired tokens.
+                if (restObject.refreshRetries++ < REFRESH_RETRIES) {
+                    this.bus.api.tickEventLoop(
+                        () => {
+                            this.doHttpRequest(restObject, args);
+                        }
+                    );
+                } else {
+                    this.bus.sendErrorMessageWithIdAndVersion(RestChannel.all, error,
+                        args.uuid, args.version, this.getName());
+                }
+                break;
+
+            default:
+                this.bus.sendErrorMessageWithIdAndVersion(RestChannel.all, error,
+                    args.uuid, args.version, this.getName());
+        }
+    }
+
+
+    private doHttpRequest(restObject: RestObject, args: MessageArgs) {
+        //let observer: Observable<HttpResponse<any>>; // todo: type the generic, any is not right
+        //this.updateDevModeHeaders();
+
+        // handle rest response
+        const successHandler = (response: any) => {
+            this.handleData(response, restObject, args);
+        };
+
+        const errorHandler = (response: any) => {
+            this.handleError(response, restObject, args);
+        };
+
+
+        switch (restObject.request) {
+            case HttpRequest.Get:
+
+                this.httpClient.get(
+                    restObject.uri,
+                    restObject.queryStringParams,
+                    restObject.headers,
+                    successHandler, errorHandler);
+                break;
+
+            case HttpRequest.Post:
+
+                this.httpClient.post(
+                    restObject.uri,
+                    restObject.queryStringParams,
+                    restObject.body,
+                    restObject.headers,
+                    successHandler, errorHandler);
+                break;
+
+            case HttpRequest.Patch:
+
+                this.httpClient.patch(
+                    restObject.uri,
+                    restObject.queryStringParams,
+                    restObject.body,
+                    restObject.headers,
+                    successHandler, errorHandler);
+
+                break;
+
+            case HttpRequest.Put:
+                this.httpClient.put(
+                    restObject.uri,
+                    restObject.queryStringParams,
+                    restObject.body,
+                    restObject.headers,
+                    successHandler, errorHandler);
+                break;
+
+            case HttpRequest.Delete:
+                this.httpClient.delete(
+                    restObject.uri,
+                    restObject.queryStringParams,
+                    restObject.body,
+                    restObject.headers,
+                    successHandler, errorHandler);
+                break;
+
+            default:
+                this.log.error(`Bad REST request: ${restObject.request}`, this.getName());
+                this.handleError(
+                    new RestError('Invalid HTTP request.', RestErrorType.UnknownMethod, restObject.uri),
+                    restObject,
+                    args);
+                return;
+        }
+// this is a finite observable, so no need to unsubscribe
+//
+    }
+
     //
-    // private updateDevModeHeaders(): void {
-    //     // if (this.devModeManager.isDevMode() && this.devModeManager.getH5cXsrfToken()) {
-    //     //     // For accessing Live virgo data
-    //     //     this.headers = new HttpHeaders({ 'X-VSPHERE-UI-XSRF-TOKEN': this.devModeManager.getH5cXsrfToken() });
-    //     // }
-    // }
+
     //
-    // /**
-    //  * stubbed implementation task preloader from interface
-    //  * @returns {Observable<boolean>}
-    //  */
-    // onPreloadApplicationTask$(appEnvironment: any): Observable<boolean> {
-    //     return of(true);
-    // }
-    //
-    // private listenForRequests() {
-    //     this.bus.listenRequestStream(RestChannel.all).handle((restObject: RestObject, args: MessageArgs) => {
-    //         restObject.refreshRetries = 0;
-    //         this.doHttpRequest(restObject, args);
-    //     });
-    // }
-    //
-    // private doHttpRequest(restObject: RestObject, args: MessageArgs) {
-    //     let observer: Observable<HttpResponse<any>>; // todo: type the generic, any is not right
-    //     this.updateDevModeHeaders();
-    //
-    //     switch (restObject.command) {
-    //         case HttpRequest.Get:
-    //             observer = this.http.get(restObject.uri, {
-    //                 observe: 'response',
-    //                 headers: this.headers,
-    //                 params: restObject.params
-    //             });
-    //             break;
-    //
-    //         case HttpRequest.Post:
-    //             observer = this.http.post(restObject.uri, restObject.body, {
-    //                 observe: 'response',
-    //                 headers: this.headers,
-    //                 params: restObject.params
-    //             });
-    //             break;
-    //
-    //         case HttpRequest.Patch:
-    //             observer = this.http.patch(restObject.uri, restObject.body, {
-    //                 observe: 'response',
-    //                 headers: this.headers,
-    //                 params: restObject.params
-    //             });
-    //             break;
-    //
-    //         case HttpRequest.Put:
-    //             observer = this.http.put(restObject.uri, restObject.body, {
-    //                 observe: 'response',
-    //                 headers: this.headers,
-    //                 params: restObject.params
-    //             });
-    //             break;
-    //
-    //         case HttpRequest.Delete:
-    //             observer = this.http.delete(restObject.uri, {
-    //                 observe: 'response',
-    //                 headers: this.headers,
-    //                 params: restObject.params
-    //             });
-    //             break;
-    //
-    //         default:
-    //             this.log.error('Bad ReST all: ' + restObject, this.getName());
-    //             this.handleError(new RestError('Invalid HTTP
-    // all.', RestErrorType.UnknownMethod, restObject.uri), restObject, args);
-    //             return;
-    //     }
-    //
-    //     // ---------------  hardcode network rules from server codes ----------------
-    //     // this is a observable that completes
-    //     observer.subscribe(
-    //         (networkEnvelope: HttpResponse<any>) => {
-    //             // if we get a No Content response, the payload is just empty
-    //             if (networkEnvelope.status === 204) {
-    //                 this.handleData({}, restObject, args);
-    //                 return;
-    //             }
-    //
-    //             try {
-    //                 const payload = networkEnvelope.body; // raw or JSON
-    //                 this.handleData(payload, restObject, args);
-    //             } catch (e) {
-    //                 // Handle invalid payloads as errors
-    //                 const msg = networkEnvelope.body;
-    //
-    //                 // dont understand this, hence commenting
-    //
-    //                 // if (msg.length === 0) {
-    //                 //    msg = networkEnvelope.toString();
-    //                 // }
-    //
-    //                 const error = new RestError(msg, networkEnvelope.status, restObject.uri);
-    //                 this.handleError(error, restObject, args);
-    //             }
-    //         },
-    //         (r: HttpErrorResponse) => {
-    //             let restError;
-    //             try {
-    //                 const code = r.status;
-    //                 const errorMessage = r.error instanceof Error ? r.error.message : r.message;
-    //                 restError = new RestError(errorMessage, code, restObject.uri);
-    //             } catch (e) {
-    //                 let msg = r.message;
-    //
-    //                 // usually 504 comes in as a huge HTML block from the load balancer,
-    //                 // we don't want to show this to the user, so replace it with a short string.
-    //                 const troublesomeErrorCodeList = [502, 504];
-    //
-    //                 if (troublesomeErrorCodeList.indexOf(r.status) >= 0) {
-    //                     msg = 'Request timed out';
-    //                 }
-    //
-    //                 // fall back to the content of the response as a last resort
-    //                 if (msg.length === 0) {
-    //                     msg = r.toString();
-    //                 }
-    //
-    //                 restError = new RestError(msg, r.status, restObject.uri);
-    //             }
-    //
-    //             this.handleError(restError, restObject, args);
-    //         }
-    //     );
-    // }
-    //
-    // private handleData(data: any, restObject: RestObject, args: MessageArgs) {
-    //     this.log.group(LogLevel.Debug, 'Http ' + HttpRequest[restObject.command] + ' ' + restObject.uri);
-    //     this.log.debug('** Received response: ' + data, this.getName());
-    //     this.log.debug('** Request was: ' + restObject, this.getName());
-    //     this.log.debug('** Headers were: ' + this.headers, this.getName());
-    //     this.log.groupEnd(LogLevel.Debug);
-    //
-    //     restObject.response = data;
-    //     this.bus.sendResponseMessageWithId(restObject.responseChannel, restObject, args.uuid, this.getName());
-    // }
-    //
-    // private handleError(error: RestError, restObject: RestObject, args: MessageArgs) {
-    //     this.log.group(LogLevel.Error, 'Http Error: ' + HttpRequest[restObject.command] + ' ' +
-    // restObject.uri + ' -' + ' ' + error.status);
-    //     this.log.error(error, this.getName());
-    //     this.log.error('** Request was: ' + restObject.body, this.getName());
-    //     this.log.error('** Headers were: ' + this.headers, this.getName());
-    //     this.log.groupEnd(LogLevel.Error);
-    //
-    //     switch (error.status) {
-    //         case 401:
-    //             // Retry the all to give the backend time to refresh the expired token
-    //             if (restObject.refreshRetries++ < REFRESH_RETRIES) {
-    //                 setTimeout(() => this.doHttpRequest(restObject, args));
-    //             } else {
-    //                 this.bus.sendErrorMessage(restObject.responseChannel, error, this.getName());
-    //             }
-    //             break;
-    //
-    //         default:
-    //             this.bus.sendErrorMessage(restObject.responseChannel, error, this.getName());
-    //     }
-    // }
+
 }

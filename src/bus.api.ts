@@ -18,8 +18,8 @@ export type ChannelName = string;
 export type SentFrom = string;
 
 declare global {
-    interface Window { 
-    
+    interface Window {
+
         // AppEventBus: EventBus;
         // AppBrokerConnector: BrokerConnector;
         // AppSyslog: Logger;
@@ -158,7 +158,7 @@ export abstract class EventBus {
 
     /**
      * Send a command payload to a channel with a supplied ID in the command
-     * 
+     *
      * @param {ChannelName} cname channel to send the payload to
      * @param {R} payload the payload to be sent
      * @param {UUID} id the ID you want to attach to your command
@@ -193,7 +193,7 @@ export abstract class EventBus {
     /**
      * Send a response payload to a channel with a supplied ID in the response.
      * @param {ChannelName} cname the channel name to send the response payload to
-     * @param {R} payload the payload you want to send in response 
+     * @param {R} payload the payload you want to send in response
      * @param {UUID} id the ID you want to attach to your response
      * @param {SentFrom} from optional name of the sending actor (for logging)
      * @param proxyBroadcast optional flag, only required when messages originated in another bus.
@@ -201,7 +201,7 @@ export abstract class EventBus {
     abstract sendResponseMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, from?: SentFrom,
                                           proxyBroadcast?: boolean): void;
 
-    
+
     /**
      * Send a response payload to a channel with a supplied ID in the response.
      * @param {ChannelName} cname the channel name to send the response payload to
@@ -210,9 +210,10 @@ export abstract class EventBus {
      * @param {number} version version of command you want to sent (defaults to 1)
      * @param {SentFrom} from optional name of the sending actor (for logging)
      * @param proxyBroadcast optional flag, only required when messages originated in another bus.
-     */                                      
-    abstract sendResponseMessageWithIdAndVersion<R>(cname: ChannelName, payload: R, id: UUID, version: number, 
+     */
+    abstract sendResponseMessageWithIdAndVersion<R>(cname: ChannelName, payload: R, id: UUID, version: number,
                                                     from?: SentFrom, proxyBroadcast?: boolean): void;
+
     /**
      * Send error payload to channel.
      *
@@ -222,6 +223,34 @@ export abstract class EventBus {
      * @param proxyBroadcast optional flag, only required when messages originated in another bus.
      */
     abstract sendErrorMessage<E>(cname: ChannelName, payload: E, from?: SentFrom, proxyBroadcast?: boolean): void;
+
+    /**
+     * Send error payload to channel, with an ID.
+     *
+     * @param {ChannelName} cname the channel to send the payload to
+     * @param {E} payload the payload to be send
+     * @param {UUID} id
+     * @param {SentFrom} from optional name of sending actor (for logging)
+     * @param proxyBroadcast optional flag, only required when messages originated in another bus.
+     * @param {boolean} proxyBroadcast rebroadCasted message from proxy?
+     */
+    abstract sendErrorMessageWithId<E>(cname: ChannelName, payload: E, id: UUID, from?: SentFrom,
+                                       proxyBroadcast?: boolean): void;
+
+    /**
+     * Send error payload to channel, with an ID, and a version.
+     *
+     * @param {ChannelName} cname the channel to send the payload to
+     * @param {E} payload the payload to be send
+     * @param {UUID} id the UUID you want to send with this error.
+     * @param {number} version version of the error you want to sent.
+     * @param {SentFrom} from optional name of sending actor (for logging)
+     * @param proxyBroadcast optional flag, only required when messages originated in another bus.
+     * @param {boolean} proxyBroadcast rebroadCasted message from proxy?
+     */
+    abstract sendErrorMessageWithIdAndVersion<E>(cname: ChannelName, payload: E, id: UUID, version: number,
+                                                 from?: SentFrom, proxyBroadcast?: boolean): void;
+
 
     /**
      * Listen for a command on sendChannel and return a single response via the generate() method on MessageResponder.
@@ -323,12 +352,12 @@ export abstract class EventBus {
      * @param {MessageFunction<GalacticResponse<R>>} successHandler for a successful response to your command
      * @param {MessageFunction<GalacticResponse<R>>} errorHandler for an un-successful response to your command
      * @param {SentFrom} from optional name of the actor implementing (for logging)
-     * @returns {MessageHandler<GalacticResponse>} reference to MessageHandler, handle() 
+     * @returns {MessageHandler<GalacticResponse>} reference to MessageHandler, handle()
      *                                             function receives any inbound response.
      */
     abstract requestGalactic<T, R>(
-        sendChannel: ChannelName, 
-        request: GalacticRequest<T>, 
+        sendChannel: ChannelName,
+        request: GalacticRequest<T>,
         successHandler: MessageFunction<GalacticResponse<R>>,
         errorHandler?: MessageFunction<GalacticResponse<R>>,
         from?: SentFrom): void;
@@ -455,9 +484,9 @@ export abstract class EventBus {
 
     /**
      * Create a new transaction that can be composed of bus requests, cache initializations or both. Asynchronous
-     * transactions will all fire at once and return once all requests return. Syrnchonrous transactions will 
+     * transactions will all fire at once and return once all requests return. Syrnchonrous transactions will
      * fire in sequence and only proceed to the next transaction event once the preceeding response has returned.
-     * 
+     *
      * @param {TransactionType} type type of transaction you want, synchonrous or asynchronous (default).
      * @param {string} name the name of the transaction, helps you track progress in the console (if enabled)
      */
@@ -558,7 +587,7 @@ export interface EventBusLowApi {
      * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
      * @returns {Observable<Message>}
      */
-    getGalacticChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>; 
+    getGalacticChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>;
 
     /**
      * Send simple API message to MessageResponder enabled calls. (non low-level API's)
@@ -604,10 +633,10 @@ export interface EventBusLowApi {
      * @param {MessageHandlerConfig} handlerConfig message handler configuration object.
      * @param {boolean} requestStream listen to requests? defaults to responses only.
      * @param {SentFrom} name optional calling actor (for logging)
-     * @param {UUID} id enable message tracking if this is supplied 
+     * @param {UUID} id enable message tracking if this is supplied
      * @returns {MessageHandler<R>} reference to MessageHandler<R>
      */
-    listen<R>(handlerConfig: MessageHandlerConfig, 
+    listen<R>(handlerConfig: MessageHandlerConfig,
               requestStream?: boolean, name?: SentFrom, id?: UUID): MessageHandler<R>;
 
     /**
@@ -691,12 +720,12 @@ export interface EventBusLowApi {
      *
      * @returns {Logger} reference to the logger service.
      */
-    logger(): Logger ;
+    logger(): Logger;
 
     /**
      * Quick access to logger instance for spies and testing.
      */
-    loggerInstance: Logger ;
+    loggerInstance: Logger;
 
     /**
      * For external access to messagebus private logger (so output streams are sequentialized).
@@ -777,10 +806,11 @@ export interface TransactionReceipt {
  */
 export enum TransactionType {
     ASYNC = 'Async', // will send all requests at the same time and return when all are complete
-    SYNC  = 'Sync'   // will send requests one at a time and move on after each command is completed in sequence.
+    SYNC = 'Sync'   // will send requests one at a time and move on after each command is completed in sequence.
 }
+
 export interface BusTransaction {
-    
+
     /**
      * Create a command to a channel as a part of this transaction.
      * @param {string} channel channel to send the command to
@@ -793,7 +823,7 @@ export interface BusTransaction {
      * @param {StoreType} channel channel to send the command to
      */
     waitForStoreReady<ReqT>(storeType: StoreType): void;
-    
+
     /**
      * Once all responses to requests have been received, the transaction is complete.
      * The handler will return an array or all responses in the order the requests were sent.
@@ -802,15 +832,15 @@ export interface BusTransaction {
     onComplete<RespT>(completeHandler: MessageFunction<[RespT]>): void;
 
     /**
-     * If an error is thrown by any of the responders, the transaction is aborted and the 
+     * If an error is thrown by any of the responders, the transaction is aborted and the
      * error sent to the errorHandler.
      * @param {MessageFunction<T>} errorHandler the closure you want to handle any errors during the transaction.
      */
     onError<ErrT>(errorHandler: MessageFunction<ErrT>): void;
-    
+
     /**
      * Commit the transaction, all requests will be sent and will wait for responses.
-     * Once all the responses are in, onComplete will be called with the responses. 
+     * Once all the responses are in, onComplete will be called with the responses.
      * @returns {TransactionReceipt} allows observer to track state of the transaction for monitoring purposes.
      */
     commit(): TransactionReceipt;
