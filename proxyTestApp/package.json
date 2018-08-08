@@ -25,6 +25,7 @@
     "@clr/ui": "^0.12.6",
     "@vmw/bifrost": "^0.8.2",
     "@vmw/ngx-components": "^0.8.0",
+    "@vmw/tango": "^0.7.2",
     "@webcomponents/custom-elements": "^1.0.0",
     "core-js": "^2.5.4",
     "rxjs": "^6.0.0",

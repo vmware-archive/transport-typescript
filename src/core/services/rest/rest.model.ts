@@ -42,14 +42,24 @@ export class RestObject {
     public response: any;
     public error: any;
     public headers: any;
+    public pathParams: any;
     public queryStringParams: any;
     public refreshRetries: number;
 
-    constructor(request: HttpRequest, uri: string, body: any = {}, headers: any = {}, queryStringParams: any = {}) {
+    constructor(
+        request: HttpRequest,
+        uri: string,
+        body: any = null,
+        headers: any = {},
+        queryStringParams: any = {},
+        pathParams: any = {}) {
+
         this.request = request;
         this.uri = uri;
         this.body = body;
         this.headers = headers;
+        this.pathParams = pathParams;
+        this.queryStringParams = queryStringParams;
     }
 
     //

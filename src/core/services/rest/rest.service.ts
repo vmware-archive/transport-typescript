@@ -1,9 +1,8 @@
 import { AbstractBase } from '../../abstractions/abstract.base';
 import { EventBusEnabled, MessageArgs } from '../../../bus.api';
-import { TangoTransportAdapterInterface } from '@vmw/tango';
-import { HttpRequest, RestChannel, RestError, RestErrorType, RestObject } from './rest.model';
+import { TangoTransportAdapterInterface } from '@vmw/tango/transport/TangoTransportAdapterInterface.d';
+import { HttpRequest, RestError, RestErrorType, RestObject } from './rest.model';
 import { LogLevel } from '../../../log';
-
 
 
 const REFRESH_RETRIES = 3;
@@ -13,7 +12,7 @@ const REFRESH_RETRIES = 3;
  */
 export class RestService extends AbstractBase implements EventBusEnabled {
 
-    public static channel = 'services::REST';
+    public static channel = 'bifrost-services::REST';
 
     private httpClient: TangoTransportAdapterInterface;
     private headers: any;
@@ -29,8 +28,10 @@ export class RestService extends AbstractBase implements EventBusEnabled {
         this.httpClient = httpClient;
         this.listenForRequests();
 
-    }
+        //this.headers.append('Content-Type', 'application/json; charset=utf-8');
+        //this.headers.append('Accept', 'application/json');
 
+    }
 
     private listenForRequests() {
         this.bus.listenRequestStream(RestService.channel)
@@ -40,22 +41,6 @@ export class RestService extends AbstractBase implements EventBusEnabled {
             });
     }
 
-
-    //
-    // constructor(private http: HttpClient) {
-    //     super('rest.service');
-    //
-    //     this.headers = new HttpHeaders();
-    //     // Those headers don't seem necessary
-    //     this.headers.append('Content-Type', 'application/json; charset=utf-8');
-    //     this.headers.append('Accept', 'application/json');
-    //
-    //     this.listenForRequests();
-    // }
-    // //
-    // getName() {
-    //     return 'RestService';
-    // }
 
     private handleData(data: any, restObject: RestObject, args: MessageArgs) {
         this.log.group(LogLevel.Verbose, 'REST Request ' + HttpRequest[restObject.request] + ' ' + restObject.uri);
@@ -105,9 +90,6 @@ export class RestService extends AbstractBase implements EventBusEnabled {
 
 
     private doHttpRequest(restObject: RestObject, args: MessageArgs) {
-        //let observer: Observable<HttpResponse<any>>; // todo: type the generic, any is not right
-        //this.updateDevModeHeaders();
-
         // handle rest response
         const successHandler = (response: any) => {
             this.handleData(response, restObject, args);
@@ -123,6 +105,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
 
                 this.httpClient.get(
                     restObject.uri,
+                    restObject.pathParams,
                     restObject.queryStringParams,
                     restObject.headers,
                     successHandler, errorHandler);
@@ -132,6 +115,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
 
                 this.httpClient.post(
                     restObject.uri,
+                    restObject.pathParams,
                     restObject.queryStringParams,
                     restObject.body,
                     restObject.headers,
@@ -142,6 +126,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
 
                 this.httpClient.patch(
                     restObject.uri,
+                    restObject.pathParams,
                     restObject.queryStringParams,
                     restObject.body,
                     restObject.headers,
@@ -152,6 +137,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
             case HttpRequest.Put:
                 this.httpClient.put(
                     restObject.uri,
+                    restObject.pathParams,
                     restObject.queryStringParams,
                     restObject.body,
                     restObject.headers,
@@ -161,6 +147,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
             case HttpRequest.Delete:
                 this.httpClient.delete(
                     restObject.uri,
+                    restObject.pathParams,
                     restObject.queryStringParams,
                     restObject.body,
                     restObject.headers,
@@ -175,12 +162,6 @@ export class RestService extends AbstractBase implements EventBusEnabled {
                     args);
                 return;
         }
-// this is a finite observable, so no need to unsubscribe
-//
     }
-
-    //
-
-    //
 
 }

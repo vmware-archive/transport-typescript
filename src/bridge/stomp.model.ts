@@ -13,11 +13,11 @@ export type BifrostSocket = WebSocket;
 
 export class BrokerConnectorChannel {
 
-    static connection: string = '#broker.connector-connection';
-    static subscription: string = '#broker.connector-subscription';
-    static messages: string = '#broker.connector-messages';
-    static error: string = '#broker.connector-error';
-    static status: string = '#broker.connector-status';
+    static connection: string = 'bifrost-services::broker.connector-connection';
+    static subscription: string = 'bifrost-services::broker.connector-subscription';
+    static messages: string = 'bifrost-services::broker.connector-messages';
+    static error: string = 'bifrost-services::broker.connector-error';
+    static status: string = 'bifrost-services::broker.connector-status';
 
 }
 export interface StompMessage {
