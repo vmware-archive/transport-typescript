@@ -16,6 +16,8 @@ import { ServbotComponent } from './servbot/servbot.component';
 import { VMCBotComponent } from './vmcbot/vmcbot.component';
 import { TaskSubTitlePipe, TaskTitlePipe } from './chat-client/task-title.pipe';
 import { VmcTaskComponent } from './vmc-task/vmc-task.component';
+import { RestyComponent } from './resty/resty.component';
+import { HttpClientModule } from '@angular/common/http';
 
 const appRoutes: Routes = [
     { path: 'frameA', component: ChildFrameAComponent },
@@ -39,6 +41,7 @@ const appRoutes: Routes = [
         TaskTitlePipe,
         TaskSubTitlePipe,
         VmcTaskComponent,
+        RestyComponent,
     ],
     imports: [
         FormsModule,
@@ -46,6 +49,7 @@ const appRoutes: Routes = [
         ClarityModule,
         ClrFormsNextModule,
         BrowserAnimationsModule,
+        HttpClientModule,
         VmwComponentsModule.forRoot(),
         RouterModule.forRoot(
             appRoutes,

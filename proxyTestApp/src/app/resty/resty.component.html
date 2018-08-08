@@ -1,0 +1,8 @@
+<div class="resty">
+  <div class="resty-icon">👴🏻</div>
+  <div class="resty-state">
+    <span class="badge" *ngIf="!online"> {{status}}</span>
+    <span class="badge badge-success" *ngIf="online">{{status}}</span>
+  </div>
+  <button class="btn btn-sm btn-primary" (click)="connectResty()" *ngIf="!online">Connect</button>
+</div>

@@ -1,0 +1,20 @@
+.resty {
+    height: 160px;
+    border-radius: 20px;
+    margin-left: 20px;
+    border: 1px solid #BDBABF;
+    background-color: #fff;
+    text-align:center;
+    min-width: 120px;
+}
+
+.resty-icon {
+    font-size: 65px;
+    line-height: 1;
+    margin-left: -1px;
+    margin-top: 20px;
+}
+
+button {
+    margin-left: 10px;
+}

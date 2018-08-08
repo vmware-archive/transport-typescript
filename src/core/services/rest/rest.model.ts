@@ -6,10 +6,6 @@
  * Channels for communication with the ReST Service, and its message object.
  */
 
-export class RestChannel {
-    static all = 'services::REST';
-}
-
 export enum HttpRequest {
     Get,
     Post,

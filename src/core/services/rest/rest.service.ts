@@ -13,6 +13,8 @@ const REFRESH_RETRIES = 3;
  */
 export class RestService extends AbstractBase implements EventBusEnabled {
 
+    public static channel = 'services::REST';
+
     private httpClient: TangoTransportAdapterInterface;
     private headers: any;
 
@@ -31,7 +33,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
 
 
     private listenForRequests() {
-        this.bus.listenRequestStream(RestChannel.all)
+        this.bus.listenRequestStream(RestService.channel)
             .handle((restObject: RestObject, args: MessageArgs) => {
                 restObject.refreshRetries = 0;
                 this.doHttpRequest(restObject, args);
@@ -66,7 +68,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
         restObject.response = data;
 
         // send the object back to whomever was listening for this specific request.
-        this.bus.sendResponseMessageWithIdAndVersion(RestChannel.all,
+        this.bus.sendResponseMessageWithIdAndVersion(RestService.channel,
             restObject, args.uuid, args.version, this.getName());
     }
 
@@ -90,13 +92,13 @@ export class RestService extends AbstractBase implements EventBusEnabled {
                         }
                     );
                 } else {
-                    this.bus.sendErrorMessageWithIdAndVersion(RestChannel.all, error,
+                    this.bus.sendErrorMessageWithIdAndVersion(RestService.channel, error,
                         args.uuid, args.version, this.getName());
                 }
                 break;
 
             default:
-                this.bus.sendErrorMessageWithIdAndVersion(RestChannel.all, error,
+                this.bus.sendErrorMessageWithIdAndVersion(RestService.channel, error,
                     args.uuid, args.version, this.getName());
         }
     }
