@@ -63,9 +63,9 @@ export class RestService extends AbstractCore implements EventBusEnabled {
 
 
     private handleData(data: any, restObject: RestObject, args: MessageArgs) {
-        this.log.group(LogLevel.Verbose, 'REST Request ' + HttpRequest[restObject.request] + ' ' + restObject.uri);
+        this.log.group(LogLevel.Verbose, 'REST APIRequest ' + HttpRequest[restObject.request] + ' ' + restObject.uri);
         this.log.verbose('** Received response: ' + data, this.getName());
-        this.log.verbose('** Request was: ' + restObject, this.getName());
+        this.log.verbose('** APIRequest was: ' + restObject, this.getName());
         this.log.verbose('** Headers were: ' + this.headers, this.getName());
         this.log.groupEnd(LogLevel.Verbose);
 
@@ -77,35 +77,42 @@ export class RestService extends AbstractCore implements EventBusEnabled {
             restObject, args.uuid, args.version, this.getName());
     }
 
-    private handleError(error: RestError, restObject: RestObject, args: MessageArgs) {
-        this.log.group(LogLevel.Error, 'Http Error: ' + HttpRequest[restObject.request] + ' ' +
-            restObject.uri + ' -' + ' ' + error.status);
+    private handleError(error: any, restObject: RestObject, args: MessageArgs) {
 
-        this.log.error(error, this.getName());
-        this.log.error('** Request was: ' + restObject.body, this.getName());
-        this.log.error('** Headers were: ' + this.headers, this.getName());
-        this.log.groupEnd(LogLevel.Error);
+        if (error) {
+            this.log.group(LogLevel.Error, 'Http Error: ' + HttpRequest[restObject.request] + ' ' +
+                restObject.uri + ' -' + ' ' + error.status);
 
-        switch (error.status) {
-            case 401:
+            this.log.error(error, this.getName());
+            this.log.error('** APIRequest was: ' + restObject.body, this.getName());
+            this.log.error('** Headers were: ' + this.headers, this.getName());
+            this.log.groupEnd(LogLevel.Error);
 
-                // retry the all to give the backend time to refresh any expired tokens.
-                if (restObject.refreshRetries++ < REFRESH_RETRIES) {
-                    this.bus.api.tickEventLoop(
-                        () => {
-                            this.doHttpRequest(restObject, args);
-                        }
-                    );
-                } else {
+            switch (error.status) {
+                case 401:
+
+                    // retry the all to give the backend time to refresh any expired tokens.
+                    if (restObject.refreshRetries++ < REFRESH_RETRIES) {
+                        this.bus.api.tickEventLoop(
+                            () => {
+                                this.doHttpRequest(restObject, args);
+                            }
+                        );
+                    } else {
+                        this.bus.sendErrorMessageWithIdAndVersion(RestService.channel, error,
+                            args.uuid, args.version, this.getName());
+                    }
+                    break;
+
+                default:
                     this.bus.sendErrorMessageWithIdAndVersion(RestService.channel, error,
                         args.uuid, args.version, this.getName());
-                }
-                break;
-
-            default:
-                this.bus.sendErrorMessageWithIdAndVersion(RestService.channel, error,
-                    args.uuid, args.version, this.getName());
+            }
+        } else {
+            this.bus.sendErrorMessageWithIdAndVersion(RestService.channel, 'Http request failed, unknown error',
+                args.uuid, args.version, this.getName());
         }
+
     }
 
     private doHttpRequest(restObject: RestObject, args: MessageArgs) {

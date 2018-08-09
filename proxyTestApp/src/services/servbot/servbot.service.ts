@@ -1,13 +1,12 @@
 import { AbstractService } from '@vmw/bifrost/core';
-import { BusStore, EventBus, GalacticResponse, MessageArgs, SentFrom } from '@vmw/bifrost';
+import { BusStore, EventBus, MessageArgs } from '@vmw/bifrost';
 import { ChatCommand, ServbotRequest, ServbotResponse } from './servbot.model';
 import { ChatMessage, GeneralChatChannel } from '../../app/chat-message';
+import { APIResponse } from '@vmw/bifrost/core/model/response.model';
+import { Joke } from '../../app/chat-client/joke.model';
 import { RestOperation } from '@vmw/bifrost/core/services/rest/rest.operations';
-import { MessageFunction } from '../../../../src/bus.api';
-import { HttpRequest } from '../../../../src/core/services/rest/rest.model';
-import { UUID } from '../../../../src/bus';
-
-
+import { HttpRequest } from '@vmw/bifrost/core/services/rest/rest.model';
+import { GeneralError } from '@vmw/bifrost/core/model/error.model';
 
 export class ServbotService extends AbstractService<ServbotRequest, ServbotResponse> {
 
@@ -52,6 +51,32 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
         this.restyStateStore.onChange('state', 'online').subscribe(
             (online: boolean) => {
                 this.restyStateChange(online);
+
+                if (online) {
+                    this.bus.sendResponseMessage(GeneralChatChannel,
+                        {
+                            from: null,
+                            avatar: null,
+                            body: null,
+                            time: Date.now(),
+                            controlEvent: `Servbot: Resty demands we use REST. Booo!`,
+                            error: false,
+                            task: null
+                        }
+                    );
+                } else {
+                    this.bus.sendResponseMessage(GeneralChatChannel,
+                        {
+                            from: null,
+                            avatar: null,
+                            body: null,
+                            time: Date.now(),
+                            controlEvent: `Servbot: Resty is offline, back to the bus for API transport.`,
+                            error: false,
+                            task: null
+                        }
+                    );
+                }
             }
         );
     }
@@ -71,7 +96,7 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
                     break;
 
                 default:
-                    this.delegate(requestObject);
+                    this.delegate(requestObject, requestArgs);
                     break;
             }
         } else {
@@ -79,7 +104,7 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
         }
     }
 
-    private delegate(requestObject: ServbotRequest): void {
+    private delegate(requestObject: ServbotRequest, args?: MessageArgs): void {
 
         // if old man resty has woken up, he will want his requests handled over rest, so we can delegate
         // over to the rest service. If he's asleep, then we can handle requests via the distributed bus.
@@ -87,7 +112,7 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
         if (!this.restyState) {
 
             this.makeGalacticRequest(
-                this.buildGalacticRequest(ChatCommand[requestObject.command], null),
+                this.buildAPIRequest(ChatCommand[requestObject.command], null),
                 ServbotService.serviceChannel,
                 this.handleQueryResponse.bind(this));
 
@@ -95,37 +120,46 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
 
             this.log.debug('Resty is awake, firing command over REST via XHR');
 
-            let thingy = (thing: any) => {
-                console.log('Got the thing!', thing);
+            let successHandler = (response: APIResponse<Joke>) => {
+                this.postResponse(ServbotService.queryChannel, {body: response.payload});
             };
 
-            let thongy = (thing: any) => {
-                console.log('choo choo choo!', thing);
+            let errorHandler = (response: any) => {
+                //let fo: TangoHttpError;
+                let error: GeneralError;
+                // if(response instanceof TangoHttpError) {
+                //     let te = response as TangoHttpError;
+                //     error = new GeneralError(te.message);
+                //
+                // } else{
+                    error = new GeneralError('Error with REST Request');
+                //}
+                error.errorObject = response;
+                // convert response into a general error.
+
+                this.postError(ServbotService.queryChannel, error, args);
             };
 
             const restOperation: RestOperation = {
                 uri: `/servbot/${requestObject.command}`,
                 method: HttpRequest.Get,
-                successHandler: thingy,
-                errorHandler: thongy
+                successHandler: successHandler,
+                errorHandler: errorHandler
             };
 
             this.restServiceRequest(restOperation, this.getName());
 
-
         }
-
-
     }
 
-    private handleQueryResponse(response: GalacticResponse<any>): void {
+    private handleQueryResponse(response: APIResponse<any>): void {
         this.postResponse(ServbotService.queryChannel, {body: response})
     }
 
     private listenToChat() {
         this.bus.listenStream(GeneralChatChannel).handle(
             (chatMessage: ChatMessage) => {
-                const payload = this.buildGalacticRequest(ChatCommand[ChatCommand.PostMessage], chatMessage)
+                const payload = this.buildAPIRequest(ChatCommand[ChatCommand.PostMessage], chatMessage)
                 this.bus.sendGalacticMessage(ServbotService.serviceChannel, payload, this.getName())
             }
         );

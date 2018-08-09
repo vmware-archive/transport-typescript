@@ -48,7 +48,7 @@ export class BusTransactionImpl implements BusTransaction {
         }
         const req: TransactionRequest = new TransactionRequestImpl(null, null, store);
         this.requests.push(req);
-        this.log.debug('⏳ Transaction: Store Request Queued: [' + req.id + ']', this.transactionName());
+        this.log.debug('⏳ Transaction: Store APIRequest Queued: [' + req.id + ']', this.transactionName());
        
     }
 
@@ -61,7 +61,7 @@ export class BusTransactionImpl implements BusTransaction {
         }
         const req: TransactionRequest = new TransactionRequestImpl<Req>(channel, payload);
         this.requests.push(req);
-        this.log.debug('⏳ Transaction: Bus Request Queued: [' + req.id + ']', this.transactionName());
+        this.log.debug('⏳ Transaction: Bus APIRequest Queued: [' + req.id + ']', this.transactionName());
     }
     public onComplete<Resp>(completeHandler: MessageFunction<Resp[]>): void {
        
@@ -118,14 +118,14 @@ export class BusTransactionImpl implements BusTransaction {
 
     private sendRequestAndListen(request: TransactionRequest, responseHandler: Function, type: TransactionType) {
        
-        this.log.debug('➡️ Transaction: Sending ' + type + ' Request to channel: ' 
+        this.log.debug('➡️ Transaction: Sending ' + type + ' APIRequest to channel: '
                         + request.channel, this.transactionName());
 
         const mId = GeneralUtil.genUUIDShort(); // use message ID's to make sure we only react to each explicit response
         const handler = this.bus.listenStream(request.channel, this.name, mId);
         handler.handle(
             (response: any) => {
-                this.log.debug('⬅️ Transaction: Received ' + type + ' Response on channel: ' 
+                this.log.debug('⬅️ Transaction: Received ' + type + ' APIResponse on channel: '
                                 + request.channel + ' - ' + response, this.transactionName());
                 responseHandler(response);
                 handler.close();

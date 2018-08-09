@@ -25,8 +25,8 @@ import {
 import { EventBusLowLevelApiImpl } from './bus.lowlevel';
 import { Logger } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
-import { GalacticRequest } from './model/request.model';
-import { GalacticResponse } from './model/response.model';
+import { APIRequest } from '../core/model/request.model';
+import { APIResponse } from '../core/model/response.model';
 import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { StoreManager } from './store/store.manager';
@@ -321,7 +321,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
         this.api.send(
             cname,
-            new Message(id, 1, proxyBroadcast).response(payload),
+            new Message(id, 1, proxyBroadcast).error(payload),
             from
         );
 
@@ -337,7 +337,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
         this.api.send(
             cname,
-            new Message(id, version, proxyBroadcast).response(payload),
+            new Message(id, version, proxyBroadcast).error(payload),
             from
         );
     }
@@ -470,13 +470,13 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
     public requestGalactic<T, R>(
         channel: string,
-        request: GalacticRequest<T>,
-        successHandler: MessageFunction<GalacticResponse<R>>,
-        errorHandler: MessageFunction<GalacticResponse<R>>,
+        request: APIRequest<T>,
+        successHandler: MessageFunction<APIResponse<R>>,
+        errorHandler: MessageFunction<APIResponse<R>>,
         from?: string): void {
 
         if (!channel || !request) {
-            this.log.error('Cannot send Galactic Request, payload or channel is empty.', this.getName());
+            this.log.error('Cannot send Galactic APIRequest, payload or channel is empty.', this.getName());
             return;
         }
 
@@ -488,17 +488,17 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
                     return (message.isResponse());
                 }),
                 filter((message: Message) => {
-                    const resp: GalacticResponse<R> = message.payload as GalacticResponse<R>;
+                    const resp: APIResponse<R> = message.payload as APIResponse<R>;
                     return conversationId === resp.id;
                 }));
 
         const sub = stream.subscribe(
             (msg: Message) => {
-                const resp: GalacticResponse<R> = msg.payload;
+                const resp: APIResponse<R> = msg.payload;
                 if (resp.error) {
                     errorHandler(resp);
                 } else {
-                    this.log.debug('Galactic Response Incoming: ' + resp.id);
+                    this.log.debug('Galactic APIResponse Incoming: ' + resp.id);
                     successHandler(resp);
                 }
                 sub.unsubscribe();

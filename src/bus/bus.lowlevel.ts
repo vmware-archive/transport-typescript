@@ -650,12 +650,12 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
         this.log.group(LogLevel.Info, tag);
         if (message.type === MessageType.MessageTypeRequest) {
-            this.log.info('📤 Request (outbound)', null);
+            this.log.info('📤 APIRequest (outbound)', null);
         } else {
             if (message.type === MessageType.MessageTypeError) {
                 this.log.info('⁉️ ERROR!', null);
             } else {
-                this.log.info('📥 Response (inbound)', 'message type');
+                this.log.info('📥 APIResponse (inbound)', 'message type');
             }
         }
         this.log.info('📤 Channel: ' + mo.channel, null);

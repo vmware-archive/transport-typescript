@@ -509,7 +509,7 @@ paths:
         '200':
           description: OK
         '400':
-          description: Bad Request
+          description: Bad APIRequest
         '401':
           description: Unauthorized
         '403':
@@ -531,7 +531,7 @@ paths:
         '200':
           description: OK
         '400':
-          description: Bad Request
+          description: Bad APIRequest
         '401':
           description: Unauthorized
         '403':
@@ -551,7 +551,7 @@ paths:
         '200':
           description: OK
         '400':
-          description: Bad Request
+          description: Bad APIRequest
         '401':
           description: Unauthorized
         '403':
@@ -573,7 +573,7 @@ paths:
         '200':
           description: OK
         '400':
-          description: Bad Request
+          description: Bad APIRequest
         '401':
           description: Unauthorized
         '403':
@@ -593,7 +593,7 @@ paths:
         '200':
           description: OK
         '400':
-          description: Bad Request
+          description: Bad APIRequest
         '401':
           description: Unauthorized
         '403':
@@ -613,7 +613,7 @@ paths:
         '200':
           description: OK
         '400':
-          description: Bad Request
+          description: Bad APIRequest
         '401':
           description: Unauthorized
         '403':

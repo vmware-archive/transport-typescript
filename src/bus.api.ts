@@ -9,8 +9,8 @@ import { Observable, Subject, Subscription } from 'rxjs';
 import { StompBusCommand } from './bridge/stomp.model';
 import { Logger } from './log/logger.service';
 import { LogLevel } from './log/logger.model';
-import { GalacticRequest } from './bus/model/request.model';
-import { GalacticResponse } from './bus/model/response.model';
+import { APIRequest } from './core/model/request.model';
+import { APIResponse } from './core/model/response.model';
 import { MessageProxyConfig, ProxyControl } from './proxy/message.proxy';
 import { GeneralUtil } from './util/util';
 
@@ -343,23 +343,23 @@ export abstract class EventBus {
 
 
     /**
-     * Send a command payload to Galactic channel and listen for response that matches UUID of Request.
+     * Send a command payload to Galactic channel and listen for response that matches UUID of APIRequest.
      * (defaults to sendChannel if left blank). The handle() method on the MessageHandler instance is used to
      * process incoming responses. The handler will stop processing any further responses after the first one.
      *
      * @param {ChannelName} sendChannel the Galactic channel to send the command to
-     * @param {GalacticRequest} request GalacticRequest to be sent as the command
-     * @param {MessageFunction<GalacticResponse<R>>} successHandler for a successful response to your command
-     * @param {MessageFunction<GalacticResponse<R>>} errorHandler for an un-successful response to your command
+     * @param {APIRequest} request APIRequest to be sent as the command
+     * @param {MessageFunction<APIResponse<R>>} successHandler for a successful response to your command
+     * @param {MessageFunction<APIResponse<R>>} errorHandler for an un-successful response to your command
      * @param {SentFrom} from optional name of the actor implementing (for logging)
-     * @returns {MessageHandler<GalacticResponse>} reference to MessageHandler, handle()
+     * @returns {MessageHandler<APIResponse>} reference to MessageHandler, handle()
      *                                             function receives any inbound response.
      */
     abstract requestGalactic<T, R>(
         sendChannel: ChannelName,
-        request: GalacticRequest<T>,
-        successHandler: MessageFunction<GalacticResponse<R>>,
-        errorHandler?: MessageFunction<GalacticResponse<R>>,
+        request: APIRequest<T>,
+        successHandler: MessageFunction<APIResponse<R>>,
+        errorHandler?: MessageFunction<APIResponse<R>>,
         from?: SentFrom): void;
 
 

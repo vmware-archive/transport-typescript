@@ -10,9 +10,9 @@ import { Logger } from '../log/logger.service';
 import { StompParser } from '../bridge/stomp.parser';
 import { StompClient } from '../bridge/stomp.client';
 import { MonitorObject, MonitorType } from './model/monitor.model';
-import { GalacticRequest } from './model/request.model';
+import { APIRequest } from '../core/model/request.model';
 import { UUID } from './store/store.model';
-import { GalacticResponse } from './model/response.model';
+import { APIResponse } from '../core/model/response.model';
 import { GeneralUtil } from '../util/util';
 import { MessageHandler, MessageResponder, MessageType } from '../bus.api';
 
@@ -1880,9 +1880,9 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         it('galacticRequest() works correctly.',
             (done) => {
                 const id: UUID = GeneralUtil.genUUIDShort();
-                const req: GalacticRequest<string> = GalacticRequest.build('testAPI', 'ember loves to play?', id);
+                const req: APIRequest<string> = APIRequest.build('testAPI', 'ember loves to play?', id);
                 bus.requestGalactic('ember-station', req,
-                    (resp: GalacticResponse<string>) => {
+                    (resp: APIResponse<string>) => {
                         expect(resp.id).toEqual(id);
                         expect(resp.payload).toEqual('scooty butt chase jump');
                         done();
@@ -1895,11 +1895,11 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                             case MonitorType.MonitorGalacticData:
                                 expect(mo.channel).toEqual('ember-station');
 
-                                const data: GalacticRequest<string> = mo.data as GalacticRequest<string>;
+                                const data: APIRequest<string> = mo.data as APIRequest<string>;
                                 expect(data.id).toEqual(id);
 
-                                const resp: GalacticResponse<string> =
-                                    GalacticResponse.build('scooty butt chase jump', id);
+                                const resp: APIResponse<string> =
+                                    APIResponse.build('scooty butt chase jump', id);
                                 bus.sendResponseMessage('ember-station', resp);
                                 break;
 
@@ -1915,7 +1915,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 spyOn(log, 'error').and.callThrough();
                 bus.requestGalactic(null, null, null);
-                expect(log.error).toHaveBeenCalledWith('Cannot send Galactic Request, ' +
+                expect(log.error).toHaveBeenCalledWith('Cannot send Galactic APIRequest, ' +
                     'payload or channel is empty.', 'EventBus');
 
             });

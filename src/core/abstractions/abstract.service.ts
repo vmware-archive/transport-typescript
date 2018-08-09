@@ -1,10 +1,11 @@
 import { MessageArgs, MessageFunction } from '../../bus.api';
 import { AbstractBase } from './abstract.base';
 import { HttpRequest, RestError } from '../services/rest/rest.model';
-import { GalacticRequest } from '../../bus/model/request.model';
-import { GalacticResponse } from '../../bus/model/response.model';
+import { APIRequest } from '../model/request.model';
+import { APIResponse } from '../model/response.model';
 import { UUID } from '../../bus';
 import { GeneralUtil } from '../../util/util';
+import { GeneralError } from '../model/error.model';
 
 export const SERVICE_ERROR = 505;
 export type RequestorArguments = MessageArgs;
@@ -41,15 +42,12 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
     protected constructor(name: string, requestChannel: string) {
 
         super(name);
-        this.serviceError = new RestError('Invalid Service Request!', SERVICE_ERROR, '');
+        this.serviceError = new RestError('Invalid Service APIRequest!', SERVICE_ERROR, '');
         this.requestConverterMap = new Map<string, HttpRequest>(HTTP_REQUEST_MAP);
 
         this.bus.listenRequestStream(requestChannel, this.getName())
             .handle((requestObject: ReqT, args: RequestorArguments) => {
                     this.handleServiceRequest(requestObject, args);
-                },
-                (error) => {
-                    console.log('the error went bad: ', error);
                 });
     }
 
@@ -138,24 +136,29 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
      * Method to send a RestError to the client of the service
      * @param {string} channel channel to sent error to.
      * @param {RestError} err returned from rest service.
+     * @param {MessageArgs} args optional arguments to pass.
      */
-    protected postError(channel: string, err: RestError): void {
-        this.bus.sendErrorMessage(channel, err, this.getName());
+    protected postError(channel: string, err: GeneralError, args?: MessageArgs): void {
+        if (args) {
+            this.bus.sendErrorMessageWithIdAndVersion(channel, err, args.uuid, args.version, args.from);
+        } else {
+            this.bus.sendErrorMessage(channel, err, this.getName());
+        }
     }
 
     /**
      * Make a galactic command to any services operating on the extended bus
      *
-     * @param {GalacticRequest<GReqT>} request
+     * @param {APIRequest<GReqT>} request
      * @param {string} channel
      * @param {MessageFunction<GRespT>} handler
      */
-    protected makeGalacticRequest<GReqT, GRespT>(request: GalacticRequest<GReqT>,
+    protected makeGalacticRequest<GReqT, GRespT>(request: APIRequest<GReqT>,
                                                  channel: string,
                                                  handler: MessageFunction<GRespT>) {
 
         this.bus.requestGalactic(channel, request,
-            (response: GalacticResponse<GRespT>, args: MessageArgs) => {
+            (response: APIResponse<GRespT>, args: MessageArgs) => {
                 if (handler) {
                     handler(response.payload, args);
                 }
@@ -164,18 +167,18 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
     }
 
     /**
-     * Build a galactic command object
+     * Build a API request command object
      *
      * @param {string} requestType
      * @param {T} payload
      * @param {UUID} uuid
      * @param {number} version
-     * @returns {GalacticRequest<T>}
+     * @returns {APIRequest<T>}
      */
-    protected buildGalacticRequest<T>(requestType: string, payload: T,
-                                      uuid: UUID = GeneralUtil.genUUID(),
-                                      version: number = 1): GalacticRequest<T> {
+    protected buildAPIRequest<T>(requestType: string, payload: T,
+                                 uuid: UUID = GeneralUtil.genUUID(),
+                                 version: number = 1): APIRequest<T> {
 
-        return new GalacticRequest(requestType, payload, uuid, version);
+        return new APIRequest(requestType, payload, uuid, version);
     }
 }

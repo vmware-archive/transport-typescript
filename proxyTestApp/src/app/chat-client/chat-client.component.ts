@@ -6,6 +6,7 @@ import { ServbotService } from '../../services/servbot/servbot.service';
 import { ChatCommand, ServbotResponse } from '../../services/servbot/servbot.model';
 import { GeneralUtil } from '@vmw/bifrost/util/util';
 import { BaseTask } from '../../vmc-models/api/vmc-api';
+import { GeneralError } from '@vmw/bifrost/core/model/error.model';
 
 @Component({
     selector: 'chat-client',
@@ -154,7 +155,17 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
                             error: false,
                             task: null
                         });
-
+                    },
+                    (error: GeneralError) => {
+                        this.generalChatMessages.push({
+                            from: this.name,
+                            avatar: this.avatar,
+                            body: this.chat,
+                            time: Date.now(),
+                            controlEvent: `${error.message}: '${error.errorObject.error}' (${error.errorObject.status}) - ${error.errorObject.path}`,
+                            error: true,
+                            task: null
+                        });
                     }
                 );
             } else {

@@ -1067,7 +1067,7 @@ paths:
           schema:
             $ref: '#/definitions/SddcManifest'
         '400':
-          description: Bad Request / Validation error.
+          description: Bad APIRequest / Validation error.
           schema:
             $ref: '#/definitions/ErrorResponse'
         '401':
@@ -1102,7 +1102,7 @@ paths:
           schema:
             $ref: '#/definitions/SddcManifest'
         '400':
-          description: Bad Request / Validation error.
+          description: Bad APIRequest / Validation error.
           schema:
             $ref: '#/definitions/ErrorResponse'
         '401':
@@ -1137,7 +1137,7 @@ paths:
         '200':
           description: OK
         '400':
-          description: Bad Request / Validation error.
+          description: Bad APIRequest / Validation error.
           schema:
             $ref: '#/definitions/ErrorResponse'
         '401':
@@ -1173,7 +1173,7 @@ paths:
           schema:
             $ref: '#/definitions/Task'
         '400':
-          description: Bad Request / Validation error.
+          description: Bad APIRequest / Validation error.
           schema:
             $ref: '#/definitions/ErrorResponse'
         '401':
@@ -1210,7 +1210,7 @@ paths:
           schema:
             $ref: '#/definitions/SddcManifest'
         '400':
-          description: Bad Request / Validation error.
+          description: Bad APIRequest / Validation error.
           schema:
             $ref: '#/definitions/ErrorResponse'
         '401':
@@ -3251,7 +3251,7 @@ paths:
         - sddc
         - impersonation
         - all-access
-      summary: Request a CA signed certificate for the management VM in Sddc
+      summary: APIRequest a CA signed certificate for the management VM in Sddc
       x-vmw-vapi-methodname: update
       x-vmc-ui-servicename: management-vms
       x-vmw-vapi-lifecyle-internal:
@@ -3900,7 +3900,7 @@ paths:
           schema:
             $ref: '#/definitions/UsageSearchResponse'
         '400':
-          description: Bad Request - malformed search request
+          description: Bad APIRequest - malformed search request
           schema:
             $ref: '#/definitions/ErrorResponse'
         '401':
@@ -3922,7 +3922,7 @@ paths:
           '202':
             description: Accepted
           '400':
-            description: Bad Request
+            description: Bad APIRequest
           '401':
             description: Unauthorized
           '403':
@@ -6780,7 +6780,7 @@ paths:
           schema:
             $ref: '#/definitions/OfferInstancesHolder'
         '400':
-          description: Bad Request. Type of the product not supported.
+          description: Bad APIRequest. Type of the product not supported.
           schema:
             $ref: '#/definitions/ErrorResponse'
         '401':
@@ -7101,7 +7101,7 @@ paths:
         '403':
           description: Forbidden
         '400':
-          description: Bad Request. Thrown when user already exists.
+          description: Bad APIRequest. Thrown when user already exists.
     get:
       tags:
         - operator
@@ -7141,7 +7141,7 @@ paths:
         '403':
           description: Forbidden
         '400':
-          description: Bad Request. Thrown when no user exists.
+          description: Bad APIRequest. Thrown when no user exists.
     delete:
       tags:
         - operator
@@ -7161,13 +7161,13 @@ paths:
         '403':
           description: Forbidden
         '400':
-          description: Bad Request. Thrown when no user exists.
+          description: Bad APIRequest. Thrown when no user exists.
   /operator/delegated-access/pop/sddcs/{sddc}:
     post:
       tags:
         - operator
         - delegated-access
-      summary: Request new active delegated PoP SSH access for an operator
+      summary: APIRequest new active delegated PoP SSH access for an operator
       x-vmw-vapi-methodname: create
       x-vmc-ui-servicename: delegated-access
       parameters:
@@ -7188,7 +7188,7 @@ paths:
         '403':
           description: Forbidden
         '400':
-          description: Bad Request. Thrown when user already exists.
+          description: Bad APIRequest. Thrown when user already exists.
     get:
       tags:
         - operator
@@ -7252,7 +7252,7 @@ paths:
           schema:
             $ref: '#/definitions/Task'
         '400':
-          description: Bad Request
+          description: Bad APIRequest
           schema:
             $ref: '#/definitions/ErrorResponse'
         '401':
@@ -7284,7 +7284,7 @@ paths:
       tags:
         - all-access
         - delegated-access
-      summary: Request new active delegated PoP SSH access
+      summary: APIRequest new active delegated PoP SSH access
       x-vmw-vapi-methodname: create
       x-vmc-ui-servicename: delegated-access
       x-vmw-vapi-lifecyle-internal:
@@ -7307,12 +7307,12 @@ paths:
         '403':
           description: Forbidden
         '400':
-          description: Bad Request. Thrown when user already exists.
+          description: Bad APIRequest. Thrown when user already exists.
     patch:
       tags:
         - all-access
         - delegated-access
-      summary: Request extend existing active delegated PoP SSH access
+      summary: APIRequest extend existing active delegated PoP SSH access
       x-vmw-vapi-methodname: update
       x-vmc-ui-servicename: delegated-access
       x-vmw-vapi-lifecyle-internal:
@@ -7335,7 +7335,7 @@ paths:
         '403':
           description: Forbidden
         '400':
-          description: Bad Request. Thrown when user already exists.
+          description: Bad APIRequest. Thrown when user already exists.
 
     get:
       tags:
@@ -7380,7 +7380,7 @@ paths:
       tags:
         - delegated-access
         - operator
-      summary: Request new active delegated SSH access to POP and ESX for an operator
+      summary: APIRequest new active delegated SSH access to POP and ESX for an operator
       x-vmw-vapi-methodname: create
       x-vmc-ui-servicename: delegated-access
       parameters:
@@ -7401,12 +7401,12 @@ paths:
         '403':
           description: Forbidden
         '400':
-          description: Bad Request. Thrown when user already exists.
+          description: Bad APIRequest. Thrown when user already exists.
     patch:
       tags:
         - delegated-access
         - operator
-      summary: Request extend existing active delegated SSH access to POP and ESX for an operator
+      summary: APIRequest extend existing active delegated SSH access to POP and ESX for an operator
       x-vmw-vapi-methodname: update
       x-vmc-ui-servicename: delegated-access
       parameters:
@@ -7427,7 +7427,7 @@ paths:
         '403':
           description: Forbidden
         '400':
-          description: Bad Request. Thrown when user already exists.
+          description: Bad APIRequest. Thrown when user already exists.
     get:
       tags:
         - delegated-access
@@ -7466,7 +7466,7 @@ paths:
     post:
       tags:
         - delegated-access
-      summary: Request new or extend existing active delegated SSH access to POP and ESX for an operator
+      summary: APIRequest new or extend existing active delegated SSH access to POP and ESX for an operator
       x-vmw-vapi-methodname: create
       x-vmc-ui-servicename: delegated-access
       x-vmw-vapi-lifecyle-internal:
@@ -7489,11 +7489,11 @@ paths:
         '403':
           description: Forbidden
         '400':
-          description: Bad Request. Thrown when user already exists.
+          description: Bad APIRequest. Thrown when user already exists.
     patch:
       tags:
         - delegated-access
-      summary: Request to extend existing active delegated SSH access to POP and ESX for an operator
+      summary: APIRequest to extend existing active delegated SSH access to POP and ESX for an operator
       x-vmw-vapi-methodname: update
       x-vmc-ui-servicename: delegated-access
       x-vmw-vapi-lifecyle-internal:
@@ -7516,7 +7516,7 @@ paths:
         '403':
           description: Forbidden
         '400':
-          description: Bad Request. Thrown when user already exists.
+          description: Bad APIRequest. Thrown when user already exists.
     get:
       tags:
         - delegated-access
@@ -7585,7 +7585,7 @@ paths:
         '403':
           description: Forbidden
         '400':
-          description: Bad Request.
+          description: Bad APIRequest.
 ## Reservations: AKA Maintenance windows
   /orgs/{org}/reservations:
     get:
@@ -11100,7 +11100,7 @@ definitions:
           type: string
   ServiceInvitationRequest:
     type: object
-    description: Request object to generate VMC Service Invitations
+    description: APIRequest object to generate VMC Service Invitations
     properties:
       preset_name:
         description: The name of the preset whose properties need to be attached to the invitation. Use value from  ServiceInvitationPresets.preset_name

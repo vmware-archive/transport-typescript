@@ -1,10 +1,12 @@
 /**
- * Copyright(c) VMware Inc., 2016
+ * Copyright(c) VMware Inc., 2018
  */
 
 /**
  * Channels for communication with the ReST Service, and its message object.
  */
+
+import { GeneralError } from '../../model/error.model';
 
 export enum HttpRequest {
     Get,
@@ -17,13 +19,6 @@ export enum HttpRequest {
 
 export enum RestErrorType {
     UnknownMethod
-}
-
-export class GeneralError {
-    constructor(public message: string, public status?: any) {
-        this.message = message;
-        this.status = status;
-    }
 }
 
 /**

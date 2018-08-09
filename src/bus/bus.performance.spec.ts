@@ -3,7 +3,7 @@ import { EventBus, Message, MessageArgs } from '../index';
 import { BusTestUtil } from '../util/test.util';
 import { GeneralUtil } from '../util/util';
 import { Observable } from 'rxjs';
-import { GalacticRequest } from './model/request.model';
+import { APIRequest } from '../core/model/request.model';
 
 let bus: EventBus;
 let printTimeLogs: boolean = true;
@@ -695,7 +695,7 @@ function runApiPerformanceTestOverSocket(host: string, loops: number, done: Func
             );
 
         for(let x = 0; x < loops; x++) {
-            const request = new GalacticRequest(command, null, GeneralUtil.genUUID(), 1);
+            const request = new APIRequest(command, null, GeneralUtil.genUUID(), 1);
             bus.sendGalacticMessage(chan, request);
 
         }
