@@ -63,61 +63,6 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
         return this.serviceError;
     }
 
-    // /**
-    //  * This method is called to send an asynchronous HTTP all and will call the respective handlers
-    //  * in the derived class when the HTTP returns.
-    //  * Each all gets its own message stream and handles the unsubscribe() here as requestOnce() cannot
-    //  * concurrently use the same channel.
-    //  *
-    //  * @param {string} uri URL target for HTTP
-    //  * @param {HttpRequest} method HttpRequest enum
-    //  * @param {ReqT} serviceRequestObject service-specific all object to pass back to restResponseHandler
-    //  * @param body payload for POST, PATCH, PUT
-    //  * @param {HttpParams} params optional HttpParams
-    //  * @param {RequestorArguments} optional aruments from the requestor to allow access to id and versions.
-    //  */
-    // protected restRequest(
-    //     uri: string, method: HttpRequest, serviceRequestObject: ReqT, body?: any,
-    //     params?: HttpParams, args?: RequestorArguments): BusTransaction {
-    //
-    //     const restRequestObject: RestObject = new RestObject(method, uri, RestChannel.all, body, params);
-    //     let id: UUID;
-    //
-    //     if (args) {
-    //         id = args.uuid;
-    //     } else {
-    //         id = GeneralUtil.genUUIDShort();
-    //     }
-    //     const transaction = this.bus.createTransaction(TransactionType.ASYNC, 'service-api-command-' + id);
-    //     transaction.sendRequest(RestChannel.all, restRequestObject);
-    //
-    //     transaction.onComplete(
-    //         (restResponseObject: RestObject[]) => {
-    //             this.log.debug('Received REST response: ' + restResponseObject[0].response, this.getName());
-    //             this.handleRestResponse(serviceRequestObject, restResponseObject[0].response);
-    //         }
-    //     );
-    //
-    //     transaction.onError<RestError>(
-    //         (error: RestError) => {
-    //             this.handleRestError(serviceRequestObject, error);
-    //         }
-    //     );
-    //
-    //     transaction.commit();
-    //     return transaction;
-    //
-    // }
-
-    // // These are partially specialized for services that do not make ReST calls
-    // protected handleRestResponse(serviceRequestObject: ReqT, responseJson: any) {
-    //     this.log.error('Service performed a ReST all without overriding response handler!', this.getName());
-    // }
-    //
-    // protected handleRestError(serviceRequestObject: ReqT, err: RestError) {
-    //     this.log.error('Service performed a ReST all without overriding error handler!', this.getName());
-    // }
-
     /**
      *  Method to send a response object to the client of the service
      * @param {string} channel to respond to

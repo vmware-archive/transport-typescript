@@ -18,6 +18,7 @@ export class RestyComponent extends AbstractBase implements OnInit {
     public status: string = 'asleep';
     public online: boolean = false;
     public avatarIcon = '👴🏻';
+    private serviceLoaded: boolean = false;
 
     private restyStateStore: BusStore<boolean>;
 
@@ -30,8 +31,11 @@ export class RestyComponent extends AbstractBase implements OnInit {
     }
 
     public wakeupResty() {
-        const tangoHttpClientAdaptor = new TangoAngularHttpClientAdapter(this.http, '');
-        ServiceLoader.addService(RestService, tangoHttpClientAdaptor);
+        if (!this.serviceLoaded) {
+            const tangoHttpClientAdaptor = new TangoAngularHttpClientAdapter(this.http, '');
+            ServiceLoader.addService(RestService, tangoHttpClientAdaptor);
+            this.serviceLoaded = true;
+        }
         this.status = 'online';
         this.online = true;
 
@@ -45,7 +49,7 @@ export class RestyComponent extends AbstractBase implements OnInit {
             {
                 from: 'Old Man Resty',
                 avatar: this.avatarIcon,
-                body: "I demand we use REST now.",
+                body: 'Stop using that new fangled bus, use REST instead',
                 time: Date.now(),
                 controlEvent: null,
                 error: false,

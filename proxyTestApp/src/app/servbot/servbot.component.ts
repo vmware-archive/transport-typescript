@@ -13,6 +13,7 @@ export class ServbotComponent extends AbstractBase implements OnInit {
 
     public status: string = 'offline';
     public online: boolean = false;
+    public connecting: boolean = false;
 
     constructor() {
         super('ServbotComponent');
@@ -23,6 +24,8 @@ export class ServbotComponent extends AbstractBase implements OnInit {
     }
 
     public connectServbot() {
+        this.connecting = true;
+        this.status = 'connecting';
         this.bus.sendRequestMessage(ServbotService.queryChannel, {command: ChatCommand.Connect}, EventBus.id);
     }
 
@@ -32,6 +35,7 @@ export class ServbotComponent extends AbstractBase implements OnInit {
             () => {
                 this.status = 'online';
                 this.online = true;
+                this.connecting = false;
             }
         );
     }
