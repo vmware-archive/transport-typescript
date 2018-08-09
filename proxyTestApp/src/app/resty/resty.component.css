@@ -18,3 +18,17 @@
 button {
     margin-left: 10px;
 }
+
+@keyframes wiggle {
+    0% { transform: rotate(0deg); }
+    80% { transform: rotate(0deg); }
+    85% { transform: rotate(5deg); }
+    95% { transform: rotate(-5deg); }
+    100% { transform: rotate(0deg); }
+}
+
+.wiggle-resty {
+    animation-name: wiggle;
+    animation-duration: 3s;
+    animation-iteration-count: 1;
+}

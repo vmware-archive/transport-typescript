@@ -4,8 +4,8 @@ import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
 import { RestService } from '@vmw/bifrost/core/services/rest/rest.service';
 import { TangoAngularHttpClientAdapter } from '@vmw/tango';
 import { HttpClient } from '@angular/common/http';
-import { HttpRequest, RestObject } from '@vmw/bifrost/core/services/rest/rest.model';
-import { GeneralUtil } from '@vmw/bifrost/util/util';
+import { BusStore } from '@vmw/bifrost';
+
 
 @Component({
     selector: 'resty',
@@ -17,32 +17,29 @@ export class RestyComponent extends AbstractBase implements OnInit {
     public status: string = 'offline';
     public online: boolean = false;
 
+    private restyStateStore: BusStore<boolean>;
+
     constructor(private http: HttpClient) {
         super('RestyComponent');
+        this.restyStateStore = this.storeManager.createStore('resty');
     }
 
     ngOnInit() {
     }
 
     public connectResty() {
-        const tangoHttpClientAdaptor = new TangoAngularHttpClientAdapter(this.http, '/');
+        const tangoHttpClientAdaptor = new TangoAngularHttpClientAdapter(this.http, '');
         ServiceLoader.addService(RestService, tangoHttpClientAdaptor);
         this.status = 'online';
         this.online = true;
 
-        const rest: RestObject  = new RestObject(
-            HttpRequest.Get,
-            '/icanhazdadjoke.com',
-            null,
-            {'Accept': 'application/json'}
-        );
+        // set universal global headers for all requests.
+        this.setGlobalHttpHeaders({'Accept': 'application/json'}, this.getName());
 
-        this.bus.requestOnceWithId(GeneralUtil.genUUIDShort(), RestService.channel, rest)
-            .handle(
-                (resp: RestObject) => {
-                    console.log('Dad Joke!:', resp.response.joke);
-                }
-            );
+        // change state in store, everyone will know old man resty is awake.
+        this.restyStateStore.put('state', true, 'online');
+
+
 
     }
 

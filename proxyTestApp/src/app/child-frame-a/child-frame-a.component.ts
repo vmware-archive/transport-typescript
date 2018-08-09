@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ProxyControl, ProxyType } from '@vmw/bifrost/proxy';
-import { AbstractCore } from '@vmw/bifrost/core';
+import { AbstractBase } from '@vmw/bifrost/core';
 import { GeneralChatChannel } from '../chat-message';
 import { ServbotService } from '../../services/servbot/servbot.service';
 
@@ -9,13 +9,13 @@ import { ServbotService } from '../../services/servbot/servbot.service';
     templateUrl: './child-frame-a.component.html',
     styleUrls: ['./child-frame-a.component.css']
 })
-export class ChildFrameAComponent extends AbstractCore implements OnInit {
+export class ChildFrameAComponent extends AbstractBase implements OnInit {
 
     private proxyControl: ProxyControl;
     private proxyActive: boolean = false;
 
     constructor() {
-        super();
+        super('ChildFrameAComponent');
     }
 
     ngOnInit(): void {

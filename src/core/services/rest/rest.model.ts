@@ -11,7 +11,8 @@ export enum HttpRequest {
     Post,
     Patch,
     Delete,
-    Put
+    Put,
+    UpdateGlobalHeaders
 }
 
 export enum RestErrorType {

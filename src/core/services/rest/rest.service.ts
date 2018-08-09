@@ -1,21 +1,33 @@
-import { AbstractBase } from '../../abstractions/abstract.base';
 import { EventBusEnabled, MessageArgs } from '../../../bus.api';
 import { TangoTransportAdapterInterface } from '@vmw/tango/transport/TangoTransportAdapterInterface.d';
 import { HttpRequest, RestError, RestErrorType, RestObject } from './rest.model';
 import { LogLevel } from '../../../log';
+import { BusStore } from '../../../store.api';
+import { AbstractCore } from '../../abstractions/abstract.core';
+
 
 
 const REFRESH_RETRIES = 3;
+const GLOBAL_HEADERS = 'global-headers';
+const GLOBAL_HEADERS_UPDATE = 'update';
+
 
 /**
  * REST Service that operates standard functions on behald of consumers and services.
  */
-export class RestService extends AbstractBase implements EventBusEnabled {
+export class RestService extends AbstractCore implements EventBusEnabled {
 
     public static channel = 'bifrost-services::REST';
 
     private httpClient: TangoTransportAdapterInterface;
     private headers: any;
+    private headerStore: BusStore<any>;
+    private name: string = 'RESTService';
+
+    public getName(): string {
+        return this.name;
+    }
+
 
     /**
      * Pass in an implementation of the TangoTransportAdaptorInterface. This allows a drop in supplier for
@@ -23,22 +35,30 @@ export class RestService extends AbstractBase implements EventBusEnabled {
      *
      * @param {TangoTransportAdapterInterface} httpClient
      */
-     constructor(httpClient: TangoTransportAdapterInterface) {
-        super('RESTService');
+    constructor(httpClient: TangoTransportAdapterInterface) {
+        super();
         this.httpClient = httpClient;
+        this.headerStore = this.storeManager.createStore('bifrost::RestService');
         this.listenForRequests();
-
-        //this.headers.append('Content-Type', 'application/json; charset=utf-8');
-        //this.headers.append('Accept', 'application/json');
-
+        this.log.info(`${this.name} Online`);
     }
 
     private listenForRequests() {
         this.bus.listenRequestStream(RestService.channel)
             .handle((restObject: RestObject, args: MessageArgs) => {
                 restObject.refreshRetries = 0;
-                this.doHttpRequest(restObject, args);
+
+                if (restObject.request !== HttpRequest.UpdateGlobalHeaders) {
+                    this.doHttpRequest(restObject, args);
+                } else {
+                    this.updateHeaders(restObject.headers);
+                }
             });
+    }
+
+    private updateHeaders(headers: any): void {
+        this.log.info('Updating global headers for outbound request', this.getName());
+        this.headerStore.put(GLOBAL_HEADERS, headers, GLOBAL_HEADERS_UPDATE);
     }
 
 
@@ -88,7 +108,6 @@ export class RestService extends AbstractBase implements EventBusEnabled {
         }
     }
 
-
     private doHttpRequest(restObject: RestObject, args: MessageArgs) {
         // handle rest response
         const successHandler = (response: any) => {
@@ -99,6 +118,10 @@ export class RestService extends AbstractBase implements EventBusEnabled {
             this.handleError(response, restObject, args);
         };
 
+        const globalHeaders = this.headerStore.get(GLOBAL_HEADERS);
+
+        // merge globals and request headers
+        const requestHeaders = {...restObject.headers, ...globalHeaders};
 
         switch (restObject.request) {
             case HttpRequest.Get:
@@ -107,7 +130,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
                     restObject.uri,
                     restObject.pathParams,
                     restObject.queryStringParams,
-                    restObject.headers,
+                    requestHeaders,
                     successHandler, errorHandler);
                 break;
 
@@ -118,7 +141,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
                     restObject.pathParams,
                     restObject.queryStringParams,
                     restObject.body,
-                    restObject.headers,
+                    requestHeaders,
                     successHandler, errorHandler);
                 break;
 
@@ -129,7 +152,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
                     restObject.pathParams,
                     restObject.queryStringParams,
                     restObject.body,
-                    restObject.headers,
+                    requestHeaders,
                     successHandler, errorHandler);
 
                 break;
@@ -140,7 +163,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
                     restObject.pathParams,
                     restObject.queryStringParams,
                     restObject.body,
-                    restObject.headers,
+                    requestHeaders,
                     successHandler, errorHandler);
                 break;
 
@@ -150,7 +173,7 @@ export class RestService extends AbstractBase implements EventBusEnabled {
                     restObject.pathParams,
                     restObject.queryStringParams,
                     restObject.body,
-                    restObject.headers,
+                    requestHeaders,
                     successHandler, errorHandler);
                 break;
 
