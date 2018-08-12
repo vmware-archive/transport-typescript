@@ -13,6 +13,7 @@ export class VMCBotComponent extends AbstractBase implements OnInit {
 
     public status: string = 'offline';
     public online: boolean = false;
+    public connecting: boolean = false;
 
     constructor() {
         super('VMCBotComponent');
@@ -23,6 +24,8 @@ export class VMCBotComponent extends AbstractBase implements OnInit {
     }
 
     public connectVMCBot() {
+        this.status = 'connecting';
+        this.connecting = true;
         this.bus.sendRequestMessage(VMCBotService.serviceChannel, {command:VMCCommand.Connect}, EventBus.id);
     }
 
