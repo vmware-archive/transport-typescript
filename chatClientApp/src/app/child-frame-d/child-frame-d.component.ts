@@ -1,30 +1,30 @@
 import { Component, OnInit } from '@angular/core';
-import { ProxyControl, ProxyType } from '@vmw/bifrost/proxy';
 import { AbstractBase } from '@vmw/bifrost/core';
+import { ProxyControl } from '@vmw/bifrost/proxy';
 import { GeneralChatChannel } from '../chat-message';
-import { ServbotService } from '../../services/servbot/servbot.service';
+import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
 
 @Component({
-    selector: 'app-child-frame-b',
-    templateUrl: './child-frame-b.component.html',
-    styleUrls: ['./child-frame-b.component.css']
+    selector: 'app-child-frame-d',
+    templateUrl: './child-frame-d.component.html',
+    styleUrls: ['./child-frame-d.component.css']
 })
-export class ChildFrameBComponent extends AbstractBase implements OnInit {
+export class ChildFrameDComponent extends AbstractBase implements OnInit {
 
     private proxyControl: ProxyControl;
     private proxyActive: boolean = false;
 
     constructor() {
-        super('ChildFrameBComponent');
+        super('ChildFrameDComponent');
     }
 
     ngOnInit(): void {
 
         this.proxyControl = this.bus.enableMessageProxy({
-            protectedChannels: [GeneralChatChannel, ServbotService.queryChannel],
+            protectedChannels: [GeneralChatChannel, 'servbot-query'],
             proxyType: ProxyType.Child,
             parentOrigin: 'http://localhost:4300',
-            acceptedOrigins: ['http://localhost:4300'],
+            acceptedOrigins: ['http://localhost:4300', 'http://localhost:4400'],
             targetAllFrames: false,
             targetSpecificFrames: null,
         });

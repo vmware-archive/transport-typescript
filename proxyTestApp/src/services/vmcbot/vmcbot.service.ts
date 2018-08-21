@@ -60,7 +60,6 @@ export class VMCBotService extends AbstractService<VMCBotRequest, VMCBotResponse
             .handle(
                 (taskJson: any) => {
                     const task: BaseTask = new BaseTask(taskJson);
-                    console.log(task);
                     this.bus.sendResponseMessage(GeneralChatChannel, {
                         from: "VMCBot",
                         avatar: "assets/vmcicon.svg",

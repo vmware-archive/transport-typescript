@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterContentInit, Component, OnInit } from '@angular/core';
 
-import { EventBus, Message, MonitorObject, MonitorType } from '@vmw/bifrost';
+import { EventBus, Message, MessageHandler, MonitorObject, MonitorType, ProxyControl } from '@vmw/bifrost';
 import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
 import { LogLevel } from '@vmw/bifrost/log';
 import { ToastNotification } from '@vmw/ngx-components';
@@ -23,8 +23,8 @@ export class MainComponent extends AbstractBase implements OnInit {
     public consoleEvents: string[];
     public activeChildren: number = 0;
     public registeredChildren: number = 0;
-
-
+    private control: ProxyControl;
+    private generalChat: MessageHandler;
 
     constructor() {
         super('MainComponent');
@@ -40,16 +40,27 @@ export class MainComponent extends AbstractBase implements OnInit {
 
     ngOnInit() {
         this.listenToBusMonitor();
-        this.bus.enableMessageProxy({
+        this.control = this.bus.enableMessageProxy({
             protectedChannels: [GeneralChatChannel, ServbotService.queryChannel],
             proxyType: ProxyType.Parent,
             parentOrigin: 'http://localhost:4300',
-            acceptedOrigins: ['http://localhost:4300'],
+            acceptedOrigins: ['http://localhost:4400', 'http://localhost:4300'],
             targetAllFrames: true,
             targetSpecificFrames: null,
         });
 
         this.notifications = [];
+        this.listenChat();
+    }
+
+    listenChat() {
+
+        this.generalChat = this.bus.listenStream(GeneralChatChannel);
+        this.generalChat.handle(
+            (message: ChatMessage) => {
+                // do nothing for now, just keep this channel open so children can talk.
+            }
+        );
     }
 
 

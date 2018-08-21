@@ -16,6 +16,13 @@
     border: none;
 }
 
+#frame-d {
+    width: 100%;
+    height: 300px;
+    border: none;
+}
+
+
 a.logo:visited {
     color: orange;
 }

@@ -25,7 +25,6 @@ export interface IFrameProxyControl {
     getParentOrigin(): string;
     setParentOrigin(origin: string): void;
     getKnownBusInstances(): Map<string, ProxyState>;
-
 }
 
 export type ProxyControl = IFrameProxyControl;

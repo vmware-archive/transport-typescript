@@ -2,11 +2,10 @@ import { AfterViewChecked, Component, ElementRef, EventEmitter, Input, OnInit, O
 import { EventBus, MessageHandler } from '@vmw/bifrost';
 import { AbstractBase } from '@vmw/bifrost/core';
 import { ChatMessage, GeneralChatChannel } from '../chat-message';
-import { ServbotService } from '../../services/servbot/servbot.service';
-import { ChatCommand, ServbotResponse } from '../../services/servbot/servbot.model';
 import { GeneralUtil } from '@vmw/bifrost/util/util';
 import { BaseTask } from '../../vmc-models/api/vmc-api';
 import { GeneralError } from '@vmw/bifrost/core/model/error.model';
+import { ChatCommand, ServbotResponse } from '../servbot.model';
 
 @Component({
     selector: 'chat-client',
@@ -140,9 +139,9 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
             if(command) {
                 this.bus.requestOnceWithId(
                     GeneralUtil.genUUID(),
-                    ServbotService.queryChannel,
+                    'servbot-query',
                     {command: command},
-                    ServbotService.queryChannel,
+                    'servbot-query',
                     EventBus.id
                 ).handle(
                     (resp: ServbotResponse) => {

@@ -3,10 +3,10 @@ import { BusStore, EventBus, MessageArgs } from '@vmw/bifrost';
 import { ChatCommand, ServbotRequest, ServbotResponse } from './servbot.model';
 import { ChatMessage, GeneralChatChannel } from '../../app/chat-message';
 import { APIResponse } from '@vmw/bifrost/core/model/response.model';
-import { Joke } from '../../app/chat-client/joke.model';
 import { RestOperation } from '@vmw/bifrost/core/services/rest/rest.operations';
 import { HttpRequest } from '@vmw/bifrost/core/services/rest/rest.model';
 import { GeneralError } from '@vmw/bifrost/core/model/error.model';
+import { Joke } from './joke.model';
 
 export class ServbotService extends AbstractService<ServbotRequest, ServbotResponse> {
 

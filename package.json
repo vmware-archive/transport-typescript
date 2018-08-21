@@ -5,6 +5,7 @@
   "license": "0BSD",
   "repository": "git@gitlab.eng.vmware.com:bifrost/typescript.git",
   "dependencies": {
+    "@angular/cli": "^6.1.4",
     "npm": "^6.2.0",
     "rxjs": "^6.2.2",
     "zone.js": "^0.8.26"

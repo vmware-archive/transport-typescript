@@ -266,7 +266,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         const proxyMessage: BusProxyMessage = new BusProxyMessage(JSON.stringify(message),
             chan, message.type, EventBus.id);
 
-        domWindow.parent.postMessage(proxyMessage, this.parentOriginValue);
+        parent.window.postMessage(proxyMessage, '*');
 
     }
 
@@ -281,7 +281,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                 MessageType.MessageTypeControl, EventBus.id);
         proxyMessage.control = control.command;
 
-        domWindow.parent.postMessage(proxyMessage, this.parentOriginValue);
+        parent.window.postMessage(proxyMessage, '*');
 
     }
 
@@ -299,7 +299,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
             const frameCount = domWindow.frames.length;
             if (frameCount > 0) {
                 for (let i = 0; i < frameCount; i++) {
-                    frames[i].postMessage(proxyMessage, this.parentOriginValue);
+                    frames[i].postMessage(proxyMessage, '*');
                 }
             }
         }
@@ -308,7 +308,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
             for (let frameId of this.targetedFrames) {
                 const frame = domWindow.document.getElementById(frameId).contentWindow;
                 if (frame) {
-                    frame.postMessage(proxyMessage, this.parentOriginValue);
+                    frame.postMessage(proxyMessage, '*');
                 }
             }
         }
@@ -316,12 +316,9 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
 
     private parentEventHandler(event: MessageEvent): void {
-
         if (!this.listening) {
             return; // ignore everything, not interested.
         }
-
-        //console.log(`handling event from ${event.data.from} on bus ${EventBus.id}`);
         // drop the message if it originated from this bus, otherwise we will see duplicates.
         if (event.data && event.data.from) {
             if (event.data.from === EventBus.id) {
@@ -330,17 +327,11 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         }
 
         // check origin
-        let originOk;
-        for (let origin of this.targetOrigin) {
-            originOk = origin === '*'; // if this is in place, we don't care.
-            if (!originOk && origin === event.origin) {
-                originOk = true;
-            }
-        }
+        let originOk = this.targetOrigin.indexOf(event.origin) >= 0;
 
         if (!originOk) {
             this.bus.logger.warn(
-                'Message refused, origin not registered: ' + event.origin, this.getName());
+                `Event bus broadcast refused by bus ${EventBus.id}, origin not registered: ${event.origin}`, this.getName());
             return;
         }
 
@@ -601,4 +592,6 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
     getKnownBusInstances(): Map<string, ProxyState> {
         return new Map(this.knownBusInstances.entries());
     }
+
+
 }
