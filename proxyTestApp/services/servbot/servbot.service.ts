@@ -1,14 +1,21 @@
 import { AbstractService } from '@vmw/bifrost/core';
 import { BusStore, EventBus, MessageArgs } from '@vmw/bifrost';
 import { ChatCommand, ServbotRequest, ServbotResponse } from './servbot.model';
-import { ChatMessage, GeneralChatChannel } from '../../app/chat-message';
+import { ChatMessage, GeneralChatChannel } from '../../src/app/chat-message';
 import { APIResponse } from '@vmw/bifrost/core/model/response.model';
 import { RestOperation } from '@vmw/bifrost/core/services/rest/rest.operations';
 import { HttpRequest } from '@vmw/bifrost/core/services/rest/rest.model';
 import { GeneralError } from '@vmw/bifrost/core/model/error.model';
 import { Joke } from './joke.model';
+import { Mixin } from '@operations/mixin';
+import { ChatOperations } from '@operations/chat.operations';
+import { BaseTask } from '@vmc/vmc-api';
 
-export class ServbotService extends AbstractService<ServbotRequest, ServbotResponse> {
+@Mixin([ChatOperations])
+export class ServbotService extends AbstractService<ServbotRequest, ServbotResponse> implements ChatOperations {
+    createChatMessage: (from: string, avatar: string, body: any) => ChatMessage;
+    createControlMessage: (controlEvent: string, error?: boolean, task?: BaseTask) => ChatMessage;
+    publishChatMessage: (message: ChatMessage) => void;
 
     public static queryChannel = 'servbot-query';
     public static onlineChannel = 'servbot-online';
@@ -53,28 +60,13 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
                 this.restyStateChange(online);
 
                 if (online) {
-                    this.bus.sendResponseMessage(GeneralChatChannel,
-                        {
-                            from: null,
-                            avatar: null,
-                            body: null,
-                            time: Date.now(),
-                            controlEvent: `Servbot: Resty demands we use REST. Booo!`,
-                            error: false,
-                            task: null
-                        }
+                    this.publishChatMessage(
+                        this.createControlMessage(`Servbot: Resty demands we use REST. Booo!`)
                     );
                 } else {
-                    this.bus.sendResponseMessage(GeneralChatChannel,
-                        {
-                            from: null,
-                            avatar: null,
-                            body: null,
-                            time: Date.now(),
-                            controlEvent: `Servbot: Resty is offline, back to the bus for API transport.`,
-                            error: false,
-                            task: null
-                        }
+
+                    this.publishChatMessage(
+                        this.createControlMessage(`Servbot: Resty is offline, back to the bus for API transport.`)
                     );
                 }
             }
@@ -82,7 +74,7 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
     }
 
     private restyStateChange(state: boolean) {
-        this.log.info(`Old man resty has woken up... I need to delegate to the Rest Service.`)
+        this.log.info(`Old man resty has woken up... I need to delegate to the Rest Service.`);
         this.restyState = state;
     }
 
@@ -125,18 +117,11 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
             };
 
             let errorHandler = (response: any) => {
-                //let fo: TangoHttpError;
                 let error: GeneralError;
-                // if(response instanceof TangoHttpError) {
-                //     let te = response as TangoHttpError;
-                //     error = new GeneralError(te.message);
-                //
-                // } else{
-                    error = new GeneralError('Error with REST Request');
-                //}
+                error = new GeneralError(response.message); // TangoError.
                 error.errorObject = response;
-                // convert response into a general error.
 
+                // convert response into a general error.
                 this.postError(ServbotService.queryChannel, error, args);
             };
 
@@ -156,26 +141,19 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
         this.postResponse(ServbotService.queryChannel, {body: response})
     }
 
+    // everything said on 'generat-chat' is broadcast to servbot, it keeps a log.
     private listenToChat() {
         this.bus.listenStream(GeneralChatChannel).handle(
             (chatMessage: ChatMessage) => {
-                const payload = this.buildAPIRequest(ChatCommand[ChatCommand.PostMessage], chatMessage)
+                const payload = this.buildAPIRequest(ChatCommand[ChatCommand.PostMessage], chatMessage);
                 this.bus.sendGalacticMessage(ServbotService.serviceChannel, payload, this.getName())
             }
         );
 
         // tell everyone that servbot is online!
-        this.bus.sendResponseMessage<ChatMessage>(GeneralChatChannel,
-            {
-                from: this.getName(),
-                avatar: '🤖',
-                body: 'Type /help to see a list of commands',
-                time: Date.now(),
-                controlEvent: null,
-                error: false,
-                task: null
-
-            })
+        this.publishChatMessage(
+            this.createChatMessage(
+                this.getName(), '🤖', 'Type /help to see a list of commands')
+        );
     }
-
 }

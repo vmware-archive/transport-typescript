@@ -4,5 +4,5 @@
         <span class="badge" *ngIf="!online"> {{status}}</span>
         <span class="badge badge-success" *ngIf="online">{{status}}</span>
     </div>
-    <button class="btn btn-sm btn-primary" (click)="connectServbot()" *ngIf="!online && !connecting">Connect</button>
+    <button class="btn btn-sm btn-primary" (click)="connectServbotToBus()" *ngIf="!online && !connecting">Connect</button>
 </div>

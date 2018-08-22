@@ -5,5 +5,5 @@
         <span class="badge" *ngIf="!online">offline</span>
         <span class="badge badge-success" *ngIf="online">online</span>
     </div>
-    <button class="btn btn-sm btn-primary" (click)="connectVMCBot()" *ngIf="!online && !connecting">Connect</button>
+    <button class="btn btn-sm btn-primary" (click)="connectVMCBotToBus()" *ngIf="!online && !connecting">Connect</button>
 </div>

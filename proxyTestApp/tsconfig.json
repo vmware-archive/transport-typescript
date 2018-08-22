@@ -4,9 +4,9 @@
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "paths": {
-      "@vmc/app": ["app"],
-      "@vmc/api": ["app/api"],
-      "@vmc/api/*": ["app/api/*"]
+      "@operations/*": ["operations/*"],
+      "@services/*": ["services/*"],
+      "@vmc/*": ["vmc-models/api/*"]
     },
     "sourceMap": true,
     "declaration": false,

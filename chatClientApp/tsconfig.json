@@ -4,7 +4,8 @@
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "paths": {
-      "@servbot/*": ["../proxyTestApp/src/app/servbot/*"],
+      "@operations/*": ["../proxyTestApp/operations/*"],
+      "@vmc/*": ["../proxyTestApp/vmc-models/api/*"],
     },
     "sourceMap": true,
     "declaration": false,

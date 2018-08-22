@@ -1,4 +1,4 @@
-import { BaseTask } from '../vmc-models/api/vmc-api';
+import { BaseTask } from '@vmc/vmc-api';
 
 export interface ChatMessage {
     from: string;

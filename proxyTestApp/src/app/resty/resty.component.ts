@@ -1,11 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { AbstractBase } from '@vmw/bifrost/core';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
 import { RestService } from '@vmw/bifrost/core/services/rest/rest.service';
 import { TangoAngularHttpClientAdapter } from '@vmw/tango';
 import { HttpClient } from '@angular/common/http';
 import { BusStore } from '@vmw/bifrost';
-import { GeneralChatChannel } from '../chat-message';
+import { RestyBase } from './resty.base';
 
 
 @Component({
@@ -13,7 +12,7 @@ import { GeneralChatChannel } from '../chat-message';
     templateUrl: './resty.component.html',
     styleUrls: ['./resty.component.css']
 })
-export class RestyComponent extends AbstractBase implements OnInit {
+export class RestyComponent extends RestyBase implements OnInit {
 
     public status: string = 'asleep';
     public online: boolean = false;
@@ -33,6 +32,8 @@ export class RestyComponent extends AbstractBase implements OnInit {
     public wakeupResty() {
         if (!this.serviceLoaded) {
             const tangoHttpClientAdaptor = new TangoAngularHttpClientAdapter(this.http, '');
+
+            // load rest service dynamically and use Tango Client as transport.
             ServiceLoader.addService(RestService, tangoHttpClientAdaptor);
             this.serviceLoaded = true;
         }
@@ -45,16 +46,13 @@ export class RestyComponent extends AbstractBase implements OnInit {
         // change state in store, everyone will know old man resty is awake.
         this.restyStateStore.put('state', true, 'online');
 
-        this.bus.sendResponseMessage(GeneralChatChannel,
-            {
-                from: 'Old Man Resty',
-                avatar: this.avatarIcon,
-                body: 'Stop using that new fangled bus, use REST instead',
-                time: Date.now(),
-                controlEvent: null,
-                error: false,
-                task: null
-            }
+
+        this.publishChatMessage(
+            this.createChatMessage(
+                'Old Man Resty',
+                this.avatarIcon,
+                'Stop using that new fangled bus, use REST instead'
+            )
         );
     }
 
@@ -65,16 +63,12 @@ export class RestyComponent extends AbstractBase implements OnInit {
         // change state in store, everyone will know old man resty is awake.
         this.restyStateStore.put('state', false, 'online');
 
-        this.bus.sendResponseMessage(GeneralChatChannel,
-            {
-                from: 'Old Man Resty',
-                avatar: this.avatarIcon,
-                body: 'Going back to sleep, no more REST for now.',
-                time: Date.now(),
-                controlEvent: null,
-                error: false,
-                task: null
-            }
+        this.publishChatMessage(
+            this.createChatMessage(
+                'Old Man Resty',
+                this.avatarIcon,
+                'Going back to sleep, no more REST for now.'
+            )
         );
     }
 

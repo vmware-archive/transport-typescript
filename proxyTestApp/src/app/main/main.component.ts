@@ -6,9 +6,9 @@ import { LogLevel } from '@vmw/bifrost/log';
 import { ToastNotification } from '@vmw/ngx-components';
 import { ChatMessage, GeneralChatChannel } from '../chat-message';
 import { AbstractBase } from '@vmw/bifrost/core';
-import { ServbotService } from '../../services/servbot/servbot.service';
+import { ServbotService } from '../../../services/servbot/servbot.service';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
-import { VMCBotService } from '../../services/vmcbot/vmcbot.service';
+import { VMCBotService } from '../../../services/vmcbot/vmcbot.service';
 
 @Component({
     selector: 'app-main',
@@ -33,8 +33,7 @@ export class MainComponent extends AbstractBase implements OnInit {
         this.generalChatMessages = [];
         this.consoleEvents = [];
 
-        ServiceLoader.addService(ServbotService);
-        ServiceLoader.addService(VMCBotService);
+
 
     }
 
@@ -57,7 +56,7 @@ export class MainComponent extends AbstractBase implements OnInit {
 
         this.generalChat = this.bus.listenStream(GeneralChatChannel);
         this.generalChat.handle(
-            (message: ChatMessage) => {
+            () => {
                 // do nothing for now, just keep this channel open so children can talk.
             }
         );

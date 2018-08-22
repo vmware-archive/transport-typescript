@@ -1,18 +1,17 @@
 import { AfterViewChecked, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { EventBus, MessageHandler } from '@vmw/bifrost';
-import { AbstractBase } from '@vmw/bifrost/core';
 import { ChatMessage, GeneralChatChannel } from '../chat-message';
-import { GeneralUtil } from '@vmw/bifrost/util/util';
-import { BaseTask } from '../../vmc-models/api/vmc-api';
+import { BaseTask } from '@vmc/vmc-api';
 import { GeneralError } from '@vmw/bifrost/core/model/error.model';
 import { ChatCommand, ServbotResponse } from '../servbot.model';
+import { ChatClientBase } from './chat-client.base';
 
 @Component({
     selector: 'chat-client',
     templateUrl: './chat-client.component.html',
     styleUrls: ['./chat-client.component.css']
 })
-export class ChatClientComponent extends AbstractBase implements OnInit, AfterViewChecked {
+export class ChatClientComponent extends ChatClientBase implements OnInit, AfterViewChecked {
 
     @Input() name: string;
     @Input() avatar: string;
@@ -34,32 +33,31 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
         this.generalChatMessages = [];
     }
 
+    private addChatMessage(message: ChatMessage): void {
+        this.generalChatMessages.push(message);
+    }
+
     ngOnInit() {
 
         this.generalChat = this.bus.listenStream(GeneralChatChannel);
         this.generalChat.handle(
             (message: ChatMessage) => {
                 if (!this.isOnline) {
-                    this.generalChatMessages.push({
-                        from: this.name,
-                        avatar: this.avatar,
-                        body: this.chat,
-                        time: Date.now(),
-                        controlEvent: 'Your message was not broadcast, you are offline',
-                        error: true,
-                        task: null
-                    });
+                    this.addChatMessage(
+                        this.createControlMessage(
+                            'Your message was not broadcast, you are offline', true)
+                    );
+
                 } else {
                     if (message.task) {
                         this.task = message.task;
                     } else {
-                        this.generalChatMessages.push(message);
+                        this.addChatMessage(message);
                     }
-
                 }
             },
             (error) => {
-                console.log('nope...', error);
+                console.log('something went wrong: ', error);
             }
         );
         this.isOnline = true;
@@ -77,17 +75,10 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
                 this.handleChatCommand();
                 return;
             }
-            const message: ChatMessage = {
-                from: this.name,
-                avatar: this.avatar,
-                body: this.chat,
-                time: Date.now(),
-                controlEvent: null,
-                error: false,
-                task: null
-            };
+
+            const message = this.createChatMessage(this.name, this.avatar, this.chat);
             this.chat = '';
-            this.bus.sendResponseMessage(GeneralChatChannel, message, EventBus.id);
+            this.publishChatMessage(message);
         }
     }
 
@@ -96,15 +87,7 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
         this.online.emit(false);
         this.status = 'offline';
 
-        this.generalChatMessages.push({
-            from: this.name,
-            avatar: this.avatar,
-            body: this.chat,
-            time: Date.now(),
-            controlEvent: 'You are now offline',
-            error: false,
-            task: null
-        });
+        this.addChatMessage(this.createControlMessage('You are now offline', false));
     }
 
     public goOnline(): void {
@@ -112,15 +95,7 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
         this.online.emit(true);
         this.status = 'online';
 
-        this.generalChatMessages.push({
-            from: this.name,
-            avatar: this.avatar,
-            body: this.chat,
-            time: Date.now(),
-            controlEvent: 'You are now online',
-            error: false,
-            task: null
-        });
+        this.addChatMessage(this.createControlMessage('You are now online', false));
     }
 
     scrollToBottom(): void {
@@ -129,56 +104,37 @@ export class ChatClientComponent extends AbstractBase implements OnInit, AfterVi
 
     private handleChatCommand(): void {
 
-        if(this.chat.startsWith('/')) {
+        if (this.chat.startsWith('/')) {
 
-            let commandString = this.chat.replace('/','');
+            let commandString = this.chat.replace('/', '');
             commandString = commandString.charAt(0).toUpperCase() + commandString.slice(1);
 
             let command: ChatCommand = ChatCommand[commandString];
 
-            if(command) {
-                this.bus.requestOnceWithId(
-                    GeneralUtil.genUUID(),
-                    'servbot-query',
-                    {command: command},
-                    'servbot-query',
-                    EventBus.id
-                ).handle(
+            if (command) {
+
+                this.makeServbotRequest(command,
                     (resp: ServbotResponse) => {
-                        this.generalChatMessages.push({
-                            from: null,
-                            avatar: null,
-                            body: resp.body,
-                            time: Date.now(),
-                            controlEvent: `Servbot: ${resp.body}`,
-                            error: false,
-                            task: null
-                        });
+                        this.addChatMessage(this.createControlMessage(`Servbot: ${resp.body}`));
                     },
                     (error: GeneralError) => {
-                        this.generalChatMessages.push({
-                            from: this.name,
-                            avatar: this.avatar,
-                            body: this.chat,
-                            time: Date.now(),
-                            controlEvent: `${error.message}: '${error.errorObject.error}' (${error.errorObject.status}) - ${error.errorObject.path}`,
-                            error: true,
-                            task: null
-                        });
+                        this.addChatMessage(
+                            this.createControlMessage(
+                                `${error.message}: '${error.errorObject.error}' (${error.errorObject.status}) - ${error.errorObject.path}`, true
+                            )
+                        );
                     }
                 );
             } else {
-                this.generalChatMessages.push({
-                    from: this.name,
-                    avatar: this.avatar,
-                    body: this.chat,
-                    time: Date.now(),
-                    controlEvent: `Bad command '${commandString.toLowerCase()}'`,
-                    error: true,
-                    task: null
-                });
+
+                this.addChatMessage(
+                    this.createControlMessage(
+                        `Bad command '${commandString.toLowerCase()}'`, true
+                    )
+                );
             }
             this.chat = '';
         }
     }
+
 }

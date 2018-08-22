@@ -1,15 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { EventBus } from '@vmw/bifrost';
-import { AbstractBase } from '@vmw/bifrost/core';
-import { VMCBotService } from '../../services/vmcbot/vmcbot.service';
-import { VMCCommand } from '../../services/vmcbot/vmcbot.model';
+import { VMCBotBase } from './vmcbot.base';
 
 @Component({
     selector: 'vmcbot',
     templateUrl: './vmcbot.component.html',
     styleUrls: ['./vmcbot.component.css']
 })
-export class VMCBotComponent extends AbstractBase implements OnInit {
+export class VMCBotComponent extends VMCBotBase implements OnInit {
 
     public status: string = 'offline';
     public online: boolean = false;
@@ -20,22 +17,16 @@ export class VMCBotComponent extends AbstractBase implements OnInit {
     }
 
     ngOnInit() {
-        this.listenForVMCBotOnlineState();
+        this.listenForVMCBotOnlineState(() => {
+            this.status = 'online';
+            this.online = true;
+        });
     }
 
-    public connectVMCBot() {
+    public connectVMCBotToBus() {
         this.status = 'connecting';
         this.connecting = true;
-        this.bus.sendRequestMessage(VMCBotService.serviceChannel, {command:VMCCommand.Connect}, EventBus.id);
-    }
-
-    private listenForVMCBotOnlineState() {
-        this.bus.listenOnce(VMCBotService.onlineChannel).handle(
-            () => {
-                this.status = 'online';
-                this.online = true;
-            }
-        );
+        this.connectVMCBot();
     }
 
 }
