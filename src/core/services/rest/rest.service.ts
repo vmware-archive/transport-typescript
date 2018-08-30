@@ -1,5 +1,5 @@
 import { EventBusEnabled, MessageArgs } from '../../../bus.api';
-import { TangoTransportAdapterInterface } from '@vmw/tango/transport/TangoTransportAdapterInterface.d';
+//import { TangoTransportAdapterInterface } from '@vmw/tango/transport/TangoTransportAdapterInterface.d';
 import { HttpRequest, RestError, RestErrorType, RestObject } from './rest.model';
 import { LogLevel } from '../../../log';
 import { BusStore } from '../../../store.api';
@@ -19,7 +19,7 @@ export class RestService extends AbstractCore implements EventBusEnabled {
 
     public static channel = 'bifrost-services::REST';
 
-    private httpClient: TangoTransportAdapterInterface;
+    private httpClient: any;
     private headers: any;
     private headerStore: BusStore<any>;
     private name: string = 'RESTService';
@@ -35,7 +35,7 @@ export class RestService extends AbstractCore implements EventBusEnabled {
      *
      * @param {TangoTransportAdapterInterface} httpClient
      */
-    constructor(httpClient: TangoTransportAdapterInterface) {
+    constructor(httpClient: any) {
         super();
         this.httpClient = httpClient;
         this.headerStore = this.storeManager.createStore('bifrost::RestService');

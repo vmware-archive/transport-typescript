@@ -11,7 +11,9 @@ module.exports = function (config) {
         reporters: ["spec", "karma-typescript"],
         exclude: [
             'node_modules/**/*spec.js',
-            'proxyTestApp/**/*.ts'
+            'node_modules/**/*.d.ts',
+            'proxyTestApp/**/*.ts',
+            'chatClientApp/**/*.ts'
             //'src/ng/bifrost.module.ts'
         ],
         specReporter: {
@@ -31,7 +33,10 @@ module.exports = function (config) {
                 "text-summary": "",
                 "html": "coverage/"
             },
-            exclude: ['proxyTestApp/**/*.ts']
+            exclude: ['proxyTestApp/**/*.ts','chatClientApp/**/*.ts', './node_modules/**/*.d.ts'],
+            bundlerOptions: {
+                exclude: ["./node_modules/@vmw/tango/transport/TangoTransportAdapterInterface.d.ts"]
+            },
         },
 
         customLaunchers: {
