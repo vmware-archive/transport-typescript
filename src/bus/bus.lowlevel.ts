@@ -306,8 +306,8 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         return true;
     }
 
-    tickEventLoop(func: Function, delay: number = 0): void {
-        setTimeout(func, delay);
+    tickEventLoop(func: Function, delay: number = 0): number {
+        return setTimeout(func, delay);
     }
 
     request<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, id?: UUID): MessageHandler<R, E> {

@@ -25,6 +25,7 @@ export interface IFrameProxyControl {
     getParentOrigin(): string;
     setParentOrigin(origin: string): void;
     getKnownBusInstances(): Map<string, ProxyState>;
+    setDevMode(): void; // switch off super strict validation for tests.
 }
 
 export type ProxyControl = IFrameProxyControl;
@@ -108,6 +109,13 @@ export class MessageProxy {
         }
         return this.proxyControl;
 
+    }
+
+    public setDevMode(): void {
+
+        if (this.proxyControl) {
+            this.proxyControl.setDevMode();
+        }
     }
 
 }

@@ -14,7 +14,6 @@ import { ChannelName, EventBus, EventBusEnabled, MessageType } from '../bus.api'
 import { Observable } from 'rxjs';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
 import { Message } from '../bus/model/message.model';
-//import { Subscription } from 'rxjs';
 
 const domWindow: any = window;
 
@@ -22,9 +21,14 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
     private readonly proxyControlChannel: string = '__proxycontrol__';
     public readonly proxyId: string = EventBus.id;
+    private devMode: boolean = false;
 
     getName(): string {
         return this.proxyId;
+    }
+
+    setDevMode(): void {
+        this.devMode = true;
     }
 
     /**
@@ -201,7 +205,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
     private listenForInboundMessageEvents(): void {
         if (!this.registered) {
-            domWindow.addEventListener('message', this.postMessageEventHandlerBinding, {capture: true});
+            domWindow.addEventListener('message', this.postMessageEventHandlerBinding, true);
         }
     }
 
@@ -279,7 +283,6 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
             new BusProxyMessage(JSON.stringify(control), this.proxyControlChannel,
                 MessageType.MessageTypeControl, EventBus.id);
         proxyMessage.control = control.command;
-
         parent.window.postMessage(proxyMessage, '*');
 
     }
@@ -318,8 +321,10 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         if (!this.listening) {
             return; // ignore everything, not interested.
         }
+
         // drop the message if it originated from this bus, otherwise we will see duplicates.
-        if (event.data && event.data.from) {
+        // dev mode skips this check.
+        if (!this.devMode && event.data && event.data.from) {
             if (event.data.from === EventBus.id) {
                 return;
             }
@@ -364,8 +369,19 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                         'Proxy Message valid, but channel is not authorized: [' + data.channel + ']', this.getName());
                     return;
                 } else {
-                    const payload: ProxyControlPayload = JSON.parse(data.payload) as ProxyControlPayload;
-                    data.payload = payload; // copy deserialized object back in.
+
+                    // regular messages are JSON endoded, control messages are not.
+                    let payload: ProxyControlPayload
+                    try {
+
+                        // try to parse the payload, an errors and we know it's a control message not a regular message.
+                        payload = JSON.parse(data.payload) as ProxyControlPayload;
+                        data.payload = payload; // copy deserialized object back in.
+
+                    } catch (e) {
+                        // control message, no need to parse.
+                        payload = data.payload as ProxyControlPayload;
+                    }
 
                     // everything checks out!
                     // determine if this event is a control event or a regular message to proxy
@@ -375,12 +391,12 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                         let mo: MonitorObject;
 
                         switch (data.control) {
+
                             // register bus.
                             case ProxyControlType.RegisterEventBus:
 
                                 // only proceed if bus is a new reg.
                                 if (!this.knownBusInstances.has(payload.body)) {
-
                                     this.knownBusInstances.set(payload.body, {type: payload.proxyType, active: true});
                                     this.bus.logger.info(
                                         `Child Event Bus Registered: ${payload.body}`, this.getName());
@@ -414,6 +430,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                                     state.active = false;
                                 }
                                 this.knownBusInstances.set(payload.body, state);
+                                this.listening = false; // drop everything, no-longer interested.
 
                                 // inform monitor
                                 mo = new MonitorObject().build(MonitorType.MonitorChildProxyNotListening,
@@ -502,7 +519,6 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
     stopListening(): void {
         if (this.listening) {
-            this.listening = false;
             this.monitorSubscription.unsubscribe();
             const control: ProxyControlPayload = {
                 proxyType: this.proxyType,
@@ -510,6 +526,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                 body: EventBus.id
             };
             this.sendControlToParent(control);
+
         }
     }
 
@@ -568,7 +585,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         // remove proxy control channel from list.
         let chans = this.authorizedChannels;
         const index = this.authorizedChannels.indexOf(this.proxyControlChannel);
-        if(index >= 0) {
+        if (index >= 0) {
             chans.splice(0, 1);
         }
         return chans;
@@ -595,7 +612,8 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
     }
 
     getKnownBusInstances(): Map<string, ProxyState> {
-        return new Map(this.knownBusInstances.entries());
+        //return new Map(this.knownBusInstances.entries());
+        return this.knownBusInstances;
     }
 
 

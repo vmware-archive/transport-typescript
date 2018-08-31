@@ -131,7 +131,15 @@ export abstract class EventBus {
 
     public static version: string = '0.9.0';
 
-    public static id: string = `eventbus-${GeneralUtil.genUUIDShort()}-${EventBus.version}`;
+    public static id: string = EventBus.rebuildId();
+
+    /**
+     * If you need to reset the ID of this bus, call this, but it may have undesirable effects.
+     * This should only be called when re-booting the bus.
+     */
+    public static rebuildId(): string {
+         return `eventbus-${GeneralUtil.genUUIDShort()}-${EventBus.version}`;
+    }
 
     /**
      * Reference to Low Level API.
@@ -782,7 +790,7 @@ export interface EventBusLowApi {
      * @param {Function} func function you want to execute asynchronously.
      * @param {number} delay milliseconds you want to delay exectuion by.
      */
-    tickEventLoop(func: Function, delay?: number): void;
+    tickEventLoop(func: Function, delay?: number): number;
 
 }
 

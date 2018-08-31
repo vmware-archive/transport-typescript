@@ -37,13 +37,13 @@ import { MessageProxy, MessageProxyConfig, ProxyControl } from '../proxy/message
 
 export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
-    private static _instance: EventBus;
+    private static instance: EventBus;
 
     /**
      * Destroy the bus completely.
      */
     public static destroy(): void {
-        this._instance = null;
+        this.instance = null;
     }
 
     public static getInstance(): EventBus {
@@ -55,7 +55,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
      * @returns {EventBus} the bus.
      */
     public static boot(): EventBus {
-        return this._instance || (this._instance = new this());
+        return this.instance || (this.instance = new this());
     }
 
     /**
@@ -65,7 +65,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
      * @returns {EventBus} the bus
      */
     public static bootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
-        return this._instance || (this._instance = new this(logLevel, disableBootMessage));
+        return this.instance || (this.instance = new this(logLevel, disableBootMessage));
     }
 
     /**
@@ -75,7 +75,10 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
      * @returns {EventBus} the newly rebooted bus
      */
     public static rebootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
-        return (this._instance = new this(logLevel, disableBootMessage));
+        //EventBus.id = EventBus.rebuildId(); // reset the ID attached to the abstract class.
+        //this.instance = null;
+        //delete this.instance;
+        return (this.instance = new this(logLevel, disableBootMessage));
     }
 
     /**
@@ -83,7 +86,10 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
      * @returns {EventBus} the newly rebooted event bus.
      */
     public static reboot(): EventBus {
-        return (this._instance = new this());
+        //EventBus.id = EventBus.rebuildId(); // reset the ID attached to the abstract class.
+        //this.instance = null;
+        //delete this.instance;
+        return (this.instance = new this());
     }
 
     private internalChannelMap: Map<string, Channel>;

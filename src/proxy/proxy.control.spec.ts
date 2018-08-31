@@ -6,14 +6,16 @@ import { EventBus, MessageType } from '../bus.api';
 import { Logger, LogLevel } from '../log';
 import { BusTestUtil } from '../util/test.util';
 import { BusProxyMessage, IFrameProxyControl, ProxyControlPayload, ProxyType } from './message.proxy';
+import { Message } from '../bus';
 
-fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
+describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     let bus: EventBus;
     let log: Logger;
 
     beforeEach(
         () => {
+            bus = null;
             bus = BusTestUtil.bootBusWithOptions(LogLevel.Debug, true);
             bus.api.loggerInstance.setStylingVisble(false);
             //bus.api.enableMonitorDump(true);
@@ -22,7 +24,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
         }
     );
 
-    fit('Basic start up works and property fetching accurate as expected.', () => {
+    it('Basic start up works and property fetching accurate as expected.', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: ['auth-chan1'],
             proxyType: ProxyType.Parent,
@@ -40,14 +42,14 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     });
 
-    fit('Check proxy can handle no config being supplied.', () => {
+    it('Check proxy can handle no config being supplied.', () => {
         spyOn(log, 'error').and.callThrough();
         bus.enableMessageProxy(null);
         expect(log.error).toHaveBeenCalledWith('Message Proxy cannot start. No configuration has been set.', EventBus.id);
 
     });
 
-    fit('Check config works with and without targeted frames.', () => {
+    it('Check config works with and without targeted frames.', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: null,
             parentOrigin: null,
@@ -61,7 +63,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     });
 
-    fit('Check config works with and without protected channels.', () => {
+    it('Check config works with and without protected channels.', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: ['chan1', 'chan2'],
             proxyType: null,
@@ -74,7 +76,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     });
 
-    fit('Check configurations can be changed dynamically via the controller.', () => {
+    it('Check configurations can be changed dynamically via the controller.', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: ['auth-chan1'],
             proxyType: ProxyType.Parent,
@@ -89,13 +91,15 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
         expect(control.getParentOrigin()).toEqual('http://puppy.time');
 
-        // check online
-        control.stopListening();
-        expect(control.isListening()).toBeFalsy();
 
-        // re-check online
-        control.stopListening();
-        expect(control.isListening()).toBeFalsy();
+        // re-work these tests, online state is now only set after parent gets message.
+        // // check online
+        // control.stopListening();
+        // expect(control.isListening()).toBeFalsy();
+        //
+        // // re-check online
+        // control.stopListening();
+        // expect(control.isListening()).toBeFalsy();
 
         // check allowed origins
         control.addAllowedTargetOrigin('http://space.force');
@@ -276,6 +280,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
         beforeEach(
             () => {
+                bus = null;
                 bus = BusTestUtil.bootBusWithOptions(LogLevel.Debug, true);
                 bus.api.logger().silent(true);
                 log = bus.api.logger();
@@ -303,8 +308,8 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.api.tickEventLoop(
                 () => {
                     expect(log.warn)
-                        .toHaveBeenCalledWith('Message refused, origin not registered: http://localhost:9876'
-                            , 'ProxyControl');
+                        .toHaveBeenCalledWith(`Event bus broadcast refused by bus ${EventBus.id}, origin not registered: http://localhost:9876`
+                            , EventBus.id);
                     done();
                 }, 5
             );
@@ -331,7 +336,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.api.tickEventLoop(
                 () => {
                     expect(log.debug)
-                        .toHaveBeenCalledWith('Message Ignored, not intended for the bus.', 'ProxyControl');
+                        .toHaveBeenCalledWith('Message Ignored, not intended for the bus.', EventBus.id);
                     done();
                 }, 5
             );
@@ -358,7 +363,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.api.tickEventLoop(
                 () => {
                     expect(log.debug)
-                        .toHaveBeenCalledWith('Message Ignored, not intended for the bus.', 'ProxyControl');
+                        .toHaveBeenCalledWith('Message Ignored, not intended for the bus.', EventBus.id);
                     done();
                 }, 5
             );
@@ -385,7 +390,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.api.tickEventLoop(
                 () => {
                     expect(bus.logger.debug)
-                        .toHaveBeenCalledWith('Message Ignored, it contains no payload', 'ProxyControl');
+                        .toHaveBeenCalledWith('Message Ignored, it contains no payload', EventBus.id);
                     done();
                 }, 5
             );
@@ -416,7 +421,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.api.tickEventLoop(
                 () => {
                     expect(bus.logger.warn)
-                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. No channel supplied', 'ProxyControl');
+                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. No channel supplied', EventBus.id);
                     done();
                 }, 5
             );
@@ -446,7 +451,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.api.tickEventLoop(
                 () => {
                     expect(bus.logger.warn)
-                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. No message type supplied', 'ProxyControl');
+                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. No message type supplied', EventBus.id);
                     done();
                 }, 5
             );
@@ -476,7 +481,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.api.tickEventLoop(
                 () => {
                     expect(bus.logger.warn)
-                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. Payload is empty', 'ProxyControl');
+                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. Payload is empty', EventBus.id);
                     done();
                 }, 5
             );
@@ -506,7 +511,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.api.tickEventLoop(
                 () => {
                     expect(bus.logger.warn)
-                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. Payload is empty', 'ProxyControl');
+                        .toHaveBeenCalledWith('Proxy Message invalid - ignored. Payload is empty', EventBus.id);
                     done();
                 }, 5
             );
@@ -536,7 +541,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.api.tickEventLoop(
                 () => {
                     expect(bus.logger.warn)
-                        .toHaveBeenCalledWith('Proxy Message valid, but channel is not authorized: [somechan]', 'ProxyControl');
+                        .toHaveBeenCalledWith('Proxy Message valid, but channel is not authorized: [somechan]', EventBus.id);
                     done();
                 }, 5
             );
@@ -592,7 +597,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 () => {
 
                     const validProxyMessage =
-                        new BusProxyMessage('is it dinner time?', 'ember-radio', MessageType.MessageTypeRequest);
+                        new BusProxyMessage(JSON.stringify(new Message().request('is it dinner time?')), 'ember-radio', MessageType.MessageTypeRequest);
                     window.postMessage(validProxyMessage, '*'); // send message, origin is local karma
                 }
             );
@@ -622,7 +627,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 () => {
 
                     const validProxyMessage =
-                        new BusProxyMessage('can I get some more milk?', 'melody-radio', MessageType.MessageTypeResponse);
+                        new BusProxyMessage(JSON.stringify(new Message().request('can I get some more milk?')), 'melody-radio', MessageType.MessageTypeResponse);
                     window.postMessage(validProxyMessage, '*'); // send message, origin is local karma
                 }
             );
@@ -654,7 +659,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 () => {
 
                     const validProxyMessage =
-                        new BusProxyMessage('I need to be changed', 'melody-cry', MessageType.MessageTypeError);
+                        new BusProxyMessage(JSON.stringify(new Message().request('I need to be changed')), 'melody-cry', MessageType.MessageTypeError);
                     window.postMessage(validProxyMessage, '*'); // send message, origin is local karma
                 }
             );
@@ -674,12 +679,12 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             let completeCount = 0;
             const frameHandler = (evt: MessageEvent) => {
                 const proxyMessage: BusProxyMessage = evt.data;
-                const message: string = proxyMessage.payload;
-                expect(message).toEqual('milk-time');
+                const message: Message = JSON.parse(proxyMessage.payload);
+                expect(message.payload).toEqual('milk-time');
                 completeCount++;
             }
 
-            // check the frame got the
+            // add event listeners to frames.
             frames[0].addEventListener('message', frameHandler, {capture: true});
             frames[1].addEventListener('message', frameHandler, {capture: true});
 
@@ -690,7 +695,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     },
                 );
 
-            bus.enableMessageProxy({
+            const control = bus.enableMessageProxy({
                 protectedChannels: ['melody-happy'],
                 proxyType: ProxyType.Parent,
                 acceptedOrigins: ['http://localhost:9876'], // local karma
@@ -698,6 +703,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 parentOrigin: 'http://localhost:9876',
                 targetSpecificFrames: null
             });
+            control.setDevMode();
 
             bus.sendRequestMessage('melody-happy', 'milk-time');
 
@@ -731,10 +737,10 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             let completeCount = 0;
             const frameHandler = (evt: MessageEvent) => {
                 const proxyMessage: BusProxyMessage = evt.data;
-                const message: string = proxyMessage.payload;
+                const message: Message = JSON.parse(proxyMessage.payload);
                 expect(proxyMessage.channel).toEqual('melody-sleepy');
                 expect(proxyMessage.type).toEqual(MessageType.MessageTypeRequest);
-                expect(message).toEqual('will we sleep?');
+                expect(message.payload).toEqual('will we sleep?');
                 completeCount++;
             }
 
@@ -773,14 +779,19 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
             let complete: boolean = false;
             const msgHandler = (evt: MessageEvent) => {
+
+
                 const proxyMessage: BusProxyMessage = evt.data;
-                const message: string = proxyMessage.payload;
-                expect(message).toEqual('giggles');
-                complete = true;
-            }
+                const message: Message = JSON.parse(proxyMessage.payload);
+
+                if(message.payload) { // ignore control messages, only proxied messages.
+                    expect(message.payload).toEqual('giggles');
+                    complete = true;
+                }
+            };
 
             // karma runs in an iframe. so we have to hook into our parent frame.
-            window.parent.addEventListener('message', msgHandler, {capture: true});
+            window.parent.addEventListener('message', msgHandler, true);
 
             bus.listenRequestStream('melody-tickles')
                 .handle(
@@ -803,7 +814,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             bus.api.tickEventLoop(
                 () => {
                     expect(complete).toBeTruthy();
-                    window.parent.removeEventListener('message', msgHandler);
+                    window.parent.removeEventListener('message', msgHandler, true);
                     done();
                 }, 1000
             )
@@ -816,6 +827,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
         beforeEach(
             () => {
+                bus = null;
                 bus = BusTestUtil.bootBusWithOptions(LogLevel.Debug, true);
                 bus.api.logger().silent(true);
                 log = bus.api.logger();
@@ -829,11 +841,10 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 const proxyMessage: BusProxyMessage = evt.data;
                 window.postMessage(proxyMessage, '*');
 
-            }
+            };
 
             // karma runs in an iframe. so we have to hook into our parent frame.
-            window.parent.addEventListener('message', msgHandler, {capture: true});
-
+            parent.window.addEventListener('message', msgHandler, true);
 
             const control = bus.enableMessageProxy({
                 protectedChannels: ['melody-tickles'],
@@ -843,15 +854,15 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 parentOrigin: 'http://localhost:9876',
                 targetSpecificFrames: null
             });
+            control.setDevMode(); // disable bus ID checks.
 
             bus.api.tickEventLoop(
                 () => {
                     expect(control.getKnownBusInstances().size).toEqual(1);
                     expect(control.getKnownBusInstances().get(EventBus.id).active).toBeTruthy();
                     expect(control.getKnownBusInstances().get(EventBus.id).type).toEqual(ProxyType.Child);
-
-                    window.parent.removeEventListener('message', msgHandler);
                     control.stopListening();
+                    parent.window.removeEventListener('message', msgHandler, true);
 
                     done();
                 }, 10
@@ -859,7 +870,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
         });
 
-        it('Check child bus can chose to enable its state with parent', (done) => {
+        it('Check child bus can choose to enable its state with parent', (done) => {
 
             let complete: boolean = false;
             const msgHandler = (evt: MessageEvent) => {
@@ -867,10 +878,11 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
                 // post a message to the window, because of Karma's iframe set up we need to manually perform this
                 window.postMessage(proxyMessage, '*');
+
             };
 
             // karma runs in an iframe. so we have to hook into our parent frame.
-            window.parent.addEventListener('message', msgHandler, {capture: true});
+            window.parent.addEventListener('message', msgHandler, true);
 
             const control = bus.enableMessageProxy({
                 protectedChannels: ['melody-tickles'],
@@ -880,6 +892,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 parentOrigin: 'http://localhost:9876',
                 targetSpecificFrames: null
             });
+            control.setDevMode(); // disable bus ID checks.
 
             bus.api.tickEventLoop(
                 () => {
@@ -887,9 +900,8 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     expect(control.getKnownBusInstances().size).toEqual(1);
                     expect(control.getKnownBusInstances().get(EventBus.id).active).toBeTruthy();
                     expect(control.getKnownBusInstances().get(EventBus.id).type).toEqual(ProxyType.Child);
-
-                    window.parent.removeEventListener('message', msgHandler);
                     control.stopListening();
+                    parent.window.removeEventListener('message', msgHandler, true);
                     done();
 
                 },10
@@ -908,7 +920,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
             };
 
             // karma runs in an iframe. so we have to hook into our parent frame.
-            window.parent.addEventListener('message', msgHandler, {capture: true});
+            window.parent.addEventListener('message', msgHandler, true);
 
             const control = bus.enableMessageProxy({
                 protectedChannels: ['melody-tickles'],
@@ -918,6 +930,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 parentOrigin: 'http://localhost:9876',
                 targetSpecificFrames: null
             });
+            control.setDevMode(); // disable bus ID checks.
 
             bus.api.tickEventLoop(
                 () => {
@@ -933,9 +946,7 @@ fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     expect(control.getKnownBusInstances().size).toEqual(1);
                     expect(control.getKnownBusInstances().get(EventBus.id).active).toBeFalsy();
                     expect(control.getKnownBusInstances().get(EventBus.id).type).toEqual(ProxyType.Child);
-
-                    window.parent.removeEventListener('message', msgHandler);
-                    control.stopListening();
+                    parent.window.removeEventListener('message', msgHandler, true);
                     done();
 
                 },15
