@@ -1,9 +1,61 @@
 image: geekykaran/headless-chrome-node-docker:latest
 
-before_script:
-  - npm install
+stages:
+- prepare
+- test
+- build
+- publish
 
-test:
+prepare:
+  stage: prepare
   script:
-    - npm run test
-    - npm run prepare
+  - echo "NPM install"
+  - npm install --registry https://build-artifactory.eng.vmware.com/artifactory/api/npm/npm
+  when: always
+  only:
+  - pushes
+  - web
+
+test:unit:
+  stage: test
+  script:
+  - echo "Run unit tests"
+  - npm run test
+  artifacts:
+    paths:
+    - coverage
+    expire_in: 1 week
+  when: always
+  only:
+  - pushes
+  - web
+
+build:bifrost:
+  stage: build
+  script:
+  - echo "Building @vmw/bifrost"
+  - npm run prepare
+  artifacts:
+    paths:
+    - build/bifrost
+    expire_in: 1 week
+  when: on_success
+  only:
+  - pushes
+  - web
+
+publish:bifrost:
+  stage: publish
+  dependencies:
+  - build:bifrost
+  script:
+  - echo "Publishing @vmw/bifrost"
+  - npm run publish
+  when: manual
+  only:
+  - master
+
+#test:
+#  script:
+#  - npm run test
+#  - npm run prepare
