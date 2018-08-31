@@ -2,7 +2,7 @@
  * Copyright(c) VMware Inc. 2016-2018
  */
 
-import { BusTransaction, EventBus, TransactionReceipt, TransactionType } from '../bus.api';
+import { BusTransaction, EventBus, MessageArgs, TransactionReceipt, TransactionType } from '../bus.api';
 import { Logger, LogLevel } from '../log';
 import { BusTestUtil } from '../util/test.util';
 import { GeneralUtil } from '../util/util';
@@ -144,7 +144,7 @@ describe('Bus Transactions [transaction.ts]', () => {
 
     });
 
-    xit('Should be able to handle errors mid async transaction', (done) => {
+    it('Should be able to handle errors mid async transaction', (done) => {
         transaction.onError(
             (error: string) => {
                 expect(error).toEqual('error!');
@@ -154,8 +154,8 @@ describe('Bus Transactions [transaction.ts]', () => {
 
         bus.listenRequestOnce(chan)
             .handle(
-                () => {
-                    bus.sendErrorMessage(chan, 'error!');
+                (req, args: MessageArgs) => {
+                    bus.sendErrorMessageWithId(chan, 'error!', args.uuid);
                 }
             );
 
@@ -268,7 +268,7 @@ describe('Bus Transactions [transaction.ts]', () => {
 
     });
 
-    xit('Should be able to handle errors mid sync transaction', (done) => {
+    it('Should be able to handle errors mid sync transaction', (done) => {
         transaction = bus.createTransaction(TransactionType.SYNC);
 
         transaction.onError(
@@ -280,8 +280,8 @@ describe('Bus Transactions [transaction.ts]', () => {
 
         bus.listenRequestOnce(chan)
             .handle(
-                () => {
-                    bus.sendErrorMessage(chan, 'error!');
+                (val, args: MessageArgs) => {
+                    bus.sendErrorMessageWithId(chan, 'error!', args.uuid);
                 }
             );
 
