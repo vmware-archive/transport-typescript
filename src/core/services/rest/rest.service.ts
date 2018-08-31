@@ -1,9 +1,9 @@
 import { EventBusEnabled, MessageArgs } from '../../../bus.api';
-//import { TangoTransportAdapterInterface } from '@vmw/tango/transport/TangoTransportAdapterInterface.d';
 import { HttpRequest, RestError, RestErrorType, RestObject } from './rest.model';
 import { LogLevel } from '../../../log';
 import { BusStore } from '../../../store.api';
 import { AbstractCore } from '../../abstractions/abstract.core';
+
 
 
 
@@ -19,6 +19,7 @@ export class RestService extends AbstractCore implements EventBusEnabled {
 
     public static channel = 'bifrost-services::REST';
 
+    //private httpClient: TangoTransportAdapterInterface;
     private httpClient: any;
     private headers: any;
     private headerStore: BusStore<any>;

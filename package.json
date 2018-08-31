@@ -11,6 +11,7 @@
     "zone.js": "^0.8.26"
   },
   "devDependencies": {
+    "@angular/http": "^6.1.6",
     "@types/jasmine": "^2.8.8",
     "@types/node": "^10.1.4",
     "@types/selenium-webdriver": "^2.53.43",

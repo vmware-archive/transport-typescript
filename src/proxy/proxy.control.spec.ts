@@ -7,7 +7,7 @@ import { Logger, LogLevel } from '../log';
 import { BusTestUtil } from '../util/test.util';
 import { BusProxyMessage, IFrameProxyControl, ProxyControlPayload, ProxyType } from './message.proxy';
 
-describe('Proxy Controls [proxy/proxy.control.ts]', () => {
+fdescribe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     let bus: EventBus;
     let log: Logger;
@@ -22,7 +22,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
         }
     );
 
-    it('Basic start up works and property fetching accurate as expected.', () => {
+    fit('Basic start up works and property fetching accurate as expected.', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: ['auth-chan1'],
             proxyType: ProxyType.Parent,
@@ -40,14 +40,14 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     });
 
-    it('Check proxy can handle no config being supplied.', () => {
+    fit('Check proxy can handle no config being supplied.', () => {
         spyOn(log, 'error').and.callThrough();
         bus.enableMessageProxy(null);
-        expect(log.error).toHaveBeenCalledWith('Message Proxy cannot start. No configuration has been set.', 'ProxyControl');
+        expect(log.error).toHaveBeenCalledWith('Message Proxy cannot start. No configuration has been set.', EventBus.id);
 
     });
 
-    it('Check config works with and without targeted frames.', () => {
+    fit('Check config works with and without targeted frames.', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: null,
             parentOrigin: null,
@@ -61,7 +61,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     });
 
-    it('Check config works with and without protected channels.', () => {
+    fit('Check config works with and without protected channels.', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: ['chan1', 'chan2'],
             proxyType: null,
@@ -70,12 +70,11 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
             targetAllFrames: false,
             targetSpecificFrames: null
         });
-
         expect(control.getAuthorizedChannels().length).toEqual(2);
 
     });
 
-    it('Check configurations can be changed dynamically via the controller.', () => {
+    fit('Check configurations can be changed dynamically via the controller.', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
             protectedChannels: ['auth-chan1'],
             proxyType: ProxyType.Parent,
@@ -813,7 +812,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
     });
 
-    fdescribe('Proxy Control Behaviors', () => {
+    describe('Proxy Control Behaviors', () => {
 
         beforeEach(
             () => {

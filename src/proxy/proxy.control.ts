@@ -83,6 +83,9 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
     constructor(private bus: EventBus, private config: MessageProxyConfig) {
         // do something
 
+        this.authorizedChannels = []; // don't want this empty either.
+        this.authorizedChannels.push(this.proxyControlChannel);
+
         this.targetOrigin = ['*']; // default, which is wide open, so this should be set!
         if (config) {
             if (config.acceptedOrigins) {
@@ -101,9 +104,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
             }
 
             if (config.protectedChannels && config.protectedChannels.length > 0) {
-                this.authorizedChannels = config.protectedChannels;
-            } else {
-                this.authorizedChannels = []; // don't want this empty either.
+                this.authorizedChannels = this.authorizedChannels.concat(config.protectedChannels);
             }
 
             if (config.parentOrigin) {
@@ -121,8 +122,6 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                 'Message Proxy cannot start. No configuration has been set.', this.getName());
             return;
         }
-
-        this.authorizedChannels.push(this.proxyControlChannel);
 
         // connect to monitor;
         this.monitorChannel = this.bus.api.getChannel(MonitorChannel.stream);
@@ -566,7 +565,13 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
     }
 
     getAuthorizedChannels(): ChannelName[] {
-        return this.authorizedChannels;
+        // remove proxy control channel from list.
+        let chans = this.authorizedChannels;
+        const index = this.authorizedChannels.indexOf(this.proxyControlChannel);
+        if(index >= 0) {
+            chans.splice(0, 1);
+        }
+        return chans;
     }
 
     getAllowedOrigins(): string[] {
