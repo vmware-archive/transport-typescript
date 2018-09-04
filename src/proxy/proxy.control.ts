@@ -19,17 +19,11 @@ const domWindow: any = window;
 
 export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
+
     private readonly proxyControlChannel: string = '__proxycontrol__';
     public readonly proxyId: string = EventBus.id;
     private devMode: boolean = false;
 
-    getName(): string {
-        return this.proxyId;
-    }
-
-    setDevMode(): void {
-        this.devMode = true;
-    }
 
     /**
      * Handle inbound postMessage events.
@@ -520,12 +514,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
     stopListening(): void {
         if (this.listening) {
             this.monitorSubscription.unsubscribe();
-            const control: ProxyControlPayload = {
-                proxyType: this.proxyType,
-                command: ProxyControlType.BusStopListening,
-                body: EventBus.id
-            };
-            this.sendControlToParent(control);
+            this.informParentChildBusStoppedListening();
 
         }
     }
@@ -612,8 +601,20 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
     }
 
     getKnownBusInstances(): Map<string, ProxyState> {
-        //return new Map(this.knownBusInstances.entries());
-        return this.knownBusInstances;
+        return new Map(this.knownBusInstances.entries());
+        //return this.knownBusInstances;
+    }
+
+    inDevMode(): boolean {
+        return this.devMode;
+    }
+
+    getName(): string {
+        return this.proxyId;
+    }
+
+    setDevMode(): void {
+        this.devMode = true;
     }
 
 

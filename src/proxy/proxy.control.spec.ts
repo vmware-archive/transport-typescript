@@ -40,6 +40,10 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
         expect(control.getTargetedFrames().length).toEqual(0)
         expect(control.isTargetingAllFrames).toBeTruthy();
 
+        expect(control.inDevMode()).toBeFalsy();
+        control.setDevMode();
+        expect(control.inDevMode()).toBeTruthy();
+
     });
 
     it('Check proxy can handle no config being supplied.', () => {
@@ -157,6 +161,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
         expect(control.getAuthorizedChannels()[0]).toEqual('new-chan');
 
     });
+
 
     it('Check dynamic configuration edge cases: allowed origins', () => {
         const control: IFrameProxyControl = bus.enableMessageProxy({
@@ -313,6 +318,47 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     done();
                 }, 5
             );
+        });
+
+        it('Check child bus can be activated and deactivated correctly', (done) => {
+
+            let control: IFrameProxyControl;
+            const msgHandler = (evt: MessageEvent) => {
+
+                const proxyMessage: BusProxyMessage = evt.data;
+                window.postMessage(proxyMessage, '*');
+
+            };
+
+            // karma runs in an iframe. so we have to hook into our parent frame.
+            window.parent.addEventListener('message', msgHandler, true);
+
+            control = bus.enableMessageProxy({
+                protectedChannels: ['my-melody'],
+                proxyType: ProxyType.Child,
+                acceptedOrigins: ['http://localhost:9876'], // local karma
+                targetAllFrames: true,
+                parentOrigin: 'http://localhost:9876',
+                targetSpecificFrames: null
+            });
+            control.setDevMode();
+            control.stopListening();
+
+            bus.api.tickEventLoop(
+                () => {
+                    expect(control.isListening()).toBeFalsy();
+                    control.listen();
+                }, 20
+            );
+
+            bus.api.tickEventLoop(
+                () => {
+                    expect(control.isListening()).toBeTruthy();
+                    window.parent.removeEventListener('message', msgHandler, true);
+                    done();
+                }, 50
+            );
+
         });
 
         it('Proxy ignores messages not intended for the bus (regular string)', (done) => {
