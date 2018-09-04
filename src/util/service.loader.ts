@@ -24,7 +24,7 @@ export class ServiceLoader {
             (service: any) => {
                 ServiceLoader.serviceCollection.delete(service);
             }
-        )
+        );
         ServiceLoader.serviceCollection = new Set(); //  bye!
     }
 }
