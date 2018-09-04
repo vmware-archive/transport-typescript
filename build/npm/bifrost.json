@@ -23,6 +23,26 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "09/04/18",
+            "version": "0.9.0",
+            "notes": [
+                {
+                    "description": "Added new proxy/distributed bus feature, allows multiple event bus instances across iframes to become distributed",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/13"
+                },
+                {
+                    "description": "Added return number for bus.api.tickEventLoop() so it can be tracked. (VMCUI-1896)",
+                    "jira_uri": "https://jira.eng.vmware.com/browse/VMCUI-1896"
+                },
+                {
+                    "description": "Extracted core Abstractions for VMC/H5C into bus, will be moved into own project shortly"
+                },
+                {
+                    "description": "Rebuilt REST Service usint Tango as Http provider. Will be wired into VMC and H5C soon."
+                }
+            ]
+        },
+        {
             "date": "05/22/18",
             "version": "0.8.2",
             "notes": [

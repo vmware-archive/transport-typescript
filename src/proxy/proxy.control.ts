@@ -17,19 +17,19 @@ import { Message } from '../bus/model/message.model';
 
 const domWindow: any = window;
 
+/**
+ * Implementation of ProxyControl interface.
+ */
 export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
-
 
     private readonly proxyControlChannel: string = '__proxycontrol__';
     public readonly proxyId: string = EventBus.id;
     private devMode: boolean = false;
 
-
     /**
      * Handle inbound postMessage events.
      */
     private postMessageEventHandlerBinding: EventListenerObject;
-
 
     /**
      * Track is proxy is operating.
@@ -61,9 +61,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
     private monitorChannel: Observable<Message>;
     private monitorSubscription: any;
-
     private knownBusInstances: Map<string, ProxyState>;
-
 
     /**
      * Type of proxy operating.
@@ -71,12 +69,12 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
     private proxyType: ProxyType;
 
     private listening: boolean = false;
-
     private parentOriginValue: string;
 
     /**
      * Default proxy type is parent.
-     * @param {ProxyType} proxyType
+     * @param bus bus instance
+     * @param config config object
      */
     constructor(private bus: EventBus, private config: MessageProxyConfig) {
         // do something
@@ -172,7 +170,6 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         };
         this.sendControlToParent(proxyCommand);
         this.registered = true;
-
     }
 
     private informParentChildBusIsListening(): void {
@@ -515,7 +512,6 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         if (this.listening) {
             this.monitorSubscription.unsubscribe();
             this.informParentChildBusStoppedListening();
-
         }
     }
 
@@ -602,7 +598,6 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
 
     getKnownBusInstances(): Map<string, ProxyState> {
         return new Map(this.knownBusInstances.entries());
-        //return this.knownBusInstances;
     }
 
     inDevMode(): boolean {
@@ -616,6 +611,4 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
     setDevMode(): void {
         this.devMode = true;
     }
-
-
 }
