@@ -5,8 +5,6 @@ import { BusStore } from '../../../store.api';
 import { AbstractCore } from '../../abstractions/abstract.core';
 
 
-
-
 const REFRESH_RETRIES = 3;
 const GLOBAL_HEADERS = 'global-headers';
 const GLOBAL_HEADERS_UPDATE = 'update';
