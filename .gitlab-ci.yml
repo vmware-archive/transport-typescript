@@ -5,6 +5,8 @@ stages:
 - build
 - publish
 
+cache: {}
+
 test:unit:
   stage: test
   script:
