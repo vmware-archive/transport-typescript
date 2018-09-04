@@ -94,17 +94,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
         control.setParentOrigin('http://puppy.time');
 
         expect(control.getParentOrigin()).toEqual('http://puppy.time');
-
-
-        // re-work these tests, online state is now only set after parent gets message.
-        // // check online
-        // control.stopListening();
-        // expect(control.isListening()).toBeFalsy();
-        //
-        // // re-check online
-        // control.stopListening();
-        // expect(control.isListening()).toBeFalsy();
-
+        
         // check allowed origins
         control.addAllowedTargetOrigin('http://space.force');
         expect(control.getAllowedOrigins().length).toEqual(2);
