@@ -11,8 +11,20 @@ export class ServiceLoader {
             }
         }
         if (!found) {
-            ServiceLoader.serviceCollection.add(new service(args[0])); // hard wire for now.
+            ServiceLoader.serviceCollection.add(new service(...args));
         }
     }
 
+    public static getLoadedServices(): Set<any>  {
+        return new Set(ServiceLoader.serviceCollection.values());
+    }
+
+    public static destroyAllServices(): void {
+        ServiceLoader.serviceCollection.forEach(
+            (service: any) => {
+                ServiceLoader.serviceCollection.delete(service);
+            }
+        )
+        ServiceLoader.serviceCollection = new Set(); //  bye!
+    }
 }
