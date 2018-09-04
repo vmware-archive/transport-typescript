@@ -365,7 +365,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
                 } else {
 
                     // regular messages are JSON endoded, control messages are not.
-                    let payload: ProxyControlPayload
+                    let payload: ProxyControlPayload;
                     try {
 
                         // try to parse the payload, an errors and we know it's a control message not a regular message.
@@ -454,7 +454,6 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
             this.bus.logger.debug(
                 'Message Ignored, it contains no payload', this.getName());
             return;
-
         }
     }
 
@@ -462,25 +461,26 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         return this.authorizedChannels.includes(requestedChannel);
     }
 
-    private rebuildMessage(message: any, type: MessageType, sender: string): Message {
-        let msg: Message;
-        switch (type) {
-            case MessageType.MessageTypeRequest:
-                msg = new Message(message.id).request(message.payload);
-                break;
-
-            case MessageType.MessageTypeResponse:
-                msg = new Message(message.id).response(message.payload);
-                break;
-
-            case MessageType.MessageTypeError:
-                msg = new Message(message.id).error(message.payload);
-                break;
-
-        }
-        msg.sender = sender;
-        return msg;
-    }
+    // keeping this for now, may need it later.
+    // private rebuildMessage(message: any, type: MessageType, sender: string): Message {
+    //     let msg: Message;
+    //     switch (type) {
+    //         case MessageType.MessageTypeRequest:
+    //             msg = new Message(message.id).request(message.payload);
+    //             break;
+    //
+    //         case MessageType.MessageTypeResponse:
+    //             msg = new Message(message.id).response(message.payload);
+    //             break;
+    //
+    //         case MessageType.MessageTypeError:
+    //             msg = new Message(message.id).error(message.payload);
+    //             break;
+    //
+    //     }
+    //     msg.sender = sender;
+    //     return msg;
+    // }
 
     private proxyMessage(message: BusProxyMessage): void {
 

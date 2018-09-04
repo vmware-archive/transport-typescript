@@ -529,7 +529,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     expect(bus.logger.warn)
                         .toHaveBeenCalledWith('Proxy Message invalid - ignored. Payload is empty', EventBus.id);
                     done();
-                }, 5
+                }, 20
             );
         });
 
@@ -559,7 +559,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     expect(bus.logger.warn)
                         .toHaveBeenCalledWith('Proxy Message invalid - ignored. Payload is empty', EventBus.id);
                     done();
-                }, 5
+                }, 20
             );
         });
 

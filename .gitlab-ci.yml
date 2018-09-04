@@ -48,8 +48,3 @@ publish:bifrost:
   when: manual
   only:
   - master
-
-#test:
-#  script:
-#  - npm run test
-#  - npm run prepare
