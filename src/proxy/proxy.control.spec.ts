@@ -411,7 +411,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     expect(log.debug)
                         .toHaveBeenCalledWith('Message Ignored, not intended for the bus.', EventBus.id);
                     done();
-                }, 5
+                }, 50
             );
         });
 
@@ -438,7 +438,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     expect(bus.logger.debug)
                         .toHaveBeenCalledWith('Message Ignored, it contains no payload', EventBus.id);
                     done();
-                }, 5
+                }, 50
             );
         });
 
@@ -469,7 +469,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     expect(bus.logger.warn)
                         .toHaveBeenCalledWith('Proxy Message invalid - ignored. No channel supplied', EventBus.id);
                     done();
-                }, 5
+                }, 50
             );
         });
 
@@ -499,7 +499,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     expect(bus.logger.warn)
                         .toHaveBeenCalledWith('Proxy Message invalid - ignored. No message type supplied', EventBus.id);
                     done();
-                }, 5
+                }, 50
             );
         });
 
@@ -529,7 +529,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     expect(bus.logger.warn)
                         .toHaveBeenCalledWith('Proxy Message invalid - ignored. Payload is empty', EventBus.id);
                     done();
-                }, 20
+                }, 50
             );
         });
 
@@ -559,7 +559,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     expect(bus.logger.warn)
                         .toHaveBeenCalledWith('Proxy Message invalid - ignored. Payload is empty', EventBus.id);
                     done();
-                }, 20
+                }, 50
             );
         });
 
@@ -589,7 +589,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     expect(bus.logger.warn)
                         .toHaveBeenCalledWith('Proxy Message valid, but channel is not authorized: [somechan]', EventBus.id);
                     done();
-                }, 5
+                }, 50
             );
         });
     });
@@ -759,7 +759,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     // frame1.remove();
                     // frame2.remove();
                     done();
-                }, 10
+                }, 50
             );
         });
 
@@ -816,7 +816,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 () => {
                     expect(completeCount).toEqual(2); // three frames, two events.
                     done();
-                }, 20
+                }, 50
             )
 
         });
@@ -862,7 +862,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     expect(complete).toBeTruthy();
                     window.parent.removeEventListener('message', msgHandler, true);
                     done();
-                }, 1000
+                }, 100
             )
 
         });
@@ -911,7 +911,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     parent.window.removeEventListener('message', msgHandler, true);
 
                     done();
-                }, 10
+                }, 50
             )
 
         });
@@ -983,7 +983,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
                   control.stopListening();
 
-                },10
+                },50
             );
 
             bus.api.tickEventLoop(
@@ -995,7 +995,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     parent.window.removeEventListener('message', msgHandler, true);
                     done();
 
-                },15
+                },100
             );
 
         });
