@@ -2,6 +2,7 @@
  * Copyright(c) VMware Inc., 2016
  */
 import { LogLevel, LogChannel, LogObject } from './logger.model';
+import { GeneralUtil } from '../util/util';
 
 /**
  * This is the low-lever logger that can be instantiated and destroyed at will. Syslog maintains one of these
@@ -170,6 +171,11 @@ export class Logger {
             return;
         }
 
+        let payloadIsObject = false;
+        if (GeneralUtil.isObject(logObject.object)) {
+            payloadIsObject = true;
+        }
+
         let date: string = new Date().toLocaleTimeString();
         let output: string = '%c' + logObject.object;
         if (logObject.caller) {
@@ -186,27 +192,38 @@ export class Logger {
 
         switch (logObject.logLevel) {
             case LogLevel.Error:
-                output = '⁉️ [Error]: ' + output; 
+                if (!payloadIsObject) {
+                    output = '⁉️ [Error]: ' + output;
+                }
                 this.outputWithOptionalStyle(console.error, output, this.errorCss);
                 break;
 
             case LogLevel.Warn:
-                output = '⚠️ [Warn]: ' + output; 
+                if (!payloadIsObject) {
+                    output = '⚠️ [Warn]: ' + output;
+                }
                 this.outputWithOptionalStyle(console.warn, output, this.warnCss);
                 break;
 
             case LogLevel.Info:
-                output = '▫️️ [Inf]: ' + output;
+                if (!payloadIsObject) {
+                    output = '▫️️ [Inf]: ' + output;
+                }
                 this.outputWithOptionalStyle(console.log, output, this.infoCss);
                 break;
 
             case LogLevel.Debug:
-                output = '🔸 [Deb]: ' + output;
+
+                if (!payloadIsObject) {
+                    output = '🔸 [Deb]: ' + output;
+                }
                 this.outputWithOptionalStyle(console.log, output, this.debugCss);
                 break;
 
             case LogLevel.Verbose:
-                output = '📍️ [Ver]: ' + output;
+                if (!payloadIsObject) {
+                    output = '📍️ [Ver]: ' + output;
+                }
                 this.outputWithOptionalStyle(console.log, output, this.verboseCss);
                 break;
 

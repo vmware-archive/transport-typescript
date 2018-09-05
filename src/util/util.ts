@@ -16,4 +16,13 @@ export class GeneralUtil {
         return GeneralUtil.genUUID().substr(0, 8);
     }
 
+    public static isObject(value: any): boolean {
+        try {
+            JSON.parse(value);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
 }

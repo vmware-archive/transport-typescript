@@ -2,8 +2,8 @@
  * Copyright(c) VMware Inc. 2016-2018
  */
 
-import { BusTransaction, EventBus, TransactionReceipt, TransactionType } from '../bus.api';
-import { Logger } from '../log';
+import { BusTransaction, EventBus, MessageArgs, TransactionReceipt, TransactionType } from '../bus.api';
+import { Logger, LogLevel } from '../log';
 import { BusTestUtil } from '../util/test.util';
 import { GeneralUtil } from '../util/util';
 
@@ -16,7 +16,7 @@ describe('Bus Transactions [transaction.ts]', () => {
 
     beforeEach(
         () => {
-            bus = BusTestUtil.bootBus();
+            bus = BusTestUtil.bootBusWithOptions(LogLevel.Off, true);
             bus.api.loggerInstance.setStylingVisble(false);
             //bus.api.enableMonitorDump(true);
             transaction = bus.createTransaction();
@@ -28,7 +28,7 @@ describe('Bus Transactions [transaction.ts]', () => {
         expect(transaction).not.toBeUndefined();
     });
 
-    it('Should be able to run a single request and trigger onComplete', (done) => {
+    it('Should be able to run a single command and trigger onComplete', (done) => {
         bus.respondStream(chan)
             .generate(
                 () => 'pong'
@@ -154,8 +154,8 @@ describe('Bus Transactions [transaction.ts]', () => {
 
         bus.listenRequestOnce(chan)
             .handle(
-                () => {
-                    bus.sendErrorMessage(chan, 'error!');
+                (req, args: MessageArgs) => {
+                    bus.sendErrorMessageWithId(chan, 'error!', args.uuid);
                 }
             );
 
@@ -253,7 +253,7 @@ describe('Bus Transactions [transaction.ts]', () => {
                 expect(results[2]).toEqual('pong1');
                 expect(results[3]).toEqual('ponger1');
                 expect(results[4]).toEqual('pong2');
-                expect(results[5]).toEqual('ponger2'); 
+                expect(results[5]).toEqual('ponger2');
                 done();
             }
         );
@@ -270,7 +270,7 @@ describe('Bus Transactions [transaction.ts]', () => {
 
     it('Should be able to handle errors mid sync transaction', (done) => {
         transaction = bus.createTransaction(TransactionType.SYNC);
-       
+
         transaction.onError(
             (error: string) => {
                 expect(error).toEqual('error!');
@@ -280,8 +280,8 @@ describe('Bus Transactions [transaction.ts]', () => {
 
         bus.listenRequestOnce(chan)
             .handle(
-                () => {
-                    bus.sendErrorMessage(chan, 'error!');
+                (val, args: MessageArgs) => {
+                    bus.sendErrorMessageWithId(chan, 'error!', args.uuid);
                 }
             );
 
@@ -305,7 +305,7 @@ describe('Bus Transactions [transaction.ts]', () => {
         const store1 = bus.stores.createStore('store1');
         const store2 = bus.stores.createStore('store2');
         const store3 = bus.stores.createStore('store3');
-        
+
         store1.initialize();
         store2.initialize();
         store3.initialize();
@@ -320,7 +320,7 @@ describe('Bus Transactions [transaction.ts]', () => {
 
         transaction.onComplete(
             (results: any[]) => {
-                
+
                 expect(results.length).toEqual(6);
                 done();
             }
@@ -338,14 +338,14 @@ describe('Bus Transactions [transaction.ts]', () => {
         const store1 = bus.stores.createStore('store1');
         const store2 = bus.stores.createStore('store2');
         const store3 = bus.stores.createStore('store3');
-        
+
         store1.initialize();
         store2.initialize();
         store3.initialize();
     });
 
     it('Should be able wait for multiple stores and requests to be completed synchronously', (done) => {
-    
+
         transaction = bus.createTransaction(TransactionType.SYNC, 'mixed-sync-store');
         let count = 0;
 
@@ -382,7 +382,7 @@ describe('Bus Transactions [transaction.ts]', () => {
         const store1 = bus.stores.createStore('store1');
         const store2 = bus.stores.createStore('store2');
         const store3 = bus.stores.createStore('store3');
-        
+
         store1.put('ember', 'chomp', null);
         store1.initialize();
 

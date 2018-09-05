@@ -2,10 +2,8 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import { Subject } from 'rxjs/Subject';
-import { Subscription } from 'rxjs/Subscription';
+import { Subject, Subscription } from 'rxjs';
 import { StompClient } from './stomp.client';
-import { StompParser } from './stomp.parser';
 import { MockSocket } from './stomp.mocksocket';
 import { UUID } from '../bus/store/store.model';
 import { Logger } from '../log';
@@ -15,11 +13,11 @@ export type BifrostSocket = WebSocket;
 
 export class BrokerConnectorChannel {
 
-    static connection: string = '#broker.connector-connection';
-    static subscription: string = '#broker.connector-subscription';
-    static messages: string = '#broker.connector-messages';
-    static error: string = '#broker.connector-error';
-    static status: string = '#broker.connector-status';
+    static connection: string = 'bifrost-services::broker.connector-connection';
+    static subscription: string = 'bifrost-services::broker.connector-subscription';
+    static messages: string = 'bifrost-services::broker.connector-messages';
+    static error: string = 'bifrost-services::broker.connector-error';
+    static status: string = 'bifrost-services::broker.connector-status';
 
 }
 export interface StompMessage {

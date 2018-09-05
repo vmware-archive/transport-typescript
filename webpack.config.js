@@ -3,6 +3,7 @@ var UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {
     entry: './dist',
+    mode: 'production',
     output: {
       filename: 'bifrost.umd.min.js',
       // export to AMD, CommonJS, or window
@@ -15,12 +16,6 @@ module.exports = {
     ],
     externals: {
         'rxjs' : 'rxjs',
-        'rxjs/Observable' : 'rxjs/Observable',
-        'rxjs/Subscription' : 'rxjs/Subscription',
-        'rxjs/ReplaySubject' : 'rxjs/ReplaySubject',
-        'rxjs/Subject' : 'rxjs/Subject',
-        'rxjs/add/operator/merge' : 'rxjs.merge',
-        'rxjs/add/operator/map' : 'rxjs.map',
-        'rxjs/add/operator/filter' : 'rxjs.filter',
+        'rxjs/operators' : 'rxjs/operators'
     }
   };

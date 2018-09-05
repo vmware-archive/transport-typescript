@@ -1,39 +1,39 @@
 /**
  * Copyright(c) VMware Inc. 2016-2017
  */
-import { BrokerConnector } from './index';
 import { StoreType, UUID } from './bus/store/store.model';
 import { BusStoreApi } from './store.api';
 import { Message, MessageHandlerConfig } from './bus/model/message.model';
 import { Channel } from './bus/model/channel.model';
-import { Observable } from 'rxjs/Observable';
+import { Observable, Subject, Subscription } from 'rxjs';
 import { StompBusCommand } from './bridge/stomp.model';
-import { Subject } from 'rxjs/Subject';
 import { Logger } from './log/logger.service';
 import { LogLevel } from './log/logger.model';
-import { GalacticRequest } from './bus/model/request.model';
-import { GalacticResponse } from './bus/model/response.model';
-import { Subscription } from 'rxjs/Subscription';
-
+import { APIRequest } from './core/model/request.model';
+import { APIResponse } from './core/model/response.model';
+import { MessageProxyConfig, ProxyControl } from './proxy/message.proxy';
+import { GeneralUtil } from './util/util';
 
 export type ChannelName = string;
 export type SentFrom = string;
 
 declare global {
-    interface Window { 
-    
-        AppEventBus: EventBus;
-        AppBrokerConnector: BrokerConnector;
-        AppSyslog: Logger;
-        AppStoreManager: BusStoreApi;
+    interface Window {
+
+        // AppEventBus: EventBus;
+        // AppBrokerConnector: BrokerConnector;
+        // AppSyslog: Logger;
+        // AppStoreManager: BusStoreApi;
     }
 }
 
 export enum MessageType {
     MessageTypeRequest,
     MessageTypeResponse,
-    MessageTypeError
+    MessageTypeError,
+    MessageTypeControl
 }
+
 
 /**
  * Message arguments are passed through to all message handlers (if available)
@@ -64,7 +64,7 @@ export interface MessageHandler<T = any, E = any> {
     handle(successHander: MessageFunction<T>, errorHandler?: MessageFunction<E>): Subscription;
 
     /**
-     * if handler is streaming, and the handler is open, send a payload down the request channel
+     * if handler is streaming, and the handler is open, send a payload down the command channel
      * @param payload the payload you want to send.
      */
     tick(payload: any): void;
@@ -117,20 +117,29 @@ export interface MessageResponder<T = any, E = any> {
     close(): boolean;
 
     /**
-     * Check if the responder is still listening/active.
+     * Check if the responder is still online/active.
      */
     isClosed(): boolean;
 
     /**
-     * Get an observable for incoming (request & error) payloads
-     * @param messageType optional filter for responses, requests or errors. If left blank, you get the firehose.
+     * Get an observable for incoming (command & error) payloads
      */
     getObservable(): Observable<T>;
 }
 
 export abstract class EventBus {
 
-    public static version: string = '0.8.1';
+    public static version: string = '0.9.0';
+
+    public static id: string = EventBus.rebuildId();
+
+    /**
+     * If you need to reset the ID of this bus, call this, but it may have undesirable effects.
+     * This should only be called when re-booting the bus.
+     */
+    public static rebuildId(): string {
+         return `eventbus-${GeneralUtil.genUUIDShort()}-${EventBus.version}`;
+    }
 
     /**
      * Reference to Low Level API.
@@ -147,7 +156,7 @@ export abstract class EventBus {
      */
 
     /**
-     * Send request payload to channel.
+     * Send command payload to channel.
      *
      * @param {ChannelName} cname channel name to send payload to
      * @param {R} payload the payload to be sent
@@ -156,26 +165,29 @@ export abstract class EventBus {
     abstract sendRequestMessage<R>(cname: ChannelName, payload: R, from?: SentFrom): void;
 
     /**
-     * Send a request payload to a channel with a supplied ID in the request
-     * 
+     * Send a command payload to a channel with a supplied ID in the command
+     *
      * @param {ChannelName} cname channel to send the payload to
      * @param {R} payload the payload to be sent
-     * @param {UUID} id the ID you want to attach to your request
+     * @param {UUID} id the ID you want to attach to your command
      * @param {SentFrom} from  optional name of the sending actor (for logging)
+     * @param proxyBroadcast optional flag, only required when messages originated in another bus.
      */
-    abstract sendRequestMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, from?: SentFrom): void;
-    
+    abstract sendRequestMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, from?: SentFrom,
+                                         proxyBroadcast?: boolean): void;
+
     /**
-     * Send a request payload to a channel with a supplied ID in the request
-     * 
+     * Send a command payload to a channel with a supplied ID in the command
+     *
      * @param {ChannelName} cname channel to send the payload to
      * @param {R} payload the payload to be sent
-     * @param {UUID} id the ID you want to attach to your request
-     * @param {number} version version of request you want to sent (defaults to 1)
+     * @param {UUID} id the ID you want to attach to your command
+     * @param {number} version version of command you want to sent (defaults to 1)
      * @param {SentFrom} from  optional name of the sending actor (for logging)
-     */                                     
+     * @param proxyBroadcast optional flag, only required when messages originated in another bus.
+     */
     abstract sendRequestMessageWithIdAndVersion<R>(cname: ChannelName, payload: R, id: UUID, version: number,
-                                                   from?: SentFrom): void;
+                                                   from?: SentFrom, proxyBroadcast?: boolean): void;
 
     /**
      * Send response payload to a channel.
@@ -189,36 +201,69 @@ export abstract class EventBus {
     /**
      * Send a response payload to a channel with a supplied ID in the response.
      * @param {ChannelName} cname the channel name to send the response payload to
-     * @param {R} payload the payload you want to send in response 
+     * @param {R} payload the payload you want to send in response
      * @param {UUID} id the ID you want to attach to your response
      * @param {SentFrom} from optional name of the sending actor (for logging)
+     * @param proxyBroadcast optional flag, only required when messages originated in another bus.
      */
-    abstract sendResponseMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, from?: SentFrom): void;
+    abstract sendResponseMessageWithId<R>(cname: ChannelName, payload: R, id: UUID, from?: SentFrom,
+                                          proxyBroadcast?: boolean): void;
 
-    
+
     /**
      * Send a response payload to a channel with a supplied ID in the response.
      * @param {ChannelName} cname the channel name to send the response payload to
      * @param {R} payload the payload you want to send in response
      * @param {UUID} id the ID you want to attach to your response
-     * @param {number} version version of request you want to sent (defaults to 1) 
+     * @param {number} version version of command you want to sent (defaults to 1)
      * @param {SentFrom} from optional name of the sending actor (for logging)
-     */                                      
-    abstract sendResponseMessageWithIdAndVersion<R>(cname: ChannelName, payload: R, id: UUID, version: number, 
-                                                    from?: SentFrom): void;
+     * @param proxyBroadcast optional flag, only required when messages originated in another bus.
+     */
+    abstract sendResponseMessageWithIdAndVersion<R>(cname: ChannelName, payload: R, id: UUID, version: number,
+                                                    from?: SentFrom, proxyBroadcast?: boolean): void;
+
     /**
      * Send error payload to channel.
      *
      * @param {ChannelName} cname the channel to send the payload to
      * @param {E} payload the payload to be send
      * @param {SentFrom} from optional name of sending actor (for logging)
+     * @param proxyBroadcast optional flag, only required when messages originated in another bus.
      */
-    abstract sendErrorMessage<E>(cname: ChannelName, payload: E, from?: SentFrom): void;
+    abstract sendErrorMessage<E>(cname: ChannelName, payload: E, from?: SentFrom, proxyBroadcast?: boolean): void;
 
     /**
-     * Listen for a request on sendChannel and return a single response via the generate() method on MessageResponder.
+     * Send error payload to channel, with an ID.
+     *
+     * @param {ChannelName} cname the channel to send the payload to
+     * @param {E} payload the payload to be send
+     * @param {UUID} id
+     * @param {SentFrom} from optional name of sending actor (for logging)
+     * @param proxyBroadcast optional flag, only required when messages originated in another bus.
+     * @param {boolean} proxyBroadcast rebroadCasted message from proxy?
+     */
+    abstract sendErrorMessageWithId<E>(cname: ChannelName, payload: E, id: UUID, from?: SentFrom,
+                                       proxyBroadcast?: boolean): void;
+
+    /**
+     * Send error payload to channel, with an ID, and a version.
+     *
+     * @param {ChannelName} cname the channel to send the payload to
+     * @param {E} payload the payload to be send
+     * @param {UUID} id the UUID you want to send with this error.
+     * @param {number} version version of the error you want to sent.
+     * @param {SentFrom} from optional name of sending actor (for logging)
+     * @param proxyBroadcast optional flag, only required when messages originated in another bus.
+     * @param {boolean} proxyBroadcast rebroadCasted message from proxy?
+     */
+    abstract sendErrorMessageWithIdAndVersion<E>(cname: ChannelName, payload: E, id: UUID, version: number,
+                                                 from?: SentFrom, proxyBroadcast?: boolean): void;
+
+
+    /**
+     * Listen for a command on sendChannel and return a single response via the generate() method on MessageResponder.
      * The returned value will be sent as a response message on the return channel (defaults to sendChannel if left
-     * blank). Once a single response has been sent, no more request messages will be processed.
+     * blank). Once a single response has been sent, no more command messages will be processed.
      *
      * @param {ChannelName} sendChannel the channel to listen for requests
      * @param {ChannelName} returnChannel the channel to send responses to (defaults to sendChannel if left blank
@@ -231,7 +276,7 @@ export abstract class EventBus {
     /**
      * Listen for requests on sendChannel and return responses via the generate() method on MessageResponder.
      * The returned value will be sent as a response message on the return channel (defaults to sendChannel if left
-     * blank). The responder will continue to stream responses to each request until the unubscribe() method is called.
+     * blank). The responder will continue to stream responses to each command until the unubscribe() method is called.
      *
      * @param {ChannelName} sendChannel the channel to listen for requests
      * @param {ChannelName} returnChannel the channel to send responses to (defaults to sendChannel if left blank)
@@ -242,13 +287,13 @@ export abstract class EventBus {
                               from?: SentFrom): MessageResponder<T>;
 
     /**
-     * Send a request payload to sendChannel and listen for responses on returnChannel (defaults to sendChannel if left
+     * Send a command payload to sendChannel and listen for responses on returnChannel (defaults to sendChannel if left
      * blank). Any additional responses will continue to be handled by the MessageHandler instance returned.
      * The handle() method on the MessageHandler instance is used to process incoming responses. The handler will
      * continue to trigger with each new response, until it is closed.
      *
-     * @param {ChannelName} sendChannel the channel to send the initial request to
-     * @param {T} requestPayload the paylaod to be sent as the request
+     * @param {ChannelName} sendChannel the channel to send the initial command to
+     * @param {T} requestPayload the paylaod to be sent as the command
      * @param {ChannelName} returnChannel the return channel to listen for responses on (defaults to sendChannel)
      * @param {SentFrom} from optional name of the actor implementing (for logging)
      * @returns {MessageHandler<R>} reference to MessageHandler, handle() function receives any inbound responses.
@@ -257,7 +302,7 @@ export abstract class EventBus {
                                  returnChannel?: ChannelName, from?: SentFrom): MessageHandler<R>;
 
     /**
-     * Send a request payload to sendChannel with and ID and listen for responses (also with that ID)
+     * Send a command payload to sendChannel with and ID and listen for responses (also with that ID)
      * on returnChannel (defaults to sendChannel if left blank). Any additional responses will continue to be handled
      * by the MessageHandler instance returned. The handle() method on the MessageHandler instance is used to process
      * incoming responses. The handler will continue to trigger with each new response, until it is closed.
@@ -273,12 +318,12 @@ export abstract class EventBus {
                                        returnChannel?: ChannelName, from?: SentFrom): MessageHandler<R>;
 
     /**
-     * Send a request payload to sendChannel and listen for a single response on returnChannel
+     * Send a command payload to sendChannel and listen for a single response on returnChannel
      * (defaults to sendChannel if left blank). The handle() method on the MessageHandler instance is used to
      * process incoming responses. The handler will stop processing any further responses after the first one.
      *
-     * @param {ChannelName} sendChannel the channel to send the initial request to
-     * @param {T} requestPayload the payload to be sent as the request
+     * @param {ChannelName} sendChannel the channel to send the initial command to
+     * @param {T} requestPayload the payload to be sent as the command
      * @param {ChannelName} returnChannel the return channel to listen for responses on (defaults to sendChannel)
      * @param {SentFrom} from optional name of the actor implementing (for logging)
      * @returns {MessageHandler<R>} reference to MessageHandler, handle() function receives any inbound response.
@@ -288,14 +333,14 @@ export abstract class EventBus {
 
 
     /**
-     * Send a request payload to sendChannel with a message ID. Listens for a single response on returnChannel,
+     * Send a command payload to sendChannel with a message ID. Listens for a single response on returnChannel,
      * but only for a response with the same matching ID. Ideal for multi-message sessions where multiple consumers
      * are requesting at the same time on the same.
      * (defaults to sendChannel if left blank). The handle() method on the MessageHandler instance is used to
      * process incoming responses. The handler will stop processing any further responses after the first one.
      *
      * @param {UUID} uuid the UUID of the message.
-     * @param {ChannelName} sendChannel the channel to send the request to
+     * @param {ChannelName} sendChannel the channel to send the command to
      * @param {T} requestPayload the payload you want to send.
      * @param {ChannelName} returnChannel the return channel to listen for responses on (defaults to send channel)
      * @param {SentFrom} from options name of the actor implementing (for logging)
@@ -306,23 +351,23 @@ export abstract class EventBus {
 
 
     /**
-     * Send a request payload to Galactic channel and listen for response that matches UUID of Request.
+     * Send a command payload to Galactic channel and listen for response that matches UUID of APIRequest.
      * (defaults to sendChannel if left blank). The handle() method on the MessageHandler instance is used to
      * process incoming responses. The handler will stop processing any further responses after the first one.
      *
-     * @param {ChannelName} sendChannel the Galactic channel to send the request to
-     * @param {GalacticRequest} request GalacticRequest to be sent as the request
-     * @param {MessageFunction<GalacticResponse<R>>} successHandler for a successful response to your request
-     * @param {MessageFunction<GalacticResponse<R>>} errorHandler for an un-successful response to your request
+     * @param {ChannelName} sendChannel the Galactic channel to send the command to
+     * @param {APIRequest} request APIRequest to be sent as the command
+     * @param {MessageFunction<APIResponse<R>>} successHandler for a successful response to your command
+     * @param {MessageFunction<APIResponse<R>>} errorHandler for an un-successful response to your command
      * @param {SentFrom} from optional name of the actor implementing (for logging)
-     * @returns {MessageHandler<GalacticResponse>} reference to MessageHandler, handle() 
+     * @returns {MessageHandler<APIResponse>} reference to MessageHandler, handle()
      *                                             function receives any inbound response.
      */
     abstract requestGalactic<T, R>(
-        sendChannel: ChannelName, 
-        request: GalacticRequest<T>, 
-        successHandler: MessageFunction<GalacticResponse<R>>,
-        errorHandler?: MessageFunction<GalacticResponse<R>>,
+        sendChannel: ChannelName,
+        request: APIRequest<T>,
+        successHandler: MessageFunction<APIResponse<R>>,
+        errorHandler?: MessageFunction<APIResponse<R>>,
         from?: SentFrom): void;
 
 
@@ -349,7 +394,7 @@ export abstract class EventBus {
 
 
     /**
-     * Listen to a channel for a single request, handle the request then stop listening for any other new requests.
+     * Listen to a channel for a single command, handle the command then stop online for any other new requests.
      *
      * @param {ChannelName} channel the channel to listen to for requests
      * @param {SentFrom} from optional name of actor implementing (for logging)
@@ -447,9 +492,9 @@ export abstract class EventBus {
 
     /**
      * Create a new transaction that can be composed of bus requests, cache initializations or both. Asynchronous
-     * transactions will all fire at once and return once all requests return. Syrnchonrous transactions will 
+     * transactions will all fire at once and return once all requests return. Syrnchonrous transactions will
      * fire in sequence and only proceed to the next transaction event once the preceeding response has returned.
-     * 
+     *
      * @param {TransactionType} type type of transaction you want, synchonrous or asynchronous (default).
      * @param {string} name the name of the transaction, helps you track progress in the console (if enabled)
      */
@@ -460,6 +505,14 @@ export abstract class EventBus {
      * @returns {Logger} singleton logger bound to bus.
      */
     abstract get logger(): Logger;
+
+    /**
+     * Enable message proxying between frames, or what ever else we can think of.
+     *
+     * @param {MessageProxyConfig} config
+     * @returns {IFrameProxyControl}
+     */
+    abstract enableMessageProxy(config: MessageProxyConfig): ProxyControl;
 
 
 }
@@ -480,7 +533,7 @@ export interface EventBusLowApi {
     /**
      * A new channel is created by the first reference to it. All subsequent references to that channel are handed
      * the same stream to subscribe to. Accessing this method increments the channels reference count.
-     * This method subscribes to both request and response messages. See below for specific directional methods.
+     * This method subscribes to both command and response messages. See below for specific directional methods.
      * This method is not filtered.
      *
      * This is a raw object that encapsulates the channel stream.
@@ -505,12 +558,12 @@ export interface EventBusLowApi {
     getChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>;
 
     /**
-     * Filter bus events that contain request messages only. Returns an Observable with un-marshaled Message payload.
+     * Filter bus events that contain command messages only. Returns an Observable with un-marshaled Message payload.
      *
      * @param {ChannelName} name of the channel you want to listen to.
      * @param {SentFrom} from optional calling actor (for logging)
      * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
-     * @returns {Observable<Message>} Observable that will emit a request Message to any subscribers.
+     * @returns {Observable<Message>} Observable that will emit a command Message to any subscribers.
      */
     getRequestChannel(name: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>;
 
@@ -542,7 +595,7 @@ export interface EventBusLowApi {
      * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
      * @returns {Observable<Message>}
      */
-    getGalacticChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>; 
+    getGalacticChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>;
 
     /**
      * Send simple API message to MessageResponder enabled calls. (non low-level API's)
@@ -588,10 +641,10 @@ export interface EventBusLowApi {
      * @param {MessageHandlerConfig} handlerConfig message handler configuration object.
      * @param {boolean} requestStream listen to requests? defaults to responses only.
      * @param {SentFrom} name optional calling actor (for logging)
-     * @param {UUID} id enable message tracking if this is supplied 
+     * @param {UUID} id enable message tracking if this is supplied
      * @returns {MessageHandler<R>} reference to MessageHandler<R>
      */
-    listen<R>(handlerConfig: MessageHandlerConfig, 
+    listen<R>(handlerConfig: MessageHandlerConfig,
               requestStream?: boolean, name?: SentFrom, id?: UUID): MessageHandler<R>;
 
     /**
@@ -675,12 +728,12 @@ export interface EventBusLowApi {
      *
      * @returns {Logger} reference to the logger service.
      */
-    logger(): Logger ;
+    logger(): Logger;
 
     /**
      * Quick access to logger instance for spies and testing.
      */
-    loggerInstance: Logger ;
+    loggerInstance: Logger;
 
     /**
      * For external access to messagebus private logger (so output streams are sequentialized).
@@ -737,7 +790,7 @@ export interface EventBusLowApi {
      * @param {Function} func function you want to execute asynchronously.
      * @param {number} delay milliseconds you want to delay exectuion by.
      */
-    tickEventLoop(func: Function, delay?: number): void;
+    tickEventLoop(func: Function, delay?: number): number;
 
 }
 
@@ -761,23 +814,24 @@ export interface TransactionReceipt {
  */
 export enum TransactionType {
     ASYNC = 'Async', // will send all requests at the same time and return when all are complete
-    SYNC  = 'Sync'   // will send requests one at a time and move on after each request is completed in sequence.
+    SYNC = 'Sync'   // will send requests one at a time and move on after each command is completed in sequence.
 }
+
 export interface BusTransaction {
-    
+
     /**
-     * Create a request to a channel as a part of this transaction.
-     * @param {string} channel channel to send the request to
+     * Create a command to a channel as a part of this transaction.
+     * @param {string} channel channel to send the command to
      * @param {payload} any what ever you want to send.
      */
     sendRequest<ReqT>(channel: string, payload: ReqT): void;
 
     /**
      * Wait for a store to be ready / initialzed as a part of this transaction.
-     * @param {StoreType} channel channel to send the request to
+     * @param {StoreType} channel channel to send the command to
      */
     waitForStoreReady<ReqT>(storeType: StoreType): void;
-    
+
     /**
      * Once all responses to requests have been received, the transaction is complete.
      * The handler will return an array or all responses in the order the requests were sent.
@@ -786,15 +840,15 @@ export interface BusTransaction {
     onComplete<RespT>(completeHandler: MessageFunction<[RespT]>): void;
 
     /**
-     * If an error is thrown by any of the responders, the transaction is aborted and the 
+     * If an error is thrown by any of the responders, the transaction is aborted and the
      * error sent to the errorHandler.
      * @param {MessageFunction<T>} errorHandler the closure you want to handle any errors during the transaction.
      */
     onError<ErrT>(errorHandler: MessageFunction<ErrT>): void;
-    
+
     /**
      * Commit the transaction, all requests will be sent and will wait for responses.
-     * Once all the responses are in, onComplete will be called with the responses. 
+     * Once all the responses are in, onComplete will be called with the responses.
      * @returns {TransactionReceipt} allows observer to track state of the transaction for monitoring purposes.
      */
     commit(): TransactionReceipt;

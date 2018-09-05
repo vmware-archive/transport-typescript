@@ -1,0 +1,13 @@
+.vmcbot {
+    height: 160px;
+    border-radius: 20px;
+    margin-left: 20px;
+    border: 1px solid #BDBABF;
+    background-color: #fff;
+    text-align:center;
+    min-width: 120px;
+}
+
+.vmc-icon {
+    width: 85px;
+}

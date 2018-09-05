@@ -7,7 +7,6 @@ import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor
 import { EventBus } from '../bus.api';
 import { LogLevel } from '../log/logger.model';
 import { GeneralUtil } from '../util/util';
-import 'rxjs/add/operator/take';
 import { Logger } from '../log';
 import { MockSocket } from './stomp.mocksocket';
 import { BifrostEventBus } from '../bus/bus';
@@ -38,10 +37,10 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
     beforeEach(
         () => {
-
+            const windowRef: any = window;
             bus = BifrostEventBus.rebootWithOptions(LogLevel.Error, true);
-            bc = window.AppBrokerConnector;
-            log = window.AppSyslog;
+            bc = windowRef.AppBrokerConnector;
+            log = windowRef.AppSyslog;
 
             config = createStandardConfig();
             configNoTopics = createStandardConfig(false); // no topics.
@@ -641,7 +640,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
     });
 
     describe('Galactic channel events and message bus monitor consumption', () => {
-        it('We should be able to ensure that the stomp service is listening on the monitor channel',
+        it('We should be able to ensure that the stomp service is online on the monitor channel',
 
             (done) => {
 

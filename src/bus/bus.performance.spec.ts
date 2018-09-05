@@ -1,18 +1,20 @@
 import { LogLevel } from '../log/logger.model';
-import { EventBus, Message, MessageArgs, UUID } from '../index';
+import { EventBus, Message, MessageArgs } from '../index';
 import { BusTestUtil } from '../util/test.util';
 import { GeneralUtil } from '../util/util';
-import { Observable } from 'rxjs/Observable';
-import { GalacticRequest } from './model/request.model';
+import { Observable } from 'rxjs';
+import { APIRequest } from '../core/model/request.model';
 
 let bus: EventBus;
-let printTimeLogs: boolean = false;
+let printTimeLogs: boolean = true;
 
 /**
  * All testing is designed to pass a low powered, headless browser, running inside a container.
  */
 
-describe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000000;
+
+xdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
 
     let timeBefore: number;
     let timeAfter: number;
@@ -24,6 +26,7 @@ describe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         bus = BusTestUtil.bootBusWithOptions(LogLevel.Info, true);
         bus.logger.setStylingVisble(false);
         timeAfter = performance.now();
+        printTotalTime(timeAfter - timeBefore);
         expect(timeAfter - timeBefore).toBeLessThan(15);
 
     });
@@ -123,7 +126,7 @@ describe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         bus.sendRequestMessage(channelName, 'hello boot');
     });
 
-    it('Validate sending and hanlding 1 message in less than 20ms', (done) => {
+    it('Validate sending and handling 1 message in less than 20ms', (done) => {
 
         const channelName = GeneralUtil.genUUID();
         const channel: Observable<Message> = bus.api.getChannel(channelName);
@@ -141,7 +144,7 @@ describe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         );
         timeBefore = performance.now();
         bus.sendRequestMessage(channelName, 'hello ember');
-        printTimeBefore(timeBefore);
+
     });
 
     it('Validate 1000 messages being sent and handled in less than 100ms', (done) => {
@@ -226,7 +229,7 @@ describe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         bus.sendRequestMessage(channelName, 'hello maggie');
     });
 
-    it('Validate 1 channel with 5000 subscribers can handle all requests within 10ms', (done) => {
+    it('Validate 1 channel with 5,000 subscribers can handle all requests within 10ms', (done) => {
 
         const channelName = GeneralUtil.genUUID();
         const channel: Observable<Message> = bus.api.getChannel(channelName);
@@ -252,7 +255,7 @@ describe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         bus.sendRequestMessage(channelName, 'hello maggie');
     });
 
-    it('Validate 1 channel with 10000 subscribers can handle all requests within 10ms', (done) => {
+    it('Validate 1 channel with 10,000 subscribers can handle all requests within 15ms', (done) => {
 
         const channelName = GeneralUtil.genUUID();
         const channel: Observable<Message> = bus.api.getChannel(channelName);
@@ -267,7 +270,7 @@ describe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
                     if (subscriberEventCount >= 10000) {
                         timeAfter = performance.now();
                         printTotalTime(timeAfter - timeBefore);
-                        expect(timeAfter - timeBefore).toBeLessThan(10);
+                        expect(timeAfter - timeBefore).toBeLessThan(15);
                         done();
                     }
                 }
@@ -373,283 +376,267 @@ describe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         }
     });
 
-    xdescribe('Bifröst Network Performance Validation Testing', () => {
+    describe('Bifröst Local Network Performance Validation Testing', () => {
 
-        it('Round-trip REST call via bus enabled service should take less than 50ms', (done) => {
-
-            bus = BusTestUtil.bootBusWithOptions(LogLevel.Info, true);
-            bus.logger.setStylingVisble(false);
-            const chan = GeneralUtil.genUUID();
-
-            // simulate restful service / API service.
-            bus.listenRequestOnce(chan).handle(
-                () => {
-                    printTimeStep('service received request', performance.now());
-                    const req = new XMLHttpRequest();
-
-                    req.onload = () => {
-                        bus.sendResponseMessage(chan, JSON.parse(req.responseText));
-                        printTimeStep('got xhr response, sent response back on channel', performance.now());
-                    };
-                    req.open("GET", 'http://localhost:8080/seed');
-                    req.send();
-                    printTimeStep('sent xhr request', performance.now());
-
-                }
-            );
-
-            bus.listenOnce(chan).handle(
-                (resp: any) => {
-                    timeAfter = performance.now();
-                    printTimeStep('received response from API service', timeAfter);
-                    printTotalTime(timeAfter - timeBefore);
-                    expect(timeAfter - timeBefore).toBeLessThan(50);
-                    done();
-                }
-            );
-
-            bus.sendRequestMessage(chan, true);
-            timeBefore = performance.now();
-            printTimeStep('sending request to service', timeBefore);
-
-
+        it('Round-trip XHR call via bus enabled service should take less than 50ms', (done) => {
+            runApiPerformanceTestOverXHR('localhost', 1, done, 50, 'seed');
         });
 
         it('Round-trip Socket call via bus enabled service should take less than 20ms', (done) => {
-
-            bus = BusTestUtil.bootBusWithOptions(LogLevel.Info, true);
-            bus.logger.setStylingVisble(false);
-
-            const chan = 'service-seed'; // must match service channel.
-            let session: UUID;
-
-            const theBridgeIsReady = (sessionId: string) => {
-                session = sessionId;
-                timeBefore = performance.now();
-                printTimeStep('sending request via the bus', timeBefore);
-
-                const request = new GalacticRequest("GetSeeds", null, GeneralUtil.genUUID(), 1);
-
-                bus.requestGalactic(chan, request,
-                    () => {
-
-                        timeAfter = performance.now();
-                        printTimeStep('received response from bus', timeAfter);
-                        printTotalTime(timeAfter - timeBefore);
-                        expect(timeAfter - timeBefore).toBeLessThan(20);
-                        //window.AppBrokerConnector.disconnectClient(sessionId);
-                        done();
-
-                    }
-                );
-            }
-
-            // we have to connect to the broker.
-            bus.connectBridge(
-                (sessionId) => {
-                    theBridgeIsReady(sessionId);
-                },
-                '/bifrost',
-                '/topic',
-                '/queue',
-                1,
-                'localhost',
-                8080,
-                '/pub'
-            );
-
+            runApiPerformanceTestOverSocket('localhost', 1, done, 20, 'GetSeeds');
         });
 
         it('Handle 6 API requests via XHR in under 50ms', (done) => {
-
-            bus = BusTestUtil.bootBusWithOptions(LogLevel.Info, true);
-            bus.logger.setStylingVisble(false);
-
-            const chan = GeneralUtil.genUUID();
-            let responseCount = 0;
-
-            bus.listenRequestStream(chan).handle(
-                (request: boolean, args: MessageArgs) => {
-                    printTimeStep('service received request', performance.now());
-                    const req = new XMLHttpRequest();
-
-                    req.onload = () => {
-                        bus.sendResponseMessageWithId(chan, JSON.parse(req.responseText), args.uuid);
-                        printTimeStep('got xhr response, sent response back on channel', performance.now());
-                    };
-                    req.open("GET", 'http://localhost:8080/seed?val=' + performance.now());
-                    req.send();
-                    printTimeStep('sent xhr request', performance.now());
-
-                }
-            );
-
-            bus.listenStream(chan).handle(
-                () => {
-                    responseCount++;
-                    if(responseCount >= 6) {
-                        timeAfter = performance.now();
-                        printTimeStep('received response from API service', timeAfter);
-                        printTotalTime(timeAfter - timeBefore);
-                        expect(timeAfter - timeBefore).toBeLessThan(50);
-                        done();
-                    }
-                }
-            );
-
-            for(let x = 0; x < 6; x++) {
-                bus.sendRequestMessageWithId(chan, true, GeneralUtil.genUUIDShort());
-            }
-            timeBefore = performance.now();
-            printTimeStep('sending request to service', timeBefore);
-
+            runApiPerformanceTestOverXHR('localhost', 6, done, 50, 'seed');
         });
 
         it('Handle 6 API requests via socket in under 40ms', (done) => {
-
-            bus = BusTestUtil.bootBusWithOptions(LogLevel.Info, true);
-            bus.logger.setStylingVisble(false);
-
-            const chan = 'service-seed'; // must match service channel.
-            let responseCount = 0;
-
-            const theBridgeIsReady = () => {
-
-                timeBefore = performance.now();
-                printTimeStep('sending request via the bus', timeBefore);
-
-                const request = new GalacticRequest("GetSeeds", null, GeneralUtil.genUUID(), 1);
-
-                for(let x = 0; x < 6; x++) {
-                    bus.requestGalactic(chan, request,
-                        () => {
-                            responseCount++;
-                            printTimeStep('received response from bus', timeAfter);
-                            if(responseCount >= 6) {
-                                timeAfter = performance.now();
-                                printTotalTime(timeAfter - timeBefore);
-                                expect(timeAfter - timeBefore).toBeLessThan(40);
-                                done();
-                            }
-                        }
-                    );
-                }
-            }
-
-            // we have to connect to the broker.
-            bus.connectBridge(
-                () => {
-                    theBridgeIsReady();
-                },
-                '/bifrost',
-                '/topic',
-                '/queue',
-                1,
-                'localhost',
-                8080,
-                '/pub'
-            );
-
+            runApiPerformanceTestOverSocket('localhost', 6, done, 40, 'GetSeeds');
         });
 
-        // put some load on the request cycle
-        it('Handle 50 API requests via XHR in under 100ms', (done) => {
-
-            bus = BusTestUtil.bootBusWithOptions(LogLevel.Info, true);
-            bus.logger.setStylingVisble(false);
-
-            const chan = GeneralUtil.genUUID();
-            let responseCount = 0;
-
-            bus.listenRequestStream(chan).handle(
-                (request: boolean, args: MessageArgs) => {
-                    //printTimeStep('service received request', performance.now());
-                    const req = new XMLHttpRequest();
-
-                    req.onload = () => {
-                        bus.sendResponseMessageWithId(chan, JSON.parse(req.responseText), args.uuid);
-                        //printTimeStep('got xhr response, sent response back on channel', performance.now());
-                    };
-                    req.open("GET", 'http://localhost:8080/seed?val=' + performance.now());
-                    req.send();
-                   // printTimeStep('sent xhr request', performance.now());
-
-                }
-            );
-
-            bus.listenStream(chan).handle(
-                () => {
-                    responseCount++;
-                    if(responseCount >= 50) {
-                        timeAfter = performance.now();
-                        //printTimeStep('received response from API service', timeAfter);
-                        printTotalTime(timeAfter - timeBefore);
-                        expect(timeAfter - timeBefore).toBeLessThan(100);
-                        done();
-                    }
-                }
-            );
-
-            for(let x = 0; x < 50; x++) {
-                bus.sendRequestMessageWithId(chan, true, GeneralUtil.genUUIDShort());
-            }
-            timeBefore = performance.now();
-            printTimeStep('sending request to service', timeBefore);
-
+        it('Handle 50 API requests via XHR in under 120ms', (done) => {
+            runApiPerformanceTestOverXHR('localhost', 50, done, 120, 'seed');
         });
 
         it('Handle 50 API requests via socket in under 60ms', (done) => {
+            runApiPerformanceTestOverSocket('localhost', 50, done, 60, 'GetSeeds');
+        });
 
-            bus = BusTestUtil.bootBusWithOptions(LogLevel.Info, true);
-            bus.logger.setStylingVisble(false);
+        it('Handle 100 API requests via XHR in under 220ms', (done) => {
+            runApiPerformanceTestOverXHR('localhost', 100, done, 220, 'seed');
+        });
 
-            const chan = 'service-seed'; // must match service channel.
-            let responseCount = 0;
+        it('Handle 100 API requests via socket in under 120ms', (done) => {
+            runApiPerformanceTestOverSocket('localhost', 100, done, 120, 'GetSeeds');
+        });
 
-            const theBridgeIsReady = () => {
+        it('Handle 200 API requests via XHR in under 400ms', (done) => {
+            runApiPerformanceTestOverXHR('localhost', 200, done, 400, 'seed');
+        });
 
-                timeBefore = performance.now();
-                printTimeStep('sending request via the bus', timeBefore);
+        it('Handle 200 API requests via socket in under 220ms', (done) => {
+            runApiPerformanceTestOverSocket('localhost', 200, done, 220, 'GetSeeds');
+        });
 
-                bus.listenGalacticStream(chan)
-                    .handle(
-                        () => {
-                            responseCount++;
-                            timeAfter = performance.now();
-                            //printTimeStep('received response from bus', timeAfter);
-                            if(responseCount >= 50) {
-                                printTotalTime(timeAfter - timeBefore);
-                                expect(timeAfter - timeBefore).toBeLessThan(60);
-                                done();
-                            }
-                        }
-                    );
+        it('Handle 300 API requests via XHR in under 800ms', (done) => {
+            runApiPerformanceTestOverXHR('localhost', 300, done, 800, 'seed');
+        });
 
-                for(let x = 0; x < 50; x++) {
-                    const request = new GalacticRequest("GetSeeds", null, GeneralUtil.genUUID(), 1);
-                    //printTimeStep('sending request via the bus', timeBefore);
-                    bus.sendGalacticMessage(chan, request);
+        it('Handle 300 API requests via socket in under 420ms', (done) => {
+            runApiPerformanceTestOverSocket('localhost', 300, done, 420, 'GetSeeds');
+        });
 
-                }
-            }
+        it('Handle 400 API requests via XHR in under 1200ms', (done) => {
+            runApiPerformanceTestOverXHR('localhost', 400, done, 1200, 'seed');
+        });
 
-            // we have to connect to the broker.
-            bus.connectBridge(
-                () => {
-                    theBridgeIsReady();
-                },
-                '/bifrost',
-                '/topic',
-                '/queue',
-                1,
-                'localhost',
-                8080,
-                '/pub'
-            );
+        it('Handle 400 API requests via socket in under 620ms', (done) => {
+            runApiPerformanceTestOverSocket('localhost', 400, done, 620, 'GetSeeds');
+        });
 
+        it('Handle 500 API requests via XHR in under 1300ms', (done) => {
+            runApiPerformanceTestOverXHR('localhost', 500, done, 1300, 'seed');
+        });
+
+        it('Handle 500 API requests via socket in under 720ms', (done) => {
+            runApiPerformanceTestOverSocket('localhost', 500, done, 720, 'GetSeeds');
+        });
+
+        it('Handle 1 Custom Logic command via socket in under 10ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('localhost', 1, done, 10);
+        });
+
+        it('Handle 1 Custom Logic command via XHR in under 50ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('localhost', 1, done, 50);
         });
 
 
+        it('Handle 6 Custom Logic requests via socket in under 50ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('localhost', 50, done, 50);
+        });
+
+        it('Handle 6 Custom Logic requests via XHR in under 100ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('localhost', 6, done, 100);
+        });
+
+        it('Handle 50 Custom Logic requests via XHR in under 120ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('localhost', 50, done, 120);
+        });
+
+        it('Handle 50 Custom Logic requests via socket in under 80ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('localhost', 50, done, 80);
+        });
+
+        it('Handle 100 Custom Logic requests via XHR in under 200ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('localhost', 100, done, 200);
+        });
+
+        it('Handle 100 Custom Logic requests via socket in under 120ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('localhost', 100, done, 120);
+        });
+
+        it('Handle 200 Custom Logic requests via XHR in under 400ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('localhost', 200, done, 400);
+        });
+
+        it('Handle 200 Custom Logic requests via socket in under 250ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('localhost', 200, done, 250);
+        });
+
+        it('Handle 300 Custom Logic requests via XHR in under 700ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('localhost', 300, done, 700);
+        });
+
+        it('Handle 300 Custom Logic requests via socket in under 350ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('localhost', 300, done, 350);
+        });
+
+        it('Handle 400 Custom Logic requests via XHR in under 900ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('localhost', 400, done, 900);
+        });
+
+        it('Handle 300 Custom Logic requests via socket in under 450ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('localhost', 400, done, 450);
+        });
+
+        it('Handle 500 Custom Logic requests via XHR in under 900ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('localhost', 500, done, 900);
+        });
+
+        it('Handle 500 Custom Logic requests via socket in under 550ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('localhost', 500, done, 550);
+        });
+    });
+
+    describe('Bifröst Remote Network Performance Validation Testing', () => {
+
+        it('(Remote) Round-trip XHR call via bus enabled service should take less than 90ms', (done) => {
+            runApiPerformanceTestOverXHR('quobix.com', 1, done, 90, 'seed');
+        });
+
+        it('(Remote) Round-trip Socket call via bus enabled service should take less than 40ms', (done) => {
+            runApiPerformanceTestOverSocket('quobix.com', 1, done, 40, 'GetSeeds');
+        });
+        
+        it('(Remote) Handle 6 API requests via XHR in under 100ms', (done) => {
+            runApiPerformanceTestOverXHR('quobix.com', 6, done, 100, 'seed');
+        });
+
+        it('(Remote) Handle 6 API requests via socket in under 50ms', (done) => {
+            runApiPerformanceTestOverSocket('quobix.com', 6, done, 50, 'GetSeeds');
+        });
+
+        it('(Remote) Handle 50 API requests via XHR in under 300ms', (done) => {
+            runApiPerformanceTestOverXHR('quobix.com', 50, done, 300, 'seed');
+        });
+
+        it('(Remote) Handle 50 API requests via socket in under 100ms', (done) => {
+            runApiPerformanceTestOverSocket('quobix.com', 50, done, 100, 'GetSeeds');
+        });
+
+        it('(Remote) Handle 100 API requests via XHR in under 700ms', (done) => {
+            runApiPerformanceTestOverXHR('quobix.com', 100, done, 700, 'seed');
+        });
+
+        it('(Remote) Handle 100 API requests via socket in under 150ms', (done) => {
+            runApiPerformanceTestOverSocket('quobix.com', 100, done, 150, 'GetSeeds');
+        });
+
+        it('(Remote) Handle 200 API requests via XHR in under 1100ms', (done) => {
+            runApiPerformanceTestOverXHR('quobix.com', 200, done, 1100, 'seed');
+        });
+
+        it('(Remote) Handle 200 API requests via socket in under 250ms', (done) => {
+            runApiPerformanceTestOverSocket('quobix.com', 200, done, 250, 'GetSeeds');
+        });
+
+        it('(Remote) Handle 300 API requests via XHR in under 1700ms', (done) => {
+            runApiPerformanceTestOverXHR('quobix.com', 300, done, 1700, 'seed');
+        });
+
+        it('(Remote) Handle 300 API requests via socket in under 520ms', (done) => {
+            runApiPerformanceTestOverSocket('quobix.com', 300, done, 520, 'GetSeeds');
+        });
+
+        it('(Remote) Handle 400 API requests via XHR in under 2200ms', (done) => {
+            runApiPerformanceTestOverXHR('quobix.com', 400, done, 2200, 'seed');
+        });
+
+        it('(Remote) Handle 400 API requests via socket in under 620ms', (done) => {
+            runApiPerformanceTestOverSocket('quobix.com', 400, done, 620, 'GetSeeds');
+        });
+
+        it('(Remote) Handle 500 API requests via XHR in under 2800ms', (done) => {
+            runApiPerformanceTestOverXHR('quobix.com', 500, done, 2800, 'seed');
+        });
+
+        it('(Remote) Handle 500 API requests via socket in under 900ms', (done) => {
+            runApiPerformanceTestOverSocket('quobix.com', 500, done, 900, 'GetSeeds');
+        });
+
+        it('(Remote) Handle 1 Custom Logic command via XHR in under 50ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('quobix.com', 1, done, 50);
+        });
+
+        it('(Remote) Handle 1 Custom Logic command via socket in under 30ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('quobix.com', 1, done, 30);
+        });
+
+        it('(Remote) Handle 6 Custom Logic requests via XHR in under 150ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('quobix.com', 6, done, 150);
+        });
+
+        it('(Remote) Handle 6 Custom Logic requests via socket in under 40ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('quobix.com', 6, done, 40);
+        });
+
+        it('(Remote) Handle 50 Custom Logic requests via XHR in under 350ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('quobix.com', 50, done, 350);
+        });
+
+        it('(Remote) Handle 50 Custom Logic requests via socket in under 90ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('quobix.com', 50, done, 90);
+        });
+
+        it('(Remote) Handle 100 Custom Logic requests via XHR in under 600ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('quobix.com', 100, done, 600);
+        });
+
+        it('(Remote) Handle 100 Custom Logic requests via socket in under 120ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('quobix.com', 100, done, 120);
+        });
+
+        it('(Remote) Handle 200 Custom Logic requests via XHR in under 1200ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('quobix.com', 200, done, 1200);
+        });
+
+        it('(Remote) Handle 200 Custom Logic requests via socket in under 250ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('quobix.com', 200, done, 250);
+        });
+
+        it('(Remote) Handle 300 Custom Logic requests via XHR in under 1400ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('quobix.com', 300, done, 1400);
+        });
+
+        it('(Remote) Handle 300 Custom Logic requests via socket in under 400ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('quobix.com', 300, done, 400);
+        });
+
+        it('(Remote) Handle 400 Custom Logic requests via XHR in under 2100ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('quobix.com', 400, done, 2100);
+        });
+
+        it('(Remote) Handle 400 Custom Logic requests via socket in under 600ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('quobix.com', 400, done, 600);
+        });
+
+        it('(Remote) Handle 500 Custom Logic requests via XHR in under 2500ms', (done) => {
+            runCustomApiPerformanceTestOverXHR('quobix.com', 500, done, 2500);
+        });
+
+        it('(Remote) Handle 500 Custom Logic requests via socket in under 800ms', (done) => {
+            runCustomApiPerformanceTestOverSocket('quobix.com', 500, done, 800);
+        });
 
     });
 
@@ -677,4 +664,104 @@ function printTotalTime(time: number) {
     if (printTimeLogs) {
         bus.logger.info("execution time total ms: " + time);
     }
+}
+
+
+function runApiPerformanceTestOverSocket(host: string, loops: number, done: Function, expectedRunTime: number, command: string) {
+
+    bus = BusTestUtil.bootBusWithOptions(LogLevel.Info, true);
+    bus.logger.setStylingVisble(false);
+
+    const chan = 'service-seed'; // must match service channel.
+    let responseCount = 0;
+    let timeBefore: number, timeAfter: number;
+
+    const theBridgeIsReady = () => {
+
+        timeBefore = performance.now();
+        bus.listenGalacticStream(chan)
+            .handle(
+                () => {
+                    responseCount++;
+                    timeAfter = performance.now();
+                    if(responseCount >= loops) {
+
+                        printTotalTime(timeAfter - timeBefore);
+                        expect(timeAfter - timeBefore).toBeLessThan(expectedRunTime);
+                        bus.closeGalacticChannel('service-seed');
+                        done();
+                    }
+                }
+            );
+
+        for(let x = 0; x < loops; x++) {
+            const request = new APIRequest(command, null, GeneralUtil.genUUID(), 1);
+            bus.sendGalacticMessage(chan, request);
+
+        }
+    }
+
+    // we have to connect to the broker.
+    bus.connectBridge(
+        () => {
+            theBridgeIsReady();
+        },
+        '/bifrost',
+        '/topic',
+        '/queue',
+        1,
+        host,
+        8080,
+        '/pub'
+    );
+}
+
+function runCustomApiPerformanceTestOverSocket(host: string, loops: number, done: Function, expectedRunTime: number) {
+    runApiPerformanceTestOverSocket(host, loops, done, expectedRunTime, 'CustomLogic');
+}
+
+function runApiPerformanceTestOverXHR(host: string, loops: number, done: Function, expectedRunTime: number, command: string) {
+    bus = BusTestUtil.bootBusWithOptions(LogLevel.Info, true);
+    bus.logger.setStylingVisble(false);
+
+    const chan = GeneralUtil.genUUID();
+    let responseCount = 0;
+    let timeBefore: number, timeAfter: number;
+
+    bus.listenRequestStream(chan).handle(
+        (request: boolean, args: MessageArgs) => {
+            const req = new XMLHttpRequest();
+
+            req.onload = () => {
+                bus.sendResponseMessageWithId(chan, JSON.parse(req.responseText), args.uuid);
+
+            };
+            req.open("GET", `http://${host}:8080/${command}?val=` + performance.now());
+            req.send();
+
+        }
+    );
+
+    bus.listenStream(chan).handle(
+        () => {
+            responseCount++;
+            if(responseCount >= loops) {
+                timeAfter = performance.now();
+
+                printTotalTime(timeAfter - timeBefore);
+                expect(timeAfter - timeBefore).toBeLessThan(expectedRunTime);
+                done();
+
+            }
+        }
+    );
+
+    for(let x = 0; x < loops; x++) {
+        bus.sendRequestMessageWithId(chan, true, GeneralUtil.genUUIDShort());
+    }
+    timeBefore = performance.now();
+}
+
+function runCustomApiPerformanceTestOverXHR(host: string, loops: number, done: Function, expectedRunTime: number) {
+    runApiPerformanceTestOverXHR(host, loops, done, expectedRunTime, 'seed/custom');
 }

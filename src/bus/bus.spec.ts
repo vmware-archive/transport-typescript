@@ -5,14 +5,14 @@ import { EventBus, BifrostEventBus, BrokerConnectorChannel, MessageArgs } from '
 import { LogLevel } from '../log/logger.model';
 import { Message} from './model/message.model';
 import { Channel } from './model/channel.model';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { Logger } from '../log/logger.service';
 import { StompParser } from '../bridge/stomp.parser';
 import { StompClient } from '../bridge/stomp.client';
 import { MonitorObject, MonitorType } from './model/monitor.model';
-import { GalacticRequest } from './model/request.model';
+import { APIRequest } from '../core/model/request.model';
 import { UUID } from './store/store.model';
-import { GalacticResponse } from './model/response.model';
+import { APIResponse } from '../core/model/response.model';
 import { GeneralUtil } from '../util/util';
 import { MessageHandler, MessageResponder, MessageType } from '../bus.api';
 
@@ -730,7 +730,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('respondOnce() and requestOnce() on differing request/response channels.',
+        it('respondOnce() and requestOnce() on differing command/response channels.',
             (done) => {
 
                 bus.respondOnce(testChannel, '#some-different-return')
@@ -751,7 +751,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('request once with a different return channel',
+        it('command once with a different return channel',
             (done) => {
 
                 const channel1 = '#test-channel1';
@@ -775,7 +775,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('request stream with a different return channel',
+        it('command stream with a different return channel',
             (done) => {
 
                 const channel1 = '#test-channel1';
@@ -906,7 +906,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('listenRequestOnce() [listen to a single request]',
+        it('listenRequestOnce() [listen to a single command]',
             (done) => {
 
                 let c: number = 0;
@@ -939,7 +939,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('listenRequestStream() [ listen for multiple request messages on a channel ]',
+        it('listenRequestStream() [ listen for multiple command messages on a channel ]',
             (done) => {
 
                 let h: number = 0;
@@ -969,7 +969,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('sendRequest() [ simple API wrapper for sending request messages (wraps MessageHandlerConfig) ]',
+        it('sendRequest() [ simple API wrapper for sending command messages (wraps MessageHandlerConfig) ]',
             (done) => {
 
                 bus.listenRequestOnce(testChannel)
@@ -998,7 +998,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('sendRequestMessage() [ lower level wrapper for sending request messages ]',
+        it('sendRequestMessage() [ lower level wrapper for sending command messages ]',
             (done) => {
 
                 let _chan = bus.api.getRequestChannel(testChannel, 'sendRequestMessage()');
@@ -1014,7 +1014,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('sendRequestMessageWithId() [ test we can send a request with an ID and pick it up] ',
+        it('sendRequestMessageWithId() [ test we can send a command with an ID and pick it up] ',
             (done) => {
                 const id = GeneralUtil.genUUIDShort();
 
@@ -1030,7 +1030,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('sendRequestMessageWithIdAndVersion() [ test we can send a request with an' +
+        it('sendRequestMessageWithIdAndVersion() [ test we can send a command with an' +
                         ' ID + version and pick it up] ',
             (done) => {
                 const id = GeneralUtil.genUUIDShort();
@@ -1064,7 +1064,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('sendRequestMessageWithId() [ test we can send a request with and ID and pick it up] ',
+        it('sendRequestMessageWithId() [ test we can send a command with and ID and pick it up] ',
             (done) => {
                 const id = GeneralUtil.genUUIDShort();
 
@@ -1080,7 +1080,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-        it('sendRequestMessageWithIdAndVersion() [ test we can send a request with and' +
+        it('sendRequestMessageWithIdAndVersion() [ test we can send a command with and' +
             ' ID + version and pick it up] ',
             (done) => {
                 const id = GeneralUtil.genUUIDShort();
@@ -1191,7 +1191,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                 stream.handle(
                     (val: number) => {
                         if (val <= 9) {
-                            // send the value right back down the stream again as another request.
+                            // send the value right back down the stream again as another command.
                             stream.tick(val);
                             return;
                         }
@@ -1880,9 +1880,9 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         it('galacticRequest() works correctly.',
             (done) => {
                 const id: UUID = GeneralUtil.genUUIDShort();
-                const req: GalacticRequest<string> = GalacticRequest.build('testAPI', 'ember loves to play?', id);
+                const req: APIRequest<string> = APIRequest.build('testAPI', 'ember loves to play?', id);
                 bus.requestGalactic('ember-station', req,
-                    (resp: GalacticResponse<string>) => {
+                    (resp: APIResponse<string>) => {
                         expect(resp.id).toEqual(id);
                         expect(resp.payload).toEqual('scooty butt chase jump');
                         done();
@@ -1895,11 +1895,11 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                             case MonitorType.MonitorGalacticData:
                                 expect(mo.channel).toEqual('ember-station');
 
-                                const data: GalacticRequest<string> = mo.data as GalacticRequest<string>;
+                                const data: APIRequest<string> = mo.data as APIRequest<string>;
                                 expect(data.id).toEqual(id);
 
-                                const resp: GalacticResponse<string> =
-                                    GalacticResponse.build('scooty butt chase jump', id);
+                                const resp: APIResponse<string> =
+                                    APIResponse.build('scooty butt chase jump', id);
                                 bus.sendResponseMessage('ember-station', resp);
                                 break;
 
@@ -1915,7 +1915,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 spyOn(log, 'error').and.callThrough();
                 bus.requestGalactic(null, null, null);
-                expect(log.error).toHaveBeenCalledWith('Cannot send Galactic Request, ' +
+                expect(log.error).toHaveBeenCalledWith('Cannot send Galactic APIRequest, ' +
                     'payload or channel is empty.', 'EventBus');
 
             });

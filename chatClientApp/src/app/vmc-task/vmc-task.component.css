@@ -1,0 +1,60 @@
+.task-body {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: left;
+    margin-left: 8px;
+}
+
+.vmc-icon {
+    font-size: 30px;
+    line-height: 1.4;
+    margin-right: 5px;
+}
+
+.vmc-icon img {
+    width: 30px;
+    margin-top: -15px;
+}
+
+.task-body .details {
+    width: 100%;
+    color: #281336;
+}
+
+.sddc-name {
+    font-weight: 800;
+    color: darkred;
+}
+
+.task-type {
+    color: grey;
+
+}
+
+.task-status {
+    color: #af00a2;
+}
+
+.task-phases {
+  font-size: 0.8em;
+    width: 362px;
+}
+
+
+.task-phase label {
+    color: #565656
+}
+
+.phase {
+    font-size: 0.7em;
+}
+
+.time-remaining {
+    font-size: 0.7em;
+}
+
+.currently {
+    font-weight: 800;
+    color: #008800;
+}

@@ -6,7 +6,8 @@ import { Channel } from './model/channel.model';
 import { MonitorObject, MonitorType } from './model/monitor.model';
 import {
     Message,
-    MessageHandlerConfig} from './model/message.model';
+    MessageHandlerConfig
+} from './model/message.model';
 import { BusStoreApi } from '../store.api';
 import { UUID } from './store/store.model';
 import { BrokerConnectorChannel, StompBusCommand, StompConfig } from '../bridge/stomp.model';
@@ -24,25 +25,25 @@ import {
 import { EventBusLowLevelApiImpl } from './bus.lowlevel';
 import { Logger } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
-import { GalacticRequest } from './model/request.model';
-import { GalacticResponse } from './model/response.model';
-import { Observable } from 'rxjs/Observable';
+import { APIRequest } from '../core/model/request.model';
+import { APIResponse } from '../core/model/response.model';
+import { Observable } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { StoreManager } from './store/store.manager';
 import { BusTransactionImpl } from './transaction';
 import { BrokerConnector } from '../bridge/broker-connector';
 import { GeneralUtil } from '../util/util';
-import 'rxjs/add/operator/merge';
-import 'rxjs/add/observable/merge';
+import { MessageProxy, MessageProxyConfig, ProxyControl } from '../proxy/message.proxy';
 
 export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
-    private static _instance: EventBus;
+    private static instance: EventBus;
 
     /**
      * Destroy the bus completely.
      */
     public static destroy(): void {
-        this._instance = null;
+        this.instance = null;
     }
 
     public static getInstance(): EventBus {
@@ -54,7 +55,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
      * @returns {EventBus} the bus.
      */
     public static boot(): EventBus {
-        return this._instance || (this._instance = new this());
+        return this.instance || (this.instance = new this());
     }
 
     /**
@@ -64,7 +65,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
      * @returns {EventBus} the bus
      */
     public static bootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
-        return this._instance || (this._instance = new this(logLevel, disableBootMessage));
+        return this.instance || (this.instance = new this(logLevel, disableBootMessage));
     }
 
     /**
@@ -74,7 +75,10 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
      * @returns {EventBus} the newly rebooted bus
      */
     public static rebootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
-        return (this._instance = new this(logLevel, disableBootMessage));
+        //EventBus.id = EventBus.rebuildId(); // reset the ID attached to the abstract class.
+        //this.instance = null;
+        //delete this.instance;
+        return (this.instance = new this(logLevel, disableBootMessage));
     }
 
     /**
@@ -82,13 +86,17 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
      * @returns {EventBus} the newly rebooted event bus.
      */
     public static reboot(): EventBus {
-        return (this._instance = new this());
+        //EventBus.id = EventBus.rebuildId(); // reset the ID attached to the abstract class.
+        //this.instance = null;
+        //delete this.instance;
+        return (this.instance = new this());
     }
 
     private internalChannelMap: Map<string, Channel>;
     private log: Logger;
-    private windowRef = window;
-
+    private windowRef: any = window;
+    private messageProxy: MessageProxy;
+    private proxyControl: ProxyControl;
 
     // low level API
     readonly api: EventBusLowApi;
@@ -108,7 +116,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         this.stores = new StoreManager(this, this.log);
 
         // wire up singleton to the window object under a custom namespace.
-        this.windowRef.AppEventBus = this as EventBus;
+        this.windowRef.AppEventBus = this;
         this.windowRef.AppBrokerConnector = new BrokerConnector(this.log);
         this.windowRef.AppBrokerConnector.init(this);
         this.windowRef.window.AppSyslog = this.log;
@@ -133,6 +141,15 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
     public getName() {
         return 'EventBus';
+    }
+
+
+    public enableMessageProxy(config: MessageProxyConfig): ProxyControl {
+
+        this.messageProxy = new MessageProxy(this);
+        this.proxyControl = this.messageProxy.enableProxy(config);
+        return this.proxyControl;
+
     }
 
     public connectBridge(
@@ -170,7 +187,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
                     readyHandler(command.session);
                 } else {
                     this.api.logger()
-                    .info('connection handler received command message: ' + command.command, this.getName());
+                        .info('connection handler received command message: ' + command.command, this.getName());
                 }
             }
         );
@@ -228,9 +245,10 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         cname: string,
         payload: R,
         id: UUID,
-        from?: string): void {
+        from?: string,
+        proxyBroadcast: boolean = false): void {
 
-            this.api.send(cname, new Message(id).request(payload), from);
+        this.api.send(cname, new Message(id, 1, proxyBroadcast).request(payload), from);
     }
 
     public sendRequestMessageWithIdAndVersion<R>(
@@ -238,12 +256,13 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         payload: R,
         id: UUID,
         version: number,
-        from?: string): void {
-            this.api.send(
-                cname,
-                new Message(id, version).request(payload),
-                from
-            );
+        from?: string,
+        proxyBroadcast: boolean = false): void {
+        this.api.send(
+            cname,
+            new Message(id, version, proxyBroadcast).request(payload),
+            from
+        );
     }
 
 
@@ -268,16 +287,17 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         cname: string,
         payload: R,
         id: UUID,
-        from?: string): void {
-            this.api.tickEventLoop(
-                () => {
-                    this.api.send(
-                        cname,
-                        new Message(id).response(payload),
-                        from
-                    );
-                }
-            );
+        from?: string,
+        proxyBroadcast: boolean = false): void {
+        this.api.tickEventLoop(
+            () => {
+                this.api.send(
+                    cname,
+                    new Message(id, 1, proxyBroadcast).response(payload),
+                    from
+                );
+            }
+        );
     }
 
     public sendResponseMessageWithIdAndVersion<R>(
@@ -285,25 +305,57 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         payload: R,
         id: UUID,
         version: number,
-        from?: string): void {
-            this.api.tickEventLoop(
-                () => {
-                    this.api.send(
-                        cname,
-                        new Message(id, version).response(payload),
-                        from
-                    );
-                }
-            );
+        from?: string,
+        proxyBroadcast: boolean = false): void {
+        this.api.tickEventLoop(
+            () => {
+                this.api.send(
+                    cname,
+                    new Message(id, version, proxyBroadcast).response(payload),
+                    from
+                );
+            }
+        );
+    }
+
+    sendErrorMessageWithId<E>(
+        cname: ChannelName,
+        payload: E,
+        id: UUID,
+        from?: SentFrom,
+        proxyBroadcast?: boolean): void {
+
+        this.api.send(
+            cname,
+            new Message(id, 1, proxyBroadcast).error(payload),
+            from
+        );
+
+    }
+
+    sendErrorMessageWithIdAndVersion<E>(
+        cname: ChannelName,
+        payload: E,
+        id: UUID,
+        version: number,
+        from?: SentFrom,
+        proxyBroadcast?: boolean): void {
+
+        this.api.send(
+            cname,
+            new Message(id, version, proxyBroadcast).error(payload),
+            from
+        );
     }
 
 
     public sendErrorMessage(
         cname: ChannelName,
         payload: any,
-        name = this.getName()): void {
+        name = this.getName(),
+        proxyBroadcast: boolean = false): void {
 
-        this.api.send(cname, new Message().error(payload), name);
+        this.api.send(cname, new Message(GeneralUtil.genUUIDShort(), 1, proxyBroadcast).error(payload), name);
     }
 
 
@@ -424,33 +476,35 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
     public requestGalactic<T, R>(
         channel: string,
-        request: GalacticRequest<T>,
-        successHandler: MessageFunction<GalacticResponse<R>>,
-        errorHandler: MessageFunction<GalacticResponse<R>>,
+        request: APIRequest<T>,
+        successHandler: MessageFunction<APIResponse<R>>,
+        errorHandler: MessageFunction<APIResponse<R>>,
         from?: string): void {
 
         if (!channel || !request) {
-            this.log.error('Cannot send Galactic Request, payload or channel is empty.', this.getName());
+            this.log.error('Cannot send Galactic APIRequest, payload or channel is empty.', this.getName());
             return;
         }
 
         const conversationId: UUID = request.id;
 
         const stream: Observable<Message> = this.api.getGalacticChannel(channel)
-        .filter((message: Message) => {
-            return (message.isResponse());
-        }).filter((message: Message) => {
-            const resp: GalacticResponse<R> = message.payload as GalacticResponse<R>;
-            return conversationId === resp.id;
-        });
+            .pipe(
+                filter((message: Message) => {
+                    return (message.isResponse());
+                }),
+                filter((message: Message) => {
+                    const resp: APIResponse<R> = message.payload as APIResponse<R>;
+                    return conversationId === resp.id;
+                }));
 
         const sub = stream.subscribe(
             (msg: Message) => {
-                const resp: GalacticResponse<R> = msg.payload;
+                const resp: APIResponse<R> = msg.payload;
                 if (resp.error) {
                     errorHandler(resp);
                 } else {
-                    this.log.debug('Galactic Response Incoming: ' + resp.id);
+                    this.log.debug('Galactic APIResponse Incoming: ' + resp.id);
                     successHandler(resp);
                 }
                 sub.unsubscribe();
@@ -473,7 +527,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         chan.subscribe(
             () => {
                 const msg = 'Maggie wags his little nubby tail at you, ' +
-                            'as he sits under his little yellow boat on the beach';
+                    'as he sits under his little yellow boat on the beach';
                 this.sendResponseMessage('__maglingtonpuddles__', msg);
             }
         );

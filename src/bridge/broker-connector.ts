@@ -1,5 +1,5 @@
 import { StompClient } from './stomp.client';
-import { Observable,  Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import {
     StompSession, BrokerConnectorChannel, StompBusCommand, StompSubscription, StompMessage,
     StompConfig
@@ -8,7 +8,7 @@ import { StompParser } from '../bridge/stomp.parser';
 import { StompValidator } from './stomp.validator';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
 import { Message } from '../bus/model/message.model';
-import { BifrostEventBus} from '../bus/bus';
+import { BifrostEventBus } from '../bus/bus';
 import { EventBus, EventBusEnabled } from '../bus.api';
 import { Logger } from '../log';
 
@@ -206,7 +206,7 @@ export class BrokerConnector implements EventBusEnabled {
                 this.sendPacket(command);
             } else {
                 this.log.warn('Cannot send galactic message, topics not enabled for ' +
-                      'broker, queues not implemented yet.', this.getName());
+                    'broker, queues not implemented yet.', this.getName());
             }
         });
     }
@@ -415,6 +415,13 @@ export class BrokerConnector implements EventBusEnabled {
                             );
 
                         this.sendBusCommandResponseRaw(message, BrokerConnectorChannel.connection, true);
+                        this.bus.api.getMonitorStream().send(
+                            new Message().response(
+                                new MonitorObject()
+                                    .build(MonitorType.MonitorBrokerConnectorConnected,
+                                        BrokerConnectorChannel.connection, this.getName(), '')
+                            )
+                        );
 
                         // these are now available;
                         this._errorObservable = session.client.socketErrorObserver;
@@ -566,24 +573,6 @@ export class BrokerConnector implements EventBusEnabled {
                     // bypass event loop for fast incoming socket events, the loop will slow things down.
                     respChannelObject.stream.next(new Message().response(payload));
 
-                    //let busResponse: StompBusCommand =
-                    //     StompParser.generateStompBusCommand(
-                    //         StompClient.STOMP_MESSAGE,
-                    //         session.id,
-                    //         data.destination,
-                    //         StompParser.frame(
-                    //             StompClient.STOMP_MESSAGE,
-                    //             msg.headers,
-                    //             msg.body
-                    //         )
-                    //     );
-
-                    // disabled this, legacy.
-                    // duplicate to stomp messages.
-                    // this.bus.api.send(BrokerConnectorChannel.messages,
-                    //     new Message().response(busResponse),
-                    //     this.getName()
-                    // );
                 }
             );
 

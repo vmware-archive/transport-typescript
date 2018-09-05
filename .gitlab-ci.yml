@@ -1,23 +1,14 @@
 image: geekykaran/headless-chrome-node-docker:latest
 
 stages:
-- prepare
 - test
 - build
 - publish
 
-before_script:
-- npm install
+cache: {}
 
-prepare:
-  stage: prepare
-  script:
-  - echo "NPM install"
-  - npm install --registry https://build-artifactory.eng.vmware.com/artifactory/api/npm/npm
-  when: always
-  only:
-  - pushes
-  - web
+before_script:
+- npm install --registry https://build-artifactory.eng.vmware.com/artifactory/api/npm/npm
 
 test:unit:
   stage: test
@@ -57,8 +48,3 @@ publish:bifrost:
   when: manual
   only:
   - master
-
-#test:
-#  script:
-#  - npm run test
-#  - npm run prepare

@@ -1,0 +1,11 @@
+a .logo:visited {
+    color: red;
+}
+
+a .logo:hover {
+    color: green;
+}
+
+a .logo {
+    color: orange;
+}

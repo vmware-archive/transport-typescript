@@ -2,10 +2,10 @@
  * Copyright(c) VMware Inc. 2016-2017
  */
 
-import { Message} from '../model/message.model';
-import { BifrostEventBus } from '../bus';
+import { Message } from '../model/message.model';
 import { StompParser } from '../../bridge/stomp.parser';
-import { Observable } from 'rxjs/Observable';
+import { Observable, merge } from 'rxjs';
+import { map, filter } from 'rxjs/operators';
 import {
     StoreStateChange, StoreStateMutation, StoreStreamImpl, MutateStreamImpl, MutationRequestWrapper,
     UUID,
@@ -20,9 +20,9 @@ interface Predicate<T> {
 }
 
 export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
-    
+
     private uuid: string;
-    
+
     getName(): string {
         return 'BusStore';
     }
@@ -32,7 +32,7 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
     private cacheMutationChan: string;
     private cacheReadyChan: string;
     private cacheInitialized = false;
-    
+
     public getObjectChannel(id: UUID): UUID {
         return 'store-' + this.uuid + '-object-' + id;
     }
@@ -112,12 +112,12 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
             this.bus.api.getErrorChannel(this.getObjectChannel(id), this.getName());
 
         const stream: Observable<StoreStateChange<S, T>> =
-             Observable.merge(cacheStreamChan, cacheErrorCan)
-                .map(
+            merge(cacheStreamChan, cacheErrorCan)
+                .pipe(map(
                     (msg: Message) => {
                         return msg.payload as StoreStateChange<S, T>;
                     }
-                );
+                ));
 
         const stateChangeFilter: Predicate<StoreStateChange<S, T>> = (state: StoreStateChange<S, T>) => {
             if (stateChangeType && stateChangeType.length > 0) {
@@ -138,11 +138,13 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
             this.bus.api.getErrorChannel(this.cacheStreamChan, this.getName());
 
         const stream: Observable<StoreStateChange<S, T>> =
-            Observable.merge(cacheStreamChan, cacheErrorCan)
-                .map(
-                    (msg: Message) => {
-                        return msg.payload as StoreStateChange<S, T>;
-                    }
+            merge(cacheStreamChan, cacheErrorCan)
+                .pipe(
+                    map(
+                        (msg: Message) => {
+                            return msg.payload as StoreStateChange<S, T>;
+                        }
+                    )
                 );
 
         const stateChangeFilter: Predicate<StoreStateChange<S, T>> = (state: StoreStateChange<S, T>) => {
@@ -161,7 +163,7 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
             // };
             // return compareKeys(objectType, state.value);
             // return objectType.constructor.name.trim() === state.value.constructor.name.trim();
-            
+
             // Check that class names match. If not, just log, don't do anything.    
             const match: boolean = objectType.constructor.name.trim() === state.value.constructor.name.trim();
 
@@ -169,7 +171,7 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
 
                 this.log.warn('onAllChanges() stream handling mismatched object types [' +
                     objectType.constructor.name.trim() + '] and [' + state.value.constructor.name.trim() + ']',
-                        this.getName());
+                    this.getName());
             }
             return true;
 
@@ -185,14 +187,16 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
 
         filters.forEach(
             (f: Predicate<StoreStateChange<S, T>>) => {
-                stream = stream.filter(f);
+                stream = stream.pipe(filter(f));
             }
         );
 
-        return stream.map(
-            (stateChange: StoreStateChange<S, T>) => {
-                return new MutationRequestWrapper(stateChange.value);
-            }
+        return stream.pipe(
+            map(
+                (stateChange: StoreStateChange<S, T>) => {
+                    return new MutationRequestWrapper(stateChange.value);
+                }
+            )
         );
     }
 
@@ -211,7 +215,7 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
             this.getName()
         );
 
-        this.log.debug('🗄️ Store: Fired mutation request', this.type);
+        this.log.debug('🗄️ Store: Fired mutation command', this.type);
         return true;
     }
 
@@ -219,28 +223,33 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
 
         const stream: Observable<StoreStateMutation<M, T>> =
             this.bus.api.getChannel(this.cacheMutationChan, this.getName())
-                .map(
-                    (msg: Message) => {
-                        return msg.payload as StoreStateMutation<M, T>;
-                    }
+                .pipe(
+                    map(
+                        (msg: Message) => {
+                            return msg.payload as StoreStateMutation<M, T>;
+                        }
+                    )
                 );
 
         const filterStream: Observable<MutationRequestWrapper<T, any>> =
-            stream.filter(
-                (mutation: StoreStateMutation<M, T>) => {
-                    if (mutationType && mutationType.length > 0) {
-                        return (mutationType.indexOf(mutation.type) >= 0);
+            stream.pipe(
+                filter(
+                    (mutation: StoreStateMutation<M, T>) => {
+                        if (mutationType && mutationType.length > 0) {
+                            return (mutationType.indexOf(mutation.type) >= 0);
+                        }
+                        return true;
                     }
-                    return true;
-                }
-            ).map(
-                (stateChange: StoreStateMutation<M, T>) => {
-                    return new MutationRequestWrapper(
-                        stateChange.value,
-                        stateChange.successHandler,
-                        stateChange.errorHandler
-                    );
-                }
+                ),
+                map(
+                    (stateChange: StoreStateMutation<M, T>) => {
+                        return new MutationRequestWrapper(
+                            stateChange.value,
+                            stateChange.successHandler,
+                            stateChange.errorHandler
+                        );
+                    }
+                )
             );
 
         return new MutateStreamImpl<T, E>(filterStream, this.log);
@@ -257,9 +266,9 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
         setTimeout(
             () => {
                 if (this.cacheInitialized) {
-                    this.log.debug('🗄️ Store: [' + this.type + '] Ready! Contains ' 
+                    this.log.debug('🗄️ Store: [' + this.type + '] Ready! Contains '
                         + this.allValuesAsMap().size + ' values', this.type);
-                    
+
                     this.bus.sendResponseMessage(this.cacheReadyChan, this.allValuesAsMap());
                 }
             }
