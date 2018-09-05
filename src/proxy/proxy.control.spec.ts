@@ -94,7 +94,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
         control.setParentOrigin('http://puppy.time');
 
         expect(control.getParentOrigin()).toEqual('http://puppy.time');
-        
+
         // check allowed origins
         control.addAllowedTargetOrigin('http://space.force');
         expect(control.getAllowedOrigins().length).toEqual(2);

@@ -6,8 +6,9 @@
   "repository": "git@gitlab.eng.vmware.com:bifrost/typescript.git",
   "dependencies": {
     "@angular/cli": "^6.1.4",
+    "@types/chrome": "0.0.72",
     "npm": "^6.2.0",
-    "rxjs": "^6.2.2",
+    "rxjs": "^6.3.2",
     "zone.js": "^0.8.26"
   },
   "devDependencies": {

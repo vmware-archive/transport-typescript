@@ -8,7 +8,7 @@
         "url" : "git@gitlab.eng.vmware.com:bifrost/typescript.git"
     },
     "peerDependencies": {
-        "rxjs": "^6.0.0"
+        "rxjs": "^6.3.2"
     },
     "publishConfig": {
         "registry": "http://build-artifactory.eng.vmware.com:80/artifactory/api/npm/npm"
@@ -39,6 +39,10 @@
                 },
                 {
                     "description": "Rebuilt REST Service usint Tango as Http provider. Will be wired into VMC and H5C soon."
+                },
+                {
+                    "description": "Added Support for headers to new REST Service to address VMCUI-1783",
+                    "jira_uri": "https://jira.eng.vmware.com/browse/VMCUI-1783"
                 }
             ]
         },
