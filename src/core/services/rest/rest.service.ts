@@ -11,13 +11,13 @@ const GLOBAL_HEADERS_UPDATE = 'update';
 
 
 /**
- * REST Service that operates standard functions on behald of consumers and services.
+ * REST Service that operates standard functions on behalf of consumers and services.
  */
 export class RestService extends AbstractCore implements EventBusEnabled {
 
     public static channel = 'bifrost-services::REST';
 
-    //private httpClient: TangoTransportAdapterInterface;
+    // private httpClient: TangoTransportAdapterInterface;
     private httpClient: any;
     private headers: any;
     private headerStore: BusStore<any>;
