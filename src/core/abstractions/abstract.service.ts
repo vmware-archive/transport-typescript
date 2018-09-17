@@ -1,4 +1,4 @@
-import { MessageArgs, MessageFunction } from '../../bus.api';
+import { ChannelName, MessageArgs, MessageFunction } from '../../bus.api';
 import { AbstractBase } from './abstract.base';
 import { HttpRequest, RestError, RestObject } from '../services/rest/rest.model';
 import { APIRequest } from '../model/request.model';
@@ -41,8 +41,8 @@ type ApiFunction = (apiObject: ApiObject<any, any>,
  * are used for communication between two services. e.g. a service calling the RestService would end up as
  * a service-to-service call using these functions.
  */
-type CallSuccessHandler = (response: AbstractMessageObject<any, any>) => void;
-type CallFailureHandler = (error: RestError) => void;
+type CallSuccessHandler = (response: AbstractMessageObject<any, any>, args?: MessageArgs) => void;
+type CallFailureHandler = (error: RestError, args?: MessageArgs) => void;
 type ServiceCallFunction = (requestChannel: string,
                             requestObject: AbstractMessageObject<any, any>,
                             successHandler: CallSuccessHandler,
@@ -66,10 +66,9 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
     protected serviceCall: ServiceCallFunction;
 
     private requestConverterMap: Map<string, HttpRequest>;
+    private readonly serviceChannel: ChannelName;
 
-    protected serviceHttpResponseChannel: string;       // TODO: This will go away
-    protected serviceToServiceResponseChannel: string;  // TODO: This will go away
-
+    //protected serviceHttpResponseChannel: string;       // TODO: This will go away
 
     /**
      * super()
@@ -77,13 +76,12 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
      * @param name - name of the derived service (e.g. 'task.service'
      * @param requestChannel - channel on which to listen for requests for the derived service
      */
-    protected constructor(name: string, requestChannel: string) {
+    protected constructor(name: string, serviceChannel: string) {
 
         super(name);
 
-        // TODO: The nest two lines will go away soon
-        this.serviceHttpResponseChannel = '#service-http-response-channel-' + name.replace('.', '-');
-        this.serviceToServiceResponseChannel = '#service-to-service-response-channel-' + name.replace('.', '-');
+        // set the service channel.
+        this.serviceChannel = serviceChannel;
 
         this.serviceError = new RestError('Invalid Service APIRequest!', SERVICE_ERROR, '');
         this.requestConverterMap = new Map<string, HttpRequest>(HTTP_REQUEST_MAP);
@@ -91,7 +89,7 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
         this.initializeServiceCallHandling();   // create the serviceCall lambda
         this.initializeApiHandling();           // create the apiBridge lambda
 
-        this.bus.listenRequestStream(requestChannel, this.getName())
+        this.bus.listenRequestStream(this.serviceChannel, this.getName())
             .handle((requestObject: ReqT, args: RequestorArguments) => {
                 this.handleServiceRequest(requestObject, args);
             });
@@ -175,38 +173,30 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
 
     /**
      * The "serviceCall" lambda is used to send messages between services, abstracting the message bus.
-     * TODO: response channel needs to go away
      */
     private initializeServiceCallHandling() {
         this.serviceCall = (channel: string,
                             requestObject: AbstractMessageObject<ReqT, any>,
                             successHandler: CallSuccessHandler,
                             failureHandler: CallFailureHandler) => {
-            // TODO: This needs to be changed
-            requestObject.channel = this.serviceToServiceResponseChannel + '-' + GeneralUtil.genUUIDShort();
-            this.bus.api.getChannel(requestObject.channel, this.getName());
 
             const messageHandler = this.bus
                 .requestOnceWithId(
                     GeneralUtil.genUUIDShort(),
                     channel,
                     requestObject,
-                    requestObject.channel,
+                    null,
                     this.getName()
                 );
 
             messageHandler
-                .handle((callResponseObject: AbstractMessageObject<RespT, any>) => {
+                .handle((callResponseObject: AbstractMessageObject<RespT, any>, args: MessageArgs) => {
                         // We come here on response from the called service
                         // We call the success handler that was provided by the API Handler.
-
-                        successHandler(callResponseObject);
-                        this.bus.api.close(requestObject.channel, this.getName());
+                        successHandler(callResponseObject, args);
                     },
-
                     (err: RestError) => {
                         failureHandler(err);
-                        this.bus.api.close(requestObject.channel, this.getName());
                     }
                 );
         };
@@ -251,8 +241,8 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
             );
 
             this.serviceCall(RestService.channel, restRequestObject,
-                (restResponseObject: RestObject) => {
-                    successHandler(apiObject, restResponseObject.response);
+                (restResponseObject: RestObject, args: MessageArgs) => {
+                    successHandler(apiObject, restResponseObject.response, args);
                 },
                 (err: RestError) => {
                     failureHandler(apiObject, err);
@@ -264,11 +254,11 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
 
         this.apiSuccessHandler = (apiObject: ApiObject<ReqT, RespT>, payload: any, args?: MessageArgs) => {
             apiObject.responseObject.payload = payload;
-            this.postResponse(apiObject.requestObject.channel, apiObject.responseObject, args);
+            this.postResponse(this.serviceChannel, apiObject.responseObject, args);
         };
 
-        this.apiFailureHandler = (apiObject: ApiObject<ReqT, RespT>, err: RestError) => {
-            this.postError(apiObject.requestObject.channel, err);
+        this.apiFailureHandler = (apiObject: ApiObject<ReqT, RespT>, err: RestError, args?: MessageArgs) => {
+            this.postError(this.serviceChannel, err, args);
         };
     }
 
@@ -281,21 +271,21 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
     protected genApiObject(requestObject: AbstractMessageObject<any, any>,
                            responseObject: AbstractMessageObject<any, any>) {
         return new ApiObject<any, any>(
-            this.callerOrgId,
-            this.callerToken,
+            { orgId: this.callerOrgId, token: this.callerToken },
             requestObject,
             responseObject
         );
     }
 
     /**
-     * TODO: For API calls that require an Org ID, we need to provide one
+     * TODO: For API calls that require an Org ID, we need to provide one, remove this.
      * @returns {string}
      */
     protected get callerOrgId() {
         return '';
     }
 
+    // TODO: Remove this,
     /**
      * This is a temporary stopgap until the service layer is detached from the UI. For now return an empty string
      * @returns {string}
