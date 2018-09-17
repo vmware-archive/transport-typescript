@@ -74,7 +74,7 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
      * super()
      *
      * @param name - name of the derived service (e.g. 'task.service'
-     * @param requestChannel - channel on which to listen for requests for the derived service
+     * @param serviceChannel - channel on which to listen for requests and send responses for the derived service
      */
     protected constructor(name: string, serviceChannel: string) {
 
@@ -271,7 +271,8 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
     protected genApiObject(requestObject: AbstractMessageObject<any, any>,
                            responseObject: AbstractMessageObject<any, any>) {
         return new ApiObject<any, any>(
-            { orgId: this.callerOrgId, token: this.callerToken },
+            this.callerOrgId,
+            this.callerToken,
             requestObject,
             responseObject
         );
