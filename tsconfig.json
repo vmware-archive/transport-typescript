@@ -1,12 +1,13 @@
 {
     "compilerOptions": {
-      "target": "es6",
+      "target": "es5",
       "declaration": true,
       "module": "commonjs",
       "moduleResolution": "node",
       "sourceMap": true,
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
+      "downlevelIteration" : true,
       "lib": [
         "dom",
         "es5",

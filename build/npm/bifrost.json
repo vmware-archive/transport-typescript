@@ -15,13 +15,26 @@
     },
     //@exclude
     "scripts": {
-        "prepublish": "echo 'Error: Please run \"npm run publish:all\" on the parent project' && exit 1"
+        "prepare": "echo 'Error: Please run \"npm run prepare\" on the parent project' && exit 1"
     },
     //@endexclude
     "author": "Dave Shanley <dshanley@vmware.com>",
     "contributors": ["Akmal Khan <akhan@vmware.com>","Etienne Le Sueur <elesueur@vmware.com>"],
     "license": "0BSD",
     "changelogHistory": [
+        {
+            "date": "09/17/18",
+            "version": "0.9.1",
+            "notes": [
+                {
+                    "description": "Wired in shared VMC AbstractService code to enable universal support across UI's",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/14"
+                },
+                {
+                    "description": "Reverted build back to ES5, not ready for ES2015 primetime yet, IE still lives on."
+                }
+            ]
+        },
         {
             "date": "09/04/18",
             "version": "0.9.0",
