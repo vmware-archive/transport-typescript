@@ -15,7 +15,7 @@
     },
     //@exclude
     "scripts": {
-        "prepublish": "echo 'Error: Please run \"npm run publish:all\" on the parent project' && exit 1"
+        "prepare": "echo 'Error: Please run \"npm run prepare\" on the parent project' && exit 1"
     },
     //@endexclude
     "author": "Dave Shanley <dshanley@vmware.com>",
