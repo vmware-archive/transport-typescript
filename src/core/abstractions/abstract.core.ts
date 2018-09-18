@@ -7,9 +7,9 @@ import { Logger } from '../../log/index';
 import { BusUtil } from '../../util/bus.util';
 
 export abstract class AbstractCore {
-    protected readonly bus: EventBus;
-    protected readonly storeManager: BusStoreApi;
-    protected readonly log: Logger;
+    public readonly bus: EventBus;
+    public readonly storeManager: BusStoreApi;
+    public readonly log: Logger;
 
     constructor() {
         this.bus = BusUtil.getBusInstance();
