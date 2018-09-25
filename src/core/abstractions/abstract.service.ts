@@ -18,7 +18,8 @@ const HTTP_REQUEST_MAP: Array<[string, HttpRequest]> = [
     ['POST', HttpRequest.Post],
     ['PATCH', HttpRequest.Patch],
     ['PUT', HttpRequest.Put],
-    ['DELETE', HttpRequest.Delete]
+    ['DELETE', HttpRequest.Delete],
+    ['UPDATE_HEADERS', HttpRequest.UpdateGlobalHeaders]
 ];
 
 /*
@@ -65,10 +66,8 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
     protected apiFailureHandler: ErrorHandler;
     protected serviceCall: ServiceCallFunction;
 
-    private requestConverterMap: Map<string, HttpRequest>;
+    protected requestConverterMap: Map<string, HttpRequest>;
     private readonly serviceChannel: ChannelName;
-
-    //protected serviceHttpResponseChannel: string;       // TODO: This will go away
 
     /**
      * super()
@@ -271,27 +270,8 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
     protected genApiObject(requestObject: AbstractMessageObject<any, any>,
                            responseObject: AbstractMessageObject<any, any>) {
         return new ApiObject<any, any>(
-            this.callerOrgId,
-            this.callerToken,
             requestObject,
             responseObject
         );
-    }
-
-    /**
-     * TODO: For API calls that require an Org ID, we need to provide one, remove this.
-     * @returns {string}
-     */
-    protected get callerOrgId() {
-        return '';
-    }
-
-    // TODO: Remove this,
-    /**
-     * This is a temporary stopgap until the service layer is detached from the UI. For now return an empty string
-     * @returns {string}
-     */
-    protected get callerToken() {
-        return '';
     }
 }
