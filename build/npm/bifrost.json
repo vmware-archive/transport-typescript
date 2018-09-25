@@ -23,6 +23,16 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "09/25/18",
+            "version": "0.9.3",
+            "notes": [
+                {
+                    "description": "Added support for APIGen to AbstractService and core abstractions, re-bumped test coverage",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/16"
+                }
+            ]
+        },
+        {
             "date": "09/18/18",
             "version": "0.9.2",
             "notes": [
