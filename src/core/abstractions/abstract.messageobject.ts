@@ -8,8 +8,9 @@ export abstract class AbstractMessageObject<TRequest, TPayload> {
      * Optional parameters are necessary for creating empty Response objects in typescript with generics
      *
      * @param request - enumerated TRequest
+     * @param channel - string channel for service requests
      * @param payload - request and response payloads
      */
-    constructor(public readonly request?: TRequest, public payload?: TPayload) {
+    constructor(public readonly request?: TRequest, public readonly channel?: string, public payload?: TPayload) {
     }
 }
