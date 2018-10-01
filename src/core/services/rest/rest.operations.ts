@@ -80,7 +80,7 @@ export class RestOperations extends AbstractCore {
             }
         );
 
-        if(operation.errorHandler) {
+        if (operation.errorHandler) {
             transaction.onError<RestError>(
                 (error: RestError) => {
                     operation.errorHandler(error);
