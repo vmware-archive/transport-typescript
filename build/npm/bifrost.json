@@ -24,6 +24,16 @@
     "changelogHistory": [
         {
             "date": "10/16/18",
+            "version": "0.9.7",
+            "notes": [
+                {
+                    "description": "Fixed error handling and response channel handling on core abstractions",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/24"
+                }
+            ]
+        },
+        {
+            "date": "10/16/18",
             "version": "0.9.6",
             "notes": [
                 {
