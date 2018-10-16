@@ -23,6 +23,19 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "10/15/18",
+            "version": "0.9.4",
+            "notes": [
+                {
+                    "description": "Updated abstractions to match new documentation, mostly moving non essential args to optional",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/19"
+                },
+                {
+                    "description": "Exposed core abstractions required by APIGen and ServGen."
+                }
+            ]
+        },
+        {
             "date": "09/25/18",
             "version": "0.9.3",
             "notes": [

@@ -12,11 +12,11 @@ export abstract class AbstractBase extends AbstractCore implements EventBusEnabl
     protected name: string;
     private restOperations: RestOperations;
 
-    protected restServiceRequest(operation: RestOperation, from: SentFrom): BusTransaction {
+    protected restServiceRequest(operation: RestOperation, from?: SentFrom): BusTransaction {
         return this.restOperations.restServiceRequest(operation, from);
 
     }
-    protected setGlobalHttpHeaders(headers: any, from: SentFrom) {
+    protected setGlobalHttpHeaders(headers: any, from?: SentFrom) {
         this.restOperations.setGlobalHttpHeaders(headers, from);
 
     }

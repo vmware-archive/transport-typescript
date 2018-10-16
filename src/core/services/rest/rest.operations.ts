@@ -14,7 +14,7 @@ export interface RestOperation {
     queryParams?: any;
     headers?: any;
     successHandler: MessageFunction<any>;
-    errorHandler: MessageFunction<any>;
+    errorHandler?: MessageFunction<any>;
 }
 
 
@@ -80,11 +80,13 @@ export class RestOperations extends AbstractCore {
             }
         );
 
-        transaction.onError<RestError>(
-            (error: RestError) => {
-                operation.errorHandler(error);
-            }
-        );
+        if (operation.errorHandler) {
+            transaction.onError<RestError>(
+                (error: RestError) => {
+                    operation.errorHandler(error);
+                }
+            );
+        }
 
         transaction.commit();
         return transaction;
