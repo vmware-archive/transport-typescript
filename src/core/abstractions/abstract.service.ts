@@ -232,9 +232,11 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
             // Prepare the payload for RestService
             const restRequestObject = new RestObject(
                 this.requestConverterMap.get(httpOp),
-                uri,
-                '',
+                uri,    // fully formed URI with path params and query params
                 body,
+                null,   // headers
+                null,   // queryStringParams
+                null,   // pathParams
                 apiClass,
                 this.getName()
             );

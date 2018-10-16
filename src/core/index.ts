@@ -4,5 +4,7 @@ export * from './abstractions/abstract.base';
 export * from './abstractions/abstract.core';
 export * from './abstractions/abstract.messageobject';
 export * from './abstractions/abstract.service';
+export * from './abstractions/abstract.autorest.mock';
+export * from './abstractions/abstract.autoservice.mock';
 export * from './abstractions/service.version';
 export * from './services/rest/rest.model';

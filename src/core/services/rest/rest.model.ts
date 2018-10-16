@@ -46,9 +46,11 @@ export class RestObject {
         request: HttpRequest,
         uri: string,
         body: any = null,
-        headers: any = {},
-        queryStringParams: any = {},
-        pathParams: any = {}) {
+        headers: any = null,
+        queryStringParams: any = null,
+        pathParams: any = null,
+        public readonly apiClass?: string,
+        public readonly senderName?: string) {
 
         this.request = request;
         this.uri = uri;
@@ -57,69 +59,4 @@ export class RestObject {
         this.pathParams = pathParams;
         this.queryStringParams = queryStringParams;
     }
-
-    //
-    // get command() {
-    //     return this._request;
-    // }
-    //
-    // set command(command: HttpRequest) {
-    //     this._request = command;
-    // }
-    //
-    // get uri() {
-    //     return this._uri;
-    // }
-    //
-    // set uri(uri) {
-    //     this._uri = uri;
-    // }
-    //
-    // get responseChannel() {
-    //     return this._responseChannel;
-    // }
-    //
-    // set responseChannel(responseChannel: string) {
-    //     this._responseChannel = responseChannel;
-    // }
-    //
-    // get body() {
-    //     return this._body;
-    // }
-    //
-    // set body(body: any) {
-    //     this._body = body;
-    // }
-    //
-    // get params() {
-    //     return this._params;
-    // }
-    //
-    // set params(p: HttpParams) {
-    //     this._params = p;
-    // }
-    //
-    // get response() {
-    //     return this._response;
-    // }
-    //
-    // set response(response: any) {
-    //     this._response = response;
-    // }
-    //
-    // get error() {
-    //     return this._error;
-    // }
-    //
-    // set error(error: any) {
-    //     this._error = error;
-    // }
-    //
-    // get refreshRetries() {
-    //     return this._refreshRetries;
-    // }
-    //
-    // set refreshRetries(refreshRetries: number) {
-    //     this._refreshRetries = refreshRetries;
-    // }
 }
