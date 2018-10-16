@@ -34,12 +34,17 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
         restObject.response = data;
         if (args) {
             this.bus.sendResponseMessageWithId(RestService.channel, restObject, args.uuid, this.getName());
+        } else {
+            this.bus.sendResponseMessage(RestService.channel, restObject, this.getName());
         }
-        this.bus.sendResponseMessage(RestService.channel, restObject, this.getName());
     }
 
-    protected handleError(err: RestError, restObject: RestObject) {
-        this.bus.sendErrorMessage(RestService.channel, err, this.getName());
+    protected handleError(err: RestError, restObject: RestObject, args?: MessageArgs) {
+        if (args) {
+            this.bus.sendErrorMessageWithId(RestService.channel, restObject, args.uuid, this.getName());
+        } else {
+            this.bus.sendErrorMessage(RestService.channel, err, this.getName());
+        }
     }
 
     protected unhandledError(restRequestObject: RestObject, apiClass: string) {
