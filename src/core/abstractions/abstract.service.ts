@@ -194,8 +194,8 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
                         // We call the success handler that was provided by the API Handler.
                         successHandler(callResponseObject, args);
                     },
-                    (err: RestError) => {
-                        failureHandler(err);
+                    (err: RestError, args: MessageArgs) => {
+                        failureHandler(err, args);
                     }
                 );
         };
