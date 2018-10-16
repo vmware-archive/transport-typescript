@@ -23,6 +23,16 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "10/16/18",
+            "version": "0.9.5",
+            "notes": [
+                {
+                    "description": "Version bump, manual published occurred before additional code added to 0.9.4",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/21"
+                }
+            ]
+        },
+        {
             "date": "10/15/18",
             "version": "0.9.4",
             "notes": [
