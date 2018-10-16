@@ -24,6 +24,16 @@
     "changelogHistory": [
         {
             "date": "10/16/18",
+            "version": "0.9.6",
+            "notes": [
+                {
+                    "description": "Renamed required mock core abstractions, they were being ignored by the build.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/23"
+                }
+            ]
+        },
+        {
+            "date": "10/16/18",
             "version": "0.9.5",
             "notes": [
                 {
