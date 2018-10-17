@@ -1,10 +1,10 @@
-// This is a mock of the httpClient
-
+/**
+ * Copyright(c) VMware Inc. 2018
+ */
 import { HttpClient } from './http.client';
+import { GeneralError } from '../../model/error.model';
 
-export class MockHttpClient implements HttpClient {
-    public mustFail = false;
-    public errCode = 200;
+export class BifrostHttpclient implements HttpClient {
 
     delete(request: Request, successHandler: Function, failureHandler: Function): void {
         this.httpOperation(request, successHandler, failureHandler);
@@ -31,18 +31,28 @@ export class MockHttpClient implements HttpClient {
         successHandler: Function,
         errorHandler: Function
     ) {
-        if (this.mustFail) {
-            if (this.errCode !== 401) {     // to simulate unknown error
-                errorHandler(null);
-                return;
-            }
 
-            const err: any = {};
-            err['status'] = this.errCode;
-            err['message'] = 'Fake Error';
-            errorHandler(err);
-        } else {
-            successHandler(`${request.method} called`);
-        }
+        // use magic fetch!
+        fetch(
+            request
+        ).then(
+            (response: Response) => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new TypeError(
+                    `HTTP ${request.method} Error: ${response.status}: ${response.statusText}`
+                );
+            }
+        ).then(
+            (json: any) => {
+                successHandler(JSON.stringify(json));
+            }
+        ).catch(
+            function (error: TypeError) {
+                errorHandler(new GeneralError(error.message));
+            }
+        );
     }
+
 }

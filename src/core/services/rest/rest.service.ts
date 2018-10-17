@@ -3,7 +3,8 @@ import { HttpRequest, RestError, RestErrorType, RestObject } from './rest.model'
 import { LogLevel } from '../../../log';
 import { BusStore } from '../../../store.api';
 import { AbstractCore } from '../../abstractions/abstract.core';
-import { GeneralError } from '../../model/error.model';
+import { HttpClient } from './http.client';
+import { BifrostHttpclient } from './bifrost.httpclient';
 
 const REFRESH_RETRIES = 3;
 const GLOBAL_HEADERS = 'global-headers';
@@ -20,13 +21,21 @@ export class RestService extends AbstractCore implements EventBusEnabled {
     private headers: any;
     private headerStore: BusStore<any>;
     private name: string = 'RESTService';
+    private httpClient: HttpClient;
 
     public getName(): string {
         return this.name;
     }
 
-    constructor() {
+    constructor(httpClient?: any) {
         super();
+
+        if (!httpClient) {
+            this.httpClient = new BifrostHttpclient();
+        } else {
+            this.httpClient = httpClient;
+        }
+
         this.headerStore = this.storeManager.createStore('bifrost::RestService');
         this.listenForRequests();
         this.log.info(`${this.name} Online`);
@@ -127,11 +136,23 @@ export class RestService extends AbstractCore implements EventBusEnabled {
 
         switch (restObject.request) {
             case HttpRequest.Get:
+                this.httpClient.get(httpRequest, successHandler, errorHandler);
+                break;
+
             case HttpRequest.Post:
+                this.httpClient.post(httpRequest, successHandler, errorHandler);
+                break;
+
             case HttpRequest.Patch:
+                this.httpClient.patch(httpRequest, successHandler, errorHandler);
+                break;
+
             case HttpRequest.Put:
+                this.httpClient.put(httpRequest, successHandler, errorHandler);
+                break;
+
             case HttpRequest.Delete:
-                this.httpOperation(httpRequest, successHandler, errorHandler);
+                this.httpClient.delete(httpRequest, successHandler, errorHandler);
                 break;
 
             default:
@@ -152,37 +173,10 @@ export class RestService extends AbstractCore implements EventBusEnabled {
         };
 
         // GET requests may not have a body
-        if (restObject.request !== HttpRequest.Get) {
+        if (restObject.request !== HttpRequest.Get && restObject.request !== HttpRequest.UpdateGlobalHeaders) {
             requestInit.body = restObject.body;
         }
 
         return requestInit;
-    }
-
-    private httpOperation(
-        request: Request,
-        successHandler: Function,
-        errorHandler: Function
-    ) {
-        fetch(
-            request
-        ).then(
-            (response: Response) => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new TypeError(
-                    `HTTP ${request.method} Error: ${response.status}: ${response.statusText}`
-                );
-            }
-        ).then(
-            (json: any) => {
-                successHandler(JSON.stringify(json));
-            }
-        ).catch(
-            function (error: TypeError) {
-                errorHandler(new GeneralError(error.message));
-            }
-        );
     }
 }

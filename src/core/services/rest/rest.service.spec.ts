@@ -25,11 +25,14 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
     let bus: EventBus;
     let log: Logger;
     let httpClient: any;
-    const restPayload: any = {
+    const restPayloadGet: any = {
         op: 'GET',
         uri: 'http://some/uri',
-        params: { one: 'two' },
-        query: { three: 'four' },
+        headers: { seven: 'eight' }
+    };
+    const restPayloadPost: any = {
+        op: 'POST',
+        uri: 'http://some/uri',
         body: { five: 'six' },
         headers: { seven: 'eight' }
     };
@@ -46,8 +49,9 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
             httpClient.mustFail = false;
             httpClient.errCode = 200;
 
-            ServiceLoader.addService(FakeService);
             ServiceLoader.addService(RestService, httpClient);
+            ServiceLoader.addService(FakeService);
+
         }
     );
 
@@ -92,8 +96,7 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
         () => {
             let channel = bus.api.getResponseChannel(FakeChannel.request);
             const id = GeneralUtil.genUUIDShort();
-            const packet: any = {};
-            Object.assign(packet, restPayload);
+
 
             expect(channel)
                 .not
@@ -198,7 +201,7 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
             let channel = bus.api.getResponseChannel(FakeChannel.request);
             const id = GeneralUtil.genUUIDShort();
             const packet: any = {};
-            Object.assign(packet, restPayload);
+            Object.assign(packet, restPayloadGet);
 
             expect(channel)
                 .not
@@ -222,7 +225,7 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
             let channel = bus.api.getResponseChannel(FakeChannel.request);
             const id = GeneralUtil.genUUIDShort();
             const packet: any = {};
-            Object.assign(packet, restPayload);
+            Object.assign(packet, restPayloadGet);
             httpClient.mustFail = true;
             httpClient.errCode = 401;
 
@@ -247,7 +250,7 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
             let channel = bus.api.getResponseChannel(FakeChannel.request);
             const id = GeneralUtil.genUUIDShort();
             const packet: any = {};
-            Object.assign(packet, restPayload);
+            Object.assign(packet, restPayloadGet);
             httpClient.mustFail = true;
             httpClient.errCode = 500;
 
@@ -272,7 +275,7 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
             let channel = bus.api.getResponseChannel(FakeChannel.request);
             const id = GeneralUtil.genUUIDShort();
             const packet: any = {};
-            Object.assign(packet, restPayload);
+            Object.assign(packet, restPayloadGet);
 
             expect(channel)
                 .not
@@ -295,7 +298,7 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
             let channel = bus.api.getResponseChannel(FakeChannel.request);
             const id = GeneralUtil.genUUIDShort();
             const packet: any = {};
-            Object.assign(packet, restPayload);
+            Object.assign(packet, restPayloadPost);
 
             expect(channel)
                 .not
@@ -319,7 +322,7 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
             let channel = bus.api.getResponseChannel(FakeChannel.request);
             const id = GeneralUtil.genUUIDShort();
             const packet: any = {};
-            Object.assign(packet, restPayload);
+            Object.assign(packet, restPayloadPost);
 
             expect(channel)
                 .not
@@ -343,7 +346,7 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
             let channel = bus.api.getResponseChannel(FakeChannel.request);
             const id = GeneralUtil.genUUIDShort();
             const packet: any = {};
-            Object.assign(packet, restPayload);
+            Object.assign(packet, restPayloadPost);
 
             expect(channel)
                 .not
@@ -367,7 +370,7 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
             let channel = bus.api.getResponseChannel(FakeChannel.request);
             const id = GeneralUtil.genUUIDShort();
             const packet: any = {};
-            Object.assign(packet, restPayload);
+            Object.assign(packet, restPayloadPost);
 
             expect(channel)
                 .not
@@ -391,7 +394,7 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
             let channel = bus.api.getResponseChannel(FakeChannel.request);
             const id = GeneralUtil.genUUIDShort();
             const packet: any = {};
-            Object.assign(packet, restPayload);
+            Object.assign(packet, restPayloadPost);
 
             expect(channel)
                 .not
