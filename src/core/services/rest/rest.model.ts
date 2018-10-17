@@ -9,12 +9,12 @@
 import { GeneralError } from '../../model/error.model';
 
 export enum HttpRequest {
-    Get,
-    Post,
-    Patch,
-    Delete,
-    Put,
-    UpdateGlobalHeaders
+    Get = 'GET',
+    Post = 'POST',
+    Patch = 'PATCH' ,
+    Delete =  'DELETE',
+    Put = 'PUT',
+    UpdateGlobalHeaders = 'UpdateGlobalHeaders'
 }
 
 export enum RestErrorType {
@@ -46,9 +46,9 @@ export class RestObject {
         request: HttpRequest,
         uri: string,
         body: any = null,
-        headers: any = null,
-        queryStringParams: any = null,
-        pathParams: any = null,
+        headers: any = {},
+        queryStringParams: any = {},
+        pathParams: any = {},
         public readonly apiClass?: string,
         public readonly senderName?: string) {
 

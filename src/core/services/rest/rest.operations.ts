@@ -51,13 +51,18 @@ export class RestOperations extends AbstractCore {
 
     public restServiceRequest(operation: RestOperation, from: SentFrom): BusTransaction {
 
+        const body = (operation.body ? operation.body : {});
+        const headers = (operation.headers ? operation.headers : {});
+        const queryParams = (operation.queryParams ? operation.queryParams : {});
+        const pathParams = (operation.pathParams ? operation.pathParams : {});
+
         const restRequestObject: RestObject = new RestObject(
             operation.method,
             operation.uri,
-            operation.body,
-            operation.headers,
-            operation.queryParams,
-            operation.pathParams
+            body,
+            headers,
+            queryParams,
+            pathParams
         );
 
         let id: UUID;
@@ -75,7 +80,9 @@ export class RestOperations extends AbstractCore {
 
         transaction.onComplete(
             (restResponseObject: RestObject[]) => {
-                this.log.debug(`Received REST response: ${restResponseObject[0].response}`, from);
+                this.log.debug(
+                    `Received REST response for request: ${restResponseObject[0].request} ${restResponseObject[0].uri}`
+                    , from);
                 operation.successHandler(restResponseObject[0].response);
             }
         );
