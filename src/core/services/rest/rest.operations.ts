@@ -51,13 +51,18 @@ export class RestOperations extends AbstractCore {
 
     public restServiceRequest(operation: RestOperation, from: SentFrom): BusTransaction {
 
+        const body = (operation.body ? operation.body : {});
+        const headers = (operation.headers ? operation.headers : {});
+        const queryParams = (operation.queryParams ? operation.queryParams : {});
+        const pathParams = (operation.pathParams ? operation.pathParams : {});
+
         const restRequestObject: RestObject = new RestObject(
             operation.method,
             operation.uri,
-            operation.body,
-            operation.headers,
-            operation.queryParams,
-            operation.pathParams
+            body,
+            headers,
+            queryParams,
+            pathParams
         );
 
         let id: UUID;

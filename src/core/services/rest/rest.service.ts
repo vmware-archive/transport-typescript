@@ -3,6 +3,7 @@ import { HttpRequest, RestError, RestErrorType, RestObject } from './rest.model'
 import { LogLevel } from '../../../log';
 import { BusStore } from '../../../store.api';
 import { AbstractCore } from '../../abstractions/abstract.core';
+import { GeneralError } from '../../model/error.model';
 
 const REFRESH_RETRIES = 3;
 const GLOBAL_HEADERS = 'global-headers';
@@ -16,8 +17,6 @@ export class RestService extends AbstractCore implements EventBusEnabled {
 
     public static channel = 'bifrost-services::REST';
 
-    // private httpClient: TangoTransportAdapterInterface;
-    private httpClient: any;
     private headers: any;
     private headerStore: BusStore<any>;
     private name: string = 'RESTService';
@@ -26,16 +25,8 @@ export class RestService extends AbstractCore implements EventBusEnabled {
         return this.name;
     }
 
-
-    /**
-     * Pass in an implementation of the TangoTransportAdaptorInterface. This allows a drop in supplier for
-     * HTTP Calls and what not, decoupled from the actual HTTP implementation, relying on Tango to do the work for us.
-     *
-     * @param {TangoTransportAdapterInterface} httpClient
-     */
-    constructor(httpClient: any) {
+    constructor() {
         super();
-        this.httpClient = httpClient;
         this.headerStore = this.storeManager.createStore('bifrost::RestService');
         this.listenForRequests();
         this.log.info(`${this.name} Online`);
@@ -61,7 +52,7 @@ export class RestService extends AbstractCore implements EventBusEnabled {
 
 
     private handleData(data: any, restObject: RestObject, args: MessageArgs) {
-        this.log.group(LogLevel.Verbose, 'REST APIRequest ' + HttpRequest[restObject.request] + ' ' + restObject.uri);
+        this.log.group(LogLevel.Verbose, 'REST APIRequest ' + restObject.request + ' ' + restObject.uri);
         this.log.verbose('** Received response: ' + data, this.getName());
         this.log.verbose('** APIRequest was: ' + restObject, this.getName());
         this.log.verbose('** Headers were: ' + this.headers, this.getName());
@@ -78,7 +69,7 @@ export class RestService extends AbstractCore implements EventBusEnabled {
     private handleError(error: any, restObject: RestObject, args: MessageArgs) {
 
         if (error) {
-            this.log.group(LogLevel.Error, 'Http Error: ' + HttpRequest[restObject.request] + ' ' +
+            this.log.group(LogLevel.Error, 'Http Error: ' + restObject.request + ' ' +
                 restObject.uri + ' -' + ' ' + error.status);
 
             this.log.error(error, this.getName());
@@ -128,58 +119,19 @@ export class RestService extends AbstractCore implements EventBusEnabled {
         // merge globals and request headers
         const requestHeaders = {...restObject.headers, ...globalHeaders};
 
+        // generate fetch headers, init and request objects.
+        const requestHeadersObject = new Headers(requestHeaders);
+        const requestInit = this.generateRequestInitObject(restObject, requestHeadersObject);
+        const httpRequest = new Request(restObject.uri, requestInit);
+
+
         switch (restObject.request) {
             case HttpRequest.Get:
-
-                this.httpClient.get(
-                    restObject.uri,
-                    restObject.pathParams,
-                    restObject.queryStringParams,
-                    requestHeaders,
-                    successHandler, errorHandler);
-                break;
-
             case HttpRequest.Post:
-
-                this.httpClient.post(
-                    restObject.uri,
-                    restObject.pathParams,
-                    restObject.queryStringParams,
-                    restObject.body,
-                    requestHeaders,
-                    successHandler, errorHandler);
-                break;
-
             case HttpRequest.Patch:
-
-                this.httpClient.patch(
-                    restObject.uri,
-                    restObject.pathParams,
-                    restObject.queryStringParams,
-                    restObject.body,
-                    requestHeaders,
-                    successHandler, errorHandler);
-
-                break;
-
             case HttpRequest.Put:
-                this.httpClient.put(
-                    restObject.uri,
-                    restObject.pathParams,
-                    restObject.queryStringParams,
-                    restObject.body,
-                    requestHeaders,
-                    successHandler, errorHandler);
-                break;
-
             case HttpRequest.Delete:
-                this.httpClient.delete(
-                    restObject.uri,
-                    restObject.pathParams,
-                    restObject.queryStringParams,
-                    restObject.body,
-                    requestHeaders,
-                    successHandler, errorHandler);
+                this.httpOperation(httpRequest, successHandler, errorHandler);
                 break;
 
             default:
@@ -192,4 +144,45 @@ export class RestService extends AbstractCore implements EventBusEnabled {
         }
     }
 
+    private generateRequestInitObject(restObject: RestObject, headers: Headers): any {
+
+        let requestInit: any = {
+            method: restObject.request,
+            headers: headers,
+        };
+
+        // GET requests may not have a body
+        if (restObject.request !== HttpRequest.Get) {
+            requestInit.body = restObject.body;
+        }
+
+        return requestInit;
+    }
+
+    private httpOperation(
+        request: Request,
+        successHandler: Function,
+        errorHandler: Function
+    ) {
+        fetch(
+            request
+        ).then(
+            (response: Response) => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new TypeError(
+                    `HTTP ${request.method} Error: ${response.status}: ${response.statusText}`
+                );
+            }
+        ).then(
+            (json: any) => {
+                successHandler(JSON.stringify(json));
+            }
+        ).catch(
+            function (error: TypeError) {
+                errorHandler(new GeneralError(error.message));
+            }
+        );
+    }
 }
