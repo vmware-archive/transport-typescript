@@ -46,7 +46,7 @@ export class BifrostHttpclient implements HttpClient {
             }
         ).then(
             (json: any) => {
-                successHandler(JSON.stringify(json));
+                successHandler(json);
             }
         ).catch(
             function (error: TypeError) {
