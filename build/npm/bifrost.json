@@ -24,6 +24,16 @@
     "changelogHistory": [
         {
             "date": "10/17/18",
+            "version": "0.9.9",
+            "notes": [
+                {
+                    "description": "Rebuilt RestService to use internal fetch based HttpClient",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/28"
+                }
+            ]
+        },
+        {
+            "date": "10/17/18",
             "version": "0.9.8",
             "notes": [
                 {
