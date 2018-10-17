@@ -41,7 +41,7 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
 
     protected handleError(err: RestError, restObject: RestObject, args?: MessageArgs) {
         if (args) {
-            this.bus.sendErrorMessageWithId(RestService.channel, restObject, args.uuid, this.getName());
+            this.bus.sendErrorMessageWithId(RestService.channel, err, args.uuid, this.getName());
         } else {
             this.bus.sendErrorMessage(RestService.channel, err, this.getName());
         }
@@ -62,7 +62,7 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
 
         // handle forced backend error
         if (this.mustFail) {
-            this.handleError(this.restError, restRequestObject);
+            this.handleError(this.restError, restRequestObject, requestArgs);
             return;
         }
 
@@ -98,7 +98,7 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
                     + restRequestObject.request,
                     SERVICE_ERROR,
                     'fakeUri');
-                this.handleError(this.restError, restRequestObject);
+                this.handleError(this.restError, restRequestObject, requestArgs);
         }
     }
 

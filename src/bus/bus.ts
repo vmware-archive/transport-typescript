@@ -324,7 +324,6 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         id: UUID,
         from?: SentFrom,
         proxyBroadcast?: boolean): void {
-
         this.api.send(
             cname,
             new Message(id, 1, proxyBroadcast).error(payload),
