@@ -27,7 +27,7 @@ export class RestService extends AbstractCore implements EventBusEnabled {
         return this.name;
     }
 
-    constructor(httpClient?: any) {
+    constructor(httpClient?: HttpClient) {
         super();
 
         if (!httpClient) {
