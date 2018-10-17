@@ -80,7 +80,9 @@ export class RestOperations extends AbstractCore {
 
         transaction.onComplete(
             (restResponseObject: RestObject[]) => {
-                this.log.debug(`Received REST response: ${restResponseObject[0].response}`, from);
+                this.log.debug(
+                    `Received REST response for request: ${restResponseObject[0].request} ${restResponseObject[0].uri}`
+                    , from);
                 operation.successHandler(restResponseObject[0].response);
             }
         );
