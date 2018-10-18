@@ -131,8 +131,19 @@ export class RestService extends AbstractCore implements EventBusEnabled {
         // generate fetch headers, init and request objects.
         const requestHeadersObject = new Headers(requestHeaders);
         const requestInit = this.generateRequestInitObject(restObject, requestHeadersObject);
-        const httpRequest = new Request(restObject.uri, requestInit);
+        let httpRequest;
 
+        // try to create fetch request.
+        try {
+            httpRequest = new Request(restObject.uri, requestInit);
+        } catch(e) {
+            this.log.error(`Cannot create request: ${e}`, this.getName());
+            this.handleError(
+                new RestError('Invalid HTTP request.', RestErrorType.UnknownMethod, restObject.uri),
+                restObject,
+                args);
+            return;
+        }
 
         switch (restObject.request) {
             case HttpRequest.Get:
