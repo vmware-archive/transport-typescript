@@ -23,6 +23,16 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "10/18/18",
+            "version": "0.9.10",
+            "notes": [
+                {
+                    "description": "Updated http client to provide more detailed error handling",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/29"
+                }
+            ]
+        },
+        {
             "date": "10/17/18",
             "version": "0.9.9",
             "notes": [
