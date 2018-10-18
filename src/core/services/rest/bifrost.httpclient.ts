@@ -40,17 +40,25 @@ export class BifrostHttpclient implements HttpClient {
                 if (response.ok) {
                     return response.json();
                 }
-                throw new TypeError(
-                    `HTTP ${request.method} Error: ${response.status}: ${response.statusText}`
-                );
+
+                throw response;
             }
         ).then(
             (json: any) => {
                 successHandler(json);
             }
         ).catch(
-            function (error: TypeError) {
-                errorHandler(new GeneralError(error.message));
+            function (error: Response) {
+                error.text().then(
+                    resp => {
+                        const errorObject = JSON.parse(resp);
+                        let message = `HTTP Error ${error.status}: ${error.statusText}`;
+                        if (errorObject.hasOwnProperty('message')) {
+                            message += ` -  ${errorObject.message}`;
+                        }
+                        errorHandler(new GeneralError(message));
+                    }
+                );
             }
         );
     }
