@@ -1,6 +1,6 @@
 {
   "name": "@vmw/bifrost",
-  "version": "0.9.11",
+  "version": "0.9.12",
   "private": false,
   "license": "0BSD",
   "repository": "git@gitlab.eng.vmware.com:bifrost/typescript.git",

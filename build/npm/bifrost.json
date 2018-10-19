@@ -24,11 +24,24 @@
     "changelogHistory": [
         {
             "date": "10/18/18",
+            "version": "0.9.12",
+            "notes": [
+                {
+                    "description": "Updated Broker connector config to allow configurable auto-reconnect",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/32"
+                },
+                {
+                    "description": "Updated sample application components to use multiple allows origins for docs."
+                }
+            ]
+        },
+        {
+            "date": "10/18/18",
             "version": "0.9.11",
             "notes": [
                 {
                     "description": "Improved HTTP client,to cleanly handle various 200 bodyless return types.",
-                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/30"
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/31"
                 }
             ]
         },

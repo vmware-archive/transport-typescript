@@ -153,6 +153,7 @@ export class StompConfig {
     private numBrokerConnect: number = 1;
     public connectionSubjectRef: Subject<Boolean>; // used to manipulate multi connect messages from relays.
     public sessionId: UUID;
+    public autoReconnect: boolean = true;
 
     static generate(endpoint: string,
                     host?: string,
