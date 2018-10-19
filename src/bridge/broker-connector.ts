@@ -485,15 +485,19 @@ export class BrokerConnector implements EventBusEnabled {
     }
 
     private reconnectTimer(config: StompConfig) {
-        const connect = () => {
-            this.log.warn('Trying to reconnect to broker....', this.getName());
-            this.bus.api.tickEventLoop(
-                () => {
-                    this.connectClient(config);
-                }, this.connectDelay
-            );
-        };
-        this.reconnectTimerInstance = setInterval(connect, this.reconnectDelay);
+
+        // only enable if autoReconnect is set.
+        if (config.autoReconnect) {
+            const connect = () => {
+                this.log.warn('Trying to reconnect to broker....', this.getName());
+                this.bus.api.tickEventLoop(
+                    () => {
+                        this.connectClient(config);
+                    }, this.connectDelay
+                );
+            };
+            this.reconnectTimerInstance = setInterval(connect, this.reconnectDelay);
+        }
     }
 
     private subscribeToClientObservables(): void {

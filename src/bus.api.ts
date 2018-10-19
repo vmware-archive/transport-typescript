@@ -129,7 +129,7 @@ export interface MessageResponder<T = any, E = any> {
 
 export abstract class EventBus {
 
-    public static version: string = '0.9.11';
+    public static version: string = '0.9.12';
 
     public static id: string = EventBus.rebuildId();
 
@@ -449,6 +449,7 @@ export abstract class EventBus {
      * @param {boolean} useSSL run over WSS?
      * @param {string} applicationDestinationPrefix set the prefix for app published (galactic) messages (i.e. /pub)
      *                                              channels are postpended to this (i.e. /pub/mychannel)
+     * @param {boolean} autoReconnect Automaticallty reconnect on loss of socket? Defaults to true.
      * @returns {MessageHandler<StompBusCommand>} connected commands will auto trigger the readyHandler().
      */
     abstract connectBridge(readyHandler: MessageFunction<string>,
@@ -461,7 +462,8 @@ export abstract class EventBus {
                            applicationDestinationPrefix?: string,
                            user?: string,
                            pass?: string,
-                           useSSL?: boolean): MessageHandler<StompBusCommand>;
+                           useSSL?: boolean,
+                           autoReconnect?: boolean): MessageHandler<StompBusCommand>;
 
     /**
      * Unsubscribe from a Galactic Channel. Will send an UNSUBSCRIBE message to broker.
