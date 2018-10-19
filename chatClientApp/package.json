@@ -23,7 +23,7 @@
     "@clr/angular": "^0.12.6",
     "@clr/icons": "^0.12.6",
     "@clr/ui": "^0.12.9",
-    "@vmw/bifrost": "^0.9.3",
+    "@vmw/bifrost": "^0.9.11",
     "@vmw/ngx-components": "^0.8.0",
     "@vmw/ngx-utils": "^0.3.0",
     "@vmw/tango": "^0.7.3",

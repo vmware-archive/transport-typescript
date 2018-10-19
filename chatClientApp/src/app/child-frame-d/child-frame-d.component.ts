@@ -24,7 +24,13 @@ export class ChildFrameDComponent extends AbstractBase implements OnInit {
             protectedChannels: [GeneralChatChannel, 'servbot-query'],
             proxyType: ProxyType.Child,
             parentOrigin: 'http://localhost:4300',
-            acceptedOrigins: ['http://localhost:4300', 'http://localhost:4400'],
+            acceptedOrigins: [
+                'http://localhost:8070',
+                'http://localhost:4400',
+                'http://localhost:4300',
+                'http://localhost:4200',
+                'http://10.126.88.213:8070'
+            ],
             targetAllFrames: false,
             targetSpecificFrames: null,
         });
