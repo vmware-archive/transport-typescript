@@ -24,6 +24,16 @@
     "changelogHistory": [
         {
             "date": "10/18/18",
+            "version": "0.9.11",
+            "notes": [
+                {
+                    "description": "Improved HTTP client,to cleanly handle various 200 bodyless return types.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/30"
+                }
+            ]
+        },
+        {
+            "date": "10/18/18",
             "version": "0.9.10",
             "notes": [
                 {
