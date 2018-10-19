@@ -38,27 +38,34 @@ export class BifrostHttpclient implements HttpClient {
         ).then(
             (response: Response) => {
                 if (response.ok) {
-                    return response.json();
+                   return response.text();
                 }
-
                 throw response;
             }
         ).then(
-            (json: any) => {
-                successHandler(json);
+            (response) => {
+                try {
+                    successHandler(JSON.parse(response));
+                } catch (e) {
+                    successHandler(response);
+                }
             }
         ).catch(
-            function (error: Response) {
-                error.text().then(
-                    resp => {
-                        const errorObject = JSON.parse(resp);
-                        let message = `HTTP Error ${error.status}: ${error.statusText}`;
-                        if (errorObject.hasOwnProperty('message')) {
-                            message += ` -  ${errorObject.message}`;
-                        }
-                        errorHandler(new GeneralError(message));
-                    }
-                );
+             (error: Response) => {
+                 try {
+                     error.text().then(
+                         resp => {
+                             const errorObject = JSON.parse(resp);
+                             let message = `HTTP Error ${error.status}: ${error.statusText}`;
+                             if (errorObject.hasOwnProperty('message')) {
+                                 message += ` -  ${errorObject.message}`;
+                             }
+                             errorHandler(new GeneralError(message));
+                         }
+                     );
+                 } catch (e) {
+                     errorHandler(new GeneralError(`Fatal HTTP Error: ${e}`));
+                 }
             }
         );
     }
