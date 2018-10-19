@@ -163,7 +163,8 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         applicationDestinationPrefix?: string,
         user?: string,
         pass?: string,
-        useSSL?: boolean): MessageHandler<StompBusCommand> {
+        useSSL?: boolean,
+        autoReconnect: boolean = true): MessageHandler<StompBusCommand> {
 
         const config: StompConfig = StompConfig.generate(
             endpoint,
@@ -172,11 +173,13 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
             useSSL,
             user,
             pass,
-            applicationDestinationPrefix
+            applicationDestinationPrefix,
         );
         config.topicLocation = topicLocation;
         config.queueLocation = queueLocation;
         config.brokerConnectCount = numBrokerRelays;
+        config.autoReconnect = autoReconnect;
+
         const handler: MessageHandler<StompBusCommand> = this.requestStream(
             BrokerConnectorChannel.connection,
             StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, '', '', config),
