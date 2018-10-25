@@ -55,10 +55,16 @@ export class BifrostHttpclient implements HttpClient {
                  try {
                      error.text().then(
                          resp => {
-                             const errorObject = JSON.parse(resp);
-                             let message = `HTTP Error ${error.status}: ${error.statusText}`;
-                             if (errorObject.hasOwnProperty('message')) {
-                                 message += ` -  ${errorObject.message}`;
+                             let message: string = `HTTP Error ${error.status}: ${error.statusText}`;
+                             try {
+                                 const errorObject = JSON.parse(resp);
+
+                                 // if the response has a message property, add to the response.
+                                 if (errorObject.hasOwnProperty('message')) {
+                                     message += ` -  ${errorObject.message}`;
+                                 }
+                             } catch (err) {
+                                // use base error message set before try/catch block.
                              }
                              errorHandler(new GeneralError(message));
                          }

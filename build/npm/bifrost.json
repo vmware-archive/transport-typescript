@@ -23,6 +23,19 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "10/25/18",
+            "version": "0.9.13",
+            "notes": [
+                {
+                    "description": "Created high level operations abstractions for service calls",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/33"
+                },
+                {
+                    "description": "Fixed error handling fetch handling for error edge cases"
+                }
+            ]
+        },
+        {
             "date": "10/18/18",
             "version": "0.9.12",
             "notes": [

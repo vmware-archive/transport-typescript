@@ -27,7 +27,9 @@ export class ChildFrameAComponent extends AbstractBase implements OnInit {
                 'http://localhost:4400',
                 'http://localhost:4300',
                 'http://localhost:4200',
-                'http://10.126.88.213:8070'
+                'http://10.126.88.213:8070',
+                'http://ngx.eng.vmware.com',
+                'http://ngx-components.eng.vmware.com'
             ],
             targetAllFrames: false,
             targetSpecificFrames: null,
