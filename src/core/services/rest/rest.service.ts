@@ -185,7 +185,15 @@ export class RestService extends AbstractCore implements EventBusEnabled {
 
         // GET requests may not have a body
         if (restObject.request !== HttpRequest.Get && restObject.request !== HttpRequest.UpdateGlobalHeaders) {
-            requestInit.body = JSON.stringify(restObject.body);
+
+            try {
+                // check if payload has already been stringified or not
+                if (JSON.parse(restObject.body)) {
+                    requestInit.body = restObject.body;
+                }
+            } catch (exp) {
+                requestInit.body = JSON.stringify(restObject.body);
+            }
         }
 
         return requestInit;
