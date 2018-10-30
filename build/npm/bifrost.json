@@ -23,6 +23,16 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "10/30/18",
+            "version": "0.9.14",
+            "notes": [
+                {
+                    "description": "Fixed bug with double JSON stringification during fetch call via RestService",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/34"
+                }
+            ]
+        },
+        {
             "date": "10/25/18",
             "version": "0.9.13",
             "notes": [
