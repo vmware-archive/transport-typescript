@@ -23,6 +23,16 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "11/09/18",
+            "version": "0.9.15",
+            "notes": [
+                {
+                    "description": "Added correct ErrorResponse support from ss-base in error handling for http client.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/35"
+                }
+            ]
+        },
+        {
             "date": "10/30/18",
             "version": "0.9.14",
             "notes": [
