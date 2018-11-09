@@ -57,6 +57,7 @@ export class BifrostHttpclient implements HttpClient {
                         resp => {
                             let message: string = `HTTP Error ${error.status}: ${error.statusText}`;
                             let status: string;
+                            let errorCode: string;
                             let respErrorObject: any;
 
                             try {
@@ -72,8 +73,13 @@ export class BifrostHttpclient implements HttpClient {
                                     message += ` -  ${respErrorObject.error_messages.join(', ')}`;
                                 }
 
-                                if (respErrorObject.hasOwnProperty('error_code')) {
+                                if (respErrorObject.hasOwnProperty('error_code')
+                                    && respErrorObject.error_code != null) {
                                     status = respErrorObject.error_code;
+                                }
+
+                                if (respErrorObject.hasOwnProperty('status')) {
+                                    status = respErrorObject.status;
                                 }
 
                             } catch (err) {
@@ -87,6 +93,10 @@ export class BifrostHttpclient implements HttpClient {
 
                             if (respErrorObject) {
                                 returnError.errorObject = respErrorObject;
+                            }
+
+                            if (errorCode) {
+                                returnError.errorCode = respErrorObject;
                             }
 
                             // send the error back.
