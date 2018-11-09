@@ -38,7 +38,7 @@ export class BifrostHttpclient implements HttpClient {
         ).then(
             (response: Response) => {
                 if (response.ok) {
-                   return response.text();
+                    return response.text();
                 }
                 throw response;
             }
@@ -51,27 +51,51 @@ export class BifrostHttpclient implements HttpClient {
                 }
             }
         ).catch(
-             (error: Response) => {
-                 try {
-                     error.text().then(
-                         resp => {
-                             let message: string = `HTTP Error ${error.status}: ${error.statusText}`;
-                             try {
-                                 const errorObject = JSON.parse(resp);
+            (error: Response) => {
+                try {
+                    error.text().then(
+                        resp => {
+                            let message: string = `HTTP Error ${error.status}: ${error.statusText}`;
+                            let status: string;
+                            let respErrorObject: any;
 
-                                 // if the response has a message property, add to the response.
-                                 if (errorObject.hasOwnProperty('message')) {
-                                     message += ` -  ${errorObject.message}`;
-                                 }
-                             } catch (err) {
+                            try {
+                                respErrorObject = JSON.parse(resp);
+
+                                // if the response has a message property, add to the response.
+                                if (respErrorObject.hasOwnProperty('message')) {
+                                    message += ` -  ${respErrorObject.message}`;
+                                }
+
+                                if (respErrorObject.hasOwnProperty('error_messages')
+                                    && Array.isArray(respErrorObject.error_messages)) {
+                                    message += ` -  ${respErrorObject.error_messages.join(', ')}`;
+                                }
+
+                                if (respErrorObject.hasOwnProperty('error_code')) {
+                                    status = respErrorObject.error_code;
+                                }
+
+                            } catch (err) {
                                 // use base error message set before try/catch block.
-                             }
-                             errorHandler(new GeneralError(message));
-                         }
-                     );
-                 } catch (e) {
-                     errorHandler(new GeneralError(`Fatal HTTP Error: ${e}`));
-                 }
+                            }
+
+                            // create an error, attach the message and status code, and then also attach
+                            // the original object parsed from the API error response.
+
+                            let returnError: GeneralError = new GeneralError(message, status);
+
+                            if (respErrorObject) {
+                                returnError.errorObject = respErrorObject;
+                            }
+
+                            // send the error back.
+                            errorHandler(returnError);
+                        }
+                    );
+                } catch (e) {
+                    errorHandler(new GeneralError(`Fatal HTTP Error: ${e}`));
+                }
             }
         );
     }
