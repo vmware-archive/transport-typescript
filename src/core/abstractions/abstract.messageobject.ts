@@ -11,6 +11,6 @@ export abstract class AbstractMessageObject<TRequest, TPayload> {
      * @param channel - string channel for service requests
      * @param payload - request and response payloads
      */
-    constructor(public readonly request?: TRequest, public readonly channel?: string, public payload?: TPayload) {
+    constructor(public readonly request?: TRequest, public readonly channel?: string | null | undefined, public payload?: TPayload) {
     }
 }
