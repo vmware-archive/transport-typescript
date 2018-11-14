@@ -49,8 +49,8 @@ export class RestObject {
         headers: any = {},
         queryStringParams: any = {},
         pathParams: any = {},
-        public readonly apiClass?: string,
-        public readonly senderName?: string) {
+        public readonly apiClass?: string | null | undefined,
+        public readonly senderName?: string | null | undefined) {
 
         this.request = request;
         this.uri = uri;

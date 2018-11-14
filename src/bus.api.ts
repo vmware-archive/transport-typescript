@@ -129,7 +129,7 @@ export interface MessageResponder<T = any, E = any> {
 
 export abstract class EventBus {
 
-    public static version: string = '0.9.15';
+    public static version: string = '0.9.16';
 
     public static id: string = EventBus.rebuildId();
 

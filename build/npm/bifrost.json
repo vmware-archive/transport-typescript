@@ -19,9 +19,19 @@
     },
     //@endexclude
     "author": "Dave Shanley <dshanley@vmware.com>",
-    "contributors": ["Akmal Khan <akhan@vmware.com>","Etienne Le Sueur <elesueur@vmware.com>"],
+    "contributors": ["Akmal Khan <akmalk@vmware.com>","Etienne Le Sueur <elesueur@vmware.com>","Ashwini Manjunath <ashwinim@vmware.com>"],
     "license": "0BSD",
     "changelogHistory": [
+        {
+            "date": "11/13/18",
+            "version": "0.9.16",
+            "notes": [
+                {
+                    "description": "Changed the signatures of AbstractMessageObject and RestObject to support strict mode",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/36"
+                }
+            ]
+        },
         {
             "date": "11/09/18",
             "version": "0.9.15",
