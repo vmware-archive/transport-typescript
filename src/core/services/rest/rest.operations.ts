@@ -13,6 +13,8 @@ export interface RestOperation {
     pathParams?: any;
     queryParams?: any;
     headers?: any;
+    apiClass?: string;
+    sentFrom?: string;
     successHandler: MessageFunction<any>;
     errorHandler?: MessageFunction<any>;
 }
@@ -55,6 +57,8 @@ export class RestOperations extends AbstractCore {
         const headers = (operation.headers ? operation.headers : {});
         const queryParams = (operation.queryParams ? operation.queryParams : {});
         const pathParams = (operation.pathParams ? operation.pathParams : {});
+        const apiClass = (operation.apiClass ? operation.apiClass : undefined);
+        const senderName = (operation.sentFrom ? operation.sentFrom : undefined);
 
         const restRequestObject: RestObject = new RestObject(
             operation.method,
@@ -62,7 +66,9 @@ export class RestOperations extends AbstractCore {
             body,
             headers,
             queryParams,
-            pathParams
+            pathParams,
+            apiClass,
+            senderName
         );
 
         let id: UUID;
