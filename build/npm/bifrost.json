@@ -23,6 +23,19 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "11/15/18",
+            "version": "0.9.17",
+            "notes": [
+                {
+                    "description": "Added Referer-Policy to httpclient to handle VMC Microservices",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/37"
+                },
+                {
+                    "description": "Updated RestOperation to passthrough autogen properties",
+                }
+            ]
+        },
+        {
             "date": "11/13/18",
             "version": "0.9.16",
             "notes": [

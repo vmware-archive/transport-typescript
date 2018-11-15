@@ -181,6 +181,9 @@ export class RestService extends AbstractCore implements EventBusEnabled {
         let requestInit: any = {
             method: restObject.request,
             headers: headers,
+            credentials: 'include',
+            mode: 'cors',
+            referrerPolicy: 'origin-when-cross-origin'
         };
 
         // GET requests may not have a body
