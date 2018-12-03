@@ -23,6 +23,16 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "12/03/18",
+            "version": "0.9.18",
+            "notes": [
+                {
+                    "description": "Added broadcastNotification() as alias for broadcastResponse() to `AbstractService`",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/38"
+                }
+            ]
+        },
+        {
             "date": "11/15/18",
             "version": "0.9.17",
             "notes": [
@@ -31,7 +41,7 @@
                     "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/37"
                 },
                 {
-                    "description": "Updated RestOperation to passthrough autogen properties",
+                    "description": "Updated RestOperation to passthrough autogen properties"
                 }
             ]
         },

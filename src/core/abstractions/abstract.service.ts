@@ -276,4 +276,24 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
             responseObject
         );
     }
+
+    /**
+     * Broadcast message to all subscribers on channel.
+     * @param channel
+     * @param payload
+     */
+    protected broadcastResponse(channel: string, payload: any) {
+        this.log.debug('Sending response to ' + channel, this.getName());
+        this.bus.sendResponseMessage(channel, payload, this.getName());
+    }
+
+    /**
+     * Alias for broadcastResponse()
+     *
+     * @param channel
+     * @param notification
+     */
+    protected broadcastNotification<N>(channel: string, notification: N) {
+       this.broadcastResponse(channel, notification);
+    }
 }
