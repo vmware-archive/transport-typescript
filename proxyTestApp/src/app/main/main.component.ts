@@ -1,14 +1,14 @@
 import { AfterContentInit, Component, OnInit } from '@angular/core';
 
-import { EventBus, Message, MessageHandler, MonitorObject, MonitorType, ProxyControl } from '@vmw/bifrost';
+import { EventBus, MessageHandler } from '@vmw/bifrost/bus.api';
+import { Message } from '@vmw/bifrost/bus/model/message.model';
+import { MonitorObject, MonitorType } from '@vmw/bifrost/bus/model/monitor.model';
 import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
 import { LogLevel } from '@vmw/bifrost/log';
 import { ToastNotification } from '@vmw/ngx-components';
 import { ChatMessage, GeneralChatChannel } from '../chat-message';
 import { AbstractBase } from '@vmw/bifrost/core';
 import { ServbotService } from '../../../services/servbot/servbot.service';
-import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
-import { VMCBotService } from '../../../services/vmcbot/vmcbot.service';
 
 @Component({
     selector: 'app-main',
@@ -21,9 +21,8 @@ export class MainComponent extends AbstractBase implements OnInit {
     public id = EventBus.id;
     public notifications: ToastNotification[];
     public consoleEvents: string[];
-    public activeChildren: number = 0;
-    public registeredChildren: number = 0;
-    private control: ProxyControl;
+    public activeChildren = 0;
+    public registeredChildren = 0;
     private generalChat: MessageHandler;
 
     constructor() {
@@ -39,7 +38,7 @@ export class MainComponent extends AbstractBase implements OnInit {
 
     ngOnInit() {
         this.listenToBusMonitor();
-        this.control = this.bus.enableMessageProxy({
+        this.bus.enableMessageProxy({
             protectedChannels: [GeneralChatChannel, ServbotService.queryChannel],
             proxyType: ProxyType.Parent,
             parentOrigin: 'http://localhost:4300',

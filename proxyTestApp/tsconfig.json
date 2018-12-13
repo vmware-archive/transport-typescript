@@ -6,7 +6,8 @@
     "paths": {
       "@operations/*": ["operations/*"],
       "@services/*": ["services/*"],
-      "@vmc/*": ["vmc-models/api/*"]
+      "@vmc/*": ["vmc-models/api/*"],
+      "@vmw/bifrost/*": ["../src/*"]
     },
     "sourceMap": true,
     "declaration": false,

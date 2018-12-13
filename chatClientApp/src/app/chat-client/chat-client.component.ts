@@ -1,5 +1,5 @@
 import { AfterViewChecked, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { EventBus, MessageHandler } from '@vmw/bifrost';
+import { EventBus, MessageHandler } from '@vmw/bifrost/bus.api';
 import { ChatMessage, GeneralChatChannel } from '../chat-message';
 import { BaseTask } from '@vmc/vmc-api';
 import { GeneralError } from '@vmw/bifrost/core/model/error.model';
@@ -20,8 +20,8 @@ export class ChatClientComponent extends ChatClientBase implements OnInit, After
     @ViewChild('scrollable') private chatContainer: ElementRef;
 
     private generalChat: MessageHandler;
-    public isOnline: boolean = false;
-    public status: string = 'offline';
+    public isOnline = false;
+    public status = 'offline';
 
     public id = EventBus.id;
     public chat: string;
@@ -109,7 +109,7 @@ export class ChatClientComponent extends ChatClientBase implements OnInit, After
             let commandString = this.chat.replace('/', '');
             commandString = commandString.charAt(0).toUpperCase() + commandString.slice(1);
 
-            let command: ChatCommand = ChatCommand[commandString];
+            const command: ChatCommand = ChatCommand[commandString];
 
             if (command) {
 

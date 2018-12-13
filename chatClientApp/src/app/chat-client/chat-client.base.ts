@@ -1,9 +1,8 @@
 import { ChatMessage } from '../chat-message';
 import { AbstractBase } from '@vmw/bifrost/core';
 import { ChatCommand, ServbotResponse } from '../servbot.model';
-import { MessageFunction } from '@vmw/bifrost';
+import { MessageFunction } from '@vmw/bifrost/bus.api';
 import { GeneralError } from '@vmw/bifrost/core/model/error.model';
-//import { Mixin } from '@vmw/ngx-utils';
 import { Mixin } from '@operations/mixin';
 import { BaseTask } from '@vmc/vmc-api';
 import { ChatOperations } from './chat.operations';

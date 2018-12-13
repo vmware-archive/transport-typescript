@@ -1,4 +1,4 @@
-import { EventBus, MessageFunction } from '@vmw/bifrost';
+import { EventBus, MessageFunction } from '@vmw/bifrost/bus.api';
 import { AbstractCore } from '@vmw/bifrost/core';
 import { GeneralError } from '@vmw/bifrost/core/model/error.model';
 import { GeneralUtil } from '@vmw/bifrost/util/util';

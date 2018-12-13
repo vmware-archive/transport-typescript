@@ -29,7 +29,6 @@
             ],
             "scripts": [
               "node_modules/@webcomponents/custom-elements/custom-elements.min.js",
-              "node_modules/@vmw/bifrost/bifrost.umd.min.js",
               "node_modules/@clr/icons/clr-icons.min.js"
             ]
           },
