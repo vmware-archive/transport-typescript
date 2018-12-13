@@ -23,6 +23,15 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "12/13/18",
+            "version": "0.9.19",
+            "notes": [
+                {
+                    "description": "Making compatible with bifrost-java version 0.5 (change to APIRequest model)."
+                }
+            ]
+        },        
+        {
             "date": "12/03/18",
             "version": "0.9.18",
             "notes": [

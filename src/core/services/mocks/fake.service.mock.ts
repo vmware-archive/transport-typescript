@@ -65,7 +65,7 @@ export class FakeService extends AbstractAutoService<FakeRequestObject, FakeResp
 
                 if (op === 'Fake Request') {       // send a message without message args
                     apiObject.responseObject.payload = this.buildAPIRequest(
-                        'Fake type',
+                        'Fake command',
                         'Fake payload',
                         GeneralUtil.genUUIDShort(),
                         123
