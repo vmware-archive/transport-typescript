@@ -1,4 +1,4 @@
-import { EventBus } from '@vmw/bifrost';
+import { EventBus } from '@vmw/bifrost/bus.api';
 import { AbstractCore } from '@vmw/bifrost/core';
 import { BaseTask } from '@vmc/vmc-api';
 import { ChatMessage, GeneralChatChannel } from '../src/app/chat-message';
@@ -18,7 +18,7 @@ export class ChatOperations extends AbstractCore {
             controlEvent: null,
             error: false,
             task: null
-        }
+        };
     }
 
     public createControlMessage(controlEvent: string, error?: boolean, task?: BaseTask): ChatMessage {
@@ -30,7 +30,7 @@ export class ChatOperations extends AbstractCore {
             controlEvent: controlEvent,
             error: error,
             task: task
-        }
+        };
     }
 
     public publishChatMessage(message: ChatMessage): void {

@@ -1,5 +1,5 @@
 import { AbstractService } from '@vmw/bifrost/core';
-import { EventBus, MessageArgs, MessageHandler } from '@vmw/bifrost';
+import { EventBus, MessageArgs, MessageHandler } from '@vmw/bifrost/bus.api';
 import { VMCBotRequest, VMCBotResponse, VMCCommand } from './vmcbot.model';
 import { BaseTask } from '@vmc/vmc-api';
 import { ChatMessage, GeneralChatChannel } from '../../src/app/chat-message';
@@ -23,7 +23,7 @@ export class VMCBotService extends AbstractService<VMCBotRequest, VMCBotResponse
 
     constructor() {
         super('VMCBot', VMCBotService.serviceChannel);
-        this.log.info("VMCBot Service Online");
+        this.log.info('VMCBot Service Online');
     }
 
     private connectService() {
@@ -78,7 +78,7 @@ export class VMCBotService extends AbstractService<VMCBotRequest, VMCBotResponse
                     break;
             }
         } else {
-            this.log.warn('Unable to proceed, no valid commands passed.')
+            this.log.warn('Unable to proceed, no valid commands passed.');
         }
     }
 

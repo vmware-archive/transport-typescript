@@ -7,6 +7,7 @@
       "@services/*": ["../proxyTestApp/services/*"],
       "@operations/*": ["../proxyTestApp/operations/*"],
       "@vmc/*": ["../proxyTestApp/vmc-models/api/*"],
+      "@vmw/bifrost/*": ["../src/*"]
     },
     "sourceMap": true,
     "declaration": false,

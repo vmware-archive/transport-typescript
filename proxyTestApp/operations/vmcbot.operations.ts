@@ -1,4 +1,4 @@
-import { EventBus, MessageFunction } from '@vmw/bifrost';
+import { EventBus, MessageFunction } from '@vmw/bifrost/bus.api';
 import { AbstractCore } from '@vmw/bifrost/core';
 import { VMCBotService } from '@services/vmcbot/vmcbot.service';
 import { VMCCommand } from '@services/vmcbot/vmcbot.model';
@@ -10,7 +10,7 @@ export class VMCBotOperations extends AbstractCore {
     }
 
     public connectVMCBot(): void {
-        this.bus.sendRequestMessage(VMCBotService.serviceChannel, {command:VMCCommand.Connect}, EventBus.id);
+        this.bus.sendRequestMessage(VMCBotService.serviceChannel, {command: VMCCommand.Connect}, EventBus.id);
     }
 
     public listenForVMCBotOnlineState(onlineHandler: MessageFunction<boolean>) {

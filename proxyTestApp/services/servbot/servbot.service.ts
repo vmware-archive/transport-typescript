@@ -1,5 +1,6 @@
 import { AbstractService } from '@vmw/bifrost/core';
-import { BusStore, EventBus, MessageArgs } from '@vmw/bifrost';
+import { EventBus, MessageArgs } from '@vmw/bifrost/bus.api';
+import { BusStore } from '@vmw/bifrost/store.api';
 import { ChatCommand, ServbotRequest, ServbotResponse } from './servbot.model';
 import { ChatMessage, GeneralChatChannel } from '../../src/app/chat-message';
 import { APIResponse } from '@vmw/bifrost/core/model/response.model';

@@ -3,7 +3,7 @@ import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
 import { RestService } from '@vmw/bifrost/core/services/rest/rest.service';
 import { TangoAngularHttpClientAdapter } from '@vmw/tango';
 import { HttpClient } from '@angular/common/http';
-import { BusStore } from '@vmw/bifrost';
+import { BusStore } from '@vmw/bifrost/store.api';
 import { RestyBase } from './resty.base';
 
 
@@ -14,10 +14,10 @@ import { RestyBase } from './resty.base';
 })
 export class RestyComponent extends RestyBase implements OnInit {
 
-    public status: string = 'asleep';
-    public online: boolean = false;
+    public status = 'asleep';
+    public online = false;
     public avatarIcon = '👴🏻';
-    private serviceLoaded: boolean = false;
+    private serviceLoaded = false;
 
     private restyStateStore: BusStore<boolean>;
 
