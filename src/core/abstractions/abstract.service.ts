@@ -69,6 +69,8 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
     protected requestConverterMap: Map<string, HttpRequest>;
     protected readonly serviceChannel: ChannelName;
 
+    protected $host: string | undefined;    // This allows for dynamically customizing host segment in URIs prior to ReST service calls
+
     /**
      * super()
      *
@@ -227,6 +229,14 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
                 this.log.error('FATAL: Invalid RestRequest provided to AbstractService.apiBridge(): ' + httpOp,
                     this.getName());
                 return;
+            }
+
+            // Services like NSX-T dynamically change the host for their API. By setting $host in the derived service,
+            // the URI passed to RestService is modified to prepend an alternate host. This can be done prior to every
+            // API call.
+
+            if (this.$host) {
+                uri = this.$host + uri;
             }
 
             // Prepare the payload for RestService
