@@ -19,9 +19,18 @@
     },
     //@endexclude
     "author": "Dave Shanley <dshanley@vmware.com>",
-    "contributors": ["Akmal Khan <akmalk@vmware.com>","Etienne Le Sueur <elesueur@vmware.com>","Ashwini Manjunath <ashwinim@vmware.com>"],
+    "contributors": ["Akmal Khan <akmalk@vmware.com>","Etienne Le Sueur <elesueur@vmware.com>","Ashwini Manjunath <ashwinim@vmware.com>", "Matt Critchlow <mcritch@vmware.com>"],
     "license": "0BSD",
     "changelogHistory": [
+        {
+            "date": "12/13/18",
+            "version": "0.9.19",
+            "notes": [
+                {
+                    "description": "Making compatible with bifrost-java version 0.5 (change to APIRequest model)."
+                }
+            ]
+        },        
         {
             "date": "12/03/18",
             "version": "0.9.18",

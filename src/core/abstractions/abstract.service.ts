@@ -159,17 +159,17 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
     /**
      * Build a API request command object
      *
-     * @param {string} requestType
+     * @param {string} requestCommand
      * @param {T} payload
      * @param {UUID} uuid
      * @param {number} version
      * @returns {APIRequest<T>}
      */
-    protected buildAPIRequest<T>(requestType: string, payload: T,
+    protected buildAPIRequest<T>(requestCommand: string, payload: T,
                                  uuid: UUID = GeneralUtil.genUUID(),
                                  version: number = 1): APIRequest<T> {
 
-        return new APIRequest(requestType, payload, uuid, version);
+        return new APIRequest(requestCommand, payload, uuid, version);
     }
 
     /**
