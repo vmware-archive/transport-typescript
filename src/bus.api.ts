@@ -11,11 +11,14 @@ import { Logger } from './log/logger.service';
 import { LogLevel } from './log/logger.model';
 import { APIRequest } from './core/model/request.model';
 import { APIResponse } from './core/model/response.model';
-import { MessageProxyConfig, ProxyControl } from './proxy/message.proxy';
+import { MessageProxyConfig, ProxyControl } from './proxy/message.proxy.api';
 import { GeneralUtil } from './util/util';
 
 export type ChannelName = string;
 export type SentFrom = string;
+
+export const ORG_ID = 'orgId';
+export const ORGS = 'orgs';
 
 declare global {
     interface Window {
@@ -28,10 +31,10 @@ declare global {
 }
 
 export enum MessageType {
-    MessageTypeRequest,
-    MessageTypeResponse,
-    MessageTypeError,
-    MessageTypeControl
+    MessageTypeRequest = 'Request',
+    MessageTypeResponse = 'Response',
+    MessageTypeError = 'Error',
+    MessageTypeControl = 'Control'
 }
 
 
@@ -129,7 +132,7 @@ export interface MessageResponder<T = any, E = any> {
 
 export abstract class EventBus {
 
-    public static version: string = '0.9.19';
+    public static version: string = '0.9.20';
 
     public static id: string = EventBus.rebuildId();
 
