@@ -32,7 +32,7 @@
                 },
                 {
                     "description": "Added built in support for orgId (VMware Cloud Services) to abstractions",
-                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/40"
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/44"
                 }
             ]
         },
