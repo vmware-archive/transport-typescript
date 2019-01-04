@@ -5,9 +5,9 @@
 
 import { AbstractAutoService } from './abstract.autoservice';
 import { SERVICE_ERROR } from './abstract.service';
-import { HttpRequest, RestError, RestObject } from '..';
 import { MessageArgs } from '../../bus.api';
 import { RestService } from '../services/rest/rest.service';
+import { HttpRequest, RestError, RestObject } from '../services/rest/rest.model';
 
 export const MOCK_FAKE_ERROR = 400;
 export const MOCK_UNIMPLEMENTED_ERROR = 444;

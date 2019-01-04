@@ -1,14 +1,14 @@
-import { ChannelName, MessageArgs, MessageFunction } from '../../bus.api';
-import { AbstractBase } from './abstract.base';
-import { HttpRequest, RestError, RestObject } from '../services/rest/rest.model';
-import { APIRequest } from '../model/request.model';
-import { APIResponse } from '../model/response.model';
-import { UUID } from '../../bus';
-import { GeneralUtil } from '../../util/util';
-import { GeneralError } from '../model/error.model';
-import { ApiObject } from './abstract.apiobject';
-import { AbstractMessageObject } from './abstract.messageobject';
-import { RestService } from '../services/rest/rest.service';
+import {ChannelName, MessageArgs, MessageFunction, ORG_ID, ORGS} from '../../bus.api';
+import {AbstractBase} from './abstract.base';
+import {HttpRequest, RestError, RestObject} from '../services/rest/rest.model';
+import {APIRequest} from '../model/request.model';
+import {APIResponse} from '../model/response.model';
+import {BusStore, UUID} from '../../bus';
+import {GeneralUtil} from '../../util/util';
+import {GeneralError} from '../model/error.model';
+import {ApiObject} from './abstract.apiobject';
+import {AbstractMessageObject} from './abstract.messageobject';
+import {RestService} from '../services/rest/rest.service';
 
 export const SERVICE_ERROR = 505;
 export type RequestorArguments = MessageArgs;
@@ -271,6 +271,18 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
         this.apiFailureHandler = (apiObject: ApiObject<ReqT, RespT>, err: RestError, args?: MessageArgs) => {
             this.postError(this.serviceChannel, err, args);
         };
+    }
+
+    /**
+     * Required for any VMware Cloud Services API.
+     */
+    protected get callerOrgId() {
+        const store: BusStore<string> = this.storeManager.getStore<string>(ORGS);
+        let orgId: string = 'orgId not set!';
+        if (store) {
+            orgId = store.get(ORG_ID);
+        }
+        return orgId;
     }
 
     /**

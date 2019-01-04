@@ -5,7 +5,7 @@
 import { EventBus, MessageType } from '../bus.api';
 import { Logger, LogLevel } from '../log';
 import { BusTestUtil } from '../util/test.util';
-import { BusProxyMessage, IFrameProxyControl, ProxyControlPayload, ProxyType } from './message.proxy';
+import { BusProxyMessage, IFrameProxyControl, ProxyControlPayload, ProxyType } from './message.proxy.api';
 import { Message } from '../bus';
 
 describe('Proxy Controls [proxy/proxy.control.ts]', () => {

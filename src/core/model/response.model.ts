@@ -18,16 +18,16 @@ export class APIResponse<PayloadT> extends AbstractFrame {
     public errorMessage: string;
     public errorCode: number;
 
-    constructor(payload: PayloadT, 
-                error: boolean, 
-                errorCode: number, 
-                errorMessage: string, 
-                id: UUID, 
+    constructor(payload: PayloadT,
+                error: boolean,
+                errorCode: number,
+                errorMessage: string,
+                id: UUID,
                 version: number) {
         super(id, version);
         this.payload = payload;
         this.error = error;
         this.errorMessage = errorMessage;
-        this.errorCode = errorCode; 
+        this.errorCode = errorCode;
     }
 }

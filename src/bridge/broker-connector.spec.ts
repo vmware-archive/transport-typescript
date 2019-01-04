@@ -788,7 +788,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                 let count = 0;
                 /*
  
-                This tests that galatic channels operate over low level API's
+                This tests that galactic channels operate over low level API's
  
                  */
 
@@ -1178,7 +1178,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
             }
         );
 
-        it('subscribeToDestination() forwards any message sent on galatic channel',
+        it('subscribeToDestination() forwards any message sent on galactic channel',
 
             (done) => {
 
@@ -1263,7 +1263,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
             }
         );
 
-        it('unsubscribeFromDestination() behaves correctly if no galatic subscriptions can be found.',
+        it('unsubscribeFromDestination() behaves correctly if no galactic subscriptions can be found.',
 
             (done) => {
 

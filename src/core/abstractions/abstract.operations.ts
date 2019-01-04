@@ -1,13 +1,21 @@
 /**
- * Copyright(c) VMware Inc. 2018
+ * Copyright(c) VMware Inc. 2018-2019
  */
-import { AbstractBase } from './abstract.base';
-import { BusTransaction, ChannelName, MessageFunction, TransactionType } from '../../bus.api';
-import { GeneralError } from '../model/error.model';
-import { AbstractMessageObject } from './abstract.messageobject';
+import {AbstractBase} from './abstract.base';
+import {BusTransaction, ChannelName, MessageFunction, TransactionType} from '../../bus.api';
+import {GeneralError} from '../model/error.model';
+import {AbstractMessageObject} from './abstract.messageobject';
 
 export abstract class AbstractOperations extends AbstractBase {
 
+    /**
+     * Call a service via the event bus
+     *
+     * @param channel the channel on which the service is listening on
+     * @param request the request object you want to send to the service.
+     * @param successHandler handle the successful response from the service.
+     * @param errorHandler handle any errors that are caught or thrown by the service.
+     */
     public callService<RequestType, RetPayload>(
         channel: ChannelName,
         request: RequestType,

@@ -33,7 +33,8 @@ import { StoreManager } from './store/store.manager';
 import { BusTransactionImpl } from './transaction';
 import { BrokerConnector } from '../bridge/broker-connector';
 import { GeneralUtil } from '../util/util';
-import { MessageProxy, MessageProxyConfig, ProxyControl } from '../proxy/message.proxy';
+import { MessageProxyConfig, ProxyControl } from '../proxy/message.proxy.api';
+import { MessageProxy } from '../proxy/message.proxy';
 
 export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
@@ -198,16 +199,9 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
     }
 
     public listenGalacticStream<T>(cname: ChannelName, name: SentFrom = this.getName()): MessageHandler<T> {
-
-        this.api.getChannelObject(cname, name, true, false).setGalactic();
-
-        this.api.getMonitorStream().send(
-            new Message().request(
-                new MonitorObject()
-                    .build(MonitorType.MonitorNewGalacticChannel, cname, null, null)
-            )
-        );
-
+        if (!this.internalChannelMap.has(cname)) {
+            this.api.getGalacticChannel(cname, name, false); // create galactic channel;
+        }
         return this.listenStream(cname, name);
     }
 
@@ -215,7 +209,6 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         if (this.internalChannelMap.has(cname)) {
             return this.internalChannelMap.get(cname).galactic;
         }
-
         return false;
     }
 

@@ -3,7 +3,7 @@
  */
 import { EventBus, BifrostEventBus, BrokerConnectorChannel, MessageArgs } from '../';
 import { LogLevel } from '../log/logger.model';
-import { Message} from './model/message.model';
+import { Message } from './model/message.model';
 import { Channel } from './model/channel.model';
 import { Observable } from 'rxjs';
 import { Logger } from '../log/logger.service';
@@ -594,13 +594,13 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
         bus.respondOnce('puppy-time')
             .generate(
-            (req: string) => 'get the ball!'
+                (req: string) => 'get the ball!'
             );
         bus.requestOnce('puppy-time', 'command')
             .handle(
-            (resp: string) => {
-                expect(resp).toBe('get the ball!');
-            }
+                (resp: string) => {
+                    expect(resp).toBe('get the ball!');
+                }
             );
 
         bus.api.tickEventLoop(
@@ -697,7 +697,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         bus.api.tickEventLoop(
             () => {
                 expect(bus.api.loggerInstance.info)
-                    .toHaveBeenCalledWith('🌌 (galactic channel mapped)-> space-car', null);
+                    .toHaveBeenCalledWith('🌌 (galactic channel mapped)-> space-car', 'EventBus');
                 done();
             }
             , 10);
@@ -714,18 +714,18 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 bus.respondOnce(testChannel)
                     .generate(
-                    (request: string) => {
-                        expect(request).toEqual('strawbarita');
-                        return 'margarita';
-                    }
+                        (request: string) => {
+                            expect(request).toEqual('strawbarita');
+                            return 'margarita';
+                        }
                     );
 
                 bus.requestOnce(testChannel, 'strawbarita')
                     .handle(
-                    (resp: string) => {
-                        expect(resp).toEqual('margarita');
-                        done();
-                    }
+                        (resp: string) => {
+                            expect(resp).toEqual('margarita');
+                            done();
+                        }
                     );
             }
         );
@@ -735,18 +735,18 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 bus.respondOnce(testChannel, '#some-different-return')
                     .generate(
-                    (request: string) => {
-                        expect(request).toEqual('magnum');
-                        return 'maggie';
-                    }
+                        (request: string) => {
+                            expect(request).toEqual('magnum');
+                            return 'maggie';
+                        }
                     );
 
                 bus.requestOnce(testChannel, 'magnum', '#some-different-return')
                     .handle(
-                    (resp: string) => {
-                        expect(resp).toEqual('maggie');
-                        done();
-                    }
+                        (resp: string) => {
+                            expect(resp).toEqual('maggie');
+                            done();
+                        }
                     );
             }
         );
@@ -759,18 +759,18 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 bus.listenRequestOnce(channel1)
                     .handle(
-                    (request: string) => {
-                        expect(request).toEqual('strawbarita');
-                        bus.api.sendResponse(channel2, 'margarita');
-                    }
+                        (request: string) => {
+                            expect(request).toEqual('strawbarita');
+                            bus.api.sendResponse(channel2, 'margarita');
+                        }
                     );
 
                 bus.requestOnce(channel1, 'strawbarita', channel2)
                     .handle(
-                    (resp: string) => {
-                        expect(resp).toEqual('margarita');
-                        done();
-                    }
+                        (resp: string) => {
+                            expect(resp).toEqual('margarita');
+                            done();
+                        }
                     );
             }
         );
@@ -844,9 +844,9 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 let sub = bus.listenOnce(testChannel)
                     .handle(
-                    () => {
-                        h++;
-                    }
+                        () => {
+                            h++;
+                        }
                     );
 
                 let chan = bus.api.getResponseChannel(testChannel, 'listenOnce()');
@@ -881,13 +881,13 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 bus.listenStream(testChannel)
                     .handle(
-                    () => {
-                        h++;
-                        if (h === 4) {
-                            expect(true).toBeTruthy();
-                            done();
+                        () => {
+                            h++;
+                            if (h === 4) {
+                                expect(true).toBeTruthy();
+                                done();
+                            }
                         }
-                    }
                     );
 
                 bus.sendResponseMessage(testChannel, 'B');
@@ -914,9 +914,9 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 let sub = bus.listenRequestOnce(testChannel)
                     .handle(
-                    () => {
-                        h++;
-                    }
+                        () => {
+                            h++;
+                        }
                     );
 
                 let chan = bus.api.getRequestChannel(testChannel, 'listenRequestOnce()');
@@ -946,13 +946,13 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 bus.listenRequestStream(testChannel)
                     .handle(
-                    () => {
-                        h++;
-                        if (h === 4) {
-                            expect(true).toBeTruthy();
-                            done();
+                        () => {
+                            h++;
+                            if (h === 4) {
+                                expect(true).toBeTruthy();
+                                done();
+                            }
                         }
-                    }
                     );
 
                 bus.sendResponseMessage(testChannel, 'F');
@@ -974,10 +974,10 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 bus.listenRequestOnce(testChannel)
                     .handle(
-                    (msg: string) => {
-                        expect(msg).toEqual('Cotton');
-                        done();
-                    }
+                        (msg: string) => {
+                            expect(msg).toEqual('Cotton');
+                            done();
+                        }
                     );
                 bus.api.sendRequest(testChannel, 'Cotton');
             }
@@ -989,10 +989,10 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 bus.listenOnce(testChannel)
                     .handle(
-                    (msg: string) => {
-                        expect(msg).toEqual('Fox');
-                        done();
-                    }
+                        (msg: string) => {
+                            expect(msg).toEqual('Fox');
+                            done();
+                        }
                     );
                 bus.api.sendResponse(testChannel, 'Fox');
             }
@@ -1031,7 +1031,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         );
 
         it('sendRequestMessageWithIdAndVersion() [ test we can send a command with an' +
-                        ' ID + version and pick it up] ',
+            ' ID + version and pick it up] ',
             (done) => {
                 const id = GeneralUtil.genUUIDShort();
 
@@ -1139,10 +1139,10 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                 // message should come through already unpacked.
                 bus.listenRequestOnce(testChannel)
                     .handle(
-                    (msg: string) => {
-                        expect(msg).toEqual('Chickie');
-                        done();
-                    }
+                        (msg: string) => {
+                            expect(msg).toEqual('Chickie');
+                            done();
+                        }
                     );
 
                 // message is sent using traditional API.
@@ -1164,10 +1164,10 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 bus.requestOnce(testChannel, 'bikes')
                     .handle(
-                    (msg: string) => {
-                        expect(msg).toEqual('cars');
-                        done();
-                    }
+                        (msg: string) => {
+                            expect(msg).toEqual('cars');
+                            done();
+                        }
                     );
             }
         );
@@ -1216,9 +1216,9 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 bus.respondOnce(testChannel)
                     .generate(
-                    (request: string) => {
-                        return 'echo ' + request;
-                    }
+                        (request: string) => {
+                            return 'echo ' + request;
+                        }
                     );
 
                 bus.api.send(testChannel, new Message().request('kitty'), 'mixOldAndNew');
@@ -1268,15 +1268,15 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 bus.listenOnce(testChannel)
                     .handle(
-                    () => {
-                        expect(false).toBeTruthy();
-                        done();
+                        () => {
+                            expect(false).toBeTruthy();
+                            done();
 
-                    },
-                    (request: string) => {
-                        expect(request).toEqual('fire!');
-                        done();
-                    }
+                        },
+                        (request: string) => {
+                            expect(request).toEqual('fire!');
+                            done();
+                        }
                     );
 
                 bus.sendErrorMessage(testChannel, 'fire!');
@@ -1288,10 +1288,10 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             (done) => {
                 bus.respondOnce(testChannel)
                     .generate(
-                    (val: string) => {
-                        expect(val).toEqual('chickie');
-                        return 'maggie';
-                    }
+                        (val: string) => {
+                            expect(val).toEqual('chickie');
+                            return 'maggie';
+                        }
                     );
 
                 const handler: MessageHandler<string> = bus.listenOnce(testChannel);
@@ -1333,11 +1333,11 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                 castBus.easterEgg();
                 bus.requestOnce('__maglingtonpuddles__', 'hi maggie!')
                     .handle(
-                    (msg: string) => {
-                        expect(msg).toEqual('Maggie wags his little nubby tail at you, as ' +
-                            'he sits under his little yellow boat on the beach');
-                        done();
-                    });
+                        (msg: string) => {
+                            expect(msg).toEqual('Maggie wags his little nubby tail at you, as ' +
+                                'he sits under his little yellow boat on the beach');
+                            done();
+                        });
 
             }
         );
@@ -1557,7 +1557,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 bus.respondOnce('puppy-dinner-talk')
                     .generate(
-                    () => 'tonights dinner is steak'
+                        () => 'tonights dinner is steak'
                     );
 
                 bus.api.error('puppy-dinner-talk', 'oh no! the steak is all gone!');
@@ -1565,7 +1565,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                     () => {
                         expect(bus.api.loggerInstance.error)
                             .toHaveBeenCalledWith('responder caught error, discarding.',
-                            'EventBus');
+                                'EventBus');
                         done();
                     },
                     10
@@ -1588,7 +1588,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                     () => {
                         expect(bus.api.loggerInstance.error)
                             .toHaveBeenCalledWith('unable to handle response, no handler function supplied',
-                            'EventBus');
+                                'EventBus');
                         done();
                     },
                     50
@@ -1612,7 +1612,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                     () => {
                         expect(bus.api.loggerInstance.error)
                             .toHaveBeenCalledWith('unable to handle error, no error handler function supplied',
-                            'EventBus');
+                                'EventBus');
                         done();
                     },
                     50
@@ -1695,8 +1695,8 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         it('check ID and sender is correctly passed through with handler via MessageArgs.',
             (done) => {
 
-            const chan = 'pup-talk';
-            bus.respondStream(chan, chan, 'ember')
+                const chan = 'pup-talk';
+                bus.respondStream(chan, chan, 'ember')
                     .generate(
                         (payload: string, args: MessageArgs) => {
                             expect(args.from).toEqual('cotton');
@@ -1705,16 +1705,16 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                         });
 
 
-            bus.listenStream(chan).handle(
-                (response: string, args: MessageArgs) => {
+                bus.listenStream(chan).handle(
+                    (response: string, args: MessageArgs) => {
                         expect(args.from).toEqual('ember');
                         expect(args.uuid).toEqual('1234');
                         done();
                     }
                 );
 
-            bus.sendRequestMessageWithId('pup-talk', 'whats the chat?', '1234', 'cotton');
-        });
+                bus.sendRequestMessageWithId('pup-talk', 'whats the chat?', '1234', 'cotton');
+            });
 
         it('check ID, version and sender is correctly passed through with handler via MessageArgs.',
             (done) => {
@@ -1814,7 +1814,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                     () => {
                         expect(bus.api.loggerInstance.info)
                             .toHaveBeenCalledWith('connection handler received command message: ABORT',
-                            'EventBus');
+                                'EventBus');
                         readyHandler();
                     },
                     50
@@ -1827,22 +1827,79 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 const monitor = bus.api.getMonitor()
                     .subscribe(
-                    (message: Message) => {
-                        const mo = message.payload as MonitorObject;
-                        switch (mo.type) {
-                            case MonitorType.MonitorNewGalacticChannel:
-                                expect(mo.channel).toEqual('space-dogs');
-                                done();
-                                break;
+                        (message: Message) => {
+                            const mo = message.payload as MonitorObject;
+                            switch (mo.type) {
+                                case MonitorType.MonitorNewGalacticChannel:
+                                    expect(mo.channel).toEqual('space-dogs');
+                                    done();
+                                    break;
 
-                            default:
-                                break;
+                                default:
+                                    break;
+                            }
                         }
-                    }
                     );
 
                 bus.listenGalacticStream('space-dogs');
             });
+
+        it('listenGalacticStream() works correctly with multiple subscribers.',
+            (done) => {
+
+                let chanCreateCount = 0;
+                let handler1FireCount = 0;
+                let handler2FireCount = 0;
+
+                bus.api.getMonitor()
+                    .subscribe(
+                        (message: Message) => {
+                            const mo = message.payload as MonitorObject;
+                            switch (mo.type) {
+                                case MonitorType.MonitorNewGalacticChannel:
+                                    expect(mo.channel).toEqual('space-dogs');
+                                    chanCreateCount++;
+                                    expect(chanCreateCount).toEqual(1); // should only be 1!
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                        }
+                    );
+
+                const handler1 = bus.listenGalacticStream('space-dogs');
+                const handler2 = bus.listenGalacticStream('space-dogs');
+
+                handler1.handle(
+                    () => {
+                        handler1FireCount++;
+                    }
+                );
+                handler2.handle(
+                    () => {
+                        handler2FireCount++;
+                    }
+                );
+
+                bus.api.tickEventLoop(
+                    () => {
+                       bus.sendResponseMessage('space-dogs', 'woof!');
+                    },
+                    20
+                );
+
+                bus.api.tickEventLoop(
+                    () => {
+                        expect(handler1FireCount).toEqual(1);
+                        expect(handler1FireCount).toEqual(1);
+                        done();
+                    },
+                    50
+                )
+
+            });
+
 
         it('isGalacticChannel() works correctly.',
             () => {
@@ -1858,19 +1915,19 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
                 const monitor = bus.api.getMonitor()
                     .subscribe(
-                    (message: Message) => {
-                        const mo = message.payload as MonitorObject;
-                        switch (mo.type) {
-                            case MonitorType.MonitorGalacticData:
-                                expect(mo.channel).toEqual('space-dogs');
-                                expect(mo.data).toEqual('off to the moon goes fox!');
-                                done();
-                                break;
+                        (message: Message) => {
+                            const mo = message.payload as MonitorObject;
+                            switch (mo.type) {
+                                case MonitorType.MonitorGalacticData:
+                                    expect(mo.channel).toEqual('space-dogs');
+                                    expect(mo.data).toEqual('off to the moon goes fox!');
+                                    done();
+                                    break;
 
-                            default:
-                                break;
+                                default:
+                                    break;
+                            }
                         }
-                    }
                     );
 
                 bus.listenGalacticStream('space-dogs');
@@ -1889,26 +1946,26 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                     });
                 bus.api.getMonitor()
                     .subscribe(
-                    (message: Message) => {
-                        const mo = message.payload as MonitorObject;
-                        switch (mo.type) {
-                            case MonitorType.MonitorGalacticData:
-                                expect(mo.channel).toEqual('ember-station');
+                        (message: Message) => {
+                            const mo = message.payload as MonitorObject;
+                            switch (mo.type) {
+                                case MonitorType.MonitorGalacticData:
+                                    expect(mo.channel).toEqual('ember-station');
 
-                                const data: APIRequest<string> = mo.data as APIRequest<string>;
-                                expect(data.id).toEqual(id);
+                                    const data: APIRequest<string> = mo.data as APIRequest<string>;
+                                    expect(data.id).toEqual(id);
 
-                                const resp: APIResponse<string> =
-                                    APIResponse.build('scooty butt chase jump', id);
-                                bus.sendResponseMessage('ember-station', resp);
-                                break;
+                                    const resp: APIResponse<string> =
+                                        APIResponse.build('scooty butt chase jump', id);
+                                    bus.sendResponseMessage('ember-station', resp);
+                                    break;
 
-                            default:
-                                break;
+                                default:
+                                    break;
+                            }
                         }
-                    }
                     );
-        });
+            });
 
         it('galacticRequest() works correctly without a channel or payload.',
             () => {
@@ -1919,8 +1976,6 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                     'payload or channel is empty.', 'EventBus');
 
             });
-
-
     });
 
 
