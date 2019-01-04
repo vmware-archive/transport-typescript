@@ -32,7 +32,6 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
         this.restyState = false;
     }
 
-
     private connectService() {
 
         // get resty state store.

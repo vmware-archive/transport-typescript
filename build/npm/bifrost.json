@@ -23,6 +23,20 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "1/4/19",
+            "version": "0.9.20",
+            "notes": [
+                {
+                    "description": "Fixing Issue with duplicate events for listenGalacticStream()",
+                    "issue_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/issues/1"
+                },
+                {
+                    "description": "Added built in support for orgId (VMware Cloud Services) to abstractions",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/40"
+                }
+            ]
+        },
+        {
             "date": "12/13/18",
             "version": "0.9.19",
             "notes": [
