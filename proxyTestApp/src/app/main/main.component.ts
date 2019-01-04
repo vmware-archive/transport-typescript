@@ -3,7 +3,7 @@ import { AfterContentInit, Component, OnInit } from '@angular/core';
 import { EventBus, MessageHandler } from '@vmw/bifrost/bus.api';
 import { Message } from '@vmw/bifrost/bus/model/message.model';
 import { MonitorObject, MonitorType } from '@vmw/bifrost/bus/model/monitor.model';
-import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
+import { ProxyType } from '@vmw/bifrost/proxy/message.proxy.api';
 import { LogLevel } from '@vmw/bifrost/log';
 import { ToastNotification } from '@vmw/ngx-components';
 import { ChatMessage, GeneralChatChannel } from '../chat-message';
