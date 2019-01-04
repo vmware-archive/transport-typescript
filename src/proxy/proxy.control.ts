@@ -7,7 +7,7 @@ import {
     ProxyType,
     BusProxyMessage,
     ProxyControlType, ProxyControlPayload, ProxyState
-} from './message.proxy';
+} from './message.proxy.api';
 import { LogLevel } from '../log/logger.model';
 import { LogUtil } from '../log/util';
 import { ChannelName, EventBus, EventBusEnabled, MessageType } from '../bus.api';
