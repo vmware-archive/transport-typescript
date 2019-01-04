@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
+import { ProxyType } from '@vmw/bifrost/proxy/message.proxy.api';
 import { ProxyControl } from '@vmw/bifrost/proxy';
 import { AbstractBase } from '@vmw/bifrost/core';
 import { GeneralChatChannel } from '../chat-message';

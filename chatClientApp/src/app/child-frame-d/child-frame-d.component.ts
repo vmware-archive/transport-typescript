@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AbstractBase } from '@vmw/bifrost/core';
 import { ProxyControl } from '@vmw/bifrost/proxy';
 import { GeneralChatChannel } from '../chat-message';
-import { ProxyType } from '@vmw/bifrost/proxy/message.proxy';
+import { ProxyType } from '@vmw/bifrost/proxy/message.proxy.api';
 
 @Component({
     selector: 'app-child-frame-d',
