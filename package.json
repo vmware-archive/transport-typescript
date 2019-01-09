@@ -1,14 +1,13 @@
 {
   "name": "@vmw/bifrost",
-  "version": "0.9.20",
+  "version": "0.10.0",
   "private": false,
   "license": "0BSD",
   "repository": "git@gitlab.eng.vmware.com:bifrost/typescript.git",
   "dependencies": {
     "@types/chrome": "0.0.72",
     "npm": "^6.2.0",
-    "rxjs": "^6.3.2",
-    "zone.js": "^0.8.26"
+    "rxjs": "^6.3.3"
   },
   "devDependencies": {
     "@types/jasmine": "^2.8.8",
@@ -45,7 +44,7 @@
     "systemjs": "0.21.4",
     "systemjs-builder": "^0.16.13",
     "tslint": "5.11.0",
-    "typescript": "^2.9.2",
+    "typescript": "^3.2.2",
     "uglifyjs-webpack-plugin": "^1.2.7",
     "webpack": "^4.16.3",
     "webpack-rxjs-externals": "^2.0.0",
