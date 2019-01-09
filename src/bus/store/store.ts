@@ -200,7 +200,7 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
         );
     }
 
-    mutate<V, M, S, E>(
+    mutate<V, M, E>(
         value: V, mutationType: M,
         successHandler: MessageFunction<V>,
         errorHandler?: MessageFunction<E>): boolean {
