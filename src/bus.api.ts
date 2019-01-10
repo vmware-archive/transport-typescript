@@ -1,5 +1,5 @@
 /**
- * Copyright(c) VMware Inc. 2016-2017
+ * Copyright(c) VMware Inc. 2016-2019
  */
 import { StoreType, UUID } from './bus/store/store.model';
 import { BusStoreApi } from './store.api';
@@ -17,18 +17,9 @@ import { GeneralUtil } from './util/util';
 export type ChannelName = string;
 export type SentFrom = string;
 
+// used by VMW cloud services for store constants.
 export const ORG_ID = 'orgId';
 export const ORGS = 'orgs';
-
-declare global {
-    interface Window {
-
-        // AppEventBus: EventBus;
-        // AppBrokerConnector: BrokerConnector;
-        // AppSyslog: Logger;
-        // AppStoreManager: BusStoreApi;
-    }
-}
 
 export enum MessageType {
     MessageTypeRequest = 'Request',
@@ -36,7 +27,6 @@ export enum MessageType {
     MessageTypeError = 'Error',
     MessageTypeControl = 'Control'
 }
-
 
 /**
  * Message arguments are passed through to all message handlers (if available)
@@ -132,7 +122,7 @@ export interface MessageResponder<T = any, E = any> {
 
 export abstract class EventBus {
 
-    public static version: string = '0.9.20';
+    public static version: string = '0.10.0';
 
     public static id: string = EventBus.rebuildId();
 
