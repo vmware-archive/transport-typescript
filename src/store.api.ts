@@ -28,10 +28,10 @@ export interface StoreStream<T, E = any> {
  * StoreReadyResult is returned by a readyJoin call on a store.
  */
 export interface StoreReadyResult {
-    
+
     /**
      * Called when all stores are ready.
-     * @param {Function} handler the handler function you to fire when all required stores are ready 
+     * @param {Function} handler the handler function you to fire when all required stores are ready
      */
     whenReady(handler: Function): void;
 }
@@ -54,7 +54,7 @@ export interface MutateStream<T = any, E = any, S = any> extends StoreStream<T, 
     success(success: S): void;
 }
 
-/** 
+/**
  * BusStoreAPI is the interface exposed buy EventBus to allow interactions with Stores.
  */
 export interface BusStoreApi {
@@ -66,16 +66,16 @@ export interface BusStoreApi {
      * @returns {BusStore<T>} reference to the BusStore you have just created.
      */
     createStore<T>(objectType: StoreType, map?: Map<UUID, T>): BusStore<T>;
-    
+
     /**
-     * Get a reference to the existing store. If the store does not exist, nothing will be returned. 
-     * @param {StoreType} objectType the string ID of the store you want a reference to (i.e. 'UserStore') 
+     * Get a reference to the existing store. If the store does not exist, nothing will be returned.
+     * @param {StoreType} objectType the string ID of the store you want a reference to (i.e. 'UserStore')
      */
     getStore<T>(objectType: StoreType): BusStore<T>;
 
     /**
      * Destroy a store (destructive)
-     * @param {StoreType} objectType the string ID of the store you want to destroy (i.e. 'UserStore') 
+     * @param {StoreType} objectType the string ID of the store you want to destroy (i.e. 'UserStore')
      */
     destroyStore(objectType: StoreType): boolean;
 
@@ -83,7 +83,7 @@ export interface BusStoreApi {
      * When you need to wait for more than a single store to be ready, readyJoin takes an array of StoreTypes
      * and returns a reference to StoreReadyResult, any function you pass to whenReady will be excuted once all
      * stores have been initialized.
-     * @param {Array<StoreType>} caches array of StoreTypes you want to wait for initialization on. 
+     * @param {Array<StoreType>} caches array of StoreTypes you want to wait for initialization on.
      */
     readyJoin(caches: Array<StoreType>): StoreReadyResult;
 }
@@ -134,12 +134,12 @@ export interface BusStore<T> {
      * Send a mutation command to any subscribers handling mutations.
      * @param {V} value to be mutated
      * @param {M} mutationType the type of the mutation
-     * @param {MessageFunction<S>} successHandler provide object S to mutator function on successful mutation.
+     * @param {MessageFunction<V>} successHandler provide object V to mutator function on successful mutation.
      * @param {MessageFunction<E>} errorHandler provide object E to mutator function on error.
      * @returns {boolean} true if mutation command was placed in stream
      */
-    mutate<V, M, E, S>(value: V, mutationType: M,
-                       successHandler: MessageFunction<S>, errorHandler?: MessageFunction<E>): boolean;
+    mutate<V, M, E>(value: V, mutationType: M,
+                    successHandler: MessageFunction<V>, errorHandler?: MessageFunction<E>): boolean;
 
 
     /**

@@ -23,6 +23,22 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "1/9/19",
+            "version": "0.10.0",
+            "notes": [
+                {
+                    "description": "Fixed broken import issue for autogen with version 0.9.20",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/45"
+                },
+                {
+                    "description": "Upgraded to TypeScript 3.2.2 and fixed some invalid signatures"
+                },
+                {
+                    "description": "Fixed AbstractService to match signatures for older AbstractAutoService"
+                }
+            ]
+        },
+        {
             "date": "1/4/19",
             "version": "0.9.20",
             "notes": [

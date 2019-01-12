@@ -68,6 +68,7 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
 
     protected requestConverterMap: Map<string, HttpRequest>;
     protected readonly serviceChannel: ChannelName;
+    protected readonly broadcastChannel: ChannelName;
 
     protected $host: string | undefined;    // This allows for dynamically customizing host segment in URIs prior to ReST service calls
 
@@ -76,13 +77,17 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
      *
      * @param name - name of the derived service (e.g. 'task.service'
      * @param serviceChannel - channel on which to listen for requests and send responses for the derived service
+     * @param broadcastChannel - channel on which to broadcast for all listeners.
      */
-    protected constructor(name: string, serviceChannel: string) {
+    protected constructor(name: string, serviceChannel: ChannelName, broadcastChannel?: ChannelName) {
 
         super(name);
 
         // set the service channel.
         this.serviceChannel = serviceChannel;
+
+        // set the broadcast channel.
+        this.broadcastChannel = broadcastChannel;
 
         this.serviceError = new RestError('Invalid Service APIRequest!', SERVICE_ERROR, '');
         this.requestConverterMap = new Map<string, HttpRequest>(HTTP_REQUEST_MAP);
@@ -305,7 +310,7 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
      * @param payload
      */
     protected broadcastResponse(channel: string, payload: any) {
-        this.log.debug('Sending response to ' + channel, this.getName());
+        this.log.debug('Broadcasting response/notification to ' + channel, this.getName());
         this.bus.sendResponseMessage(channel, payload, this.getName());
     }
 

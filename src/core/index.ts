@@ -7,4 +7,4 @@ export * from './abstractions/abstract.service';
 export * from './abstractions/abstract.autorestmock';
 export * from './abstractions/abstract.autoservicemock';
 export * from './abstractions/service.version';
-//export * from './services/rest/rest.model';
+export * from './services/rest/rest.model';
