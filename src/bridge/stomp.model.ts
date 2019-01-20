@@ -187,6 +187,10 @@ export class StompConfig {
                 private _heartbeatIn: number = 0,
                 private _heartbeatOut: number = 30000) {
 
+        if (!_useSSL) {
+            this._useSSL = true;
+        }
+
     }
 
     set brokerConnectCount(count: number) {
@@ -304,7 +308,6 @@ export class StompConfig {
         if (this._useSSL) {
             scheme = 'wss';
         }
-
         if (this._host) {
             hostPort = this._host;
         }

@@ -14,7 +14,9 @@ export enum HttpRequest {
     Patch = 'PATCH' ,
     Delete =  'DELETE',
     Put = 'PUT',
-    UpdateGlobalHeaders = 'UpdateGlobalHeaders'
+    UpdateGlobalHeaders = 'UpdateGlobalHeaders',
+    SetRestServiceHostOptions = 'SetRestServiceHostOptions',
+    DisableCORSAndCredentials = 'DisableCORSAndCredentials',
 }
 
 export enum RestErrorType {
