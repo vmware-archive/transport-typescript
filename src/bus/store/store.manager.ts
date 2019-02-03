@@ -33,7 +33,8 @@ export class StoreManager implements BusStoreApi {
         return this.internalStoreMap.get(objectType);
     }
 
-    public wipeAllStores<T>(): void {
+    public wipeAllStores(): void {
+        console.log('stores are dead');
         this.internalStoreMap.clear();
     }
 

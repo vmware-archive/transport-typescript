@@ -76,9 +76,9 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
      * @returns {EventBus} the newly rebooted bus
      */
     public static rebootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
-        //EventBus.id = EventBus.rebuildId(); // reset the ID attached to the abstract class.
-        //this.instance = null;
-        //delete this.instance;
+        EventBus.id = EventBus.rebuildId(); // reset the ID attached to the abstract class.
+        this.instance = null;
+        delete this.instance;
         return (this.instance = new this(logLevel, disableBootMessage));
     }
 

@@ -86,6 +86,11 @@ export interface BusStoreApi {
      * @param {Array<StoreType>} caches array of StoreTypes you want to wait for initialization on.
      */
     readyJoin(caches: Array<StoreType>): StoreReadyResult;
+
+    /**
+     * Wipe out everything, will eradicate all state from all stores by destroying all stores.
+     */
+    wipeAllStores(): void;
 }
 
 /**

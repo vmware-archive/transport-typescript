@@ -8,6 +8,8 @@ import { SERVICE_ERROR } from './abstract.service';
 import { MessageArgs } from '../../bus.api';
 import { RestService } from '../services/rest/rest.service';
 import { HttpRequest, RestError, RestObject } from '../services/rest/rest.model';
+import { GeneralUtil } from '../../util/util';
+import { UUID } from '../../bus';
 
 export const MOCK_FAKE_ERROR = 400;
 export const MOCK_UNIMPLEMENTED_ERROR = 444;
@@ -28,7 +30,7 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
         super(name, RestService.channel);
         this.name = name;
         this.listensTo = listensTo;
-        this.log.info(`Fake RestService Booted: ${name}`, this.getName());
+        this.log.info(`♣️ Mock RestService Booted: ${name} with id: ${this.id}`, this.getName());
     }
 
     protected handleData(data: any, restObject: RestObject, args?: MessageArgs) {
@@ -55,7 +57,7 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
     }
 
     protected handleServiceRequest(restRequestObject: RestObject, requestArgs?: MessageArgs) {
-
+        console.log(`handling service request... my currentID is ${this.id}: force response is: ${this.forceResponse}`);
         // ignore requestors that are not from "our" service
         if (restRequestObject.senderName !== this.listensTo) {
             return;
@@ -69,9 +71,11 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
 
         // This allows a specific response to be sent back
         if (this.forceResponse) {
+            console.log('HELL YEAH');
             this.handleData(this.forceResponse, restRequestObject, requestArgs);
             return;
         }
+        console.log('FRIGATE');
 
         switch (restRequestObject.request) {
             case HttpRequest.Get:
