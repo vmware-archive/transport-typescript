@@ -1,5 +1,5 @@
 /**
- * Copyright(c) VMware Inc. 2016-2017
+ * Copyright(c) VMware Inc. 2016-2019
  */
 
 import { Channel } from './model/channel.model';
@@ -114,7 +114,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         this.api = new EventBusLowLevelApiImpl(this, this.internalChannelMap, this.log);
 
         // Store API
-        this.stores = new StoreManager(this, this.log);
+        this.stores = new StoreManager(this);
 
         // wire up singleton to the window object under a custom namespace.
         this.windowRef.AppEventBus = this;

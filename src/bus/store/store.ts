@@ -1,5 +1,5 @@
 /**
- * Copyright(c) VMware Inc. 2016-2017
+ * Copyright(c) VMware Inc. 2016-2019
  */
 
 import { Message } from '../model/message.model';
@@ -14,6 +14,7 @@ import {
 import { BusStore, StoreStream, MutateStream } from '../../store.api';
 import { EventBus, EventBusEnabled, MessageFunction } from '../../bus.api';
 import { Logger } from '../../log/logger.service';
+import { GeneralUtil } from '../../util/util';
 
 interface Predicate<T> {
     (value: T): boolean;
@@ -22,6 +23,10 @@ interface Predicate<T> {
 export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
 
     private uuid: string;
+    private reloadHandler: Function;
+    private reloadTTL: number;
+    private reloadIntervalTracker: any;
+    private log: Logger;
 
     getName(): string {
         return 'BusStore';
@@ -37,12 +42,13 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
         return 'store-' + this.uuid + '-object-' + id;
     }
 
-    constructor(private bus: EventBus, private log: Logger, private type: StoreType) {
+    constructor(private bus: EventBus, private type: StoreType) {
         this.cache = new Map<UUID, any>();
-        this.uuid = StompParser.genUUIDShort();
+        this.uuid = GeneralUtil.genUUIDShort();
         this.cacheStreamChan = 'cache-change-' + this.uuid;
         this.cacheMutationChan = 'cache-mutation-' + this.uuid;
         this.cacheReadyChan = 'cache-ready-' + this.uuid;
+        this.log = bus.api.logger();
         this.log.info('🗄️ Store: New Store [' + type + '] was created with id ' + this.uuid, type);
     }
 
@@ -129,7 +135,7 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
         return new StoreStreamImpl<T>(this.filterStream(stream, [stateChangeFilter]), this.log);
     }
 
-    onAllChanges<S>(objectType: T, ...stateChangeType: S[]): StoreStream<T> {
+    onAllChanges<S>(...stateChangeType: S[]): StoreStream<T> {
 
         const cacheStreamChan: Observable<Message> =
             this.bus.api.getResponseChannel(this.cacheStreamChan, this.getName());
@@ -154,31 +160,7 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
             return true; // all states.
         };
 
-        const compareObjects: Predicate<StoreStateChange<S, T>> = (state: StoreStateChange<S, T>) => {
-
-            // const compareKeys = (a: T, b: T): boolean => {
-            //     const aKeys = Object.keys(a).sort();
-            //     const bKeys = Object.keys(b).sort();
-            //     return JSON.stringify(aKeys) === JSON.stringify(bKeys);
-            // };
-            // return compareKeys(objectType, state.value);
-            // return objectType.constructor.name.trim() === state.value.constructor.name.trim();
-
-            // Check that class names match. If not, just log, don't do anything.    
-            const match: boolean = objectType.constructor.name.trim() === state.value.constructor.name.trim();
-
-            if (!match) {
-
-                this.log.warn('onAllChanges() stream handling mismatched object types [' +
-                    objectType.constructor.name.trim() + '] and [' + state.value.constructor.name.trim() + ']',
-                    this.getName());
-            }
-            return true;
-
-
-        };
-
-        return new StoreStreamImpl<T>(this.filterStream(stream, [stateChangeFilter, compareObjects]), this.log);
+        return new StoreStreamImpl<T>(this.filterStream(stream, [stateChangeFilter]), this.log);
     }
 
     private filterStream<S>(
@@ -281,5 +263,31 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
             this.log.info('🗄️ Store: [' + this.type + '] Initialized!', this.type);
             this.bus.sendResponseMessage(this.cacheReadyChan, this.allValuesAsMap());
         }
+    }
+
+    startAutoReload(timeToLiveInMs: number = 10000): void { // defaults to 10 seconds.
+        this.reloadTTL = timeToLiveInMs;
+
+        this.stopAutoReload(); // stop any existing reload interval
+
+        if (timeToLiveInMs > 0 && this.reloadHandler) {
+            this.reloadIntervalTracker = setInterval(
+                () => {
+                    this.reloadHandler();
+                },
+                timeToLiveInMs
+            );
+        }
+
+    }
+
+    stopAutoReload(): void {
+        if (this.reloadIntervalTracker) {
+            clearInterval(this.reloadIntervalTracker);
+        }
+    }
+
+    setAutoReloadServiceTrigger(serviceCallFunction: Function): void {
+        this.reloadHandler = serviceCallFunction;
     }
 }
