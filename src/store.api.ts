@@ -202,6 +202,16 @@ export interface BusStore<T> {
     startAutoReload(timeToLiveInMs: number): void;
 
     /**
+     * Restart auto-reload timer.
+     */
+    refreshApiDelay(): void;
+
+    /**
+     * Reload store with refresh service call.
+     */
+    reloadStore(): void;
+
+    /**
      * Stop Store from auto-refreshing.
      */
     stopAutoReload(): void;

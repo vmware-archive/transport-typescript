@@ -36,5 +36,4 @@ export class BusTestUtil extends BusUtil {
     public static setOrganizationId(orgId: UUID): void {
         BifrostEventBus.getInstance().stores.createStore(ORGS).put(ORG_ID, orgId, null);
     }
-
 }

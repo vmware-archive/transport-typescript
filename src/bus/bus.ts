@@ -125,7 +125,8 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
         if (!disableBootMessage) {
             this.log.setStylingVisble(true);
-            this.log.info('🌈 Bifröst ' + EventBus.version + ' Initialized', 'window.AppEventBus');
+            this.log.info(`🌈 Bifröst v${EventBus.version} Initialized with Id: ${EventBus.id}, Hi!`,
+                'window.AppEventBus');
         }
 
         // set up logging.

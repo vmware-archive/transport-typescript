@@ -33,6 +33,10 @@ export class StoreManager implements BusStoreApi {
         return this.internalStoreMap.get(objectType);
     }
 
+    public wipeAllStores<T>(): void {
+        this.internalStoreMap.clear();
+    }
+
     public destroyStore(objectType: StoreType): boolean {
         if (this.internalStoreMap.has(objectType)) {
             this.internalStoreMap.delete(objectType);

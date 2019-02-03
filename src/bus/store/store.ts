@@ -267,7 +267,6 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
 
     startAutoReload(timeToLiveInMs: number = 10000): void { // defaults to 10 seconds.
         this.reloadTTL = timeToLiveInMs;
-
         this.stopAutoReload(); // stop any existing reload interval
 
         if (timeToLiveInMs > 0 && this.reloadHandler) {
@@ -278,13 +277,28 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
                 timeToLiveInMs
             );
         }
-
     }
 
     stopAutoReload(): void {
         if (this.reloadIntervalTracker) {
             clearInterval(this.reloadIntervalTracker);
         }
+    }
+
+    refreshApiDelay(): void {
+        this.stopAutoReload();
+        this.reloadIntervalTracker = setInterval(
+            () => {
+                this.reloadHandler();
+            },
+            this.reloadTTL
+        );
+    }
+
+    reloadStore(): void {
+        this.refreshApiDelay();
+        console.log('***Store should be reloaded now');
+        //this.reloadHandler();
     }
 
     setAutoReloadServiceTrigger(serviceCallFunction: Function): void {

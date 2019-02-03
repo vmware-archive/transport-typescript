@@ -14,6 +14,9 @@ import { APIResponse } from './core/model/response.model';
 import { MessageProxyConfig, ProxyControl } from './proxy/message.proxy.api';
 import { GeneralUtil } from './util/util';
 
+// current version
+const version = '0.11.0-alpha-12';
+
 export type ChannelName = string;
 export type SentFrom = string;
 
@@ -122,7 +125,7 @@ export interface MessageResponder<T = any, E = any> {
 
 export abstract class EventBus {
 
-    public static version: string = '0.10.0';
+    public static version: string = version;
 
     public static id: string = EventBus.rebuildId();
 
