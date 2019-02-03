@@ -8,6 +8,7 @@ import { MockSocket } from './stomp.mocksocket';
 import { UUID } from '../bus/store/store.model';
 import { Logger } from '../log';
 import { GeneralUtil } from '../util/util';
+import { AbstractCore } from '../core';
 
 export type BifrostSocket = WebSocket;
 
@@ -186,11 +187,6 @@ export class StompConfig {
                 private _requireACK?: boolean,
                 private _heartbeatIn: number = 0,
                 private _heartbeatOut: number = 30000) {
-
-        if (!_useSSL) {
-            this._useSSL = true;
-        }
-
     }
 
     set brokerConnectCount(count: number) {
@@ -315,7 +311,6 @@ export class StompConfig {
         if (this._port && this._port !== -1) {
             hostPort += ':' + this._port;
         }
-
         return scheme + '://'
             + hostPort
             + this._endpoint;

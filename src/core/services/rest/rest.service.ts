@@ -49,9 +49,9 @@ export class RestService extends AbstractCore implements EventBusEnabled {
     private listenForRequests() {
         this.bus.listenRequestStream(RestService.channel)
             .handle((restObject: RestObject, args: MessageArgs) => {
-                restObject.refreshRetries = 0;
 
-                console.log('fishmas!', restObject);
+                // configure refresh.
+                restObject.refreshRetries = 0;
 
                 if (restObject.request !== HttpRequest.UpdateGlobalHeaders
                     && restObject.request !== HttpRequest.SetRestServiceHostOptions
@@ -161,7 +161,7 @@ export class RestService extends AbstractCore implements EventBusEnabled {
         // merge globals and request headers
         const requestHeaders = {...restObject.headers, ...globalHeaders};
 
-        console.log('generating headers: ', requestHeaders);
+        this.log.debug(`Rest Service: preparing headers ${requestHeaders}`, this.getName());
 
         // generate fetch headers, init and request objects.
         const requestHeadersObject = new Headers(requestHeaders);
@@ -170,11 +170,14 @@ export class RestService extends AbstractCore implements EventBusEnabled {
 
         // try to create fetch request.
         try {
+
             const uri: string = this.globalBaseUri + restObject.uri;
-            console.log('CALLING URI:', uri);
+            this.log.debug(`Rest Service: Preparing Fetch Request for URI: ${uri}`, this.getName());
             httpRequest = new Request(uri, requestInit);
+
+
         } catch (e) {
-            this.log.error(`Cannot create request: ${e}`, this.getName());
+            this.log.error(`Rest Service: Cannot create request: ${e}`, this.getName());
             this.handleError(
                 new RestError('Invalid HTTP request.', RestErrorType.UnknownMethod, restObject.uri),
                 restObject,
@@ -204,7 +207,7 @@ export class RestService extends AbstractCore implements EventBusEnabled {
                 break;
 
             default:
-                this.log.error(`Bad REST request: ${restObject.request}`, this.getName());
+                this.log.error(`Rest Service: Bad REST request: ${restObject.request}`, this.getName());
                 this.handleError(
                     new RestError('Invalid HTTP request.', RestErrorType.UnknownMethod, restObject.uri),
                     restObject,
@@ -240,7 +243,6 @@ export class RestService extends AbstractCore implements EventBusEnabled {
                 requestInit.body = JSON.stringify(restObject.body);
             }
         }
-        console.log('request init object is: ', requestInit);
         return requestInit;
     }
 }

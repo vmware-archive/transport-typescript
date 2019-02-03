@@ -41,7 +41,7 @@ export class RestyComponent extends RestyBase implements OnInit {
         this.online = true;
 
         // set universal global headers for all requests.
-        this.setGlobalHttpHeaders({'Accept': 'application/json'}, this.getName());
+        this.setGlobalHttpHeaders({'Accept': 'application/json'});
 
         // change state in store, everyone will know old man resty is awake.
         this.restyStateStore.put('state', true, 'online');

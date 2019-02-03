@@ -28,6 +28,7 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
         super(name, RestService.channel);
         this.name = name;
         this.listensTo = listensTo;
+        this.log.info(`Fake RestService Booted: ${name}`, this.getName());
     }
 
     protected handleData(data: any, restObject: RestObject, args?: MessageArgs) {
