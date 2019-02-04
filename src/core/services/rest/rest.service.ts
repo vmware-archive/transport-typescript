@@ -16,12 +16,14 @@ const GLOBAL_HEADERS_UPDATE = 'update';
  */
 export class RestService extends AbstractCore implements EventBusEnabled {
 
-    public static channel = 'bifrost-services::REST';
+    public static channel = 'bifrost-services::RestService';
 
     private headers: any;
     private headerStore: BusStore<any>;
     private name: string = 'RESTService';
     private httpClient: HttpClient;
+    private globalBaseUri: string;
+    private disableCorsAndCredentials: boolean = false;
 
     public getName(): string {
         return this.name;
@@ -39,26 +41,57 @@ export class RestService extends AbstractCore implements EventBusEnabled {
         this.headerStore = this.storeManager.createStore('bifrost::RestService');
         this.listenForRequests();
         this.log.info(`${this.name} Online`);
+
+        // leave this configurable by consumer, defaults to same host/scheme as hosted UI.
+        this.globalBaseUri = '';
     }
 
     private listenForRequests() {
         this.bus.listenRequestStream(RestService.channel)
             .handle((restObject: RestObject, args: MessageArgs) => {
+
+                // configure refresh.
                 restObject.refreshRetries = 0;
 
-                if (restObject.request !== HttpRequest.UpdateGlobalHeaders) {
+                if (restObject.request !== HttpRequest.UpdateGlobalHeaders
+                    && restObject.request !== HttpRequest.SetRestServiceHostOptions
+                    && restObject.request !== HttpRequest.DisableCORSAndCredentials) {
                     this.doHttpRequest(restObject, args);
                 } else {
-                    this.updateHeaders(restObject.headers);
+
+                    switch (restObject.request) {
+                        case HttpRequest.UpdateGlobalHeaders:
+                            this.updateHeaders(restObject.headers);
+                            break;
+
+                        case HttpRequest.SetRestServiceHostOptions:
+                            this.updateHostOptions(restObject.uri);
+                            break;
+
+                        case HttpRequest.DisableCORSAndCredentials:
+                            this.disableCORS(true);
+                            break;
+
+                        default:
+                            break;
+                    }
                 }
             });
     }
 
     private updateHeaders(headers: any): void {
-        this.log.info('Updating global headers for outbound request', this.getName());
+        this.log.info(`Updating global headers for outbound request: ${headers}`, this.getName());
         this.headerStore.put(GLOBAL_HEADERS, headers, GLOBAL_HEADERS_UPDATE);
     }
 
+    private updateHostOptions(uri: string): void {
+        this.log.info(`Updating global base URI to: ${uri}`, this.getName());
+        this.globalBaseUri = uri;
+    }
+
+    private disableCORS(val: boolean): void {
+        this.disableCorsAndCredentials = val;
+    }
 
     private handleData(data: any, restObject: RestObject, args: MessageArgs) {
         this.log.group(LogLevel.Verbose, 'REST APIRequest ' + restObject.request + ' ' + restObject.uri);
@@ -128,6 +161,8 @@ export class RestService extends AbstractCore implements EventBusEnabled {
         // merge globals and request headers
         const requestHeaders = {...restObject.headers, ...globalHeaders};
 
+        this.log.debug(`Rest Service: preparing headers ${requestHeaders}`, this.getName());
+
         // generate fetch headers, init and request objects.
         const requestHeadersObject = new Headers(requestHeaders);
         const requestInit = this.generateRequestInitObject(restObject, requestHeadersObject);
@@ -135,9 +170,14 @@ export class RestService extends AbstractCore implements EventBusEnabled {
 
         // try to create fetch request.
         try {
-            httpRequest = new Request(restObject.uri, requestInit);
+
+            const uri: string = this.globalBaseUri + restObject.uri;
+            this.log.debug(`Rest Service: Preparing Fetch Request for URI: ${uri}`, this.getName());
+            httpRequest = new Request(uri, requestInit);
+
+
         } catch (e) {
-            this.log.error(`Cannot create request: ${e}`, this.getName());
+            this.log.error(`Rest Service: Cannot create request: ${e}`, this.getName());
             this.handleError(
                 new RestError('Invalid HTTP request.', RestErrorType.UnknownMethod, restObject.uri),
                 restObject,
@@ -167,7 +207,7 @@ export class RestService extends AbstractCore implements EventBusEnabled {
                 break;
 
             default:
-                this.log.error(`Bad REST request: ${restObject.request}`, this.getName());
+                this.log.error(`Rest Service: Bad REST request: ${restObject.request}`, this.getName());
                 this.handleError(
                     new RestError('Invalid HTTP request.', RestErrorType.UnknownMethod, restObject.uri),
                     restObject,
@@ -181,13 +221,18 @@ export class RestService extends AbstractCore implements EventBusEnabled {
         let requestInit: any = {
             method: restObject.request,
             headers: headers,
-            credentials: 'include',
             mode: 'cors',
-            referrerPolicy: 'origin-when-cross-origin'
+            credentials: 'same-origin',
+            referrerPolicy: 'origin-when-cross-origin',
         };
 
+        if (this.disableCorsAndCredentials) {
+            //requestInit.mode = 'cors';
+            requestInit.credentials = 'omit';
+        }
+
         // GET requests may not have a body
-        if (restObject.request !== HttpRequest.Get && restObject.request !== HttpRequest.UpdateGlobalHeaders) {
+        if (restObject.request !== HttpRequest.Get) {
 
             try {
                 // check if payload has already been stringified or not
@@ -198,7 +243,6 @@ export class RestService extends AbstractCore implements EventBusEnabled {
                 requestInit.body = JSON.stringify(restObject.body);
             }
         }
-
         return requestInit;
     }
 }

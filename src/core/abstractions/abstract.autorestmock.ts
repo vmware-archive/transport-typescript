@@ -28,6 +28,7 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
         super(name, RestService.channel);
         this.name = name;
         this.listensTo = listensTo;
+        this.log.info(`♣️ Mock RestService Booted: ${name} with id: ${this.id}`, this.getName());
     }
 
     protected handleData(data: any, restObject: RestObject, args?: MessageArgs) {
@@ -54,7 +55,6 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
     }
 
     protected handleServiceRequest(restRequestObject: RestObject, requestArgs?: MessageArgs) {
-
         // ignore requestors that are not from "our" service
         if (restRequestObject.senderName !== this.listensTo) {
             return;

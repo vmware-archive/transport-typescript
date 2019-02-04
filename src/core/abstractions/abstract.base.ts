@@ -12,13 +12,39 @@ export abstract class AbstractBase extends AbstractCore implements EventBusEnabl
     protected name: string;
     private restOperations: RestOperations;
 
-    protected restServiceRequest(operation: RestOperation, from?: SentFrom): BusTransaction {
-        return this.restOperations.restServiceRequest(operation, from);
+    /**
+     * Make a call to the rest service.
+     * @param operation the operation you want to run
+     */
+    protected restServiceRequest(operation: RestOperation): BusTransaction {
+        return this.restOperations.restServiceRequest(operation, this.getName());
 
     }
-    protected setGlobalHttpHeaders(headers: any, from?: SentFrom) {
-        this.restOperations.setGlobalHttpHeaders(headers, from);
 
+    /**
+     * Set global HTTP headers (made for all calls)
+     * @param headers headers will be set for all remote REST calls.
+     */
+    protected setGlobalHttpHeaders(headers: any) {
+        this.restOperations.setGlobalHttpHeaders(headers, this.getName());
+    }
+
+    /**
+     * Change the global host and scheme for local RestService
+     * @param host can be a host or an ip, with port.
+     * @param scheme 'https' or 'http', supports both
+     */
+    protected setGlobalRestServiceHostOptions(host: string, scheme: string) {
+        this.restOperations.setRestServiceHostOptions(host, scheme, this.getName());
+    }
+
+    /**
+     * Enable Dev Mode.
+     * > Disables CORS and credentials for local RestService
+     */
+    protected enableDevMode() {
+        this.log.warn(`Application set to dev mode, not to be used in production`);
+        this.restOperations.disableCorsAndCredentials(this.getName());
     }
 
     getName(): string {

@@ -51,6 +51,37 @@ export class RestOperations extends AbstractCore {
         this.bus.sendRequestMessage(RestService.channel, restRequestObject, from);
     }
 
+    /**
+     * Dev use only, don't use this in production.
+     */
+    public disableCorsAndCredentials(from: SentFrom) {
+
+        const restRequestObject: RestObject = new RestObject(
+            HttpRequest.DisableCORSAndCredentials,
+            null,
+            null
+        );
+
+        this.bus.sendRequestMessage(RestService.channel, restRequestObject, from);
+    }
+
+    /**
+     * Change default host and scheme (defaults to same host and scheme)
+     * @param host hostname/ip/port etc. This is just a string
+     * @param scheme 'http', 'https'
+     * @param from who is making this call?
+     */
+    public setRestServiceHostOptions(host: string, scheme: string = 'https', from: SentFrom) {
+
+        const restRequestObject: RestObject = new RestObject(
+            HttpRequest.SetRestServiceHostOptions,
+            `${scheme}://${host}`,
+            null
+        );
+
+        this.bus.sendRequestMessage(RestService.channel, restRequestObject, from);
+    }
+
     public restServiceRequest(operation: RestOperation, from: SentFrom): BusTransaction {
 
         const body = (operation.body ? operation.body : {});

@@ -86,6 +86,11 @@ export interface BusStoreApi {
      * @param {Array<StoreType>} caches array of StoreTypes you want to wait for initialization on.
      */
     readyJoin(caches: Array<StoreType>): StoreReadyResult;
+
+    /**
+     * Wipe out everything, will eradicate all state from all stores by destroying all stores.
+     */
+    wipeAllStores(): void;
 }
 
 /**
@@ -159,14 +164,10 @@ export interface BusStore<T> {
 
     /**
      * Subscribe to state changes for all objects of a specific type and state change
-     * @param {T} typeInstance the type of object you're looking to listen for, needs to be an actual object however
-     *            the method will look at the properties of the objects and match them to see if they are the same
-     *            type. object can be a new empty instance of the type you want to watch, or an exisiting instance of
-     *            something. The actual property values of the supplied object are ignored.
      * @param {S} stateChangeType the state change type you with to listen to
      * @returns {StoreStream<T>} stream that will tick the object you're online for.
      */
-    onAllChanges<S>(typeInstance: T, ...stateChangeType: S[]): StoreStream<T>;
+    onAllChanges<S>(...stateChangeType: S[]): StoreStream<T>;
 
     /**
      * Subscribe to mutation requests via mutate()
@@ -191,4 +192,32 @@ export interface BusStore<T> {
      * Will wipe all data out, in case you need a clean slate.
      */
     reset(): void;
+
+    /**
+     * Set lambda that is used to auto-reload this store.
+     * @param serviceCallFunction function should encapsulate a service call.
+     */
+    setAutoReloadServiceTrigger(serviceCallFunction: Function): void;
+
+    /**
+     * Start automatic reload. The store will refetch its data (using setAutoReloadServiceTrigger). The store is
+     * considered stale once the TTL has passed.
+     * @param timeToLiveInMs how long to hold data in the store before refetching. (default is 10 seconds)
+     */
+    startAutoReload(timeToLiveInMs: number): void;
+
+    /**
+     * Restart auto-reload timer.
+     */
+    refreshApiDelay(): void;
+
+    /**
+     * Reload store with refresh service call.
+     */
+    reloadStore(): void;
+
+    /**
+     * Stop Store from auto-refreshing.
+     */
+    stopAutoReload(): void;
 }

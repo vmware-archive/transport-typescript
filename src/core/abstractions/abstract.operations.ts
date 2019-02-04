@@ -2,9 +2,10 @@
  * Copyright(c) VMware Inc. 2018-2019
  */
 import {AbstractBase} from './abstract.base';
-import {BusTransaction, ChannelName, MessageFunction, TransactionType} from '../../bus.api';
+import { BusTransaction, ChannelName, EventBus, MessageFunction, TransactionType } from '../../bus.api';
 import {GeneralError} from '../model/error.model';
 import {AbstractMessageObject} from './abstract.messageobject';
+import { BusUtil } from '../../util/bus.util';
 
 export abstract class AbstractOperations extends AbstractBase {
 
@@ -22,7 +23,8 @@ export abstract class AbstractOperations extends AbstractBase {
         successHandler: MessageFunction<RetPayload>,
         errorHandler?: MessageFunction<GeneralError>) {
 
-        const transaction: BusTransaction = this.bus.createTransaction(TransactionType.ASYNC, this.getName());
+        const bus: EventBus = BusUtil.getBusInstance();
+        const transaction: BusTransaction = bus.createTransaction(TransactionType.ASYNC, this.getName());
 
         transaction.onComplete<AbstractMessageObject<RequestType, RetPayload>>(
             (resp: [AbstractMessageObject<RequestType, RetPayload>]) => {

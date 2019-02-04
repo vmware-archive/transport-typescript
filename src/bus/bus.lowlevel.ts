@@ -18,6 +18,7 @@ import { LogLevel } from '../log/logger.model';
 import { MonitorChannel, MonitorObject, MonitorType } from './model/monitor.model';
 import { LogUtil } from '../log/util';
 import { UUID } from './store/store.model';
+import { GeneralUtil } from '../util/util';
 
 export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
@@ -28,10 +29,15 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     private dumpMonitor: boolean;
     private internalChannelMap: Map<string, Channel>;
     public loggerInstance: Logger;
+    private id: UUID;
 
+    public getId(): UUID {
+        return this.id;
+    }
 
     constructor(private eventBusRef: EventBus, channelMap: Map<string, Channel>, logger: Logger) {
         this.internalChannelMap = channelMap;
+        this.id = GeneralUtil.genUUIDShort();
 
         // create monitor stream.
         this.monitorStream = new Channel(this.monitorChannel);

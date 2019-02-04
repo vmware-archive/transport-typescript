@@ -14,6 +14,9 @@ import { APIResponse } from './core/model/response.model';
 import { MessageProxyConfig, ProxyControl } from './proxy/message.proxy.api';
 import { GeneralUtil } from './util/util';
 
+// current version
+const version = '0.11.0';
+
 export type ChannelName = string;
 export type SentFrom = string;
 
@@ -122,7 +125,7 @@ export interface MessageResponder<T = any, E = any> {
 
 export abstract class EventBus {
 
-    public static version: string = '0.10.0';
+    public static version: string = version;
 
     public static id: string = EventBus.rebuildId();
 
@@ -783,9 +786,14 @@ export interface EventBusLowApi {
      * Push function onto the queue for next event loop tick.
      *
      * @param {Function} func function you want to execute asynchronously.
-     * @param {number} delay milliseconds you want to delay exectuion by.
+     * @param {number} delay milliseconds you want to delay execution by.
      */
     tickEventLoop(func: Function, delay?: number): number;
+
+    /**
+     * Get uuid of the bus.;
+     */
+    getId(): UUID;
 
 }
 

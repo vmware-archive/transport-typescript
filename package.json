@@ -1,13 +1,11 @@
 {
   "name": "@vmw/bifrost",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "private": false,
   "license": "0BSD",
   "repository": "git@gitlab.eng.vmware.com:bifrost/typescript.git",
   "dependencies": {
-    "@types/chrome": "0.0.72",
-    "npm": "^6.2.0",
-    "rxjs": "^6.3.3"
+    "rxjs": "^6.4.0"
   },
   "devDependencies": {
     "@types/jasmine": "^2.8.8",

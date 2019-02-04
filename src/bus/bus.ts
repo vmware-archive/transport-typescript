@@ -1,5 +1,5 @@
 /**
- * Copyright(c) VMware Inc. 2016-2017
+ * Copyright(c) VMware Inc. 2016-2019
  */
 
 import { Channel } from './model/channel.model';
@@ -76,10 +76,15 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
      * @returns {EventBus} the newly rebooted bus
      */
     public static rebootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
-        //EventBus.id = EventBus.rebuildId(); // reset the ID attached to the abstract class.
-        //this.instance = null;
-        //delete this.instance;
-        return (this.instance = new this(logLevel, disableBootMessage));
+        // let windowRef: any = window;
+        // EventBus.id = EventBus.rebuildId(); // reset the ID attached to the abstract class.
+        // this.instance = null;
+        // delete this.instance;
+        //
+        this.instance = new this(logLevel, disableBootMessage);
+
+
+        return this.instance;
     }
 
     /**
@@ -105,6 +110,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
     private constructor(logLevel: LogLevel = LogLevel.Off, disableBootMessage: boolean = true) {
         super();
+
         this.internalChannelMap = new Map<string, Channel>();
 
         // logging
@@ -114,7 +120,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         this.api = new EventBusLowLevelApiImpl(this, this.internalChannelMap, this.log);
 
         // Store API
-        this.stores = new StoreManager(this, this.log);
+        this.stores = new StoreManager(this);
 
         // wire up singleton to the window object under a custom namespace.
         this.windowRef.AppEventBus = this;
@@ -125,7 +131,8 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
         if (!disableBootMessage) {
             this.log.setStylingVisble(true);
-            this.log.info('🌈 Bifröst ' + EventBus.version + ' Initialized', 'window.AppEventBus');
+            this.log.info(`🌈 Bifröst v${EventBus.version} Initialized with Id: ${EventBus.id}, Hi!`,
+                'window.AppEventBus');
         }
 
         // set up logging.

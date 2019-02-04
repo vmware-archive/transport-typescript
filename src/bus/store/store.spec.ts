@@ -272,14 +272,14 @@ describe('BusStore [store/store.model]', () => {
         let counter: number = 0;
 
 
-        cache.onAllChanges<State.Created>(new Dog(), State.Created)
+        cache.onAllChanges<State.Created>(State.Created)
             .subscribe(
             () => {
                 counter++;
             }
             );
 
-        cache.onAllChanges<State.Updated>(new Dog(), State.Updated)
+        cache.onAllChanges<State.Updated>(State.Updated)
             .subscribe(
             () => {
                 counter++;
@@ -690,7 +690,6 @@ class Dog {
 
 function listen<T, B>(cache: BusStore<B>, ...things: T[]): StoreStream<B> {
     let arr = new Array<any>();
-    arr.push(new Dog());
     arr = arr.concat(things);
     return cache.onAllChanges.apply(cache, arr);
 }

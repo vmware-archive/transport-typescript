@@ -1,4 +1,4 @@
-import {ChannelName, MessageArgs, MessageFunction, ORG_ID, ORGS} from '../../bus.api';
+import { ChannelName, MessageArgs, MessageFunction, MessageHandler, ORG_ID, ORGS } from '../../bus.api';
 import {AbstractBase} from './abstract.base';
 import {HttpRequest, RestError, RestObject} from '../services/rest/rest.model';
 import {APIRequest} from '../model/request.model';
@@ -9,6 +9,7 @@ import {GeneralError} from '../model/error.model';
 import {ApiObject} from './abstract.apiobject';
 import {AbstractMessageObject} from './abstract.messageobject';
 import {RestService} from '../services/rest/rest.service';
+import { Subscription } from 'rxjs';
 
 export const SERVICE_ERROR = 505;
 export type RequestorArguments = MessageArgs;
@@ -72,6 +73,10 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
 
     protected $host: string | undefined;    // This allows for dynamically customizing host segment in URIs prior to ReST service calls
 
+    private requestStream: MessageHandler;
+    private requestStreamSub: Subscription;
+    public readonly id: UUID;
+
     /**
      * super()
      *
@@ -82,6 +87,8 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
     protected constructor(name: string, serviceChannel: ChannelName, broadcastChannel?: ChannelName) {
 
         super(name);
+
+        this.id = GeneralUtil.genUUIDShort();
 
         // set the service channel.
         this.serviceChannel = serviceChannel;
@@ -94,14 +101,18 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
 
         this.initializeServiceCallHandling();   // create the serviceCall lambda
         this.initializeApiHandling();           // create the apiBridge lambda
-
-        this.bus.listenRequestStream(this.serviceChannel, this.getName())
-            .handle((requestObject: ReqT, args: RequestorArguments) => {
-                this.handleServiceRequest(requestObject, args);
-            });
+        this.listenToRequestStream();
     }
 
-    // Required method in the derived service
+    private listenToRequestStream() {
+        this.log.info(`🌎 Service Adaptor: ${this.name} (${this.id}) online and listening on '${this.serviceChannel}'`, this.getName());
+        this.requestStream = this.bus.listenRequestStream<ReqT>(this.serviceChannel, this.getName());
+        this.requestStreamSub = this.requestStream.handle((requestObject: ReqT, args: RequestorArguments) => {
+            this.handleServiceRequest(requestObject, args);
+        });
+    }
+
+// Required method in the derived service
     protected abstract handleServiceRequest(requestObject: ReqT, requestArgs?: MessageArgs): void;
 
     /**
@@ -322,5 +333,22 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
      */
     protected broadcastNotification<N>(channel: string, notification: N) {
        this.broadcastResponse(channel, notification);
+    }
+
+    /**
+     * Knock the service offline.
+     */
+    public offline(): void {
+        this.requestStreamSub.unsubscribe();
+        this.requestStream.close();
+        this.log.info(`Service ${this.getName()} has been knocked offline.`, this.getName());
+    }
+
+    /**
+     * Bring service online.
+     */
+    public online(): void {
+        this.listenToRequestStream();
+        this.log.info(`Service ${this.getName()} is now online and listening for requests.`, this.getName());
     }
 }
