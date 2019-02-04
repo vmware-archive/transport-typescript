@@ -76,17 +76,13 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
      * @returns {EventBus} the newly rebooted bus
      */
     public static rebootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
-        let windowRef: any = window;
-        EventBus.id = EventBus.rebuildId(); // reset the ID attached to the abstract class.
-        this.instance = null;
-        delete this.instance;
+        // let windowRef: any = window;
+        // EventBus.id = EventBus.rebuildId(); // reset the ID attached to the abstract class.
+        // this.instance = null;
+        // delete this.instance;
+        //
         this.instance = new this(logLevel, disableBootMessage);
 
-        windowRef.AppEventBus = this.instance;
-        windowRef.AppBrokerConnector = new BrokerConnector(this.instance.logger);
-        windowRef.AppBrokerConnector.init(this.instance);
-        windowRef.window.AppSyslog = this.instance.logger;
-        windowRef.AppStoreManager = this.instance.logger;
 
         return this.instance;
     }

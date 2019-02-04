@@ -95,7 +95,7 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
     }
 
     get(id: UUID): T {
-        return Object.assign({}, this.cache.get(id));
+        return this.cache.get(id);
     }
 
     remove<S>(id: UUID, state: S): boolean {
