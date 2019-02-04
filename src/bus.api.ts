@@ -786,9 +786,14 @@ export interface EventBusLowApi {
      * Push function onto the queue for next event loop tick.
      *
      * @param {Function} func function you want to execute asynchronously.
-     * @param {number} delay milliseconds you want to delay exectuion by.
+     * @param {number} delay milliseconds you want to delay execution by.
      */
     tickEventLoop(func: Function, delay?: number): number;
+
+    /**
+     * Get uuid of the bus.;
+     */
+    getId(): UUID;
 
 }
 

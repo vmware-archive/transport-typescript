@@ -57,7 +57,6 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
     }
 
     protected handleServiceRequest(restRequestObject: RestObject, requestArgs?: MessageArgs) {
-        console.log(`handling service request... my currentID is ${this.id}: force response is: ${this.forceResponse}`);
         // ignore requestors that are not from "our" service
         if (restRequestObject.senderName !== this.listensTo) {
             return;
@@ -71,11 +70,9 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
 
         // This allows a specific response to be sent back
         if (this.forceResponse) {
-            console.log('HELL YEAH');
             this.handleData(this.forceResponse, restRequestObject, requestArgs);
             return;
         }
-        console.log('FRIGATE');
 
         switch (restRequestObject.request) {
             case HttpRequest.Get:

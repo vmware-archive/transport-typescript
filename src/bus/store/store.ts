@@ -3,7 +3,6 @@
  */
 
 import { Message } from '../model/message.model';
-import { StompParser } from '../../bridge/stomp.parser';
 import { Observable, merge } from 'rxjs';
 import { map, filter } from 'rxjs/operators';
 import {
@@ -37,6 +36,7 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
     private cacheMutationChan: string;
     private cacheReadyChan: string;
     private cacheInitialized = false;
+    private name: string;
 
     public getObjectChannel(id: UUID): UUID {
         return 'store-' + this.uuid + '-object-' + id;
@@ -45,11 +45,12 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
     constructor(private bus: EventBus, private type: StoreType) {
         this.cache = new Map<UUID, any>();
         this.uuid = GeneralUtil.genUUIDShort();
-        this.cacheStreamChan = 'cache-change-' + this.uuid;
-        this.cacheMutationChan = 'cache-mutation-' + this.uuid;
-        this.cacheReadyChan = 'cache-ready-' + this.uuid;
+        this.cacheStreamChan = `stores::store-change-${this.uuid}-${type}`;
+        this.cacheMutationChan = `stores::store-mutation-${this.uuid}-${type}`;
+        this.cacheReadyChan = `stores::store-ready-${this.uuid}-${type}`;
         this.log = bus.api.logger();
-        this.log.info('🗄️ Store: New Store [' + type + '] was created with id ' + this.uuid, type);
+        this.name = type;
+        this.log.info(`🗄️ Store: New Store [${type}] was created with id ${this.uuid}, named ${type}`);
     }
 
     private sendChangeBroadcast<C>(changeType: C, id: UUID, value: T): void {
@@ -94,7 +95,7 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
     }
 
     get(id: UUID): T {
-        return this.cache.get(id);
+        return Object.assign({}, this.cache.get(id));
     }
 
     remove<S>(id: UUID, state: S): boolean {
@@ -239,6 +240,8 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
 
     reset(): void {
         this.cache.clear();
+        this.cacheInitialized = false;
+        this.log.warn(`🗄️ Store: [${this.name}] (${this.uuid}) has been reset. All data wiped `, this.name);
     }
 
     whenReady(readyFunction: MessageFunction<Map<UUID, T>>): void {
@@ -248,9 +251,7 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
         setTimeout(
             () => {
                 if (this.cacheInitialized) {
-                    this.log.debug('🗄️ Store: [' + this.type + '] Ready! Contains '
-                        + this.allValuesAsMap().size + ' values', this.type);
-
+                    this.log.debug(`🗄️ Store: [${this.name}] (${this.uuid}) Ready! Contains ${this.allValuesAsMap().size} values`, this.name);
                     this.bus.sendResponseMessage(this.cacheReadyChan, this.allValuesAsMap());
                 }
             }
@@ -287,18 +288,27 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
 
     refreshApiDelay(): void {
         this.stopAutoReload();
-        this.reloadIntervalTracker = setInterval(
-            () => {
-                this.reloadHandler();
-            },
-            this.reloadTTL
-        );
+        if (this.reloadHandler) {
+            this.reloadIntervalTracker = setInterval(
+                () => {
+                    this.reloadHandler();
+                },
+                this.reloadTTL
+            );
+        } else {
+            this.log.warn(`Unable to refresh API delay for ${this.name}, no reloadHandler has been defined.`,
+                this.getName());
+        }
     }
 
     reloadStore(): void {
         this.refreshApiDelay();
-        console.log('***Store should be reloaded now');
-        //this.reloadHandler();
+        if (this.reloadHandler) {
+            this.reloadHandler();
+        } else {
+            this.log.warn(`Unable to reload store ${this.name}, no reloadHandler has been defined.`,
+                this.getName());
+        }
     }
 
     setAutoReloadServiceTrigger(serviceCallFunction: Function): void {

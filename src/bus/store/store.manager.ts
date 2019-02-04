@@ -18,6 +18,7 @@ export class StoreManager implements BusStoreApi {
     
     public createStore<T>(objectType: StoreType, map?: Map<UUID, T>): BusStore<T> {
         if (!this.getStore(objectType)) {
+            this.bus.logger.verbose(`Store: Creating store ${objectType} as it does not exist!`);
             const cache: BusStore<T> = new StoreImpl<T>(this.bus, objectType);
             if (map) {
                 cache.populate(map);
@@ -25,6 +26,7 @@ export class StoreManager implements BusStoreApi {
             this.internalStoreMap.set(objectType, cache);
             return cache;
         } else {
+            this.bus.logger.verbose(`Stores: Returning reference to ${objectType} as it already exists`);
             return this.getStore(objectType);
         }
     }
@@ -34,8 +36,13 @@ export class StoreManager implements BusStoreApi {
     }
 
     public wipeAllStores(): void {
-        console.log('stores are dead');
-        this.internalStoreMap.clear();
+        this.internalStoreMap.forEach(
+            (store: BusStore<any>) => {
+                store.reset();
+            }
+        );
+        this.bus.logger.warn(`🗄️ Stores: All data has been wiped out and reset.`, 'StoreManager');
+
     }
 
     public destroyStore(objectType: StoreType): boolean {

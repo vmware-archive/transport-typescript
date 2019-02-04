@@ -105,7 +105,7 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
     }
 
     private listenToRequestStream() {
-        this.log.info(`🌎 Service Adaptor: ${this.name} (${this.id}) online and listening on '${this.serviceChannel}'`);
+        this.log.info(`🌎 Service Adaptor: ${this.name} (${this.id}) online and listening on '${this.serviceChannel}'`, this.getName());
         this.requestStream = this.bus.listenRequestStream<ReqT>(this.serviceChannel, this.getName());
         this.requestStreamSub = this.requestStream.handle((requestObject: ReqT, args: RequestorArguments) => {
             this.handleServiceRequest(requestObject, args);
