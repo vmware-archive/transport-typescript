@@ -8,8 +8,6 @@ import { SERVICE_ERROR } from './abstract.service';
 import { MessageArgs } from '../../bus.api';
 import { RestService } from '../services/rest/rest.service';
 import { HttpRequest, RestError, RestObject } from '../services/rest/rest.model';
-import { GeneralUtil } from '../../util/util';
-import { UUID } from '../../bus';
 
 export const MOCK_FAKE_ERROR = 400;
 export const MOCK_UNIMPLEMENTED_ERROR = 444;
