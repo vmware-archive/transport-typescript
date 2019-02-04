@@ -8,7 +8,7 @@
         "url" : "git@gitlab.eng.vmware.com:bifrost/typescript.git"
     },
     "peerDependencies": {
-        "rxjs": "^6.3.2"
+        "rxjs": "^6.4.0"
     },
     "publishConfig": {
         "registry": "http://build-artifactory.eng.vmware.com:80/artifactory/api/npm/npm"
@@ -22,6 +22,37 @@
     "contributors": ["Akmal Khan <akmalk@vmware.com>","Etienne Le Sueur <elesueur@vmware.com>","Ashwini Manjunath <ashwinim@vmware.com>", "Matt Critchlow <mcritch@vmware.com>"],
     "license": "0BSD",
     "changelogHistory": [
+        {
+            "date": "4/2/19",
+            "version": "0.11.0",
+            "notes": [
+                {
+                    "description": "0.11.0 is a <strong>Breaking Change</strong>. Stores API has changed.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/46"
+                },
+                {
+                    "description": "Upgraded RxJS 6.4.0"
+                },
+                {
+                    "description": "Added more methods to ServiceLoader for service manipulation"
+                },
+                {
+                    "description": "Added convenience methods for setting orgId for all Cloud Services API auto-magically"
+                },
+                {
+                    "description": "Simplified Store API to remove the need to pass object types for listening for state changes"
+                },
+                {
+                    "description": "Added store reloading/refreshing/wiping/cleaning API's to Store API"
+                },
+                {
+                    "description": "Added service online/offline capability"
+                },
+                {
+                    "description": "Added fixes for Abstractions for Services and Operations."
+                }
+            ]
+        },
         {
             "date": "1/9/19",
             "version": "0.10.0",

@@ -15,7 +15,7 @@ import { MessageProxyConfig, ProxyControl } from './proxy/message.proxy.api';
 import { GeneralUtil } from './util/util';
 
 // current version
-const version = '0.11.0-alpha-12';
+const version = '0.11.0';
 
 export type ChannelName = string;
 export type SentFrom = string;
