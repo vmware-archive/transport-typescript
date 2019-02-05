@@ -183,12 +183,12 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
         );
     }
 
-    mutate<V, M, E>(
+    mutate<V, M, S, E>(
         value: V, mutationType: M,
-        successHandler: MessageFunction<V>,
+        successHandler: MessageFunction<S>,
         errorHandler?: MessageFunction<E>): boolean {
 
-        const mutation: StoreStateMutation<M, V> = new StoreStateMutation(mutationType, value);
+        const mutation: StoreStateMutation<M, V, S, E> = new StoreStateMutation(mutationType, value);
         mutation.errorHandler = errorHandler;
         mutation.successHandler = successHandler;
 

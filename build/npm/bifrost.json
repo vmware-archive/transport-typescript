@@ -24,6 +24,16 @@
     "changelogHistory": [
         {
             "date": "4/2/19",
+            "version": "0.11.1",
+            "notes": [
+                {
+                    "description": "Fixed generics in signature in store API for mutations that were broken in 0.10.0. Implements correct definitions..",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/47"
+                }
+            ]
+        },
+        {
+            "date": "4/2/19",
             "version": "0.11.0",
             "notes": [
                 {
