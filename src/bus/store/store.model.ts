@@ -54,9 +54,9 @@ export class StoreStateChange<T, V> extends BaseStoreState<T, V> {
     }
 }
 
-export class StoreStateMutation<T, V, E = any> extends BaseStoreState<T, V> {
+export class StoreStateMutation<T, V, S = any, E = any> extends BaseStoreState<T, V> {
     private pvtErrorHandler: MessageFunction<E>;
-    private pvtSuccessHandler: MessageFunction<V>;
+    private pvtSuccessHandler: MessageFunction<S>;
 
     constructor(changeType: T,
                 objectValue: V) {
@@ -71,11 +71,11 @@ export class StoreStateMutation<T, V, E = any> extends BaseStoreState<T, V> {
         return this.pvtErrorHandler;
     }
 
-    public set successHandler(handler: MessageFunction<V>) {
+    public set successHandler(handler: MessageFunction<S>) {
         this.pvtSuccessHandler = handler;
     }
 
-    public get successHandler(): MessageFunction<V> {
+    public get successHandler(): MessageFunction<S> {
         return this.pvtSuccessHandler;
     }
 }
