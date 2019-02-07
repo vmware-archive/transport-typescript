@@ -240,7 +240,6 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         payload: any,
         name = this.getName()
     ): void {
-
         this.api.send(cname, new Message().request(payload), name);
     }
 
@@ -532,6 +531,40 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
                     'as he sits under his little yellow boat on the beach';
                 this.sendResponseMessage('__maglingtonpuddles__', msg);
             }
+        );
+    }
+
+    public markChannelsAsGalactic(channelNames: Iterable<ChannelName>): void {
+        for (const channelName of channelNames) {
+            this.markChannelAsGalactic(channelName);
+        }
+    }
+
+    public markChannelAsGalactic(channelName: ChannelName): void {
+        const channel = this.api.getChannelObject(channelName);
+        channel.setGalactic();
+
+        this.api.getMonitorStream().send(
+            new Message().request(
+                new MonitorObject().build(MonitorType.MonitorNewGalacticChannel, channelName, null)
+            )
+        );
+    }
+
+    public markChannelsAsLocal(channelNames: Iterable<ChannelName>): void {
+        for (const channelName of channelNames) {
+            this.markChannelAsLocal(channelName);
+        }
+    }
+
+    public markChannelAsLocal(channelName: ChannelName) {
+        const channel = this.api.getChannelObject(channelName);
+        channel.setPrivate();
+
+        this.api.getMonitorStream().send(
+            new Message().request(
+                new MonitorObject().build(MonitorType.MonitorGalacticUnsubscribe, channelName, null)
+            )
         );
     }
 }

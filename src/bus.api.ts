@@ -432,6 +432,32 @@ export abstract class EventBus {
     abstract isGalacticChannel(cname: ChannelName): boolean;
 
     /**
+     * Marks a channel as galactic.
+     * All messages sent to the channel with the "channelName" name
+     * will be transmitted to the remote destinations.
+     * @param {ChannelName} channelName name of the channel
+     */
+    abstract markChannelAsGalactic(channelName: ChannelName) : void;
+
+    /**
+     * Marks channels as galactic.
+     * @param {Iterable<ChannelName>} channelNames a collection of channel names.
+     */
+    abstract markChannelsAsGalactic(channelNames: Iterable<ChannelName>) : void;
+
+    /**
+     * Marks a channel as local.
+     * @param {ChannelName} channelName name of the channel
+     */
+    abstract markChannelAsLocal(channelName: ChannelName) : void;
+
+    /**
+     * Marks channels as local.
+     * @param {Iterable<ChannelName>} channelNames a collection of channel names.
+     */
+    abstract markChannelsAsLocal(channelNames: Iterable<ChannelName>) : void;
+
+    /**
      * Connect up the bridge to a new broker.
      * @param {MessageFunction<string>} readyHandler fires once the bridge is connected correctly.
      * @param {string} endpoint of the broker you're connecting to
