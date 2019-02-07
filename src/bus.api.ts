@@ -437,25 +437,25 @@ export abstract class EventBus {
      * will be transmitted to the remote destinations.
      * @param {ChannelName} channelName name of the channel
      */
-    abstract markChannelAsGalactic(channelName: ChannelName) : void;
+    abstract markChannelAsGalactic(channelName: ChannelName): void;
 
     /**
      * Marks channels as galactic.
      * @param {Iterable<ChannelName>} channelNames a collection of channel names.
      */
-    abstract markChannelsAsGalactic(channelNames: Iterable<ChannelName>) : void;
+    abstract markChannelsAsGalactic(channelNames: Iterable<ChannelName>): void;
 
     /**
      * Marks a channel as local.
      * @param {ChannelName} channelName name of the channel
      */
-    abstract markChannelAsLocal(channelName: ChannelName) : void;
+    abstract markChannelAsLocal(channelName: ChannelName): void;
 
     /**
      * Marks channels as local.
      * @param {Iterable<ChannelName>} channelNames a collection of channel names.
      */
-    abstract markChannelsAsLocal(channelNames: Iterable<ChannelName>) : void;
+    abstract markChannelsAsLocal(channelNames: Iterable<ChannelName>): void;
 
     /**
      * Connect up the bridge to a new broker.
