@@ -447,7 +447,7 @@ export abstract class EventBus {
 
     /**
      * Marks a channel as local. All messages sent to a local channel will
-     * be sent to local destinations.
+     * be sent to local destinations and will NOT be sent to remote destinations.
      * @param {ChannelName} channelName name of the channel
      */
     abstract markChannelAsLocal(channelName: ChannelName): void;
