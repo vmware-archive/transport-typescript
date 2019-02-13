@@ -227,6 +227,9 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         );
     }
 
+    /**
+     * @deprecated Use sendRequestMessage & markChannelsAsGalactic.
+     */
     public sendGalacticMessage(cname: ChannelName, payload: any, from?: SentFrom): void {
         this.api.getMonitorStream().send(
             new Message().request(
@@ -546,7 +549,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
         this.api.getMonitorStream().send(
             new Message().request(
-                new MonitorObject().build(MonitorType.MonitorNewGalacticChannel, channelName, null)
+                new MonitorObject().build(MonitorType.MonitorNewGalacticChannel, channelName, this.getName())
             )
         );
     }
@@ -563,7 +566,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
         this.api.getMonitorStream().send(
             new Message().request(
-                new MonitorObject().build(MonitorType.MonitorGalacticUnsubscribe, channelName, null)
+                new MonitorObject().build(MonitorType.MonitorGalacticUnsubscribe, channelName, this.getName())
             )
         );
     }

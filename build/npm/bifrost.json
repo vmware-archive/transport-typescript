@@ -29,6 +29,9 @@
                 {
                     "description": "Added markChannelsAsGalactic & markChannelsAsLocal methods.",
                     "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/48"
+                },
+                {
+                    "description": "The behavior of sendRequestMessage method for a specific channel can now be controlled by markChannelsAsGalactic & markChannelsAsLocal methods. The message will be sent to remote destinations if the channel is marked as galactic. Otherwise, local channel subscribers will receive the message."
                 }
             ]
         },

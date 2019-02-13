@@ -446,7 +446,8 @@ export abstract class EventBus {
     abstract markChannelsAsGalactic(channelNames: Iterable<ChannelName>): void;
 
     /**
-     * Marks a channel as local.
+     * Marks a channel as local. All messages sent to a local channel will
+     * be sent to local destinations.
      * @param {ChannelName} channelName name of the channel
      */
     abstract markChannelAsLocal(channelName: ChannelName): void;
@@ -496,6 +497,7 @@ export abstract class EventBus {
     abstract closeGalacticChannel(cname: ChannelName, from?: SentFrom): void;
 
     /**
+     * @deprecated Use sendRequestMessage & markChannelsAsGalactic.
      * Fire a galactic send notification to the montitor like it was a regular send on Observable. The
      * bridge will then pick this up and fire a SEND frame down the wire to that destination.
      *
