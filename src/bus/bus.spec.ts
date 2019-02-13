@@ -1933,6 +1933,89 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                 bus.listenGalacticStream('space-dogs');
                 bus.sendGalacticMessage('space-dogs', 'off to the moon goes fox!');
             });
+        
+        describe('markChannelAsGalactic()', () => {
+            const channelName = 'space-cats';
+
+            beforeEach(() => {                
+                bus.markChannelAsGalactic(channelName);
+            });
+
+            it('sets the channel to be galactic', () => {
+                const channel: Channel = bus.api.getChannelObject(channelName);
+
+                expect(channel.galactic).toEqual(true);    
+            });
+
+            it('sends MonitorNewGalacticChannel message', (done) => {
+                bus.api.getMonitor()
+                    .subscribe(
+                        (message: Message) => {
+                            const mo = message.payload as MonitorObject;
+                            switch (mo.type) {
+                                case MonitorType.MonitorNewGalacticChannel:
+                                    expect(mo.channel).toEqual(channelName);
+                                    done();
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                        }
+                    );
+            });    
+        });
+
+        it('markChannelsAsGalactic triggers markChannelAsGalactic for each channel names', () => {
+            spyOn(bus, 'markChannelAsGalactic').and.callThrough();
+            bus.markChannelsAsGalactic(['channel1', 'channel2']);
+
+            expect(bus.markChannelAsGalactic).toHaveBeenCalledWith('channel1');
+            expect(bus.markChannelAsGalactic).toHaveBeenCalledWith('channel2');
+        });
+
+        it('markChannelsAsLocal triggers markChannelAsLocal for each channel names', () => {
+            spyOn(bus, 'markChannelAsLocal').and.callThrough();
+            bus.markChannelsAsLocal(['channel1', 'channel2']);
+
+            expect(bus.markChannelAsLocal).toHaveBeenCalledWith('channel1');
+            expect(bus.markChannelAsLocal).toHaveBeenCalledWith('channel2');
+        });
+
+        describe('markChannelAsLocal()', () => {
+            const channelName = 'space-cats';
+
+            beforeEach(() => {                
+                bus.markChannelAsLocal(channelName);
+            });
+
+            it('sets the channel to be private', () => {
+                bus.markChannelAsLocal(channelName);
+                const channel: Channel = bus.api.getChannelObject(channelName);
+    
+                expect(channel.galactic).toEqual(false);
+            });
+
+            it('sends MonitorGalacticUnsubscribe message', (done) => {
+                bus.api.getMonitor()
+                    .subscribe(
+                        (message: Message) => {
+                            const mo = message.payload as MonitorObject;
+                            switch (mo.type) {
+                                case MonitorType.MonitorGalacticUnsubscribe:
+                                    expect(mo.channel).toEqual(channelName);
+                                    done();
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                        }
+                    );
+    
+                bus.markChannelAsLocal(channelName);
+            });
+        });
 
         it('galacticRequest() works correctly.',
             (done) => {

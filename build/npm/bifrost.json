@@ -19,9 +19,22 @@
     },
     //@endexclude
     "author": "Dave Shanley <dshanley@vmware.com>",
-    "contributors": ["Akmal Khan <akmalk@vmware.com>","Etienne Le Sueur <elesueur@vmware.com>","Ashwini Manjunath <ashwinim@vmware.com>", "Matt Critchlow <mcritch@vmware.com>"],
+    "contributors": ["Akmal Khan <akmalk@vmware.com>","Etienne Le Sueur <elesueur@vmware.com>","Ashwini Manjunath <ashwinim@vmware.com>", "Matt Critchlow <mcritch@vmware.com>", "Andrii Alieksashyn <aalieksashyn@vmware.com>"],
     "license": "0BSD",
     "changelogHistory": [
+        {
+            "date": "7/2/19",
+            "version": "0.12.0",
+            "notes": [
+                {
+                    "description": "Added markChannelsAsGalactic & markChannelsAsLocal methods.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/48"
+                },
+                {
+                    "description": "The behavior of sendRequestMessage method for a specific channel can now be controlled by markChannelsAsGalactic & markChannelsAsLocal methods. The message will be sent to remote destinations if the channel is marked as galactic. Otherwise, local channel subscribers will receive the message."
+                }
+            ]
+        },
         {
             "date": "4/2/19",
             "version": "0.11.1",

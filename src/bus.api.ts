@@ -15,7 +15,7 @@ import { MessageProxyConfig, ProxyControl } from './proxy/message.proxy.api';
 import { GeneralUtil } from './util/util';
 
 // current version
-const version = '0.11.1';
+const version = '0.12.0';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -430,6 +430,33 @@ export abstract class EventBus {
      * @returns {boolean} true if mapped.
      */
     abstract isGalacticChannel(cname: ChannelName): boolean;
+
+    /**
+     * Marks a channel as galactic.
+     * All messages sent to the channel with the "channelName" name
+     * will be transmitted to the remote destinations.
+     * @param {ChannelName} channelName name of the channel
+     */
+    abstract markChannelAsGalactic(channelName: ChannelName): void;
+
+    /**
+     * Marks channels as galactic.
+     * @param {Iterable<ChannelName>} channelNames a collection of channel names.
+     */
+    abstract markChannelsAsGalactic(channelNames: Iterable<ChannelName>): void;
+
+    /**
+     * Marks a channel as local. All messages sent to a local channel will
+     * be sent to local destinations and will NOT be sent to remote destinations.
+     * @param {ChannelName} channelName name of the channel
+     */
+    abstract markChannelAsLocal(channelName: ChannelName): void;
+
+    /**
+     * Marks channels as local.
+     * @param {Iterable<ChannelName>} channelNames a collection of channel names.
+     */
+    abstract markChannelsAsLocal(channelNames: Iterable<ChannelName>): void;
 
     /**
      * Connect up the bridge to a new broker.
