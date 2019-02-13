@@ -227,9 +227,6 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         );
     }
 
-    /**
-     * @deprecated Use sendRequestMessage & markChannelsAsGalactic.
-     */
     public sendGalacticMessage(cname: ChannelName, payload: any, from?: SentFrom): void {
         this.api.getMonitorStream().send(
             new Message().request(

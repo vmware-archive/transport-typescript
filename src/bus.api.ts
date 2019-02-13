@@ -497,7 +497,6 @@ export abstract class EventBus {
     abstract closeGalacticChannel(cname: ChannelName, from?: SentFrom): void;
 
     /**
-     * @deprecated Use sendRequestMessage & markChannelsAsGalactic.
      * Fire a galactic send notification to the montitor like it was a regular send on Observable. The
      * bridge will then pick this up and fire a SEND frame down the wire to that destination.
      *
