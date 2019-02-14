@@ -19,6 +19,16 @@ export class Logger {
     private debugCss = 'color: black;';
     private verboseCss = 'color: cyan;';
 
+    /* dark theme friendly colors */
+    private dateCssDark = 'color: #ec96fb;';
+    private fromCssDark = 'color: #FF9800;';
+    private normalCssDark = 'color: #03a9f4';
+    private errorCssDark = 'color: red;';
+    private warnCssDark = 'color: orange;';
+    private infoCssDark = 'color: #03a9f4';
+    private debugCssDark = 'color: #03a9f4';
+    private verboseCssDark = 'color: #03a9f4';
+
     private _logLevel: LogLevel;
     private _suppress = false;
     private _silent = false;
@@ -26,9 +36,24 @@ export class Logger {
     private _lastLog: string;
 
     private _styledLogsSupported: boolean = true;
+    private useDarkThemeFriendlyColors: boolean = true;
 
     setStylingVisble(flag: boolean) {
         this._styledLogsSupported = flag;
+    }
+
+    useDarkTheme(flag: boolean) {
+        this.useDarkThemeFriendlyColors = flag;
+        if (this.useDarkThemeFriendlyColors) {
+            this.dateCss = this.dateCssDark;
+            this.fromCss = this.fromCssDark;
+            this.normalCss = this.normalCssDark;
+            this.errorCss = this.errorCssDark;
+            this.warnCss = this.warnCssDark;
+            this.infoCss = this.infoCssDark;
+            this.debugCss = this.debugCssDark;
+            this.verboseCss = this.verboseCssDark;
+        }
     }
 
     /**

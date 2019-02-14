@@ -18,7 +18,6 @@ export abstract class AbstractBase extends AbstractCore implements EventBusEnabl
      */
     protected restServiceRequest(operation: RestOperation): BusTransaction {
         return this.restOperations.restServiceRequest(operation, this.getName());
-
     }
 
     /**

@@ -380,7 +380,7 @@ export class BrokerConnector implements EventBusEnabled {
     }
 
     public connectClient(config: StompConfig): void {
-        let session = new StompSession(config, this.log);
+        let session = new StompSession(config, this.log, this.bus);
 
         let connection = session.connect();
         this.connecting = true;

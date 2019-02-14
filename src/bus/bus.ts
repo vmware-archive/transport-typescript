@@ -36,6 +36,9 @@ import { BrokerConnector } from '../bridge/broker-connector';
 import { GeneralUtil } from '../util/util';
 import { MessageProxyConfig, ProxyControl } from '../proxy/message.proxy.api';
 import { MessageProxy } from '../proxy/message.proxy';
+import { FabricApi } from '../fabric.api';
+import { FabricApiImpl } from '../fabric/fabric';
+
 
 export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
@@ -64,10 +67,11 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
      * Boot and create a singleton EventBus instance with custom options for logging level and boot message
      * @param {LogLevel} logLevel log level to set
      * @param {boolean} disableBootMessage set to true to turn off the boot message.
+     * @param {boolean} darkTheme enable dark theme logging (defaults to false)
      * @returns {EventBus} the bus
      */
-    public static bootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
-        return this.instance || (this.instance = new this(logLevel, disableBootMessage));
+    public static bootWithOptions(logLevel: LogLevel, disableBootMessage: boolean, darkTheme: boolean = false): EventBus {
+        return this.instance || (this.instance = new this(logLevel, disableBootMessage, darkTheme));
     }
 
     /**
@@ -77,14 +81,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
      * @returns {EventBus} the newly rebooted bus
      */
     public static rebootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
-        // let windowRef: any = window;
-        // EventBus.id = EventBus.rebuildId(); // reset the ID attached to the abstract class.
-        // this.instance = null;
-        // delete this.instance;
-        //
         this.instance = new this(logLevel, disableBootMessage);
-
-
         return this.instance;
     }
 
@@ -108,8 +105,11 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
     // low level API
     readonly api: EventBusLowApi;
     readonly stores: BusStoreApi;
+    readonly fabric: FabricApi;
+    readonly brokerConnector: BrokerConnector;
 
-    private constructor(logLevel: LogLevel = LogLevel.Off, disableBootMessage: boolean = true) {
+    private constructor(logLevel: LogLevel = LogLevel.Off, disableBootMessage: boolean = true,
+                        darkTheme: boolean = false) {
         super();
 
         this.internalChannelMap = new Map<string, Channel>();
@@ -117,15 +117,22 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         // logging
         this.log = new Logger();
 
+        // enable dark theme on logging.
+        if (darkTheme) {
+            this.log.useDarkTheme(true);
+        }
+
         // Low Level API.
         this.api = new EventBusLowLevelApiImpl(this, this.internalChannelMap, this.log);
 
         // Store API
         this.stores = new StoreManager(this);
 
+        this.brokerConnector = new BrokerConnector(this.log);
+
         // wire up singleton to the window object under a custom namespace.
         this.windowRef.AppEventBus = this;
-        this.windowRef.AppBrokerConnector = new BrokerConnector(this.log);
+        this.windowRef.AppBrokerConnector = this.brokerConnector;
         this.windowRef.AppBrokerConnector.init(this);
         this.windowRef.window.AppSyslog = this.log;
         this.windowRef.AppStoreManager = this.stores;
@@ -133,12 +140,15 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         if (!disableBootMessage) {
             this.log.setStylingVisble(true);
             this.log.info(`🌈 Bifröst v${EventBus.version} Initialized with Id: ${EventBus.id}, Hi!`,
-                'window.AppEventBus');
+                'EventBus');
+
         }
 
         // set up logging.
         this.log.logLevel = logLevel;
         this.api.setLogLevel(logLevel);
+
+        this.fabric = new FabricApiImpl(this);
 
         // say hi to magnum.
         // this.easterEgg();
@@ -203,6 +213,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
             (command: StompBusCommand) => {
                 if (command.command === StompClient.STOMP_CONNECTED) {
                     readyHandler(command.session);
+                    handler.close();
                 } else {
                     this.api.logger()
                         .info('connection handler received command message: ' + command.command, this.getName());

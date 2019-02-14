@@ -9,6 +9,7 @@ import { UUID } from '../bus/store/store.model';
 import { Logger } from '../log';
 import { GeneralUtil } from '../util/util';
 import { AbstractCore } from '../core';
+import { EventBus } from '../bus.api';
 
 export type BifrostSocket = WebSocket;
 
@@ -51,9 +52,9 @@ export class StompSession {
     private connCount: number = 0;
     private _applicationDestinationPrefix: string;
 
-    constructor(config: StompConfig, private log: Logger) {
+    constructor(config: StompConfig, private log: Logger, private bus?: EventBus) {
         this._config = config;
-        this._client = new StompClient(log);
+        this._client = new StompClient(log, bus);
         this._id = GeneralUtil.genUUIDShort();
         if (config.sessionId) {
             this._id = config.sessionId;

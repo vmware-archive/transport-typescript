@@ -14,9 +14,11 @@ import { APIRequest } from './core/model/request.model';
 import { APIResponse } from './core/model/response.model';
 import { MessageProxyConfig, ProxyControl } from './proxy/message.proxy.api';
 import { GeneralUtil } from './util/util';
+import { FabricApi } from './fabric.api';
+import { BrokerConnector } from './bridge';
 
 // current version
-const version = '0.12.0';
+const version = '0.13.0';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -147,6 +149,16 @@ export abstract class EventBus {
      * Reference to Store API.
      */
     readonly stores: BusStoreApi;
+
+    /**
+     * Reference to fabric API.
+     */
+    readonly fabric: FabricApi;
+
+    /**
+     * Reference to the broker connector.
+     */
+    readonly brokerConnector: BrokerConnector;
 
     /**
      * Simple API Methods

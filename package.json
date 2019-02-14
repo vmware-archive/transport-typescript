@@ -1,10 +1,11 @@
 {
   "name": "@vmw/bifrost",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "private": false,
   "license": "0BSD",
   "repository": "git@gitlab.eng.vmware.com:bifrost/typescript.git",
   "dependencies": {
+    "karma-jasmine-html-reporter": "^1.4.0",
     "rxjs": "^6.4.0"
   },
   "devDependencies": {
@@ -30,12 +31,12 @@
     "gulp-zip": "^3.1.0",
     "intl": "1.2.5",
     "jasmine-core": "^3.1.0",
-    "karma": "^2.0.5",
+    "karma": "^4.0.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-coverage": "^1.1.2",
-    "karma-jasmine": "^1.1.2",
+    "karma-jasmine": "^2.0.1",
     "karma-spec-reporter": "0.0.32",
-    "karma-typescript": "3.0.13",
+    "karma-typescript": "4.0.0",
     "merge-stream": "^1.0.1",
     "require-dir": "^1.0.0",
     "run-sequence": "^1.1.5",
