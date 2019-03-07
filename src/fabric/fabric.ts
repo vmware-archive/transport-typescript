@@ -56,9 +56,6 @@ export class FabricApiImpl implements FabricApi {
             }
             this.createWindowConnectionEventListeners();
 
-
-
-
             this.connectHandler = connectHandler;
             this.disconnectHandler = disconnectHandler;
 
@@ -84,8 +81,6 @@ export class FabricApiImpl implements FabricApi {
                         }
                     );
                 }
-
-
             };
 
             // ensure this is non-blocking
@@ -121,7 +116,7 @@ export class FabricApiImpl implements FabricApi {
     }
 
     setFabricCurrentOrgId(orgId: UUID): void {
-        this.bus.stores.getStore(ORGS).put(ORG_ID, orgId, null);
+        this.bus.stores.createStore(ORGS).put(ORG_ID, orgId, null);
     }
 
     private createWindowConnectionEventListeners(): void {

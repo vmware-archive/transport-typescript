@@ -101,6 +101,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
     private windowRef: any = window;
     private messageProxy: MessageProxy;
     private proxyControl: ProxyControl;
+    private devModeEnabled = false;
 
     // low level API
     readonly api: EventBusLowApi;
@@ -162,6 +163,10 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         return 'EventBus';
     }
 
+    public enableDevMode(): void {
+        this.devModeEnabled = true;
+        this.log.warn('Dev Mode Enabled on Event Bus, This should never be enabled in production');
+    }
 
     public enableMessageProxy(config: MessageProxyConfig): ProxyControl {
 
@@ -203,6 +208,11 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
             config.heartbeatIn = advancedConfig.heartbeatIncomingInterval;
             config.heartbeatOut = advancedConfig.heartbeatOutgoingInterval;
             config.startIntervalFunction = advancedConfig.startIntervalFunction;
+        }
+
+        // create fake socket instead of a real socket, should never be used in production.
+        if(this.devModeEnabled) {
+            config.testMode = true;
         }
 
         const handler: MessageHandler<StompBusCommand> = this.requestStream(

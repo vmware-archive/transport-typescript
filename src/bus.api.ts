@@ -556,6 +556,8 @@ export abstract class EventBus {
     abstract enableMessageProxy(config: MessageProxyConfig): ProxyControl;
 
 
+    /** Enable Fake Socket for broker connector */
+    abstract enableDevMode(): void;
 }
 
 /**
