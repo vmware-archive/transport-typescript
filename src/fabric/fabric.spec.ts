@@ -1,7 +1,7 @@
 import { EventBus, ORG_ID, ORGS } from '../bus.api';
 import { Logger, LogLevel } from '../log';
 import { BusTestUtil } from '../util/test.util';
-import { BrokerConnector } from '../bridge';
+import { FabricConnectionState } from '../fabric.api';
 
 /**
  * Copyright(c) VMware Inc. 2019
@@ -104,23 +104,35 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
     );
 
     // throwing strange jasmine error, disabled for now.
-   xit('Check online event listeners work',
+    xit('Check online event listeners work',
         (done) => {
 
             let connectCount = 0;
 
+            bus.fabric.whenConnectionStateChanges()
+                .subscribe(
+                    (state: FabricConnectionState) => {
+                        if (state == FabricConnectionState.Disconnected) {
+                            const onlineEvent = new Event('online');
+                            window.dispatchEvent(onlineEvent);
+
+                        }
+                        if (state == FabricConnectionState.Connected) {
+                            if (connectCount <= 1) {
+                                bus.fabric.disconnect();
+                            }
+                        }
+                    }
+                );
+
             bus.fabric.connect(
                 () => {
                     connectCount++;
-                    if (connectCount > 1) {
+                    if (connectCount >= 2) {
                         done();
-                    } else {
-                        bus.fabric.disconnect();
                     }
                 },
                 () => {
-                    const onlineEvent = new Event('online');
-                    window.dispatchEvent(onlineEvent);
                 }
             );
         }
@@ -133,6 +145,21 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
             expect(fabricRequest.payload).toBe('hello');
             expect(fabricRequest.request).toBe('testCommand');
 
+        }
+    );
+
+    it('Check for connection state change to connected',
+        (done) => {
+            bus.fabric.whenConnectionStateChanges()
+                .subscribe(
+                    (state: FabricConnectionState) => {
+                        expect(state).toEqual(FabricConnectionState.Connected);
+                        done();
+                    }
+                );
+            bus.fabric.connect(() => {
+            }, () => {
+            });
         }
     );
 
