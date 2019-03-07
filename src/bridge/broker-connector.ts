@@ -11,6 +11,7 @@ import { Message } from '../bus/model/message.model';
 import { BifrostEventBus } from '../bus/bus';
 import { EventBus, EventBusEnabled } from '../bus.api';
 import { Logger } from '../log';
+import { FabricUtil } from '../fabric/fabric.util';
 
 /**
  * Service is responsible for handling all STOMP communications over a socket.
@@ -184,6 +185,15 @@ export class BrokerConnector implements EventBusEnabled {
     }
 
     private sendGalacticMessage(channel: string, payload: any): void {
+
+        // check if message is pre-wrapped or not.
+        console.log('&&-- OUTBOUND MESSAGE (VIA MONITOR COMMAND)', payload);
+        console.log('Outbound request is valid? ', FabricUtil.isPayloadFabricRequest(payload));
+
+
+
+
+
 
         let cleanedChannel = StompParser.convertChannelToSubscription(channel);
 
@@ -549,8 +559,14 @@ export class BrokerConnector implements EventBusEnabled {
             const chan: Observable<Message> =
                 this.bus.api.getRequestChannel(channel, this.getName());
 
+
+            console.log('CHEWWY MAGNETS', channel);
             const sub: Subscription = chan.subscribe(
                 (msg: Message) => {
+
+                    console.log('&&-- OUTBOUND MESSAGE (VIA CHANNEL)', msg);
+                    console.log('Outbound request is valid? ', FabricUtil.isPayloadFabricRequest(msg.payload));
+
                     const command: StompBusCommand = StompParser.generateStompBusCommand(
                         StompClient.STOMP_MESSAGE,
                         session.id,
@@ -573,6 +589,9 @@ export class BrokerConnector implements EventBusEnabled {
                     let payload = JSON.parse(msg.body);
 
                     const respChannelObject = this.bus.api.getChannelObject(respChan);
+
+                    console.log('&&-- INBOUND MESSAGE', payload);
+                    console.log('Inbound response is valid? ', FabricUtil.isPayloadFabricResponse(payload));
 
                     // bypass event loop for fast incoming socket events, the loop will slow things down.
                     respChannelObject.stream.next(new Message().response(payload));

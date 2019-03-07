@@ -4,7 +4,9 @@
 import { FabricApi, FabricConnectionState } from '../fabric.api';
 import { EventBus, MessageFunction, MessageHandler, ORG_ID, ORGS } from '../bus.api';
 import { BusStore, StoreStream, UUID } from '../bus';
-import { BrokerConnector, StompBusCommand, StompClient } from '../bridge';
+import { StompBusCommand } from '../bridge/stomp.model';
+import { BrokerConnector } from '../bridge/broker-connector';
+
 
 export enum Stores {
     FabricConnection = 'stores::fabric-connection'

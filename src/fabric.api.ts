@@ -61,4 +61,6 @@ export interface FabricApi {
      * Grab a reference to state stream for connections.
      */
     whenConnectionStateChanges(): StoreStream<FabricConnectionState>;
+
+
 }
