@@ -186,14 +186,12 @@ export class BrokerConnector implements EventBusEnabled {
 
     private sendGalacticMessage(channel: string, payload: any): void {
 
-        // check if message is pre-wrapped or not.
-        console.log('&&-- OUTBOUND MESSAGE (VIA MONITOR COMMAND)', payload);
-        console.log('Outbound request is valid? ', FabricUtil.isPayloadFabricRequest(payload));
-
-
-
-
-
+        // outbound message detected, if it's not a valid remote request, warn the consumer
+        if (!FabricUtil.isPayloadFabricRequest(payload)) {
+            this.log.warn('Outbound message being sent over WebSocket that has not been correctly ' +
+                'wrapped. You may not receive a response. Please make sure you use '+
+                'fabric.generateFabricRequest() if you\'re not using auto-generated services');
+        }
 
         let cleanedChannel = StompParser.convertChannelToSubscription(channel);
 
@@ -559,21 +557,11 @@ export class BrokerConnector implements EventBusEnabled {
             const chan: Observable<Message> =
                 this.bus.api.getRequestChannel(channel, this.getName());
 
-
-            console.log('CHEWWY MAGNETS', channel);
             const sub: Subscription = chan.subscribe(
                 (msg: Message) => {
 
-                    console.log('&&-- OUTBOUND MESSAGE (VIA CHANNEL)', msg);
-                    console.log('Outbound request is valid? ', FabricUtil.isPayloadFabricRequest(msg.payload));
-
-                    const command: StompBusCommand = StompParser.generateStompBusCommand(
-                        StompClient.STOMP_MESSAGE,
-                        session.id,
-                        data.destination,
-                        StompParser.generateStompReadyMessage(msg.payload)
-                    );
-                    this.sendPacket(command);
+                    // send galactic message.
+                    this.sendGalacticMessage(channel, msg.payload);
                 }
             );
             session.addGalacticSubscription(channel, sub);
@@ -590,8 +578,12 @@ export class BrokerConnector implements EventBusEnabled {
 
                     const respChannelObject = this.bus.api.getChannelObject(respChan);
 
-                    console.log('&&-- INBOUND MESSAGE', payload);
-                    console.log('Inbound response is valid? ', FabricUtil.isPayloadFabricResponse(payload));
+                    // not sure if this has value. leabing out for now.
+                    // //inbound message detected, if it's not a valid remote response, warn the consumer
+                    // if (!FabricUtil.isPayloadFabricResponse(payload)) {
+                    //     this.log.warn('Inbound message being sent via WebSocket has not been correctly ' +
+                    //         'wrapped. Response data may be incorrectly packaged and may cause run-time error.');
+                    // }
 
                     // bypass event loop for fast incoming socket events, the loop will slow things down.
                     respChannelObject.stream.next(new Message().response(payload));

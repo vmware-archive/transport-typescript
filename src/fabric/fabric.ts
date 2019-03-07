@@ -3,18 +3,14 @@
  */
 import { FabricApi, FabricConnectionState } from '../fabric.api';
 import { EventBus, MessageFunction, MessageHandler, ORG_ID, ORGS } from '../bus.api';
-import { BusStore, StoreStream, UUID } from '../bus';
 import { StompBusCommand } from '../bridge/stomp.model';
 import { BrokerConnector } from '../bridge/broker-connector';
+import { GeneralUtil } from '../util/util';
+import { FabricConnectionStoreKey, Stores } from './fabric.model';
+import { UUID } from '../bus/store/store.model';
+import { BusStore, StoreStream } from '../store.api';
+import { APIRequest } from '../core/model/request.model';
 
-
-export enum Stores {
-    FabricConnection = 'stores::fabric-connection'
-}
-
-export enum FabricConnectionStoreKey {
-    State = 'state',
-}
 
 export class FabricApiImpl implements FabricApi {
 
@@ -164,4 +160,9 @@ export class FabricApiImpl implements FabricApi {
             FabricConnectionState.Disconnected);
 
     }
+
+    generateFabricRequest<T>(requestCommand: string, payload: T): APIRequest<T> {
+        return new APIRequest<T>(requestCommand, payload, GeneralUtil.genUUID(), 1);
+    }
+
 }

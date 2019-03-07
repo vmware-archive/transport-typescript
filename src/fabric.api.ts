@@ -5,6 +5,7 @@
 import { UUID } from './bus/store/store.model';
 import { MessageFunction } from './bus.api';
 import { StoreStream } from './store.api';
+import { APIRequest } from './core/model/request.model';
 
 export enum FabricConnectionState {
     Connected = 'connected',
@@ -62,5 +63,11 @@ export interface FabricApi {
      */
     whenConnectionStateChanges(): StoreStream<FabricConnectionState>;
 
+    /**
+     * Generate a payload designed for fabric services, essentially a shortcut.
+     * @param requestCommand request command to run.
+     * @param payload to send with request command.
+     */
+    generateFabricRequest<T>(requestCommand: string, payload: T): APIRequest<T>;
 
 }

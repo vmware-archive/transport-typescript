@@ -18,7 +18,7 @@ export class FabricUtil {
         let createdFound = false;
 
         // check command exists.
-        if (payload.hasOwnProperty('command')) {
+        if (payload.hasOwnProperty('request')) {
             commandFound = true;
         }
 

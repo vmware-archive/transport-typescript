@@ -6,8 +6,8 @@ import { mergeMap } from 'rxjs/operators';
 import { GeneralUtil } from '../util/util';
 import { Logger } from '../log';
 import { EventBus, EventBusEnabled } from '../bus';
-import { FabricConnectionStoreKey, Stores } from '../fabric/fabric';
 import { FabricConnectionState } from '../fabric.api';
+import { FabricConnectionStoreKey, Stores } from '../fabric/fabric.model';
 
 export interface StompTransaction {
     id: string;
