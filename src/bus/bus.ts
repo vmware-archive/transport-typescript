@@ -211,7 +211,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         }
 
         // create fake socket instead of a real socket, should never be used in production.
-        if(this.devModeEnabled) {
+        if (this.devModeEnabled) {
             config.testMode = true;
         }
 
