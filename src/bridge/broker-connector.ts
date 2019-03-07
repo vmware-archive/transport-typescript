@@ -189,7 +189,7 @@ export class BrokerConnector implements EventBusEnabled {
         // outbound message detected, if it's not a valid remote request, warn the consumer
         if (!FabricUtil.isPayloadFabricRequest(payload)) {
             this.log.warn('Outbound message being sent over WebSocket that has not been correctly ' +
-                'wrapped. You may not receive a response, you may receive an error. Please make sure you use '+
+                'wrapped. You may not receive a response, you may receive an error. Please make sure you use ' +
                 'fabric.generateFabricRequest() if you\'re not using auto-generated services', this.getName());
         }
 
