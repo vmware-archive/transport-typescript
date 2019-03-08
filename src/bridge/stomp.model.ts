@@ -151,6 +151,8 @@ export class StompConfig {
     private _useQueues: boolean = false;
     private _topicLocation: string = '/topic';
     private _queueLocation: string = '/queue';
+    private _startIntervalFunction: (handler: any, timeout?: any, ...args: any[]) => number;
+
     private numBrokerConnect: number = 1;
     public connectionSubjectRef: Subject<Boolean>; // used to manipulate multi connect messages from relays.
     public sessionId: UUID;
@@ -265,6 +267,30 @@ export class StompConfig {
         this._testMode = val;
     }
 
+    get startIntervalFunction(): (handler: any, timeout?: any, ...args: any[]) => number {
+       return this._startIntervalFunction;
+    }
+
+    set startIntervalFunction(fn: (handler: any, timeout?: any, ...args: any[]) => number) {
+       this._startIntervalFunction = fn;
+    }
+
+    set heartbeatIn(interval: number) {
+       this._heartbeatIn = interval;
+    }
+
+    get heartbeatIn(): number {
+       return this._heartbeatIn;
+    }
+
+    set heartbeatOut(interval: number) {
+       this._heartbeatOut = interval;
+    }
+
+    get heartbeatOut(): number {
+       return this._heartbeatOut;
+    }
+
     public getConfig(): any {
         return {
             endpoint: this._endpoint,
@@ -276,7 +302,8 @@ export class StompConfig {
             useSSL: this._useSSL,
             heartbeatIn: this._heartbeatIn,
             heartbeatOut: this._heartbeatOut,
-            applicationDestinationPrefix: this._applicationDestinationPrefix
+            applicationDestinationPrefix: this._applicationDestinationPrefix,
+            startIntervalFunction: this._startIntervalFunction
         };
     }
 

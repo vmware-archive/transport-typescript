@@ -15,6 +15,8 @@ import { UUID } from './store/store.model';
 import { APIResponse } from '../core/model/response.model';
 import { GeneralUtil } from '../util/util';
 import { MessageHandler, MessageResponder, MessageType } from '../bus.api';
+import { BridgeConnectionAdvancedConfig, StompConfig } from "../bridge";
+import { StompBusCommand } from "../bridge/stomp.model";
 
 function makeCallCountCaller(done: any, targetCount: number): any {
     let count = 0;
@@ -1821,6 +1823,47 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                 );
             }
         );
+
+       describe('when calling connectBridge() with advancedConfig param', () => {
+
+          it('populates the correct stompConfig parameters',
+                () => {
+
+                   const requestStreamSpy = spyOn(bus, "requestStream").and.returnValue({
+                      handle: () => {}
+                   });
+
+                   let advancedConfig: BridgeConnectionAdvancedConfig = {
+                      heartbeatOutgoingInterval: 10,
+                      heartbeatIncomingInterval: 20,
+                      startIntervalFunction:  (handler: any, timeout?: any, ...args: any[]) => { return 67; }
+                   };
+
+                   bus.connectBridge(
+                         () => {},
+                         '/somewhere',
+                         '/topic',
+                         '/queue',
+                         0,
+                         undefined,
+                         undefined,
+                         undefined,
+                         undefined,
+                         undefined,
+                         undefined,
+                         undefined,
+                         advancedConfig
+                   );
+
+                   expect(bus.requestStream).toHaveBeenCalled();
+                   let stompCmd: StompBusCommand = requestStreamSpy.calls.mostRecent().args[1];
+                   const stompConfig: StompConfig = stompCmd.payload;
+                   expect(stompConfig.heartbeatIn).toBe(advancedConfig.heartbeatIncomingInterval);
+                   expect(stompConfig.heartbeatOut).toBe(advancedConfig.heartbeatOutgoingInterval);
+                   expect(stompConfig.startIntervalFunction).toBe(advancedConfig.startIntervalFunction);
+                }
+          );
+       });
 
         it('listenGalacticStream() works correctly.',
             (done) => {

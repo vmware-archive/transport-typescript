@@ -7,6 +7,7 @@ import { Message, MessageHandlerConfig } from './bus/model/message.model';
 import { Channel } from './bus/model/channel.model';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { StompBusCommand } from './bridge/stomp.model';
+import { BridgeConnectionAdvancedConfig } from './bridge/bridge.model';
 import { Logger } from './log/logger.service';
 import { LogLevel } from './log/logger.model';
 import { APIRequest } from './core/model/request.model';
@@ -473,6 +474,8 @@ export abstract class EventBus {
      * @param {string} applicationDestinationPrefix set the prefix for app published (galactic) messages (i.e. /pub)
      *                                              channels are postpended to this (i.e. /pub/mychannel)
      * @param {boolean} autoReconnect Automaticallty reconnect on loss of socket? Defaults to true.
+     * @param {BridgeConnectionAdvancedConfig} advanced configuration settings to be used
+     *                                         for the new bridge connection.
      * @returns {MessageHandler<StompBusCommand>} connected commands will auto trigger the readyHandler().
      */
     abstract connectBridge(readyHandler: MessageFunction<string>,
@@ -486,7 +489,8 @@ export abstract class EventBus {
                            user?: string,
                            pass?: string,
                            useSSL?: boolean,
-                           autoReconnect?: boolean): MessageHandler<StompBusCommand>;
+                           autoReconnect?: boolean,
+                           advancedConfig?: BridgeConnectionAdvancedConfig): MessageHandler<StompBusCommand>;
 
     /**
      * Unsubscribe from a Galactic Channel. Will send an UNSUBSCRIBE message to broker.

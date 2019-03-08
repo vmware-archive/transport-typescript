@@ -13,6 +13,7 @@ import { UUID } from './store/store.model';
 import { BrokerConnectorChannel, StompBusCommand, StompConfig } from '../bridge/stomp.model';
 import { StompClient } from '../bridge/stomp.client';
 import { StompParser } from '../bridge/stomp.parser';
+import { BridgeConnectionAdvancedConfig } from '../bridge/bridge.model';
 import {
     BusTransaction,
     ChannelName,
@@ -172,7 +173,8 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         user?: string,
         pass?: string,
         useSSL?: boolean,
-        autoReconnect: boolean = true): MessageHandler<StompBusCommand> {
+        autoReconnect: boolean = true,
+        advancedConfig?: BridgeConnectionAdvancedConfig): MessageHandler<StompBusCommand> {
 
         const config: StompConfig = StompConfig.generate(
             endpoint,
@@ -187,6 +189,11 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         config.queueLocation = queueLocation;
         config.brokerConnectCount = numBrokerRelays;
         config.autoReconnect = autoReconnect;
+        if (advancedConfig) {
+            config.heartbeatIn = advancedConfig.heartbeatIncomingInterval;
+            config.heartbeatOut = advancedConfig.heartbeatOutgoingInterval;
+            config.startIntervalFunction = advancedConfig.startIntervalFunction;
+        }
 
         const handler: MessageHandler<StompBusCommand> = this.requestStream(
             BrokerConnectorChannel.connection,

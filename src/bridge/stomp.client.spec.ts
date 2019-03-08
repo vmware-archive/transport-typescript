@@ -692,6 +692,63 @@ describe('Stomp Client [stomp.client]', () => {
             }
         );
 
+       it('The client starts sending heartbeats using custom setInterval function',
+             (done) => {
+
+                config = new StompConfig(
+                      'slappochip',
+                      'nowhere',
+                      12345,
+                      'user',
+                      'password',
+                      false,
+                      null,
+                      true,
+                      0,
+                      150
+                );
+
+                config.testMode = true;
+                let heartbeatCounter = 0;
+
+                config.startIntervalFunction = (handler: any, timeout?: any, ...args: any[]) => {
+                   return setInterval(() => {
+                      heartbeatCounter++;
+                      handler(...args);
+                   }, timeout, ...args);
+                };
+
+                spyOn(config, 'startIntervalFunction').and.callThrough();
+
+                spyOn(client, 'sendHeartbeat')
+                      .and
+                      .callThrough();
+
+                client.connect(config).subscribe(() => {
+                   client.subscribeToDestination(testDestination, subId);
+                });
+
+                client.socketSubscriptionObserver.subscribe(
+                      (message: StompMessage) => {
+                         expect(message.command).toEqual(StompClient.STOMP_SUBSCRIBE);
+                      }
+                );
+
+                setTimeout(() => {
+
+                   expect(config.startIntervalFunction).toHaveBeenCalled();
+
+                   // should have fired three heartheats.
+                   expect(client.sendHeartbeat).toHaveBeenCalledTimes(3);
+                   // The interval used by the heartbeater should have been started
+                   // from our custom interval function.
+                   expect(heartbeatCounter).toBe(3);
+                   done();
+
+                }, 500);
+             }
+       );
+
 
     });
 });

@@ -290,8 +290,11 @@ export class StompClient implements EventBusEnabled {
         if (this._config.getConfig().heartbeatOut
             && this._config.getConfig().heartbeatOut > 0) {
 
+            let startIntervalFn: (handler: any, timeout?: any, ...args: any[]) => number =
+                  this._config.getConfig().startIntervalFunction || setInterval;
+
             //set up an interval to send a null char down the pipe;
-            this._heartbeater = setInterval(
+            this._heartbeater = startIntervalFn(
                 () => {
                     this.sendHeartbeat();
                 }, this._config.getConfig().heartbeatOut
