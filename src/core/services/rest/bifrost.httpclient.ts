@@ -76,6 +76,7 @@ export class BifrostHttpclient implements HttpClient {
                                 if (respErrorObject.hasOwnProperty('error_code')
                                     && respErrorObject.error_code != null) {
                                     status = respErrorObject.error_code;
+                                    errorCode = respErrorObject.error_code;
                                 }
 
                                 if (respErrorObject.hasOwnProperty('status')) {

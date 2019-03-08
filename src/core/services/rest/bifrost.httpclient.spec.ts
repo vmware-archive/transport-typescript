@@ -255,4 +255,76 @@ describe('Bifröst HTTP Client [cores/services/rest/bifrost.httpclient]', () => 
         }
     );
 
+    it('Can handle error message object (mainly from ss-base consumers)',
+        (done) => {
+            fetchMock.get('http://appfabric.vmware.com/', {
+                status: 500,
+                body: JSON.stringify({message: 'oh dear.'})
+            });
+
+            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
+            client.get(request,
+                () => { },
+                (failureObject: GeneralError) => {
+                    expect(failureObject.message).toEqual('HTTP Error 500: Internal Server Error -  oh dear.');
+                    done();
+                }
+            );
+        }
+    );
+
+    it('Can handle error messages array object (mainly from ss-base consumers)',
+        (done) => {
+            fetchMock.get('http://appfabric.vmware.com/', {
+                status: 500,
+                body: JSON.stringify({error_messages: ['oh','deary','me']})
+            });
+
+            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
+            client.get(request,
+                () => { },
+                (failureObject: GeneralError) => {
+                    expect(failureObject.message).toEqual('HTTP Error 500: Internal Server Error -  oh, deary, me');
+                    done();
+                }
+            );
+        }
+    );
+
+    it('Can handle error code (mainly from ss-base consumers)',
+        (done) => {
+            fetchMock.get('http://appfabric.vmware.com/', {
+                status: 500,
+                body: JSON.stringify({error_code: '500'})
+            });
+
+            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
+            client.get(request,
+                () => { },
+                (failureObject: GeneralError) => {
+                    expect(failureObject.status).toEqual('500');
+                    expect(failureObject.errorCode.error_code).toEqual('500');
+                    done();
+                }
+            );
+        }
+    );
+
+    it('Can handle error status (mainly from ss-base consumers)',
+        (done) => {
+            fetchMock.get('http://appfabric.vmware.com/', {
+                status: 500,
+                body: JSON.stringify({status: 'computer says no.'})
+            });
+
+            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
+            client.get(request,
+                () => { },
+                (failureObject: GeneralError) => {
+                    expect(failureObject.status).toEqual('computer says no.');
+                    done();
+                }
+            );
+        }
+    );
 });
