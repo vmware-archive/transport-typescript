@@ -2,38 +2,20 @@
  * Copyright(c) VMware Inc. 2019
  */
 import { EventBus } from '../../../bus.api';
-import { Logger, LogLevel } from '../../../log';
+import { LogLevel } from '../../../log';
 import { BusTestUtil } from '../../../util/test.util';
-
-import * as fetchMock from 'fetch-mock'
 import { RestOperations } from './rest.operations';
 import { RestService } from './rest.service';
-import { RestObject } from './rest.model';
+import { HttpRequest, RestObject } from './rest.model';
 import { Message } from '../../../bus';
 
 describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () => {
 
     let bus: EventBus;
-    let log: Logger;
     let operations: RestOperations;
 
-    beforeEach(
-        () => {
-            bus = BusTestUtil.bootBusWithOptions(LogLevel.Debug, true);
-            bus.api.silenceLog(true);
-            bus.api.suppressLog(true);
-            bus.api.enableMonitorDump(false);
-            bus.enableDevMode();
-            log = bus.api.logger();
-            operations = RestOperations.getInstance();
-        }
-    );
-
-    afterEach(
-        () => {
-            fetchMock.reset();
-        }
-    );
+    bus = BusTestUtil.bootBusWithOptions(LogLevel.Off, true);
+    operations = RestOperations.getInstance();
 
     it('Check singleton exists.',
         () => {
@@ -50,17 +32,13 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
         }
     );
 
-    xit('Check global headers can be sent by operation.',
+    it('Check global headers can be sent by operation.',
         (done) => {
-            // bus.(RestService.channel).handle(
-            //     (restObject: RestObject) => {
-            //         expect(restObject.headers.hello).toEqual('there');
-            //         done();
-            //     }
-            // );
-            bus.api.getChannel(RestService.channel).subscribe(
+            let sub = bus.api.getChannel(RestService.channel).subscribe(
                 (msg: Message) => {
-                    console.log(msg);
+                    const restObject: RestObject = msg.payload as RestObject;
+                    expect(restObject.headers.hello).toEqual('there');
+                    sub.unsubscribe();
                     done();
                 }
             );
@@ -69,4 +47,85 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
         }
     );
 
+    it('Check cors and creds can be disabled (not for prod use)',
+        (done) => {
+            let sub = bus.api.getChannel(RestService.channel).subscribe(
+                (msg: Message) => {
+                    const restObject: RestObject = msg.payload as RestObject;
+                    expect(restObject.request).toEqual(HttpRequest.DisableCORSAndCredentials);
+                    sub.unsubscribe();
+                    done();
+                }
+            );
+
+            operations.disableCorsAndCredentials('test');
+        }
+    );
+
+    it('Check host and scheme can be set / changed',
+        (done) => {
+            let sub = bus.api.getChannel(RestService.channel).subscribe(
+                (msg: Message) => {
+                    const restObject: RestObject = msg.payload as RestObject;
+                    expect(restObject.request).toEqual(HttpRequest.SetRestServiceHostOptions);
+                    expect(restObject.uri).toEqual('rose://melody');
+                    sub.unsubscribe();
+                    done();
+                }
+            );
+
+            operations.setRestServiceHostOptions('melody','rose','test');
+        }
+    );
+
+    it('HTTP Request can be made',
+        (done) => {
+            let sub = bus.api.getChannel(RestService.channel).subscribe(
+                (msg: Message) => {
+                    const restObject: RestObject = msg.payload as RestObject;
+                    expect(restObject.request).toEqual(HttpRequest.Get);
+                    expect(restObject.uri).toEqual('http://melody.rose');
+                    sub.unsubscribe();
+                    done();
+                }
+            );
+
+            operations.restServiceRequest(
+                {
+                    uri: 'http://melody.rose',
+                    method: HttpRequest.Get,
+                    successHandler: () => {}
+                },'test'
+            );
+        }
+    );
+
+    it('HTTP Request can be made and mocked response returned',
+        (done) => {
+            let sub = bus.api.getChannel(RestService.channel).subscribe(
+                (msg: Message) => {
+                    const restObject: RestObject = msg.payload as RestObject;
+                    expect(restObject.request).toEqual(HttpRequest.Get);
+                    expect(restObject.uri).toEqual('http://melody.rose');
+
+                    // fake response
+                    if (msg.isRequest()) {
+                        restObject.response = {pretty: 'baby'};
+                        bus.sendResponseMessageWithId(RestService.channel, restObject, msg.id);
+                    }
+                }
+            );
+
+            operations.restServiceRequest(
+                {
+                    uri: 'http://melody.rose',
+                    method: HttpRequest.Get,
+                    successHandler: (payload: any) => {
+                        expect(payload.pretty).toEqual('baby');
+                        done();
+                    }
+                },'test'
+            );
+        }
+    );
 });

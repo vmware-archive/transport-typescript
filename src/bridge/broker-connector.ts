@@ -578,7 +578,7 @@ export class BrokerConnector implements EventBusEnabled {
 
                     const respChannelObject = this.bus.api.getChannelObject(respChan);
 
-                    // not sure if this has value. leabing out for now.
+                    // not sure if this has value. leaving out for now.
                     // //inbound message detected, if it's not a valid remote response, warn the consumer
                     // if (!FabricUtil.isPayloadFabricResponse(payload)) {
                     //     this.log.warn('Inbound message being sent via WebSocket has not been correctly ' +
