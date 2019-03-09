@@ -11,6 +11,7 @@ import { Message } from '../bus/model/message.model';
 import { BifrostEventBus } from '../bus/bus';
 import { EventBus, EventBusEnabled } from '../bus.api';
 import { Logger } from '../log';
+import { FabricUtil } from '../fabric/fabric.util';
 
 /**
  * Service is responsible for handling all STOMP communications over a socket.
@@ -184,6 +185,13 @@ export class BrokerConnector implements EventBusEnabled {
     }
 
     private sendGalacticMessage(channel: string, payload: any): void {
+
+        // outbound message detected, if it's not a valid remote request, warn the consumer
+        if (!FabricUtil.isPayloadFabricRequest(payload)) {
+            this.log.warn('Outbound message being sent over WebSocket that has not been correctly ' +
+                'wrapped. You may not receive a response, you may receive an error. Please make sure you use ' +
+                'fabric.generateFabricRequest() if you\'re not using auto-generated services', this.getName());
+        }
 
         let cleanedChannel = StompParser.convertChannelToSubscription(channel);
 
@@ -380,7 +388,7 @@ export class BrokerConnector implements EventBusEnabled {
     }
 
     public connectClient(config: StompConfig): void {
-        let session = new StompSession(config, this.log);
+        let session = new StompSession(config, this.log, this.bus);
 
         let connection = session.connect();
         this.connecting = true;
@@ -551,13 +559,9 @@ export class BrokerConnector implements EventBusEnabled {
 
             const sub: Subscription = chan.subscribe(
                 (msg: Message) => {
-                    const command: StompBusCommand = StompParser.generateStompBusCommand(
-                        StompClient.STOMP_MESSAGE,
-                        session.id,
-                        data.destination,
-                        StompParser.generateStompReadyMessage(msg.payload)
-                    );
-                    this.sendPacket(command);
+
+                    // send galactic message.
+                    this.sendGalacticMessage(channel, msg.payload);
                 }
             );
             session.addGalacticSubscription(channel, sub);
@@ -573,6 +577,13 @@ export class BrokerConnector implements EventBusEnabled {
                     let payload = JSON.parse(msg.body);
 
                     const respChannelObject = this.bus.api.getChannelObject(respChan);
+
+                    // not sure if this has value. leaving out for now.
+                    // //inbound message detected, if it's not a valid remote response, warn the consumer
+                    // if (!FabricUtil.isPayloadFabricResponse(payload)) {
+                    //     this.log.warn('Inbound message being sent via WebSocket has not been correctly ' +
+                    //         'wrapped. Response data may be incorrectly packaged and may cause run-time error.');
+                    // }
 
                     // bypass event loop for fast incoming socket events, the loop will slow things down.
                     respChannelObject.stream.next(new Message().response(payload));

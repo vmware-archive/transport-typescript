@@ -5,7 +5,9 @@ import { map } from 'rxjs/operators';
 import { mergeMap } from 'rxjs/operators';
 import { GeneralUtil } from '../util/util';
 import { Logger } from '../log';
-import { EventBusEnabled } from '../bus';
+import { EventBus, EventBusEnabled } from '../bus';
+import { FabricConnectionState } from '../fabric.api';
+import { FabricConnectionStoreKey, Stores } from '../fabric/fabric.model';
 
 export interface StompTransaction {
     id: string;
@@ -59,7 +61,7 @@ export class StompClient implements EventBusEnabled {
     private _transactionReceipts: Map<string, Subject<any>>;
     private _heartbeater: any;
 
-    constructor(private log: Logger) {
+    constructor(private log: Logger, private bus?: EventBus) {
 
         this._transactionReceipts = new Map<string, Subject<StompMessage>>();
         this._subscriptions = new Map<string, Subject<StompMessage>>();
@@ -249,6 +251,14 @@ export class StompClient implements EventBusEnabled {
         } catch (e) {
             this.log.info('Error is not STOMP packet, cannot be unmarshalled', this.getName());
         }
+
+        // switch connection state to error for fabric consumers.
+        if (this.bus) {
+            this.log.debug('Informing Fabric subscribers that the connection has failed via store.', this.getName());
+            this.bus.stores.createStore(Stores.FabricConnection)
+                .put(FabricConnectionStoreKey.State, FabricConnectionState.Failed, FabricConnectionState.Failed);
+        }
+
         this.log.error('Error with WebSocket, Connection Failed', this.getName());
         if (frame && frame.hasOwnProperty('headers')) {
             this.sendStompErrorToSubscribers(frame.headers, 'Error occurred with WebSocket');
@@ -290,8 +300,11 @@ export class StompClient implements EventBusEnabled {
         if (this._config.getConfig().heartbeatOut
             && this._config.getConfig().heartbeatOut > 0) {
 
+            let startIntervalFn: (handler: any, timeout?: any, ...args: any[]) => number =
+                  this._config.getConfig().startIntervalFunction || setInterval;
+
             //set up an interval to send a null char down the pipe;
-            this._heartbeater = setInterval(
+            this._heartbeater = startIntervalFn(
                 () => {
                     this.sendHeartbeat();
                 }, this._config.getConfig().heartbeatOut
@@ -348,7 +361,7 @@ export class StompClient implements EventBusEnabled {
 
             case StompClient.STOMP_MESSAGE:
 
-                this.log.debug('STOMP message received: ' + evt.data, this.getName());
+                this.log.verbose('STOMP message received: ' + evt.data, this.getName());
 
                 // the subscription ID should have been sent back from the server
                 if (frame.headers.subscription) {
@@ -365,7 +378,7 @@ export class StompClient implements EventBusEnabled {
             case StompClient.STOMP_RECEIPT:
 
                 let receiptId: string = frame.headers['receipt-id'];
-                this.log.debug('STOMP receipt received: ' + receiptId, this.getName());
+                this.log.verbose('STOMP receipt received: ' + receiptId, this.getName());
 
                 let subject: Subject<StompMessage>
                     = this._transactionReceipts.get(receiptId);
@@ -383,7 +396,7 @@ export class StompClient implements EventBusEnabled {
 
             case StompClient.STOMP_ERROR:
 
-                this.log.debug('STOMP error received: ' + evt.data, this.getName());
+                this.log.verbose('STOMP error received: ' + evt.data, this.getName());
                 this.onStompError(frame);
                 break;
 

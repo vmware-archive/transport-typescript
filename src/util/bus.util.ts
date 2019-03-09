@@ -30,10 +30,11 @@ export class BusUtil {
      * Boot and create a singleton EventBus instance with custom options for logging level and boot message
      * @param {LogLevel} logLevel log level to set
      * @param {boolean} disableBootMessage set to true to turn off the boot message.
+     * @param {boolean} darkTheme enables dark theme friendly logging output (defaults to off).
      * @returns {EventBus} the bus
      */
-    public static bootBusWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
-        return BifrostEventBus.bootWithOptions(logLevel, disableBootMessage);
+    public static bootBusWithOptions(logLevel: LogLevel, disableBootMessage: boolean, darkTheme: boolean = false): EventBus {
+        return BifrostEventBus.bootWithOptions(logLevel, disableBootMessage, darkTheme);
     }
 
     /**
@@ -42,6 +43,4 @@ export class BusUtil {
     public static destroy(): void {
         BifrostEventBus.destroy();
     }
-
-
 }

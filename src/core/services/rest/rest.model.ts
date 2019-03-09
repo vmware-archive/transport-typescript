@@ -7,6 +7,7 @@
  */
 
 import { GeneralError } from '../../model/error.model';
+import { AbstractFrame } from '../../../bus/model/abstractframe.model';
 
 export enum HttpRequest {
     Get = 'GET',
@@ -33,7 +34,7 @@ export class RestError extends GeneralError {
     }
 }
 
-export class RestObject {
+export class RestObject extends AbstractFrame {
     public request: HttpRequest;
     public uri: string;
     public body: any;
@@ -53,6 +54,7 @@ export class RestObject {
         pathParams: any = {},
         public readonly apiClass?: string | null | undefined,
         public readonly senderName?: string | null | undefined) {
+        super();
 
         this.request = request;
         this.uri = uri;

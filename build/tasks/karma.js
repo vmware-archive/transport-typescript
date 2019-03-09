@@ -11,7 +11,7 @@ var configFileDebug = path.resolve('karma.conf-debug.js');
 gulp.task('karma', function (done) {
     new Server({
         configFile: configFile,
-        reporters: ["spec", "karma-typescript"],
+        reporters: ["kjhtml", "spec", "karma-typescript"],
     }, function() {
         done();
     }).start();

@@ -1,6 +1,5 @@
-
 import { BrokerConnector } from './broker-connector';
-import { BrokerConnectorChannel, StompBusCommand, StompConfig, StompSession, BifrostSocket } from './stomp.model';
+import { BrokerConnectorChannel, StompBusCommand, StompConfig, StompSession } from './stomp.model';
 import { StompParser } from './stomp.parser';
 import { StompClient } from './stomp.client';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
@@ -9,8 +8,8 @@ import { LogLevel } from '../log/logger.model';
 import { GeneralUtil } from '../util/util';
 import { Logger } from '../log';
 import { MockSocket } from './stomp.mocksocket';
-import { BifrostEventBus } from '../bus/bus';
 import { Message } from '../bus';
+import { BusTestUtil } from '../util/test.util';
 
 /**
  * Main BrokerConnector tests.
@@ -37,10 +36,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
     beforeEach(
         () => {
-            const windowRef: any = window;
-            bus = BifrostEventBus.rebootWithOptions(LogLevel.Error, true);
-            bc = windowRef.AppBrokerConnector;
-            log = windowRef.AppSyslog;
+            bus = BusTestUtil.bootBusWithOptions(LogLevel.Off, true);
+            bc = bus.brokerConnector;
+            log = bus.logger;
 
             config = createStandardConfig();
             configNoTopics = createStandardConfig(false); // no topics.

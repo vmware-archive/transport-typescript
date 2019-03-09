@@ -7,15 +7,18 @@ import { Message, MessageHandlerConfig } from './bus/model/message.model';
 import { Channel } from './bus/model/channel.model';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { StompBusCommand } from './bridge/stomp.model';
+import { BridgeConnectionAdvancedConfig } from './bridge/bridge.model';
 import { Logger } from './log/logger.service';
 import { LogLevel } from './log/logger.model';
 import { APIRequest } from './core/model/request.model';
 import { APIResponse } from './core/model/response.model';
 import { MessageProxyConfig, ProxyControl } from './proxy/message.proxy.api';
 import { GeneralUtil } from './util/util';
+import { FabricApi } from './fabric.api';
+import { BrokerConnector } from './bridge';
 
 // current version
-const version = '0.12.0';
+const version = '0.13.0';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -146,6 +149,16 @@ export abstract class EventBus {
      * Reference to Store API.
      */
     readonly stores: BusStoreApi;
+
+    /**
+     * Reference to fabric API.
+     */
+    readonly fabric: FabricApi;
+
+    /**
+     * Reference to the broker connector.
+     */
+    readonly brokerConnector: BrokerConnector;
 
     /**
      * Simple API Methods
@@ -358,6 +371,7 @@ export abstract class EventBus {
      * @param {SentFrom} from optional name of the actor implementing (for logging)
      * @returns {MessageHandler<APIResponse>} reference to MessageHandler, handle()
      *                                             function receives any inbound response.
+     * @deprecated use markChannelAsGalactic() and fabric.generateFabricRequest()
      */
     abstract requestGalactic<T, R>(
         sendChannel: ChannelName,
@@ -420,6 +434,7 @@ export abstract class EventBus {
      * @param {ChannelName} cname name of the broker mapped destination
      * @param {SentFrom} from optional calling actor (for logging)
      * @returns {MessageHandler<R>} reference to MessageHandler. All responses will be handled via the handle() method.
+     * @deprecated use markChannelAsGalactic() and fabric.generateFabricRequest()
      */
     abstract listenGalacticStream<R>(cname: ChannelName, from?: SentFrom): MessageHandler<R>;
 
@@ -428,6 +443,7 @@ export abstract class EventBus {
      *
      * @param {ChannelName} cname name of the channel to check
      * @returns {boolean} true if mapped.
+     *
      */
     abstract isGalacticChannel(cname: ChannelName): boolean;
 
@@ -473,6 +489,8 @@ export abstract class EventBus {
      * @param {string} applicationDestinationPrefix set the prefix for app published (galactic) messages (i.e. /pub)
      *                                              channels are postpended to this (i.e. /pub/mychannel)
      * @param {boolean} autoReconnect Automaticallty reconnect on loss of socket? Defaults to true.
+     * @param {BridgeConnectionAdvancedConfig} advanced configuration settings to be used
+     *                                         for the new bridge connection.
      * @returns {MessageHandler<StompBusCommand>} connected commands will auto trigger the readyHandler().
      */
     abstract connectBridge(readyHandler: MessageFunction<string>,
@@ -486,13 +504,15 @@ export abstract class EventBus {
                            user?: string,
                            pass?: string,
                            useSSL?: boolean,
-                           autoReconnect?: boolean): MessageHandler<StompBusCommand>;
+                           autoReconnect?: boolean,
+                           advancedConfig?: BridgeConnectionAdvancedConfig): MessageHandler<StompBusCommand>;
 
     /**
      * Unsubscribe from a Galactic Channel. Will send an UNSUBSCRIBE message to broker.
      *
      * @param {ChannelName} cname
      * @param {SentFrom} from optional calling actor (for logging)
+     * @deprecated use markChannelAsGalactic() and fabric.generateFabricRequest()
      */
     abstract closeGalacticChannel(cname: ChannelName, from?: SentFrom): void;
 
@@ -503,6 +523,7 @@ export abstract class EventBus {
      * @param {ChannelName} cname galactic channel name to send to
      * @param {P} payload payload of message
      * @param {SentFrom} from optional calling actor (for logging)
+     * @deprecated use markChannelAsGalactic() and fabric.generateFabricRequest()
      */
     abstract sendGalacticMessage<P>(cname: ChannelName, payload: P, from?: SentFrom): void;
 
@@ -540,6 +561,8 @@ export abstract class EventBus {
     abstract enableMessageProxy(config: MessageProxyConfig): ProxyControl;
 
 
+    /** Enable Fake Socket for broker connector */
+    abstract enableDevMode(): void;
 }
 
 /**
@@ -609,6 +632,7 @@ export interface EventBusLowApi {
      * @param {SentFrom} from optional calling actor (for logging)
      * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
      * @returns {Observable<Message>} Observable that will emit an error Message to any subscribers.
+     * @deprecated use markChannelAsGalactic() and fabric.generateFabricRequest();
      */
     getErrorChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>;
 
@@ -619,6 +643,7 @@ export interface EventBusLowApi {
      * @param {SentFrom} from
      * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
      * @returns {Observable<Message>}
+     * @deprecated use markChannelAsGalactic()
      */
     getGalacticChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>;
 

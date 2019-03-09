@@ -35,8 +35,11 @@ export class RestOperations extends AbstractCore {
         return this._instance || (this._instance = new RestOperations());
     }
 
+    public readonly id: UUID;
+
     constructor() {
         super();
+        this.id = GeneralUtil.genUUIDShort();
     }
 
     public setGlobalHttpHeaders(headers: any, from: SentFrom) {

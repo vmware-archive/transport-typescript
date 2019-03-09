@@ -146,7 +146,7 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
                 (message: Message) => {
                     const responseObject = message.payload as FakeApiCallResponseObject;
                     const api = responseObject.payload as APIRequest<string>;
-                    expect(api.command).toBe('Fake command');
+                    expect(api.request).toBe('Fake request');
                     expect(api.payload).toBe('Fake payload');
                     expect(api.version).toBe(123);
                 }

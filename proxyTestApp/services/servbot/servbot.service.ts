@@ -42,7 +42,7 @@ export class ServbotService extends AbstractService<ServbotRequest, ServbotRespo
         this.log.info(`ServBotService connected to broker successfully on bus ${EventBus.id}`);
         this.bus.sendResponseMessage(ServbotService.onlineChannel, true);
       },
-      '/bifrost',
+      '/fabric',
       '/topic',
       '/queue',
       1,

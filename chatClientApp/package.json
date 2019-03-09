@@ -28,8 +28,8 @@
     "@vmw/tango": "^0.7.3",
     "@webcomponents/custom-elements": "^1.0.0",
     "core-js": "^2.5.4",
-    "rxjs": "^6.3.2",
-    "rxjs-compat": "^6.3.2",
+    "rxjs": "6.4.0",
+    "rxjs-compat": "6.4.0",
     "zone.js": "~0.8.26"
   },
   "devDependencies": {
@@ -51,6 +51,6 @@
     "protractor": "~5.4.0",
     "ts-node": "~5.0.1",
     "tslint": "~5.9.1",
-    "typescript": "~2.7.2"
+    "typescript": "~2.8.4"
   }
 }

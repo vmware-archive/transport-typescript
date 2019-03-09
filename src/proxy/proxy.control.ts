@@ -512,6 +512,7 @@ export class ProxyControlImpl implements IFrameProxyControl, EventBusEnabled {
         if (this.listening) {
             this.monitorSubscription.unsubscribe();
             this.informParentChildBusStoppedListening();
+            domWindow.removeEventListener('message', this.postMessageEventHandlerBinding, true);
         }
     }
 

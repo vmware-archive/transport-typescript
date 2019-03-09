@@ -8,20 +8,26 @@ module.exports = function (config) {
         preprocessors: {
             "**/*.ts": ["karma-typescript"]
         },
-        reporters: ["spec", "karma-typescript"],
+        reporters: ["kjhtml", "spec", "karma-typescript"],
         exclude: [
             'node_modules/**/*spec.js',
             'node_modules/**/*.d.ts',
             'proxyTestApp/**/*.ts',
             'chatClientApp/**/*.ts'
-            //'src/ng/bifrost.module.ts'
         ],
+        client: {
+            clearContext: false, // leave Jasmine Spec Runner output visible in browser
+            jasmine: {
+                random: false
+            }
+        },
         specReporter: {
             suppressSkipped: true
         },
         plugins: [
             require('karma-jasmine'),
             require('karma-spec-reporter'),
+            require('karma-jasmine-html-reporter'),
             require('karma-coverage'),
             require('karma-typescript'),
             require('karma-chrome-launcher'),
@@ -33,10 +39,7 @@ module.exports = function (config) {
                 "text-summary": "",
                 "html": "coverage/"
             },
-            exclude: ['proxyTestApp/**/*.ts','chatClientApp/**/*.ts', './node_modules/**/*.d.ts'],
-            bundlerOptions: {
-                exclude: ["./node_modules/@vmw/tango/transport/TangoTransportAdapterInterface.d.ts"]
-            },
+            exclude: ['proxyTestApp/**/*.ts','chatClientApp/**/*.ts', './node_modules/**/*.d.ts']
         },
 
         customLaunchers: {
