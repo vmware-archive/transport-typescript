@@ -18,7 +18,7 @@ import { FabricApi } from './fabric.api';
 import { BrokerConnector } from './bridge';
 
 // current version
-const version = '0.13.0-alpha-2';
+const version = '0.13.0';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -371,6 +371,7 @@ export abstract class EventBus {
      * @param {SentFrom} from optional name of the actor implementing (for logging)
      * @returns {MessageHandler<APIResponse>} reference to MessageHandler, handle()
      *                                             function receives any inbound response.
+     * @deprecated use markChannelAsGalactic() and fabric.generateFabricRequest()
      */
     abstract requestGalactic<T, R>(
         sendChannel: ChannelName,
@@ -433,6 +434,7 @@ export abstract class EventBus {
      * @param {ChannelName} cname name of the broker mapped destination
      * @param {SentFrom} from optional calling actor (for logging)
      * @returns {MessageHandler<R>} reference to MessageHandler. All responses will be handled via the handle() method.
+     * @deprecated use markChannelAsGalactic() and fabric.generateFabricRequest()
      */
     abstract listenGalacticStream<R>(cname: ChannelName, from?: SentFrom): MessageHandler<R>;
 
@@ -441,6 +443,7 @@ export abstract class EventBus {
      *
      * @param {ChannelName} cname name of the channel to check
      * @returns {boolean} true if mapped.
+     *
      */
     abstract isGalacticChannel(cname: ChannelName): boolean;
 
@@ -509,6 +512,7 @@ export abstract class EventBus {
      *
      * @param {ChannelName} cname
      * @param {SentFrom} from optional calling actor (for logging)
+     * @deprecated use markChannelAsGalactic() and fabric.generateFabricRequest()
      */
     abstract closeGalacticChannel(cname: ChannelName, from?: SentFrom): void;
 
@@ -519,6 +523,7 @@ export abstract class EventBus {
      * @param {ChannelName} cname galactic channel name to send to
      * @param {P} payload payload of message
      * @param {SentFrom} from optional calling actor (for logging)
+     * @deprecated use markChannelAsGalactic() and fabric.generateFabricRequest()
      */
     abstract sendGalacticMessage<P>(cname: ChannelName, payload: P, from?: SentFrom): void;
 
@@ -627,6 +632,7 @@ export interface EventBusLowApi {
      * @param {SentFrom} from optional calling actor (for logging)
      * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
      * @returns {Observable<Message>} Observable that will emit an error Message to any subscribers.
+     * @deprecated use markChannelAsGalactic() and fabric.generateFabricRequest();
      */
     getErrorChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>;
 
@@ -637,6 +643,7 @@ export interface EventBusLowApi {
      * @param {SentFrom} from
      * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
      * @returns {Observable<Message>}
+     * @deprecated use markChannelAsGalactic()
      */
     getGalacticChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>;
 
