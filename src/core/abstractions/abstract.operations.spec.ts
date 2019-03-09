@@ -2,12 +2,10 @@
  * Copyright(c) VMware Inc. 2019
  */
 import { EventBus } from '../../bus.api';
-import { BusTestUtil } from '../../util/test.util';
-import { LogLevel } from '../../log';
 import { AbstractOperations } from './abstract.operations';
-import { RestService } from '../services/rest/rest.service';
 import { Message } from '../../bus';
-import { RestObject } from '..';
+import { BusUtil } from '../../util/bus.util';
+import { GeneralError } from '../model/error.model';
 
 
 class MyOperations extends AbstractOperations {
@@ -16,21 +14,23 @@ class MyOperations extends AbstractOperations {
     }
 }
 
-xdescribe('Bifröst Abstract Operations [cores/abstractions/abstract.operations]', () => {
+describe('Bifröst Abstract Operations [cores/abstractions/abstract.operations]', () => {
 
-    let bus: EventBus = BusTestUtil.bootBusWithOptions(LogLevel.Debug, true);
+    let bus: EventBus;
     let operations: MyOperations;
 
     beforeEach(
         () => {
-            operations = new MyOperations();
+            bus = BusUtil.getBusInstance();
+           operations = new MyOperations();
         }
     );
+
 
     it('Check callService operates correctly.',
         (done) => {
 
-            let channel = 'test-channel';
+            let channel = 'test-service-channel';
 
             let sub = bus.api.getChannel(channel).subscribe(
                 (msg: Message) => {
@@ -38,8 +38,9 @@ xdescribe('Bifröst Abstract Operations [cores/abstractions/abstract.operations]
                     expect(payload.query).toEqual('prettiest');
                     // fake response
                     if (msg.isRequest()) {
-                        bus.sendResponseMessageWithId(channel, {prettiest: 'melody'}, msg.id);
-                        done();
+                        msg.payload = {prettiest: 'melody'};
+                        bus.sendResponseMessageWithId(channel, msg, msg.id);
+                        sub.unsubscribe();
                     }
                 }
             );
@@ -51,6 +52,33 @@ xdescribe('Bifröst Abstract Operations [cores/abstractions/abstract.operations]
                 }
             );
 
+        }
+    );
+
+    it('Check callService operates correctly with an error.',
+        (done) => {
+
+            let channel = 'test-service-channel-error';
+
+            let sub = bus.api.getChannel(channel).subscribe(
+                (msg: Message) => {
+                    const payload = msg.payload as any;
+                    expect(payload.query).toEqual('prettiest');
+                    // fake response
+                    if (msg.isRequest()) {
+                        bus.sendErrorMessageWithId(channel, new GeneralError('bad milk'), msg.id);
+                        sub.unsubscribe();
+                    }
+                }
+            );
+
+            operations.callService(channel, {query: 'prettiest'},
+                () => {},
+                (error: GeneralError) => {
+                    expect(error.message).toEqual('bad milk');
+                    done();
+                }
+            );
         }
     );
 });

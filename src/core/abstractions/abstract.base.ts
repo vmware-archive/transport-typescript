@@ -10,7 +10,7 @@ import { RestOperation, RestOperations } from '../services/rest/rest.operations'
 export abstract class AbstractBase extends AbstractCore implements EventBusEnabled {
 
     protected name: string;
-    private restOperations: RestOperations;
+    protected restOperations: RestOperations;
 
     /**
      * Make a call to the rest service.

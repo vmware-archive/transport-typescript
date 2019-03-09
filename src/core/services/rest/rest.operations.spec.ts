@@ -2,19 +2,18 @@
  * Copyright(c) VMware Inc. 2019
  */
 import { EventBus } from '../../../bus.api';
-import { LogLevel } from '../../../log';
-import { BusTestUtil } from '../../../util/test.util';
 import { RestOperations } from './rest.operations';
 import { RestService } from './rest.service';
 import { HttpRequest, RestObject } from './rest.model';
 import { Message } from '../../../bus';
+import { BusUtil } from '../../../util/bus.util';
 
 describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () => {
 
     let bus: EventBus;
     let operations: RestOperations;
 
-    bus = BusTestUtil.bootBusWithOptions(LogLevel.Off, true);
+    bus = BusUtil.getBusInstance();
     operations = RestOperations.getInstance();
 
     it('Check singleton exists.',
