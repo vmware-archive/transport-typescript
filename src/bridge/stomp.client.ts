@@ -301,7 +301,7 @@ export class StompClient implements EventBusEnabled {
             && this._config.getConfig().heartbeatOut > 0) {
 
             let startIntervalFn: (handler: any, timeout?: any, ...args: any[]) => number =
-                  this._config.getConfig().startIntervalFunction || setInterval;
+                this._config.getConfig().startIntervalFunction || setInterval;
 
             //set up an interval to send a null char down the pipe;
             this._heartbeater = startIntervalFn(
@@ -365,8 +365,12 @@ export class StompClient implements EventBusEnabled {
 
                 // the subscription ID should have been sent back from the server
                 if (frame.headers.subscription) {
-                    if (this.getSubscription(frame.headers.subscription) !== null) {
-                        this.getSubscription(frame.headers.subscription).next(frame);
+
+                    // ensure any services using '::' is replaced with \c\c (https://stomp.github.io/stomp-specification-1.2.html)
+                    const subscription = frame.headers.subscription.replace(/\\c/g, ':');
+
+                    if (this.getSubscription(subscription) !== null) {
+                        this.getSubscription(subscription).next(frame);
                     }
                 }
 

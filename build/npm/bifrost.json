@@ -24,6 +24,16 @@
     "changelogHistory": [
         {
             "date": "3/9/19",
+            "version": "0.13.1",
+            "notes": [
+                {
+                    "description": "Fixed broker connector issue with channels using ':' in the name when being distributed.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/50"
+                }
+            ]
+        },
+        {
+            "date": "3/9/19",
             "version": "0.13.0",
             "notes": [
                 {
