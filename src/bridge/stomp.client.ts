@@ -365,8 +365,12 @@ export class StompClient implements EventBusEnabled {
 
                 // the subscription ID should have been sent back from the server
                 if (frame.headers.subscription) {
-                    if (this.getSubscription(frame.headers.subscription) !== null) {
-                        this.getSubscription(frame.headers.subscription).next(frame);
+
+                    // ensure any services using '::' is replaced with \c\c (https://stomp.github.io/stomp-specification-1.2.html)
+                    const subscription = frame.headers.subscription.replace(/\\c/g,':');
+
+                    if (this.getSubscription(subscription) !== null) {
+                        this.getSubscription(subscription).next(frame);
                     }
                 }
 
