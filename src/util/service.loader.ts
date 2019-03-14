@@ -34,19 +34,22 @@ export class ServiceLoader {
     public static destroyService(service: any) {
         ServiceLoader.serviceCollection.forEach(
             (currentService: any) => {
-                if (currentService.constructor.name === service.constructor.name) {
-                    ServiceLoader.serviceCollection.delete(service);
+                if (currentService.constructor.name === service.name) {
+                    if (currentService.hasOwnProperty('offline')) {
+                        currentService.offline();
+                    }
+                    ServiceLoader.serviceCollection.delete(currentService);
                 }
             }
         );
     }
 
-    public static getService<T>(service: T): T {
-        let locatedService: T = null;
+    public static getService(service: any): any {
+        let locatedService = null;
         ServiceLoader.serviceCollection.forEach(
             (currentService: any) => {
-                if (currentService.constructor.name === service.constructor.name) {
-                  locatedService = currentService;
+                if (currentService.constructor.name === service.name) {
+                    locatedService = currentService;
                 }
             }
         );
