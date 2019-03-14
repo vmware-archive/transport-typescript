@@ -2,6 +2,8 @@ import { EventBus, ORG_ID, ORGS } from '../bus.api';
 import { Logger, LogLevel } from '../log';
 import { BusTestUtil } from '../util/test.util';
 import { FabricConnectionState } from '../fabric.api';
+import { FabricApiImpl } from './fabric';
+import { Message } from '../bus';
 
 /**
  * Copyright(c) VMware Inc. 2019
@@ -160,6 +162,34 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
             bus.fabric.connect(() => {
             }, () => {
             });
+        }
+    );
+
+    it('Check fabric version API works.',
+        (done) => {
+
+            bus.api.getRequestChannel(FabricApiImpl.versionChannel)
+                .subscribe(
+                    (msg: Message) => {
+                        expect(msg.payload).not.toBeNull();
+                        msg.payload.payload = '1.2.3'; // set payload of response, to be 1.2.3
+                                                       // , assign response to payload of message.
+                        bus.sendResponseMessageWithId(FabricApiImpl.versionChannel, msg.payload, msg.payload.id);
+                    }
+                );
+
+            bus.fabric.connect(
+                () => {
+                    bus.fabric.getFabricVersion().subscribe(
+                        (id: string) => {
+                            expect(id).toEqual('1.2.3');
+                            done();
+                        }
+                    )
+                },
+                () => {}
+            );
+
         }
     );
 

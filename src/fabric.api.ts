@@ -6,6 +6,7 @@ import { UUID } from './bus/store/store.model';
 import { MessageFunction } from './bus.api';
 import { StoreStream } from './store.api';
 import { APIRequest } from './core/model/request.model';
+import { Observable } from 'rxjs';
 
 export enum FabricConnectionState {
     Connected = 'connected',
@@ -69,5 +70,10 @@ export interface FabricApi {
      * @param payload to send with request command.
      */
     generateFabricRequest<T>(requestCommand: string, payload: T): APIRequest<T>;
+
+    /**
+     * Get fabric version.
+     */
+    getFabricVersion(): Observable<string>;
 
 }

@@ -2,7 +2,7 @@
  * Copyright(c) VMware Inc. 2019
  */
 import { FabricApi, FabricConnectionState } from '../fabric.api';
-import { EventBus, MessageFunction, MessageHandler, ORG_ID, ORGS } from '../bus.api';
+import { EventBus, MessageFunction, MessageHandler, MessageType, ORG_ID, ORGS } from '../bus.api';
 import { StompBusCommand } from '../bridge/stomp.model';
 import { BrokerConnector } from '../bridge/broker-connector';
 import { GeneralUtil } from '../util/util';
@@ -10,9 +10,14 @@ import { FabricConnectionStoreKey, Stores } from './fabric.model';
 import { UUID } from '../bus/store/store.model';
 import { BusStore, StoreStream } from '../store.api';
 import { APIRequest } from '../core/model/request.model';
+import { APIResponse } from '../core/model/response.model';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 
 export class FabricApiImpl implements FabricApi {
+
+    public static readonly versionChannel = 'fabric-version';
 
     private connected: boolean = false;
     private sessionId: UUID;
@@ -49,6 +54,9 @@ export class FabricApiImpl implements FabricApi {
         autoReconnect: boolean = false): void {
 
         if (!this.connected) {
+
+            // open core channels
+            this.bus.markChannelAsGalactic(FabricApiImpl.versionChannel);
 
             // create reference to connection store.
             if (!this.connectionStore) {
@@ -160,4 +168,30 @@ export class FabricApiImpl implements FabricApi {
         return new APIRequest<T>(requestCommand, payload, GeneralUtil.genUUID(), 1);
     }
 
+    getFabricVersion(): Observable<string> {
+
+        let handler: MessageHandler;
+
+        if (this.connected) {
+            handler = this.bus.requestOnceWithId(
+                GeneralUtil.genUUIDShort(),
+                FabricApiImpl.versionChannel,
+                this.generateFabricRequest('version', '')
+            );
+        } else {
+            handler = null;
+        }
+
+        if (handler) {
+            return handler.getObservable(MessageType.MessageTypeResponse).pipe(
+                map(
+                    (resp: APIResponse<string>) => {
+                        return resp.payload;
+                    }
+                )
+            );
+        } else {
+            return of('Version unavailable, not connected to fabric');
+        }
+    }
 }

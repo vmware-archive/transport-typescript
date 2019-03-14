@@ -71,7 +71,7 @@ describe('Bus Util [util/bus.util.spec]', () => {
         }
     );
 
-    it('Check the service loader handles multuple services correctly',
+    it('Check the service loader handles multiple services correctly',
         () => {
             ServiceLoader.addService(TestServiceB, 'hello', 'baby melody');
             let services = ServiceLoader.getLoadedServices();
@@ -82,6 +82,27 @@ describe('Bus Util [util/bus.util.spec]', () => {
             services = ServiceLoader.getLoadedServices();
             expect(services.size).toEqual(2);
 
+        }
+    );
+
+    it('Check the service loader returns the correct service for a type.',
+        () => {
+            ServiceLoader.addService(TestServiceA);
+            let testService = ServiceLoader.getService(TestServiceA);
+            expect(testService).not.toBeNull();
+
+
+        }
+    );
+
+    it('Check the service loader deletes a service',
+        () => {
+            ServiceLoader.addService(TestServiceA);
+            let testService = ServiceLoader.getService(TestServiceA);
+            expect(testService).not.toBeNull();
+            ServiceLoader.destroyService(TestServiceA);
+            testService = ServiceLoader.getService(TestServiceA);
+            expect(testService).toBeNull();
         }
     );
 

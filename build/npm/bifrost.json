@@ -23,6 +23,19 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "3/13/19",
+            "version": "0.13.2",
+            "notes": [
+                {
+                    "description": "Fixed ServiceLoader methods, added tests to validate",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/52"
+                },
+                {
+                    "description": "Added new fabric API for local getting fabric version from version service."
+                }
+            ]
+        },
+        {
             "date": "3/9/19",
             "version": "0.13.1",
             "notes": [

@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
       "target": "es5",
+      "baseUrl": "./",
       "declaration": true,
       "module": "commonjs",
       "moduleResolution": "node",
@@ -8,6 +9,7 @@
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
       "downlevelIteration" : true,
+      "resolveJsonModule": true,
       "lib": [
         "dom",
         "es5",
@@ -25,4 +27,3 @@
       "node_modules/*"
     ]
   }
-  
