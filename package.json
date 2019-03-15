@@ -27,9 +27,9 @@
     "gulp-preprocess": "^2.0.0",
     "gulp-rename": "^1.4.0",
     "gulp-replace": "^0.5.4",
+    "gulp-sourcemaps": "^2.6.5",
     "gulp-tslint": "^8.1.3",
-    "gulp-typescript": "3.2.3",
-    "gulp-webpack": "^1.5.0",
+    "gulp-typescript": "^5.0.1",
     "gulp-zip": "^3.1.0",
     "intl": "1.2.5",
     "jasmine-core": "^3.1.0",
@@ -45,16 +45,18 @@
     "systemjs": "0.21.4",
     "systemjs-builder": "^0.16.13",
     "tslint": "5.11.0",
-    "typescript": "^3.2.2",
-    "uglifyjs-webpack-plugin": "^1.2.7",
-    "webpack": "^4.16.3",
+    "typedoc": "^0.14.2",
+    "typescript": "^3.2.4",
+    "uglifyjs-webpack-plugin": "^2.1.2",
+    "webpack": "^4.29.6",
     "webpack-rxjs-externals": "^2.0.0",
-    "webpack-stream": "^5.0.0"
+    "webpack-stream": "^5.2.1"
   },
   "scripts": {
     "build": "gulp build",
     "test": "gulp test",
-    "prepare": "gulp npm:prepare --version $npm_package_version",
+    "build-docs": "node_modules/typedoc/bin/typedoc --out dist/npm/bifrost/docs --exclude \"**/*+(e2e|spec|index).ts\" --excludePrivate --name \"VMware Bifröst (TypeScript)\"  src",
+    "prepare": "gulp npm:prepare --version $npm_package_version; npm run build-docs",
     "publish": "npm publish dist/npm/bifrost"
   }
 }

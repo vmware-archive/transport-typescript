@@ -164,7 +164,10 @@ export class FabricApiImpl implements FabricApi {
 
     }
 
-    generateFabricRequest<T>(requestCommand: string, payload: T): APIRequest<T> {
+    generateFabricRequest<T>(requestCommand: string, payload?: T): APIRequest<T> {
+        if (!payload) {
+            payload = '' as any;
+        }
         return new APIRequest<T>(requestCommand, payload, GeneralUtil.genUUID(), 1);
     }
 
