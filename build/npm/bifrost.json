@@ -23,6 +23,22 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "3/14/19",
+            "version": "0.13.3",
+            "notes": [
+                {
+                    "description": "Updated dev deps and upgrading versions of various tooling",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/54"
+                },
+                {
+                    "description": "Moved payload to optional arg for fabric requests."
+                },
+                {
+                    "description": "Modified readme and added auto API doc generation to npm package."
+                }
+            ]
+        },
+        {
             "date": "3/13/19",
             "version": "0.13.2",
             "notes": [
