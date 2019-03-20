@@ -1,4 +1,4 @@
-import { BusTransaction, EventBusEnabled, SentFrom } from '../../bus.api';
+import { BusTransaction, EventBusEnabled } from '../../bus.api';
 import { AbstractCore } from './abstract.core';
 import { RestOperation, RestOperations } from '../services/rest/rest.operations';
 

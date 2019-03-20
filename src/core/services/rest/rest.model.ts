@@ -36,6 +36,7 @@ export class RestError extends GeneralError {
 
 export class RestObject extends AbstractFrame {
     public request: HttpRequest;
+    public method: HttpRequest; // compatible with fabric service.
     public uri: string;
     public body: any;
     public response: any;
@@ -55,8 +56,8 @@ export class RestObject extends AbstractFrame {
         public readonly apiClass?: string | null | undefined,
         public readonly senderName?: string | null | undefined) {
         super();
-
         this.request = request;
+        this.method = request;
         this.uri = uri;
         this.body = body;
         this.headers = headers;

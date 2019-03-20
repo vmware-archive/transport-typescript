@@ -10,6 +10,7 @@ import {ApiObject} from './abstract.apiobject';
 import {AbstractMessageObject} from './abstract.messageobject';
 import {RestService} from '../services/rest/rest.service';
 import { Subscription } from 'rxjs';
+import { FabricService } from './fabric.service';
 
 export const SERVICE_ERROR = 505;
 export type RequestorArguments = MessageArgs;
@@ -59,7 +60,7 @@ type ServiceCallFunction = (requestChannel: string,
  * ReqT is the type of the all payload to the service (e.g. RolesRequestObject)
  * RespT is the type of the response payload from the service (e.g. RolesResponseObject)
  */
-export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
+export abstract class AbstractService<ReqT, RespT> extends AbstractBase implements FabricService {
     protected serviceError: RestError;
 
     protected apiBridge: ApiFunction;
@@ -73,8 +74,8 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase {
 
     protected $host: string | undefined;    // This allows for dynamically customizing host segment in URIs prior to ReST service calls
 
-    private requestStream: MessageHandler;
-    private requestStreamSub: Subscription;
+    protected requestStream: MessageHandler;
+    protected requestStreamSub: Subscription;
     public readonly id: UUID;
 
     /**

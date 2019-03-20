@@ -1,10 +1,11 @@
-import { EventBusEnabled, MessageArgs } from '../../../bus.api';
+import { EventBusEnabled, MessageArgs, MessageHandler } from '../../../bus.api';
 import { HttpRequest, RestError, RestErrorType, RestObject } from './rest.model';
 import { LogLevel } from '../../../log';
 import { BusStore } from '../../../store.api';
 import { AbstractCore } from '../../abstractions/abstract.core';
 import { HttpClient } from './http.client';
 import { BifrostHttpclient } from './bifrost.httpclient';
+import { FabricService } from '../../abstractions/fabric.service';
 
 const REFRESH_RETRIES = 3;
 const GLOBAL_HEADERS = 'global-headers';
@@ -14,9 +15,9 @@ const GLOBAL_HEADERS_UPDATE = 'update';
 /**
  * REST Service that operates standard functions on behalf of consumers and services.
  */
-export class RestService extends AbstractCore implements EventBusEnabled {
+export class RestService extends AbstractCore implements EventBusEnabled, FabricService {
 
-    public static channel = 'bifrost-services::RestService';
+    public static channel = 'fabric-rest';
 
     private headers: any;
     private headerStore: BusStore<any>;
@@ -24,6 +25,7 @@ export class RestService extends AbstractCore implements EventBusEnabled {
     private httpClient: HttpClient;
     private globalBaseUri: string;
     private disableCorsAndCredentials: boolean = false;
+    private restStream: MessageHandler;
 
     public getName(): string {
         return this.name;
@@ -47,8 +49,8 @@ export class RestService extends AbstractCore implements EventBusEnabled {
     }
 
     private listenForRequests() {
-        this.bus.listenRequestStream(RestService.channel)
-            .handle((restObject: RestObject, args: MessageArgs) => {
+        this.restStream = this.bus.listenRequestStream(RestService.channel);
+        this.restStream.handle((restObject: RestObject, args: MessageArgs) => {
 
                 // configure refresh.
                 restObject.refreshRetries = 0;
@@ -244,5 +246,13 @@ export class RestService extends AbstractCore implements EventBusEnabled {
             }
         }
         return requestInit;
+    }
+
+    offline(): void {
+        this.restStream.close();
+    }
+
+    online(): void {
+        this.listenForRequests();
     }
 }
