@@ -23,6 +23,19 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "3/20/19",
+            "version": "0.14.0",
+            "notes": [
+                {
+                    "description": "Aligned RestService with Java Fabric code, matched channels and interfaces",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/55"
+                },
+                {
+                    "description": "Generating full API docs and bundling with NPM module."
+                }
+            ]
+        },
+        {
             "date": "3/14/19",
             "version": "0.13.3",
             "notes": [
