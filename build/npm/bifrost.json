@@ -24,6 +24,16 @@
     "changelogHistory": [
         {
             "date": "3/20/19",
+            "version": "0.14.1",
+            "notes": [
+                {
+                    "description": "Artifactory locked 0.14.0 with a failed publish.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/55"
+                }
+            ]
+        },
+        {
+            "date": "3/20/19",
             "version": "0.14.0",
             "notes": [
                 {
