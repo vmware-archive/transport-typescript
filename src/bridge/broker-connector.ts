@@ -193,6 +193,12 @@ export class BrokerConnector implements EventBusEnabled {
                 'fabric.generateFabricRequest() if you\'re not using auto-generated services', this.getName());
         }
 
+        // TODO: move this out into a separate function, as there's a need to add more headers
+        // For now, we will only support an header for access token header
+        const headers: {[key: string]: string | number} = {
+            accessToken: this.bus.fabric.getAccessToken()
+        };
+
         let cleanedChannel = StompParser.convertChannelToSubscription(channel);
 
         this._sessions.forEach(session => {
@@ -207,7 +213,7 @@ export class BrokerConnector implements EventBusEnabled {
                     StompClient.STOMP_MESSAGE,
                     session.id,
                     destination,
-                    StompParser.generateStompReadyMessage(payload)
+                    StompParser.generateStompReadyMessage(payload, headers)
                 );
                 this.log.debug('Sending Galactic Message for session ' + session.id +
                     ' to destination ' + destination, this.getName());

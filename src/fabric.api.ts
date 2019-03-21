@@ -76,4 +76,20 @@ export interface FabricApi {
      */
     getFabricVersion(): Observable<string>;
 
+    /**
+     * Set sessionStorage key for access token.
+     * @param key key stored in sessionStorage representing the access token
+     */
+    setAccessTokenSessionStorageKey(key: string): void;
+
+    /**
+     * Get sessionStorage key for access token. The token will be sent in a galactic call
+     * as a header.
+     */
+    getAccessTokenSessionStorageKey(): string;
+
+    /**
+     * Get access token from the sessionStorage using the key defined with setAccessTokenSessionStorageKey()
+     */
+    getAccessToken(): string;
 }
