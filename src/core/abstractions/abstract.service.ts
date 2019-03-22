@@ -1,4 +1,4 @@
-import { ChannelName, MessageArgs, MessageFunction, MessageHandler, ORG_ID, ORGS } from '../../bus.api';
+import { ChannelName, MessageArgs, MessageFunction, MessageHandler, ORG_ID, ORGS, SentFrom } from '../../bus.api';
 import {AbstractBase} from './abstract.base';
 import {HttpRequest, RestError, RestObject} from '../services/rest/rest.model';
 import {APIRequest} from '../model/request.model';
@@ -36,7 +36,8 @@ type ApiFunction = (apiObject: ApiObject<any, any>,
                     body: any,
                     successHandler: SuccessHandler,
                     failureHandler: ErrorHandler,
-                    apiClass: string) => void;
+                    apiClass: string,
+                    apiArgs?: MessageArgs) => void;
 
 /*
  * Analogous to the above three synthetic types to define lambdas that are used for communication between
@@ -49,7 +50,18 @@ type CallFailureHandler = (error: RestError, args?: MessageArgs) => void;
 type ServiceCallFunction = (requestChannel: string,
                             requestObject: AbstractMessageObject<any, any>,
                             successHandler: CallSuccessHandler,
-                            failureHandler: CallFailureHandler) => void;
+                            failureHandler: CallFailureHandler,
+                            messageArgs: MessageArgs) => void;
+
+
+/**
+ * This class extends MessageArgs in order to be able to pass state to the handler lambda
+ */
+
+export class CallerArgs implements MessageArgs {
+    constructor(public uuid: UUID, public from: SentFrom = '🔋SYNTHETIC🔋', public version: number = 1) {
+    }
+}
 
 /**
  * This is an abstract service that encapsulates messagebus handling and implements some
@@ -149,6 +161,7 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase implemen
         if (args) {
             this.bus.sendErrorMessageWithIdAndVersion(channel, err, args.uuid, args.version, args.from);
         } else {
+            this.log.error('📍 postError - 📍NO ARGS!📍' + channel, this.getName());
             this.bus.sendErrorMessage(channel, err, this.getName());
         }
     }
@@ -196,7 +209,8 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase implemen
         this.serviceCall = (channel: string,
                             requestObject: AbstractMessageObject<ReqT, any>,
                             successHandler: CallSuccessHandler,
-                            failureHandler: CallFailureHandler) => {
+                            failureHandler: CallFailureHandler,
+                            callerArgs: MessageArgs) => {
 
             const messageHandler = this.bus
                 .requestOnceWithId(
@@ -213,8 +227,8 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase implemen
                         // We call the success handler that was provided by the API Handler.
                         successHandler(callResponseObject, args);
                     },
-                    (err: RestError, args: MessageArgs) => {
-                        failureHandler(err, args);
+                    (err: RestError) => {
+                        failureHandler(err, callerArgs);
                     }
                 );
         };
@@ -240,12 +254,17 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase implemen
                           body: any,
                           successHandler: SuccessHandler,
                           failureHandler: ErrorHandler,
-                          apiClass: string) => {
+                          apiClass: string,
+                          apiArgs?: MessageArgs) => {
 
             if (!this.requestConverterMap.has(httpOp)) {
                 this.log.error('FATAL: Invalid RestRequest provided to AbstractService.apiBridge(): ' + httpOp,
                     this.getName());
                 return;
+            }
+
+            if (!apiArgs) {
+                this.log.error('FATAL: ApiBridge called without MessageArgs in ' + this.getName(), this.getName());
             }
 
             // Services like NSX-T dynamically change the host for their API. By setting $host in the derived service,
@@ -269,12 +288,12 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase implemen
             );
 
             this.serviceCall(RestService.channel, restRequestObject,
-                (restResponseObject: RestObject, args: MessageArgs) => {
-                    successHandler(apiObject, restResponseObject.response, args);
+                (restResponseObject: RestObject) => {
+                    successHandler(apiObject, restResponseObject.response, apiArgs);
                 },
-                (err: RestError, args: MessageArgs) => {
-                    failureHandler(apiObject, err, args);
-                });
+                (err: RestError) => {
+                    failureHandler(apiObject, err, apiArgs);
+                }, apiArgs);
         };
 
         // These are the handlers that should be provided by the service, or called at the bottom of their

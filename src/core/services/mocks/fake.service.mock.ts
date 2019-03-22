@@ -1,3 +1,4 @@
+import { CallerArgs } from "../..";
 import { AbstractAutoService } from '../../abstractions/abstract.autoservice';
 import {
     FakeChannel,
@@ -53,7 +54,7 @@ export class FakeService extends AbstractAutoService<FakeRequestObject, FakeResp
                     },
                     (err: RestError) => {
                         this.apiFailureHandler(apiObject, err);
-                    });
+                    }, new CallerArgs(GeneralUtil.genUUIDShort(), this.getName()));
 
                 break;
             }
