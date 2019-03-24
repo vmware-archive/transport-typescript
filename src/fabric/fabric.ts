@@ -25,6 +25,7 @@ export class FabricApiImpl implements FabricApi {
     private disconnectHandler: Function;
     private connectionStore: BusStore<FabricConnectionState>;
     private fabricDisconnectHandler: MessageHandler<StompBusCommand>;
+    private accessTokenSessionStorageKey: string = 'csp-auth-token';
 
     constructor(private readonly bus: EventBus) {
         this.bus = bus;
@@ -196,5 +197,17 @@ export class FabricApiImpl implements FabricApi {
         } else {
             return of('Version unavailable, not connected to fabric');
         }
+    }
+
+    setAccessTokenSessionStorageKey(key: string): void {
+        this.accessTokenSessionStorageKey = key;
+    }
+
+    getAccessTokenSessionStorageKey(): string {
+        return this.accessTokenSessionStorageKey;
+    }
+
+    getAccessToken(): string {
+        return sessionStorage.getItem(this.getAccessTokenSessionStorageKey()) || '';
     }
 }
