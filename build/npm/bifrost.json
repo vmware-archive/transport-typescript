@@ -23,12 +23,25 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "3/24/19",
+            "version": "0.14.3",
+            "notes": [
+                {
+                    "description": "Added synthetic msg args support in sewing machine abstractions.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/60"
+                },
+                {
+                    "description": "0.14.2 was a republished NPM archive, no new functionality."
+                }
+            ]
+        },
+        {
             "date": "3/20/19",
             "version": "0.14.1",
             "notes": [
                 {
                     "description": "Artifactory locked 0.14.0 with a failed publish.",
-                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/55"
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/56"
                 }
             ]
         },
