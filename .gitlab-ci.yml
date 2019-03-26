@@ -31,7 +31,7 @@ build:bifrost:
   - npm run prepare
   artifacts:
     paths:
-    - build/bifrost
+    - dist
     expire_in: 1 week
   when: on_success
   only:
@@ -43,8 +43,10 @@ publish:bifrost:
   dependencies:
   - build:bifrost
   script:
+  - echo "Configuring .npmrc"
+  - ./build/scripts/configure-npmrc-on-ci.sh
   - echo "Publishing @vmw/bifrost"
   - npm run publish
   when: manual
-  only:
-  - master
+  #only:
+  #- master
