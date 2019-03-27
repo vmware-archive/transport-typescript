@@ -156,11 +156,15 @@ export class StompParser {
     // shortcut for creating bus commands for subscription requests
     public static generateStompBrokerSubscriptionRequest(sessionId: string,
                                                          destination: string,
-                                                         subscriptionId: string): StompSubscription {
+                                                         subscriptionId: string,
+                                                         isQueue: boolean,
+                                                         brokerPrefix: string): StompSubscription {
         return {
             session: sessionId,
             destination: destination,
-            id: subscriptionId
+            id: subscriptionId,
+            isQueue: isQueue,
+            brokerPrefix: brokerPrefix
         };
     }
 
@@ -195,19 +199,25 @@ export class StompParser {
         return channel.trim();
     }
 
-    // create galactic topic destination
-    public static generateGalacticTopicDesintation(topic: string, channel: string): string {
-        return topic + '/' + channel;
+    // create galactic topic/queue detination
+    public static generateGalacticDesintation(dest: string, channel: string, isQueue: boolean): string {
+        return (isQueue ? '/user' : '') + dest + '/' + channel;
     }
 
     // convert destination back into a channel
     public static convertSubscriptionToChannel(subscription: string,
-                                               topicDesintation: string): string {
-        return subscription.replace(topicDesintation + '/', '');
+                                               topicOrQueueDesintation: string,
+                                               isQueue: boolean): string {
+        return subscription.replace(
+            (isQueue ? '/user' + topicOrQueueDesintation : topicOrQueueDesintation) + '/',
+            '');
     }
 
-    // convert topic back into a channel
-    public static convertTopicToChannel(subscription: string): string {
-        return subscription.replace('/topic/', '').trim();
+    // convert topic/queue back into a channel
+    public static convertTopicOrQueueToChannel(subscription: string,
+                                               brokerPrefix: string,
+                                               isQueue: boolean): string {
+        return subscription.replace(
+            isQueue ? '/user' + brokerPrefix + '/' : brokerPrefix + '/', '').trim();
     }
 }

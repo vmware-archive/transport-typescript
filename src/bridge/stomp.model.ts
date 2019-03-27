@@ -38,6 +38,8 @@ export interface StompSubscription {
     session: string;
     destination: string;
     id: string;
+    isQueue: boolean;
+    brokerPrefix: string;
 }
 
 // session help for each broker connection

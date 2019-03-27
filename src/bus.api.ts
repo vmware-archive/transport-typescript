@@ -452,8 +452,9 @@ export abstract class EventBus {
      * All messages sent to the channel with the "channelName" name
      * will be transmitted to the remote destinations.
      * @param {ChannelName} channelName name of the channel
+     * @param {isPrivate} whether the channel is a broadcast or a private channel
      */
-    abstract markChannelAsGalactic(channelName: ChannelName): void;
+    abstract markChannelAsGalactic(channelName: ChannelName, isPrivate?: boolean): void;
 
     /**
      * Marks channels as galactic.
@@ -642,10 +643,11 @@ export interface EventBusLowApi {
      * @param {ChannelName} cname
      * @param {SentFrom} from
      * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
+     * @param {boolean} isPrivate optional - is channel private?
      * @returns {Observable<Message>}
      * @deprecated use markChannelAsGalactic()
      */
-    getGalacticChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean): Observable<Message>;
+    getGalacticChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean, isPrivate?: boolean): Observable<Message>;
 
     /**
      * Send simple API message to MessageResponder enabled calls. (non low-level API's)

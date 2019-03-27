@@ -242,8 +242,15 @@ describe('Stomp Parser [stomp.parser]', () => {
     it('Check a subscription can be converted to a channel',
         () => {
 
-           const subA = StompParser.convertSubscriptionToChannel('puppykitty/', 'kitty');
-           expect(subA).toEqual('puppy');
+            // public channel
+            const subA = StompParser.convertSubscriptionToChannel(
+                'puppykitty/', 'kitty', false);
+            expect(subA).toEqual('puppy');
+
+            // private channel
+            const subB = StompParser.convertSubscriptionToChannel(
+                '/userpuppy/kitty', 'puppy', true);
+            expect(subB).toEqual('kitty');
 
         }
     );

@@ -30,6 +30,7 @@ export class Channel {
     private _refCount: number;
     private _closed: boolean;
     private _galactic: boolean;
+    private _private: boolean;
 
     private _streamObject: Subject<Message>;
 
@@ -43,6 +44,7 @@ export class Channel {
         this._streamObject = new Subject<Message>();
         this._closed = false;
         this._galactic = false;
+        this._private = false;
         this.subscribers = new Map<UUID, Subscriber>();
         this.observers = new Map<UUID, Observer>();
     }
@@ -153,12 +155,24 @@ export class Channel {
         return this;
     }
 
-    setPrivate() {
+    setLocal() {
         this._galactic = false;
         return this;
     }
 
     get galactic(): boolean {
         return this._galactic;
+    }
+
+    setPrivate() {
+        this._private = true;
+    }
+
+    setPublic() {
+        this._private = false;
+    }
+
+    get isPrivate(): boolean {
+        return this._private;
     }
 }

@@ -22,6 +22,7 @@ export class StompValidator {
 
         // TODO: validate command schema
         let busCommand = StompParser.extractStompBusCommandFromMessage(msg);
+
         switch (busCommand.command) {
             case StompClient.STOMP_CONNECT:
                 if (busCommand.payload !== null) {
