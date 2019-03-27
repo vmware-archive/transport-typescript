@@ -204,6 +204,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         config.queueLocation = queueLocation;
         config.brokerConnectCount = numBrokerRelays;
         config.autoReconnect = autoReconnect;
+
         if (advancedConfig) {
             config.heartbeatIn = advancedConfig.heartbeatIncomingInterval;
             config.heartbeatOut = advancedConfig.heartbeatOutgoingInterval;
@@ -235,7 +236,8 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
     public listenGalacticStream<T>(cname: ChannelName, name: SentFrom = this.getName()): MessageHandler<T> {
         if (!this.internalChannelMap.has(cname)) {
-            this.api.getGalacticChannel(cname, name, false); // create galactic channel;
+            this.api.getGalacticChannel(
+                cname, name, false, false); // create a public galactic channel by default;
         }
         return this.listenStream(cname, name);
     }
@@ -568,13 +570,19 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         }
     }
 
-    public markChannelAsGalactic(channelName: ChannelName): void {
+    public markChannelAsGalactic(channelName: ChannelName, isPrivate?: boolean): void {
         const channel = this.api.getChannelObject(channelName);
         channel.setGalactic();
+        if (isPrivate === true) {
+            channel.setPrivate();
+        } else {
+            channel.setPublic();
+        }
 
         this.api.getMonitorStream().send(
             new Message().request(
-                new MonitorObject().build(MonitorType.MonitorNewGalacticChannel, channelName, this.getName())
+                new MonitorObject().build(
+                    MonitorType.MonitorNewGalacticChannel, channelName, this.getName(), channel.isPrivate)
             )
         );
     }
@@ -587,7 +595,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
     public markChannelAsLocal(channelName: ChannelName) {
         const channel = this.api.getChannelObject(channelName);
-        channel.setPrivate();
+        channel.setLocal();
 
         this.api.getMonitorStream().send(
             new Message().request(

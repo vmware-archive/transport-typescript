@@ -115,7 +115,7 @@ describe('Stream Model [channel.model]', () => {
         channel.setGalactic();
         expect(channel.galactic).toBeTruthy();
 
-        channel.setPrivate();
+        channel.setLocal();
         expect(channel.galactic).toBeFalsy();
         
     });
@@ -125,9 +125,17 @@ describe('Stream Model [channel.model]', () => {
         channel.setGalactic();
         expect(channel.galactic).toBeTruthy();
 
-        channel.setPrivate();
+        channel.setLocal();
         expect(channel.galactic).toBeFalsy();
         
     });
+
+    it('check private and public switches work.', () => {
+        channel.setPrivate();
+        expect(channel.isPrivate).toBeTruthy();
+
+        channel.setPublic();
+        expect(channel.isPrivate).toBeFalsy();
+    })
 });
 

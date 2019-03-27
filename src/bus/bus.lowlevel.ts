@@ -146,10 +146,10 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
             );
     }
 
-    getGalacticChannel(cname: ChannelName, from?: SentFrom, noRefCount: boolean = false): Observable<Message> {
+    getGalacticChannel(cname: ChannelName, from?: SentFrom, noRefCount: boolean = false, isPrivate: boolean = false): Observable<Message> {
         this.getMonitorStream().send(
             new Message().request(
-                new MonitorObject().build(MonitorType.MonitorNewGalacticChannel, cname, from)
+                new MonitorObject().build(MonitorType.MonitorNewGalacticChannel, cname, from, isPrivate)
             )
         );
 

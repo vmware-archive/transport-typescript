@@ -121,7 +121,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
         );
     });
 
-    describe('Subscribing, messaging and un-subscribing', () => {
+    describe('[Public channel] Subscribing, messaging and un-subscribing', () => {
 
         it('We should be able to subscribe to a broker destination',
             (done) => {
@@ -137,7 +137,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                     bus,
                                     command.session,
                                     topicA,
-                                    subId
+                                    subId,
+                                    false,
+                                    '/topic'
                                 );
 
                                 break;
@@ -176,7 +178,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                     bus,
                                     command.session,
                                     topicA,
-                                    subId
+                                    subId,
+                                    false,
+                                    '/topic'
                                 );
                                 break;
 
@@ -228,7 +232,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                     bus,
                                     command.session,
                                     topicA,
-                                    subId
+                                    subId,
+                                    false,
+                                    '/topic'
                                 );
 
                                 break;
@@ -240,7 +246,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                     bus,
                                     command.session,
                                     topicA,
-                                    subId
+                                    subId,
+                                    false,
+                                    '/topic'
                                 );
                                 break;
 
@@ -254,6 +262,154 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                 break;
                         }
                     });
+
+                BrokerConnector.fireConnectCommand(bus, config);
+            }
+        );
+
+    });
+
+    describe('[Private channel] Subscribing, messaging and un-subscribing', () => {
+
+        it('We should be able to subscribe to a broker destination',
+            (done) => {
+
+                bus.listenStream(BrokerConnectorChannel.status)
+                    .handle(
+                        (command: StompBusCommand) => {
+
+                            switch (command.command) {
+                                case StompClient.STOMP_CONNECTED:
+
+                                    BrokerConnector.fireSubscribeCommand(
+                                        bus,
+                                        command.session,
+                                        topicA,
+                                        subId,
+                                        true,
+                                        '/queue'
+                                    );
+
+                                    break;
+
+                                case StompClient.STOMP_SUBSCRIBED:
+                                    expect(command.destination).toEqual(topicA);
+                                    done();
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                        });
+
+                BrokerConnector.fireConnectCommand(bus, config);
+            }
+        );
+
+        it('We should be able to subscribe to a broker destination and send/receive messages',
+
+            (done) => {
+
+                let outboundMessage = 'a lovely horse';
+
+                let mId: string = GeneralUtil.genUUIDShort();
+                let headers: any = { id: mId, subscription: subId };
+
+                bus.listenStream(BrokerConnectorChannel.status)
+                    .handle(
+                        (command: StompBusCommand) => {
+
+                            switch (command.command) {
+                                case StompClient.STOMP_CONNECTED:
+
+                                    BrokerConnector.fireSubscribeCommand(
+                                        bus,
+                                        command.session,
+                                        topicA,
+                                        subId,
+                                        true,
+                                        '/queue'
+                                    );
+                                    break;
+
+                                case StompClient.STOMP_SUBSCRIBED:
+                                    headers.session = command.session;
+                                    let message = StompParser.generateStompBusCommand(
+                                        StompClient.STOMP_SEND,
+                                        command.session,
+                                        topicA,
+                                        StompParser.generateStompReadyMessage(outboundMessage, headers)
+                                    );
+
+                                    bus.sendResponseMessage(BrokerConnectorChannel.messages, message);
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                        });
+
+                bus.listenStream(BrokerConnectorChannel.messages)
+                    .handle(
+                        (command: StompBusCommand) => {
+                            const stompMessage = StompParser.extractStompMessageFromBusCommand(command);
+                            expect(stompMessage.body).toEqual(outboundMessage);
+                            expect(stompMessage.headers['session']).toEqual(command.session);
+                            done();
+                        });
+
+                BrokerConnector.fireConnectCommand(bus, config);
+            }
+        );
+
+        it('We should be able to unsubscribe to a broker destination',
+
+            (done) => {
+
+                let sessId: string;
+
+                bus.listenStream(BrokerConnectorChannel.status)
+                    .handle(
+                        (command: StompBusCommand) => {
+
+                            switch (command.command) {
+                                case StompClient.STOMP_CONNECTED:
+
+                                    sessId = command.session;
+                                    BrokerConnector.fireSubscribeCommand(
+                                        bus,
+                                        command.session,
+                                        topicA,
+                                        subId,
+                                        true,
+                                        '/queue'
+                                    );
+
+                                    break;
+
+                                case StompClient.STOMP_SUBSCRIBED:
+
+                                    expect(command.destination).toEqual(topicA);
+                                    BrokerConnector.fireUnSubscribeCommand(
+                                        bus,
+                                        command.session,
+                                        topicA,
+                                        subId,
+                                        true,
+                                        '/queue'
+                                    );
+                                    break;
+
+                                case StompClient.STOMP_UNSUBSCRIBED:
+                                    expect(command.destination).toEqual(topicA);
+                                    expect(command.session).toEqual(sessId);
+                                    done();
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                        });
 
                 BrokerConnector.fireConnectCommand(bus, config);
             }
@@ -360,11 +516,21 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                         null,
                                         null,
                                         StompParser.generateStompBrokerSubscriptionRequest(
-                                            '123', null, null
+                                            '123', null, null,
+                                            false, '/topic'
                                         )
                                     );
 
+                                // public channel
                                 bus.sendRequestMessage(BrokerConnectorChannel.subscription, missingProperties);
+
+                                expect(bc.subscribeToDestination).not.toHaveBeenCalled();
+
+                                // private channel
+                                missingProperties.payload = StompParser.generateStompBrokerSubscriptionRequest(
+                                    '123', null, null,
+                                    true, '/queue'
+                                );
 
                                 expect(bc.subscribeToDestination).not.toHaveBeenCalled();
 
@@ -379,12 +545,24 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                         '123',
                                         '234',
                                         StompParser.generateStompBrokerSubscriptionRequest(
-                                            '123', 'abc', '456'
+                                            '123', 'abc', '456',
+                                            false, '/topic'
                                         )
                                     );
 
-                                // send wrong command
+                                // send wrong command (public channel)
                                 bus.sendRequestMessage(BrokerConnectorChannel.subscription, wrongCommand);
+
+                                expect(bc.subscribeToDestination).not.toHaveBeenCalled();
+
+                                // send wrong command (private channel)
+                                wrongCommand.payload = StompParser.generateStompBrokerSubscriptionRequest(
+                                    '123', 'abc', '456',
+                                    true, '/queue'
+                                );
+                                bus.sendRequestMessage(BrokerConnectorChannel.subscription, wrongCommand);
+
+                                expect(bc.subscribeToDestination).not.toHaveBeenCalled();
 
                                 done();
                                 break;
@@ -397,7 +575,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
             }
         );
 
-        it('We should only respond to valid unsubscription messages sent on the bus',
+        it('[Public channel] We should only respond to valid unsubscription messages sent on the bus',
             (done) => {
 
                 spyOn(bc, 'unsubscribeFromDestination')
@@ -418,7 +596,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                     bus,
                                     command.session,
                                     topicA,
-                                    subId
+                                    subId,
+                                    false,
+                                    '/topic'
                                 );
 
                                 break;
@@ -438,7 +618,8 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                         '123',
                                         '234',
                                         StompParser.generateStompBrokerSubscriptionRequest(
-                                            '123', 'abc', '456'
+                                            '123', 'abc', '456',
+                                            false, '/topic'
                                         )
                                     );
 
@@ -473,7 +654,86 @@ describe('BrokerConnector [broker-connector.ts]', () => {
             }
         );
 
-        it('We should only respond to valid outbound messages sent on the bus',
+        it('[Private channel] We should only respond to valid unsubscription messages sent on the bus',
+            (done) => {
+
+                spyOn(bc, 'unsubscribeFromDestination')
+                    .and
+                    .callThrough();
+
+                let sessId: string;
+
+                bus.listenStream(BrokerConnectorChannel.status)
+                    .handle(
+                        (command: StompBusCommand) => {
+
+                            switch (command.command) {
+                                case StompClient.STOMP_CONNECTED:
+
+                                    sessId = command.session;
+                                    BrokerConnector.fireSubscribeCommand(
+                                        bus,
+                                        command.session,
+                                        topicA,
+                                        subId,
+                                        true,
+                                        '/queue'
+                                    );
+
+                                    break;
+
+                                case StompClient.STOMP_SUBSCRIBED:
+
+                                    expect(command.destination).toEqual(topicA);
+
+                                    // create a bad bus message
+                                    bus.sendRequestMessage(BrokerConnectorChannel.connection, StompClient.STOMP_UNSUBSCRIBE);
+
+                                    expect(bc.unsubscribeFromDestination).not.toHaveBeenCalled();
+
+                                    let wrongCommand =
+                                        StompParser.generateStompBusCommand(
+                                            StompClient.STOMP_UNSUBSCRIBED,
+                                            '123',
+                                            '234',
+                                            StompParser.generateStompBrokerSubscriptionRequest(
+                                                '123', 'abc', '456',
+                                                true, '/queue'
+                                            )
+                                        );
+
+
+                                    // send wrong command
+                                    bus.sendRequestMessage(BrokerConnectorChannel.subscription, wrongCommand);
+
+                                    expect(bc.unsubscribeFromDestination).not.toHaveBeenCalled();
+
+                                    let missingPayload =
+                                        StompParser.generateStompBusCommand(
+                                            StompClient.STOMP_UNSUBSCRIBE,
+                                            null,
+                                            null,
+                                            null
+                                        );
+
+                                    // send missing payload and distribution
+                                    bus.sendRequestMessage(BrokerConnectorChannel.subscription, missingPayload);
+
+                                    expect(bc.unsubscribeFromDestination).not.toHaveBeenCalled();
+
+                                    done();
+                                    break;
+
+                                default:
+                                    break;
+
+                            }
+                        });
+                BrokerConnector.fireConnectCommand(bus, config);
+            }
+        );
+
+        it('[Public channel] We should only respond to valid outbound messages sent on the bus',
             (done) => {
 
                 let outboundMessage = 'anyone fancy a pint?';
@@ -496,7 +756,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                     bus,
                                     command.session,
                                     topicA,
-                                    subId
+                                    subId,
+                                    false,
+                                    '/topic'
                                 );
                                 break;
 
@@ -557,6 +819,93 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                 BrokerConnector.fireConnectCommand(bus, config);
             }
         );
+
+        it('[Private channel] We should only respond to valid outbound messages sent on the bus',
+            (done) => {
+
+                let outboundMessage = 'anyone fancy a pint?';
+
+                let mId: string = GeneralUtil.genUUIDShort();
+                let headers: Object = { id: mId, subscription: subId };
+
+                spyOn(bc, 'sendPacket')
+                    .and
+                    .callThrough();
+
+                bus.listenStream(BrokerConnectorChannel.status)
+                    .handle(
+                        (command: StompBusCommand) => {
+
+                            switch (command.command) {
+                                case StompClient.STOMP_CONNECTED:
+
+                                    BrokerConnector.fireSubscribeCommand(
+                                        bus,
+                                        command.session,
+                                        topicA,
+                                        subId,
+                                        true,
+                                        '/queue'
+                                    );
+                                    break;
+
+                                case StompClient.STOMP_SUBSCRIBED:
+
+                                    let message = StompParser.generateStompBusCommand(
+                                        StompClient.STOMP_SEND,
+                                        '',
+                                        '',
+                                        null
+                                    );
+
+                                    // missing message payload
+                                    bus.sendRequestMessage(
+                                        BrokerConnectorChannel.messages,
+                                        message
+                                    );
+
+                                    message = StompParser.generateStompBusCommand(
+                                        StompClient.STOMP_MESSAGE,
+                                        command.session,
+                                        topicA,
+                                        StompParser.generateStompReadyMessage(outboundMessage, headers)
+                                    );
+
+                                    // valid message, wrong command
+                                    bus.sendRequestMessage(
+                                        BrokerConnectorChannel.messages,
+                                        message
+                                    );
+
+                                    message = StompParser.generateStompBusCommand(
+                                        StompClient.STOMP_SEND,
+                                        command.session,
+                                        null,
+                                        StompParser.generateStompReadyMessage(outboundMessage, headers)
+                                    );
+
+                                    // valid message, missing destination
+                                    bus.sendRequestMessage(
+                                        BrokerConnectorChannel.messages,
+                                        message
+                                    );
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                        });
+
+                bus.listenStream(BrokerConnectorChannel.status)
+                    .handle(
+                        () => {
+                            expect(bc.sendPacket).not.toHaveBeenCalled();
+                            done();
+                        }
+                    );
+                BrokerConnector.fireConnectCommand(bus, config);
+            }
+        );
     });
 
     describe('Error handling and socket failure recovery', () => {
@@ -611,7 +960,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                     bus,
                                     'bee-doh-bee-doh-bee-doh',
                                     topicA,
-                                    subId
+                                    subId,
+                                    false,
+                                    '/topic'
                                 );
 
                                 break;
@@ -672,6 +1023,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                             case StompClient.STOMP_SUBSCRIBED:
                                 expect(bc.galacticChannels.size).toEqual(1);
+                                expect(bc.privateChannels.size).toEqual(1);
 
                                 // trigger an unsubscription via channel close
                                 bus.closeChannel('fancycats', getName());
@@ -749,6 +1101,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                         switch (command.command) {
                             case StompClient.STOMP_SUBSCRIBED:
                                 expect(bc.galacticChannels.size).toEqual(2);
+                                expect(bc.privateChannels.size).toEqual(2);
 
                                 // trigger an unsubscription via channel close
                                 bus.closeGalacticChannel('happy-puppers', getName());
@@ -843,7 +1196,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
         );
 
 
-        it('check galactic messages are sent with or without application prefix ',
+        it('[Public channel] check galactic messages are sent with or without application prefix ',
 
             (done) => {
 
@@ -860,7 +1213,6 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                             switch (command.command) {
                                 case StompClient.STOMP_CONNECTED:
                                     bus.sendGalacticMessage('sometopic', 'hello!');
-
                                     bus.api.tickEventLoop(
                                         () => {
                                             expect(log.debug).toHaveBeenCalledWith(
@@ -876,120 +1228,44 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                             }
                         });
 
-
                 BrokerConnector.fireConnectCommand(bus, configApplicationPrefix);
             }
         );
 
-
-        it('check galactic messages are sent when sessions are in play and no topics are configured',
+        it('[Private channel] check galactic messages are sent with or without application prefix ',
 
             (done) => {
 
-                spyOn(log, 'warn').and.callThrough();
+                spyOn(log, 'debug').and.callThrough();
 
                 /**
-                 * Will check that sendPacket is fired when valid connection sessions exist.
-                 * only a syslog will be triggered however as there are no topics configured.
+                 * Will check that application prefix is applied if part of config
                  */
 
                 bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
-                    (command: StompBusCommand) => {
+                        (command: StompBusCommand) => {
 
-                        switch (command.command) {
-                            case StompClient.STOMP_CONNECTED:
-                                bus.sendGalacticMessage('sometopic', 'hello!');
+                            switch (command.command) {
+                                case StompClient.STOMP_CONNECTED:
+                                    bc.privateChannels.set('sometopic', true);
+                                    bus.sendGalacticMessage('sometopic', 'hello!');
+                                    bus.api.tickEventLoop(
+                                        () => {
+                                            expect(log.debug).toHaveBeenCalledWith(
+                                                'Sending Galactic Message for session anything to ' +
+                                                'destination /dogs/queue/sometopic', 'BrokerConnector');
+                                            done();
+                                        }
+                                    );
+                                    break;
 
-                                bus.api.tickEventLoop(
-                                    () => {
-                                        expect(log.warn)
-                                            .toHaveBeenCalledWith(
-                                            'Cannot send galactic message, topics not ' +
-                                            'enabled for broker, queues not implemented yet.', 'BrokerConnector');
-                                        done();
-                                    }
-                                );
-                                break;
+                                default:
+                                    break;
+                            }
+                        });
 
-                            default:
-                                break;
-                        }
-                    });
-                BrokerConnector.fireConnectCommand(bus, configNoTopics);
-            }
-        );
-
-        it('check galactic channels are not opened if topics are not configured.',
-
-            (done) => {
-
-                spyOn(log, 'warn').and.callThrough();
-
-                /**
-                 * check galactic channels cannot be opened if topics are no configured for the broker.
-                 */
-
-                bus.listenStream(BrokerConnectorChannel.status)
-                    .handle(
-                    (command: StompBusCommand) => {
-
-                        switch (command.command) {
-                            case StompClient.STOMP_CONNECTED:
-                                bus.listenGalacticStream('pop');
-
-                                bus.api.tickEventLoop(
-                                    () => {
-                                        expect(log.warn)
-                                            .toHaveBeenCalledWith(
-                                            'Unable to open galactic channel, ' +
-                                            'topics not configured and queues not supported yet.', 'BrokerConnector');
-                                        done();
-                                    }
-                                );
-                                break;
-
-                            default:
-                                break;
-                        }
-                    });
-                BrokerConnector.fireConnectCommand(bus, configNoTopics);
-            }
-        );
-
-        it('check galactic channels are not closed if topics are not configured.',
-
-            (done) => {
-
-                spyOn(log, 'warn').and.callThrough();
-
-                /**
-                 * Check that galactic channels cannot be closed if topics are no configured
-                 */
-
-                bus.listenStream(BrokerConnectorChannel.status)
-                    .handle(
-                    (command: StompBusCommand) => {
-
-                        switch (command.command) {
-                            case StompClient.STOMP_CONNECTED:
-                                bus.listenGalacticStream('pop');
-                                bus.closeGalacticChannel('pop');
-
-                                bus.api.tickEventLoop(
-                                    () => {
-                                        expect(log.warn)
-                                            .toHaveBeenCalledTimes(2);
-                                        done();
-                                    }
-                                );
-                                break;
-
-                            default:
-                                break;
-                        }
-                    });
-                BrokerConnector.fireConnectCommand(bus, configNoTopics);
+                BrokerConnector.fireConnectCommand(bus, configApplicationPrefix);
             }
         );
 
@@ -1036,7 +1312,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                     '123',
                                     'somewhere',
                                     '123456',
-                                    StompClient.STOMP_ABORT);
+                                    StompClient.STOMP_ABORT,
+                                    false,
+                                    '/topic');
 
 
                                 bus.api.tickEventLoop(
@@ -1218,7 +1496,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
             }
         );
 
-        it('unsubscribeFromDestination() behaves correctly if incorrect session state exists.',
+        it('[Public channel] unsubscribeFromDestination() behaves correctly if incorrect session state exists.',
 
             (done) => {
 
@@ -1231,7 +1509,13 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
 
-                                bc.unsubscribeFromDestination({ session: 'none', destination: 'none', id: 'none' });
+                                bc.unsubscribeFromDestination({
+                                    session: 'none',
+                                    destination: 'none',
+                                    id: 'none',
+                                    isQueue: false,
+                                    brokerPrefix: '/topic'
+                                });
 
                                 bus.api.tickEventLoop(
                                     () => {
@@ -1261,7 +1545,56 @@ describe('BrokerConnector [broker-connector.ts]', () => {
             }
         );
 
-        it('unsubscribeFromDestination() behaves correctly if no galactic subscriptions can be found.',
+        it('[Private channel] unsubscribeFromDestination() behaves correctly if incorrect session state exists.',
+
+            (done) => {
+
+                spyOn(log, 'warn').and.callThrough();
+
+                bus.listenStream(BrokerConnectorChannel.status)
+                    .handle(
+                        (command: StompBusCommand) => {
+
+                            switch (command.command) {
+                                case StompClient.STOMP_CONNECTED:
+
+                                    bc.unsubscribeFromDestination({
+                                        session: 'none',
+                                        destination: 'none',
+                                        id: 'none',
+                                        isQueue: true,
+                                        brokerPrefix: '/queue'
+                                    });
+
+                                    bus.api.tickEventLoop(
+                                        () => {
+                                            bus.sendRequestMessage('space-dogs', 'astro-pups');
+
+                                        }, 10
+                                    );
+
+                                    bus.api.tickEventLoop(
+                                        () => {
+                                            expect(log.warn)
+                                                .toHaveBeenCalledWith('unable to unsubscribe, ' +
+                                                    'no session found for id: none', bc.getName());
+                                            done();
+                                        }, 20
+                                    );
+
+
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                        }
+                    );
+                BrokerConnector.fireConnectCommand(bus, config);
+            }
+        );
+
+        it('[Public channel] unsubscribeFromDestination() behaves correctly if no galactic subscriptions can be found.',
 
             (done) => {
 
@@ -1275,7 +1608,13 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                             case StompClient.STOMP_CONNECTED:
 
                                 bc.unsubscribeFromDestination(
-                                    { session: 'puppy-love', destination: 'none', id: 'none' }
+                                    {
+                                        session: 'puppy-love',
+                                        destination: 'none',
+                                        id: 'none',
+                                        isQueue: false,
+                                        brokerPrefix: '/topic'
+                                    }
                                 );
 
                                 bus.api.tickEventLoop(
@@ -1301,6 +1640,57 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                 break;
                         }
                     }
+                    );
+                BrokerConnector.fireConnectCommand(bus, configCustomId);
+            }
+        );
+
+        it('[Private channel] unsubscribeFromDestination() behaves correctly if no galactic subscriptions can be found.',
+
+            (done) => {
+
+                spyOn(log, 'warn').and.callThrough();
+
+                bus.listenStream(BrokerConnectorChannel.status)
+                    .handle(
+                        (command: StompBusCommand) => {
+
+                            switch (command.command) {
+                                case StompClient.STOMP_CONNECTED:
+
+                                    bc.unsubscribeFromDestination(
+                                        {
+                                            session: 'puppy-love',
+                                            destination: 'none',
+                                            id: 'none',
+                                            isQueue: true,
+                                            brokerPrefix: '/queue'
+                                        }
+                                    );
+
+                                    bus.api.tickEventLoop(
+                                        () => {
+                                            bus.sendRequestMessage('space-dogs', 'astro-pups');
+
+                                        }, 10
+                                    );
+
+                                    bus.api.tickEventLoop(
+                                        () => {
+                                            expect(log.warn)
+                                                .toHaveBeenCalledWith('unable to unsubscribe, ' +
+                                                    'no galactic subscription found for id: puppy-love', bc.getName());
+                                            done();
+                                        }, 20
+                                    );
+
+
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                        }
                     );
                 BrokerConnector.fireConnectCommand(bus, configCustomId);
             }
@@ -1400,6 +1790,7 @@ function createStandardConfig(
         configuration.brokerConnectCount = 2;
     }
     configuration.topicLocation = '/topic';
+    configuration.queueLocation = '/queue';
     configuration.useTopics = useTopics;
     if (customSession) {
         configuration.sessionId = customSession;
