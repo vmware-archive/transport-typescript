@@ -56,9 +56,6 @@ export class FabricApiImpl implements FabricApi {
 
         if (!this.connected) {
 
-            // open core channels
-            this.bus.markChannelAsGalactic(FabricApiImpl.versionChannel);
-
             // create reference to connection store.
             if (!this.connectionStore) {
                 this.connectionStore = this.bus.stores.createStore(Stores.FabricConnection);
@@ -173,6 +170,9 @@ export class FabricApiImpl implements FabricApi {
     }
 
     getFabricVersion(): Observable<string> {
+
+        // open version channel.
+        this.bus.markChannelAsGalactic(FabricApiImpl.versionChannel);
 
         let handler: MessageHandler;
 
