@@ -29,6 +29,10 @@
                 {
                     "description": "Fixed silly bug that tries to open non-guaranteed version channel on connect. VMC kills session.",
                     "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/61"
+                },
+                {
+                    "description": "Added support for private channels mapped to queues for Spring/Java bifröst.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/60"
                 }
             ]
         },
