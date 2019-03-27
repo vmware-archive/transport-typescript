@@ -23,12 +23,26 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "3/27/19",
+            "version": "0.14.4",
+            "notes": [
+                {
+                    "description": "Fixed silly bug that tries to open non-guaranteed version channel on connect. VMC kills session.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/61"
+                },
+                {
+                    "description": "Added support for private channels mapped to queues for Spring/Java bifröst.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/60"
+                }
+            ]
+        },
+        {
             "date": "3/24/19",
             "version": "0.14.3",
             "notes": [
                 {
                     "description": "Added synthetic msg args support in sewing machine abstractions.",
-                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/60"
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/59"
                 },
                 {
                     "description": "0.14.2 was a republished NPM archive, no new functionality."
