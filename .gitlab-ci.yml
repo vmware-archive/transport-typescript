@@ -48,5 +48,5 @@ publish:bifrost:
   - echo "Publishing @vmw/bifrost"
   - npm run publish
   when: manual
-  #only:
-  #- master
+  only:
+  - master
