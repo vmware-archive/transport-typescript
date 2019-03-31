@@ -33,6 +33,8 @@ export interface FabricApi {
      *  Connect to fabric endpoint. Defaults to current host and port on '/fabric'
      *
      * @param endpoint What endpoint are you connecting to? Defaults to /fabric
+     * @param topicLocation What topic location are you subscribing to. /topic by default
+     * @param queueLocation What queue location are you subscribing to. /queue by default
      * @param host hostname of your fabric endpoint, defaults to current host
      * @param port port of your fabric endpoint, defaults to current port
      * @param numRelays how many relays are being used? Defaults to 1.
@@ -46,6 +48,8 @@ export interface FabricApi {
         host?: string,
         port?: number,
         endpoint?: string,
+        topicLocation?: string,
+        queueLocation?: string,
         numRelays?: number,
         autoReconnect?: boolean): void;
 

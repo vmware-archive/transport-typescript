@@ -51,6 +51,8 @@ export class FabricApiImpl implements FabricApi {
         host?: string,
         port?: number,
         endpoint: string = '/fabric',
+        topicLocation: string = '/topic',
+        queueLocation: string = '/queue',
         numRelays: number = 1,
         autoReconnect: boolean = false): void {
 
@@ -95,8 +97,8 @@ export class FabricApiImpl implements FabricApi {
                     this.bus.connectBridge(
                         connectedHandler,
                         endpoint,
-                        '/topic',
-                        '/queue',
+                        topicLocation,
+                        queueLocation,
                         numRelays,
                         host,
                         port,
