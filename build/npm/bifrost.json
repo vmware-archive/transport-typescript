@@ -19,9 +19,19 @@
     },
     //@endexclude
     "author": "Dave Shanley <dshanley@vmware.com>",
-    "contributors": ["Akmal Khan <akmalk@vmware.com>","Etienne Le Sueur <elesueur@vmware.com>","Ashwini Manjunath <ashwinim@vmware.com>", "Matt Critchlow <mcritch@vmware.com>", "Andrii Alieksashyn <aalieksashyn@vmware.com>", "Stoyan Hristov <shristov@vmware.com>"],
+    "contributors": ["Akmal Khan <akmalk@vmware.com>","Etienne Le Sueur <elesueur@vmware.com>","Ashwini Manjunath <ashwinim@vmware.com>", "Matt Critchlow <mcritch@vmware.com>", "Andrii Alieksashyn <aalieksashyn@vmware.com>", "Stoyan Hristov <shristov@vmware.com>", "Josh Kim <kjosh@vmware.com>"],
     "license": "0BSD",
     "changelogHistory": [
+        {
+            "date": "3/28/19",
+            "version": "0.14.5",
+            "notes": [
+                {
+                    "description": "Supported customization of topic and queue in fabric.connect()",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/63"
+                }
+            ]
+        },
         {
             "date": "3/27/19",
             "version": "0.14.4",
