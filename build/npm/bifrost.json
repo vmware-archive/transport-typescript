@@ -23,6 +23,16 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "4/3/19",
+            "version": "0.14.6",
+            "notes": [
+                {
+                    "description": "Support a case where DELETE call might not have body",
+                    "review_url": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/64"
+                }
+            ]
+        },
+        {
             "date": "3/28/19",
             "version": "0.14.5",
             "notes": [

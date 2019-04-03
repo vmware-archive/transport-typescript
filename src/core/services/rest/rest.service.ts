@@ -235,8 +235,13 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
 
         // GET requests may not have a body
         if (restObject.request !== HttpRequest.Get) {
-
             try {
+                // DELETE requests may also not have a body
+                if (restObject.request === HttpRequest.Delete &&
+                    !restObject.body.trim()) {
+                    return requestInit;
+                }
+
                 // check if payload has already been stringified or not
                 if (JSON.parse(restObject.body)) {
                     requestInit.body = restObject.body;
