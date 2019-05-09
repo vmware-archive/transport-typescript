@@ -23,6 +23,16 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "5/9/19",
+            "version": "0.14.7",
+            "notes": [
+                {
+                    "description": "Add full UUID into restServiceRequest operations, required to go over the wire to fabric.",
+                    "review_url": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/65"
+                }
+            ]
+        },
+        {
             "date": "4/3/19",
             "version": "0.14.6",
             "notes": [
