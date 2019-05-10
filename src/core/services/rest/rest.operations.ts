@@ -110,13 +110,22 @@ export class RestOperations extends AbstractCore {
         if (operation.id) {
             id = operation.id;
         } else {
-            id = GeneralUtil.genUUIDShort();
+            id = GeneralUtil.genUUID();
+        }
+        restRequestObject.id = id;
+
+        // set the payload
+        let requestPayload: any = restRequestObject;
+
+        // check if the channel is galactic, if so, wrap in a request object
+        if (this.bus.isGalacticChannel(RestService.channel)) {
+            requestPayload = this.fabric.generateFabricRequest(operation.method, restRequestObject);
         }
 
         this.log.debug(`restServiceRequest fired for URI: ${operation.uri} with id: ${id}`, from);
 
         const transaction = this.bus.createTransaction(TransactionType.ASYNC, 'rest-operations-' + id);
-        transaction.sendRequest(RestService.channel, restRequestObject);
+        transaction.sendRequest(RestService.channel, requestPayload);
 
         transaction.onComplete(
             (restResponseObject: RestObject[]) => {
