@@ -4,6 +4,7 @@ import { UUID } from '../../../bus';
 import { HttpRequest, RestError, RestObject } from './rest.model';
 import { GeneralUtil } from '../../../util/util';
 import { RestService } from './rest.service';
+import { FabricUtil } from '../../../fabric/fabric.util';
 
 export interface RestOperation {
     id?: UUID;
@@ -119,7 +120,18 @@ export class RestOperations extends AbstractCore {
 
         // check if the channel is galactic, if so, wrap in a request object
         if (this.bus.isGalacticChannel(RestService.channel)) {
-            requestPayload = this.fabric.generateFabricRequest(operation.method, restRequestObject);
+
+            let javaRest = {
+                uri: operation.uri,
+                method: operation.method,
+                body: operation.body,
+                apiClass: operation.apiClass,
+                responseType: 'string',
+                headers: operation.headers,
+                sentFrom: from
+            };
+
+            requestPayload = this.fabric.generateFabricRequest(operation.method, javaRest);
         }
 
         this.log.debug(`restServiceRequest fired for URI: ${operation.uri} with id: ${id}`, from);
@@ -129,10 +141,17 @@ export class RestOperations extends AbstractCore {
 
         transaction.onComplete(
             (restResponseObject: RestObject[]) => {
+                const fabricResponseObject: any = restResponseObject[0];
+                let responseObject = fabricResponseObject.response;
+
+                // check if this is a response coming from the backend.
+                if (FabricUtil.isPayloadFabricResponse(fabricResponseObject)) {
+                    responseObject = JSON.parse(fabricResponseObject.payload);
+                }
                 this.log.debug(
                     `Received REST response for request: ${restResponseObject[0].request} ${restResponseObject[0].uri}`
                     , from);
-                operation.successHandler(restResponseObject[0].response);
+                operation.successHandler(responseObject);
             }
         );
 
