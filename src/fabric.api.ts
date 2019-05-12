@@ -96,4 +96,14 @@ export interface FabricApi {
      * Get access token from the sessionStorage using the key defined with setAccessTokenSessionStorageKey()
      */
     getAccessToken(): string;
+
+    /**
+     * Switch to using fabric based RestService, no more security issues, un-restricted power!
+     */
+    useFabricRestService(): void;
+
+    /**
+     * Switch to using local based RestService, engage browser CORS and all the sandbox security you can handle.
+     */
+    useLocalRestService(): void;
 }

@@ -120,12 +120,16 @@ export class RestOperations extends AbstractCore {
 
         // check if the channel is galactic, if so, wrap in a request object
         if (this.bus.isGalacticChannel(RestService.channel)) {
+            let apiClassValue = operation.apiClass;
+            if (!operation.apiClass) {
+                apiClassValue = 'java.lang.String';
+            }
 
             let javaRest = {
+                apiClass: apiClassValue, // this allows us to deal with any response.
                 uri: operation.uri,
                 method: operation.method,
                 body: operation.body,
-                apiClass: operation.apiClass,
                 responseType: 'string',
                 headers: operation.headers,
                 sentFrom: from

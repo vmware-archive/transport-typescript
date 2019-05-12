@@ -14,7 +14,6 @@ import { APIResponse } from '../core/model/response.model';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RestService } from '../core/services/rest/rest.service';
-import { ServiceLoader } from '../util/service.loader';
 
 
 export class FabricApiImpl implements FabricApi {
@@ -215,7 +214,12 @@ export class FabricApiImpl implements FabricApi {
         return sessionStorage.getItem(this.getAccessTokenSessionStorageKey()) || '';
     }
 
-    useFabricRestServiceInsteadOfLocal(): void {
+    useFabricRestService(): void {
         this.bus.markChannelAsGalactic('fabric-rest');
     }
+
+    useLocalRestService(): void {
+        this.bus.markChannelAsLocal('fabric-rest');
+    }
+
 }
