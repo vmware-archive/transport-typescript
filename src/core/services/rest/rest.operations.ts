@@ -151,7 +151,14 @@ export class RestOperations extends AbstractCore {
                 // check if this is a response coming from the backend.
                 // if so, unpack the JSON payload
                 if (FabricUtil.isPayloadFabricResponse(fabricResponseObject)) {
-                    responseObject = JSON.parse(fabricResponseObject.payload);
+
+                    // try to parse, some payloads are raw, some are ready to go,
+                    try {
+                        responseObject = JSON.parse(fabricResponseObject.payload);
+
+                    } catch {
+                        // can't be unpacked, must be good to go - or completely invalid.
+                    }
                     this.log.debug(
                         `Received Fabric REST response for request: ${operation.uri}`
                         , from);

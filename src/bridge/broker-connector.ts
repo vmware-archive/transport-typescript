@@ -595,15 +595,21 @@ export class BrokerConnector implements EventBusEnabled {
                     const respChannelObject = this.bus.api.getChannelObject(respChan);
 
                     // not sure if this has value. leaving out for now.
-                    // //inbound message detected, if it's not a valid remote response, warn the consumer
-                    // if (!FabricUtil.isPayloadFabricResponse(payload)) {
-                    //     this.log.warn('Inbound message being sent via WebSocket has not been correctly ' +
-                    //         'wrapped. Response data may be incorrectly packaged and may cause run-time error.');
-                    // }
+                    // inbound message detected, if it's not a valid remote response, warn the consumer
+                    if (!FabricUtil.isPayloadFabricResponse(payload)) {
+                        this.log.warn('Inbound message being sent via WebSocket has not been correctly ' +
+                            'wrapped. Response data may be incorrectly packaged and may cause run-time error.');
+                    }
 
-                    // bypass event loop for fast incoming socket events, the loop will slow things down.
-                    respChannelObject.stream.next(new Message().response(payload));
+                    // check if response is an error
+                    if (payload && payload.error) {
+                        // send an error instead, this is not a good message.
+                        respChannelObject.stream.next(new Message().error(payload));
 
+                    } else {
+                        // bypass event loop for fast incoming socket events, the loop will slow things down.
+                        respChannelObject.stream.next(new Message().response(payload));
+                    }
                 }
             );
 
