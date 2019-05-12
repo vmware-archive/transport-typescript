@@ -145,12 +145,19 @@ export class RestOperations extends AbstractCore {
                 let responseObject = fabricResponseObject.response;
 
                 // check if this is a response coming from the backend.
+                // if so, unpack the JSON payload
                 if (FabricUtil.isPayloadFabricResponse(fabricResponseObject)) {
                     responseObject = JSON.parse(fabricResponseObject.payload);
+                    this.log.debug(
+                        `Received Fabric REST response for request: ${operation.uri}`
+                        , from);
+
+                } else {
+                    this.log.debug(
+                        `Received Browser REST response for request: ${operation.uri}`
+                        , from);
+
                 }
-                this.log.debug(
-                    `Received REST response for request: ${restResponseObject[0].request} ${restResponseObject[0].uri}`
-                    , from);
                 operation.successHandler(responseObject);
             }
         );
