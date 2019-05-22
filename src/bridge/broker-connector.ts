@@ -597,8 +597,8 @@ export class BrokerConnector implements EventBusEnabled {
                     // not sure if this has value. leaving out for now.
                     // inbound message detected, if it's not a valid remote response, warn the consumer
                     if (!FabricUtil.isPayloadFabricResponse(payload)) {
-                        this.log.warn('Inbound message being sent via WebSocket has not been correctly ' +
-                            'wrapped. Response data may be incorrectly packaged and may cause run-time error.');
+                        // this.log.warn('Inbound message being sent via WebSocket has not been correctly ' +
+                        //     'wrapped. Response data may be incorrectly packaged and may cause run-time error.');
                     }
 
                     // check if response is an error

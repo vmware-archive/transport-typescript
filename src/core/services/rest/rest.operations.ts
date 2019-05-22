@@ -175,7 +175,12 @@ export class RestOperations extends AbstractCore {
 
         if (operation.errorHandler) {
             transaction.onError<RestError>(
-                (error: RestError) => {
+                (error: any) => {
+
+                    if (error.payload) {
+                        error = error.payload;
+                    }
+
                     operation.errorHandler(error);
                 }
             );
