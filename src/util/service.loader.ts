@@ -70,6 +70,6 @@ export class ServiceLoader {
     }
 
     public static onlineLocalRestService(): void {
-        ServiceLoader.getRestService().offline();
+        ServiceLoader.getRestService().online();
     }
 }
