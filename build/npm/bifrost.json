@@ -24,6 +24,16 @@
     "changelogHistory": [
         {
             "date": "5/23/19",
+            "version": "0.14.9",
+            "notes": [
+                {
+                    "description": "Fixed small glitch in Transactions when handling errors, fix subscription leak",
+                    "review_url": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/67"
+                }
+            ]
+        },
+        {
+            "date": "5/23/19",
             "version": "0.14.8",
             "notes": [
                 {
