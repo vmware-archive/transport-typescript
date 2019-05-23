@@ -21,7 +21,10 @@ const HTTP_REQUEST_MAP: Array<[string, HttpRequest]> = [
     ['PATCH', HttpRequest.Patch],
     ['PUT', HttpRequest.Put],
     ['DELETE', HttpRequest.Delete],
-    ['UPDATE_HEADERS', HttpRequest.UpdateGlobalHeaders]
+    ['UPDATE_HEADERS', HttpRequest.UpdateGlobalHeaders],
+    ['HOST_OPTIONS', HttpRequest.SetRestServiceHostOptions],
+    ['CORS_OPTIONS', HttpRequest.DisableCORSAndCredentials]
+
 ];
 
 /*
@@ -164,26 +167,6 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase implemen
             this.log.error('📍 postError - 📍NO ARGS!📍' + channel, this.getName());
             this.bus.sendErrorMessage(channel, err, this.getName());
         }
-    }
-
-    /**
-     * Make a galactic command to any services operating on the extended bus
-     *
-     * @param {APIRequest<GReqT>} request
-     * @param {string} channel
-     * @param {MessageFunction<GRespT>} handler
-     */
-    protected makeGalacticRequest<GReqT, GRespT>(request: APIRequest<GReqT>,
-                                                 channel: string,
-                                                 handler: MessageFunction<GRespT>) {
-
-        this.bus.requestGalactic(channel, request,
-            (response: APIResponse<GRespT>, args: MessageArgs) => {
-                if (handler) {
-                    handler(response.payload, args);
-                }
-            }
-        );
     }
 
     /**

@@ -1361,7 +1361,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                         // fire second connection from relay.
                         configMultiBroker.connectionSubjectRef.next(true);
-                    }, 30
+                    }, 90
                 );
             }
         );

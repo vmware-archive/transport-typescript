@@ -4,7 +4,7 @@ import { StoreImpl } from './store';
 import { EventBus } from '../../bus.api';
 
 /**
- * Copyright(c) VMware Inc. 2016-2018
+ * Copyright(c) VMware Inc. 2016-2019
  */
 export class StoreManager implements BusStoreApi {
     
@@ -19,12 +19,12 @@ export class StoreManager implements BusStoreApi {
     public createStore<T>(objectType: StoreType, map?: Map<UUID, T>): BusStore<T> {
         if (!this.getStore(objectType)) {
             this.bus.logger.verbose(`Store: Creating store ${objectType} as it does not exist!`);
-            const cache: BusStore<T> = new StoreImpl<T>(this.bus, objectType);
+            const store: BusStore<T> = new StoreImpl<T>(this.bus, objectType);
             if (map) {
-                cache.populate(map);
+                store.populate(map);
             }
-            this.internalStoreMap.set(objectType, cache);
-            return cache;
+            this.internalStoreMap.set(objectType, store);
+            return store;
         } else {
             this.bus.logger.verbose(`Stores: Returning reference to ${objectType} as it already exists`);
             return this.getStore(objectType);
@@ -35,6 +35,10 @@ export class StoreManager implements BusStoreApi {
         return this.internalStoreMap.get(objectType);
     }
 
+    public getAllStores(): Array<BusStore<any>> {
+        return Array.from(this.internalStoreMap.values());
+    }
+
     public wipeAllStores(): void {
         this.internalStoreMap.forEach(
             (store: BusStore<any>) => {
@@ -42,7 +46,6 @@ export class StoreManager implements BusStoreApi {
             }
         );
         this.bus.logger.warn(`🗄️ Stores: All data has been wiped out and reset.`, 'StoreManager');
-
     }
 
     public destroyStore(objectType: StoreType): boolean {

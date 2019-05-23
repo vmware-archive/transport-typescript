@@ -28,14 +28,16 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
     const restPayloadGet: any = {
         op: 'GET',
         uri: 'http://some/uri',
-        headers: { seven: 'eight' }
+        headers: {seven: 'eight'}
     };
     const restPayloadPost: any = {
         op: 'POST',
         uri: 'http://some/uri',
-        body: { five: 'six' },
-        headers: { seven: 'eight' }
+        body: {five: 'six'},
+        headers: {seven: 'eight'}
     };
+
+    let restService: RestService;
 
     beforeEach(
         () => {
@@ -49,7 +51,7 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
             httpClient.mustFail = false;
             httpClient.errCode = 200;
 
-            ServiceLoader.addService(RestService, httpClient);
+            restService = ServiceLoader.addService(RestService, httpClient);
             ServiceLoader.addService(FakeService);
 
         }
@@ -408,6 +410,75 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
             packet['op'] = 'UPDATE_HEADERS';
             const requestObject = new FakeRestRelayRequestObject(FakeChannel.request, packet);
             bus.sendRequestMessageWithId(FakeChannel.request, requestObject, id);
+        }
+    );
+
+    it('Should update host options.',
+        (done) => {
+            const id = GeneralUtil.genUUIDShort();
+            const packet: any = {};
+            Object.assign(packet, restPayloadPost);
+            packet.uri = 'http://my.new.host';
+            spyOn(bus.logger, 'info').and.callThrough();
+
+            packet['op'] = 'HOST_OPTIONS';
+            const requestObject = new FakeRestRelayRequestObject(FakeChannel.request, packet);
+            bus.sendRequestMessageWithId(FakeChannel.request, requestObject, id);
+
+            bus.api.tickEventLoop(
+                () => {
+                    expect(bus.logger.info)
+                        .toHaveBeenCalledWith('Updating global base URI to: http://my.new.host', 'RESTService');
+                    done();
+                }, 50
+            )
+
+
+        }
+    );
+
+    it('Should update CORS options.',
+        (done) => {
+            const id = GeneralUtil.genUUIDShort();
+            const packet: any = {};
+            Object.assign(packet, restPayloadPost);
+            packet.uri = 'http://my.new.host';
+
+            spyOn(bus.logger, 'info').and.callThrough();
+
+            packet['op'] = 'CORS_OPTIONS';
+            const requestObject = new FakeRestRelayRequestObject(FakeChannel.request, packet);
+            bus.sendRequestMessageWithId(FakeChannel.request, requestObject, id);
+
+            bus.api.tickEventLoop(
+                () => {
+                    expect(bus.logger.info)
+                        .toHaveBeenCalledWith('Disabling CORS and credentials', 'RESTService');
+                    done();
+                }, 50
+            );
+        }
+    );
+
+    it('Check service can go online',
+        () => {
+                spyOn(bus.logger, 'info').and.callThrough();
+                const restService: RestService = ServiceLoader.getRestService();
+                restService.online();
+                expect(bus.logger.info).toHaveBeenCalledWith('RestService (Local / Browser): ONLINE', 'RESTService');
+
+
+        }
+    );
+
+    it('Check service can go offline',
+        () => {
+            spyOn(bus.logger, 'info').and.callThrough();
+            const restService: RestService = ServiceLoader.getRestService();
+            restService.offline();
+            expect(bus.logger.info).toHaveBeenCalledWith('RestService (Local / Browser): OFFLINE', 'RESTService');
+
+
         }
     );
 });

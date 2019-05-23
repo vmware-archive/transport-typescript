@@ -4,17 +4,26 @@
 import { EventBus } from '../../../bus.api';
 import { RestOperations } from './rest.operations';
 import { RestService } from './rest.service';
-import { HttpRequest, RestObject } from './rest.model';
-import { Message } from '../../../bus';
-import { BusUtil } from '../../../util/bus.util';
+import { HttpRequest, RestError, RestObject } from './rest.model';
+import { APIRequest, Message } from '../../../bus';
+import { GeneralUtil } from '../../../util/util';
+import { BusTestUtil } from '../../../util/test.util';
+import { GeneralError } from '../../model/error.model';
 
 describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () => {
 
     let bus: EventBus;
     let operations: RestOperations;
 
-    bus = BusUtil.getBusInstance();
-    operations = RestOperations.getInstance();
+
+    beforeEach(() => {
+        bus = BusTestUtil.bootBus();
+        operations = RestOperations.getInstance();
+    });
+
+    afterEach(() => {
+        RestOperations.destroy();
+    });
 
     it('Check singleton exists.',
         () => {
@@ -127,4 +136,219 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
             );
         }
     );
+
+    it('Check request ID is able to be set correctly',
+        (done) => {
+
+            const id: string = GeneralUtil.genUUID();
+            let sub = bus.api.getChannel(RestService.channel).subscribe(
+                (msg: Message) => {
+                    const restObject: RestObject = msg.payload as RestObject;
+                    expect(restObject.request).toEqual(HttpRequest.Get);
+                    expect(restObject.id).toEqual(id);
+                    sub.unsubscribe();
+                    done();
+                }
+            );
+
+            operations.restServiceRequest(
+                {
+                    id: id,
+                    uri: 'http://melody.rose',
+                    method: HttpRequest.Get,
+                    successHandler: () => {}
+                },'test'
+            );
+        }
+    );
+
+    it('Check request is wrapped if the channel is galactic',
+        (done) => {
+
+            const id: string = GeneralUtil.genUUID();
+            let sub = bus.api.getChannel(RestService.channel).subscribe(
+                (msg: Message) => {
+
+                    const apiRequest: APIRequest<RestObject> = msg.payload as APIRequest<RestObject>;
+                    const restObject: RestObject = apiRequest.payload;
+                    const uri = restObject.uri;
+                    expect(uri).toEqual('http://melody.rose');
+
+                    sub.unsubscribe();
+                    bus.markChannelAsLocal(RestService.channel);
+                    done();
+                }
+            );
+
+            bus.markChannelAsGalactic(RestService.channel);
+
+            operations.restServiceRequest(
+                {
+                    id: id,
+                    uri: 'http://melody.rose',
+                    method: HttpRequest.Get,
+                    successHandler: () => {}
+                },'test'
+            );
+        }
+    );
+
+    it('Check request is wrapped if the channel is galactic - and apiClass supplied',
+        (done) => {
+
+            const id: string = GeneralUtil.genUUID();
+            let sub = bus.api.getChannel(RestService.channel).subscribe(
+                (msg: Message) => {
+
+                    const apiRequest: APIRequest<RestObject> = msg.payload as APIRequest<RestObject>;
+                    const restObject: RestObject = apiRequest.payload;
+                    const uri = restObject.uri;
+                    const apiClass = restObject.apiClass;
+                    expect(uri).toEqual('http://melody.rose');
+                    expect(apiClass).toEqual('com.some.Class');
+                    sub.unsubscribe();
+                    bus.markChannelAsLocal(RestService.channel);
+                    done();
+                }
+            );
+
+            bus.markChannelAsGalactic(RestService.channel);
+
+            operations.restServiceRequest(
+                {
+                    apiClass: 'com.some.Class',
+                    id: id,
+                    uri: 'http://melody.rose',
+                    method: HttpRequest.Get,
+                    successHandler: () => {}
+                },'test'
+            );
+        }
+    );
+
+    it('Ensure that wire based fabric requests from backend RestService instances are unpacked correctly.',
+        (done) => {
+
+            const id: string = GeneralUtil.genUUID();
+            let sub = bus.api.getChannel(RestService.channel).subscribe(
+                (msg: Message) => {
+
+                    if(msg.isRequest()) {
+
+                        const restObject: RestObject = msg.payload as RestObject;
+                        expect(restObject.request).toEqual(HttpRequest.Get);
+                        expect(restObject.uri).toEqual('http://melody.rose');
+
+                        // fake response
+                        if (msg.isRequest()) {
+                            restObject.response = JSON.stringify({pretty: 'baby'});
+                            bus.sendResponseMessageWithId(RestService.channel,
+                                bus.fabric.generateFabricResponse(restObject.id, restObject.response), msg.id);
+                        }
+                    }
+                }
+            );
+
+            operations.restServiceRequest(
+                {
+                    id: id,
+                    uri: 'http://melody.rose',
+                    method: HttpRequest.Get,
+                    successHandler: (payload: any) => {
+                        expect(payload.pretty).toEqual('baby');
+                        sub.unsubscribe();
+                        done();
+                    }
+                },'test'
+            );
+        }
+    );
+
+    it('Ensure that wire based fabric errors from backend RestService instances are unpacked correctly.',
+        (done) => {
+
+            const id: string = GeneralUtil.genUUID();
+            let sub = bus.api.getChannel(RestService.channel).subscribe(
+                (msg: Message) => {
+
+                    if(msg.isRequest()) {
+
+                        const restObject: RestObject = msg.payload as RestObject;
+                        expect(restObject.request).toEqual(HttpRequest.Get);
+                        expect(restObject.uri).toEqual('http://melody.rose');
+
+                        const err: RestError = new RestError('oh dear, the computer said no.');
+
+                        // fake response
+                        if (msg.isRequest()) {
+                            bus.sendErrorMessageWithId(RestService.channel,
+                                bus.fabric.generateFabricResponse(
+                                    restObject.id, err,
+                                    true ,500,
+                                    'error'), msg.id);
+                        }
+                    }
+                }
+            );
+
+            operations.restServiceRequest(
+                {
+                    id: id,
+                    uri: 'http://melody.rose',
+                    method: HttpRequest.Get,
+                    successHandler: () => {
+                        fail();
+                        done();
+                    },
+                    errorHandler: (error: GeneralError) => {
+                        expect(error.message).toEqual('oh dear, the computer said no.');
+                        done();
+                    }
+                },'test'
+            );
+        }
+    );
+
+    it('Ensure that local errors are handled correctly.',
+        (done) => {
+
+            const id: string = GeneralUtil.genUUID();
+            let sub = bus.api.getChannel(RestService.channel).subscribe(
+                (msg: Message) => {
+
+                    if(msg.isRequest()) {
+
+                        const restObject: RestObject = msg.payload as RestObject;
+                        expect(restObject.request).toEqual(HttpRequest.Get);
+                        expect(restObject.uri).toEqual('http://melody.rose');
+
+                        const err: RestError = new RestError('oh dear, the computer said no... again');
+
+                        // fake response
+                        if (msg.isRequest()) {
+                            bus.sendErrorMessageWithId(RestService.channel,
+                                err, msg.id);
+                        }
+                    }
+                }
+            );
+
+            operations.restServiceRequest(
+                {
+                    id: id,
+                    uri: 'http://melody.rose',
+                    method: HttpRequest.Get,
+                    successHandler: () => {
+                        fail();
+                        done();
+                    },
+                    errorHandler: (error: GeneralError) => {
+                        expect(error.message).toEqual('oh dear, the computer said no... again');
+                        done();
+                    }
+                },'test'
+            );
+        }
+    );
+
 });

@@ -159,6 +159,7 @@ export class RestOperations extends AbstractCore {
                     } catch {
                         // can't be unpacked, must be good to go - or completely invalid.
                     }
+
                     this.log.debug(
                         `Received Fabric REST response for request: ${operation.uri}`
                         , from);
