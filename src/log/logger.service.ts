@@ -80,7 +80,7 @@ export class Logger {
      */
     public turnOnVerboseLogging(): void {
         this.turnOnAllLogging();
-        this.logLevel = LogLevel.Verbose
+        this.logLevel = LogLevel.Verbose;
     }
 
     /**

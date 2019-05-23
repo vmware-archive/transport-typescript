@@ -24,6 +24,16 @@
     "changelogHistory": [
         {
             "date": "5/23/19",
+            "version": "0.14.8",
+            "notes": [
+                {
+                    "description": "Fixed small glitch in ServiceLoader when enabling/disabling RestService, added tests to validate.",
+                    "review_url": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/66"
+                }
+            ]
+        },
+        {
+            "date": "5/23/19",
             "version": "0.14.7",
             "notes": [
                 {

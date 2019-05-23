@@ -2,6 +2,7 @@ import { LogLevel } from '../log';
 import { EventBus } from '../bus.api';
 import { BusTestUtil } from './test.util';
 import { ServiceLoader } from './service.loader';
+import { RestService } from '../core/services/rest/rest.service';
 
 class TestServiceA {
     public booted: boolean = false;
@@ -103,6 +104,28 @@ describe('Bus Util [util/bus.util.spec]', () => {
             ServiceLoader.destroyService(TestServiceA);
             testService = ServiceLoader.getService(TestServiceA);
             expect(testService).toBeNull();
+        }
+    );
+
+    it('Check the service loader can put the RestService offline',
+        () => {
+
+            ServiceLoader.addService(RestService);
+            spyOn(bus.logger, 'info').and.callThrough();
+            ServiceLoader.offlineLocalRestService();
+            expect(bus.logger.info).toHaveBeenCalledWith('RestService (Local / Browser): OFFLINE', 'RESTService');
+
+        }
+    );
+
+    it('Check the service loader can put the RestService online',
+        () => {
+
+            ServiceLoader.addService(RestService);
+            spyOn(bus.logger, 'info').and.callThrough();
+            ServiceLoader.onlineLocalRestService();
+            expect(bus.logger.info).toHaveBeenCalledWith('RestService (Local / Browser): ONLINE', 'RESTService');
+
         }
     );
 
