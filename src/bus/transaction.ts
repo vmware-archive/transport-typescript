@@ -111,6 +111,7 @@ export class BusTransactionImpl implements BusTransaction {
             .handle(
                 (error: any) => {
                     this.log.error('Transaction [' + this.id + ']', error);
+                    this.transactionErrored();
                     errorHandler(error);
                 }
             );
@@ -134,9 +135,17 @@ export class BusTransactionImpl implements BusTransaction {
 
                 // send to onError handler.
                 this.bus.sendResponseMessageWithId(this.transactionErrorChannel, error, mId);
+                handler.close();
             }
         );
         this.bus.sendRequestMessageWithId(request.channel, request.payload, mId);
+    }
+
+    private transactionErrored() {
+        this.bus.closeChannel(this.transactionErrorChannel);
+        this.transactionReceipt.complete = true;
+        this.transactionReceipt.completedTime = new Date();
+        this.transactionCompleted();
     }
 
     private transactionCompleteHandler(responses: Array<any>) {
