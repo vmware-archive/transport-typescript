@@ -166,5 +166,87 @@ describe('Log Service [log/logger.service.spec ]', () => {
         }
     );
 
+    it('check logging helper on/off methods operate correctly.',
+        () => {
+            log.clear();
+            log.setStylingVisble(false);
+            log.turnOffAllLogging();
+
+            log.info('no-log', null);
+            expect(log.last()).toBe('');
+
+            log.turnOnAllLogging();
+
+            log.error('go-log', null);
+            expect(log.last()).toBe('go-log');
+        }
+    );
+
+    it('check verbose logging helper.',
+        () => {
+            log.clear();
+            log.setStylingVisble(false);
+            log.turnOnVerboseLogging();
+
+            log.verbose('clocks', null);
+            expect(log.last()).toBe('clocks');
+        }
+    );
+
+    it('check debug logging helper.',
+        () => {
+            log.clear();
+            log.setStylingVisble(false);
+            log.turnOnDebugLogging();
+
+            log.verbose('socks', null);
+            expect(log.last()).toBe('');
+
+            log.debug('socks', null);
+            expect(log.last()).toBe('socks');
+        }
+    );
+
+    it('check info logging helper.',
+        () => {
+            log.clear();
+            log.setStylingVisble(false);
+            log.turnOnInfoLogging();
+
+            log.debug('shops', null);
+            expect(log.last()).toBe('');
+
+            log.info('shops', null);
+            expect(log.last()).toBe('shops');
+        }
+    );
+
+    it('check warn logging helper.',
+        () => {
+            log.clear();
+            log.setStylingVisble(false);
+            log.turnOnWarnLogging();
+
+            log.info('melody', null);
+            expect(log.last()).toBe('');
+
+            log.warn('melody', null);
+            expect(log.last()).toBe('melody');
+        }
+    );
+
+    it('check error logging helper.',
+        () => {
+            log.clear();
+            log.setStylingVisble(false);
+            log.turnOnErrorLogging();
+
+            log.warn('rose', null);
+            expect(log.last()).toBe('');
+
+            log.error('rose', null);
+            expect(log.last()).toBe('rose');
+        }
+    );
 });
 

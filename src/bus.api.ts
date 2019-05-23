@@ -18,7 +18,7 @@ import { FabricApi } from './fabric.api';
 import { BrokerConnector } from './bridge';
 
 // current version
-const version = '0.14.6';
+const version = '0.14.7';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -57,7 +57,7 @@ export interface MessageHandler<T = any, E = any> {
 
     /**
      * Handler for incoming responses
-     * @param successHander handle success responses
+     * @param successHandler handle success responses
      * @param errorHandler handle error responses
      */
     handle(successHander: MessageFunction<T>, errorHandler?: MessageFunction<E>): Subscription;

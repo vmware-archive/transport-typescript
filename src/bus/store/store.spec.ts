@@ -54,11 +54,11 @@ describe('BusStore [store/store.model]', () => {
 
         cache.onChange<State.Deleted>('123', State.Deleted)
             .subscribe(
-            (s: string) => {
-                expect(s).toEqual('chickie & fox');
-                expect(cache.get('123')).toBeUndefined();
-                done();
-            }
+                (s: string) => {
+                    expect(s).toEqual('chickie & fox');
+                    expect(cache.get('123')).toBeUndefined();
+                    done();
+                }
             );
 
         cache.put('123', 'chickie & fox', State.Created);
@@ -136,35 +136,35 @@ describe('BusStore [store/store.model]', () => {
 
         cache.onChange<State.Created>('magnum', State.Created)
             .subscribe(
-            (d: Dog) => {
-                expect(d.dogName).toEqual('maggie');
-                expect(d.dogAge).toEqual(12);
-                expect(d.dogPhrase).toEqual('get the kitty');
-                counter++;
-            }
+                (d: Dog) => {
+                    expect(d.dogName).toEqual('maggie');
+                    expect(d.dogAge).toEqual(12);
+                    expect(d.dogPhrase).toEqual('get the kitty');
+                    counter++;
+                }
             );
 
         cache.onChange<State.Updated>('fox', State.Updated)
             .subscribe(
-            (d: Dog) => {
-                expect(d.dogName).toEqual('foxy pop');
-                expect(d.dogAge).toEqual(11);
-                expect(d.dogPhrase).toEqual('get out of the pantry');
-                counter++;
-            }
+                (d: Dog) => {
+                    expect(d.dogName).toEqual('foxy pop');
+                    expect(d.dogAge).toEqual(11);
+                    expect(d.dogPhrase).toEqual('get out of the pantry');
+                    counter++;
+                }
             );
 
         cache.onChange<State.Deleted>('cotton', State.Deleted)
             .subscribe(
-            (d: Dog) => {
-                expect(d.dogName).toEqual('chickie');
-                expect(d.dogAge).toEqual(6);
-                expect(d.dogPhrase).toEqual('where is the kitty');
-                counter++;
-                if (counter === 3) {
-                    done();
+                (d: Dog) => {
+                    expect(d.dogName).toEqual('chickie');
+                    expect(d.dogAge).toEqual(6);
+                    expect(d.dogPhrase).toEqual('where is the kitty');
+                    counter++;
+                    if (counter === 3) {
+                        done();
+                    }
                 }
-            }
             );
 
         cache.put(
@@ -206,16 +206,16 @@ describe('BusStore [store/store.model]', () => {
     });
 
     it('onChange() works with all types', (done) => {
-        
+
         let count = 0;
         const store: BusStore<string> = bus.stores.createStore('dog');
         store.onChange<State.Created>('magnum')
             .subscribe(
                 () => {
-                  count++;
-                  if (count === 3) {
-                      done();
-                  }  
+                    count++;
+                    if (count === 3) {
+                        done();
+                    }
                 }
             );
 
@@ -231,7 +231,7 @@ describe('BusStore [store/store.model]', () => {
         const store: BusStore<string> = bus.stores.createStore('dog');
         const sub = store.onChange<State.Updated>('magnum', State.Updated);
         sub.unsubscribe(); // nothing should happen because we're not subscribed yet.
-        
+
         sub.subscribe(
             () => {
                 counter++;
@@ -242,7 +242,7 @@ describe('BusStore [store/store.model]', () => {
         store.put('magnum', 'maggie', State.Updated);
         store.put('magnum', 'maggie', State.Updated);
         store.put('magnum', 'maggie', State.Updated);
-        
+
         bus.api.tickEventLoop(
             () => {
                 expect(counter).toEqual(3);
@@ -274,19 +274,19 @@ describe('BusStore [store/store.model]', () => {
 
         cache.onAllChanges<State.Created>(State.Created)
             .subscribe(
-            () => {
-                counter++;
-            }
+                () => {
+                    counter++;
+                }
             );
 
         cache.onAllChanges<State.Updated>(State.Updated)
             .subscribe(
-            () => {
-                counter++;
-                if (counter === 7) {
-                    done();
+                () => {
+                    counter++;
+                    if (counter === 7) {
+                        done();
+                    }
                 }
-            }
             );
 
         cache.put(
@@ -335,12 +335,12 @@ describe('BusStore [store/store.model]', () => {
 
         listen<State, Dog>(cache, State.Created, State.Updated)
             .subscribe(
-            () => {
-                counter++;
-                if (counter === 2) {
-                    done();
+                () => {
+                    counter++;
+                    if (counter === 2) {
+                        done();
+                    }
                 }
-            }
             );
 
         cache.put(
@@ -365,12 +365,12 @@ describe('BusStore [store/store.model]', () => {
         // handle edge case of wrapper functions passing down muli-args.
         listen<State, Dog>(cache)
             .subscribe(
-            () => {
-                counter++;
-                if (counter === 3) {
-                    done();
+                () => {
+                    counter++;
+                    if (counter === 3) {
+                        done();
+                    }
                 }
-            }
             );
         cache.put(
             'fox',
@@ -441,7 +441,7 @@ describe('BusStore [store/store.model]', () => {
                 done();
             }
             , 20
-        );        
+        );
     });
 
     it('check mutate() works with correct logging, without success handler.', (done) => {
@@ -463,7 +463,7 @@ describe('BusStore [store/store.model]', () => {
                 mutateStream.success(dog);
             }
         );
-       
+
         cache.mutate(d, Mutate.Update, null);
 
         bus.api.tickEventLoop(
@@ -567,25 +567,25 @@ describe('BusStore [store/store.model]', () => {
 
         cache.onMutationRequest<Mutate.Update>(new Dog(), Mutate.Update)
             .subscribe(
-            (dog: Dog) => {
-                expect(dog.dogName).toEqual('maggie');
-                expect(dog.dogPhrase).toEqual('get the kitty');
+                (dog: Dog) => {
+                    expect(dog.dogName).toEqual('maggie');
+                    expect(dog.dogPhrase).toEqual('get the kitty');
 
-                // mutate!
-                dog.dogName = 'maggles';
-                dog.dogPhrase = 'where is your ball?';
+                    // mutate!
+                    dog.dogName = 'maggles';
+                    dog.dogPhrase = 'where is your ball?';
 
-                cache.put('magnum', d, State.Updated);
-            }
+                    cache.put('magnum', d, State.Updated);
+                }
             );
 
         cache.onChange<State.Updated>('magnum', State.Updated)
             .subscribe(
-            (dog: Dog) => {
-                expect(dog.dogName).toEqual('maggles');
-                expect(dog.dogPhrase).toEqual('where is your ball?');
-                done();
-            }
+                (dog: Dog) => {
+                    expect(dog.dogName).toEqual('maggles');
+                    expect(dog.dogPhrase).toEqual('where is your ball?');
+                    done();
+                }
             );
 
         cache.mutate(d, Mutate.Update, null);
@@ -656,6 +656,85 @@ describe('BusStore [store/store.model]', () => {
         cache.populate(vals);
 
     });
+
+    it('Test we can set an auto-reload trigger for a store to fire n times', (done) => {
+        let count = 0;
+        const reloadTrigger = () => {
+            count++;
+        };
+
+        const store = bus.stores.createStore('ReloadTest');
+        store.setAutoReloadServiceTrigger(reloadTrigger);
+        store.startAutoReload(25);
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(count).toEqual(3);
+                done();
+            },
+            80 // should have fired 3 times in 80ms.
+        );
+
+    });
+
+    it('Test we can interrupt an api delay and refire.', (done) => {
+        let count = 0;
+        const store = bus.stores.createStore('ReloadTestInterrupt');
+        const reloadTrigger = () => {
+            count++;
+        };
+
+        store.setAutoReloadServiceTrigger(reloadTrigger);
+        store.startAutoReload(20);
+
+        bus.api.tickEventLoop(
+            () => {
+                store.refreshApiDelay();
+            },
+            15
+        );
+
+        bus.api.tickEventLoop(
+            () => {
+                store.refreshApiDelay();
+            },
+            30
+        );
+
+        bus.api.tickEventLoop(
+            () => {
+                expect(count).toEqual(0);
+                done();
+            },
+            50 // should have fired 0 times in 50ms
+        );
+
+    });
+
+    it('Test reload a store', () => {
+        let count = 0;
+        const reloadTrigger = () => {
+            count++;
+        };
+
+        const store = bus.stores.createStore('ReloadStoreTest');
+        store.setAutoReloadServiceTrigger(reloadTrigger);
+        store.reloadStore();
+        store.reloadStore();
+        store.reloadStore();
+        expect(count).toEqual(3);
+
+    });
+
+    it('Test reload a store with no reload handler defined', () => {
+        spyOn(bus.logger,'warn').and.callThrough();
+        const store = bus.stores.createStore('ReloadStoreTestNoHandler');
+        store.reloadStore();
+        expect(bus.logger.warn)
+            .toHaveBeenCalledWith('Unable to refresh API delay for ReloadStoreTestNoHandler, no reloadHandler has been defined.', 'BusStore');
+
+    });
+
 });
 
 class Dog {

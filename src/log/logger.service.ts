@@ -1,7 +1,7 @@
 /**
  * Copyright(c) VMware Inc., 2016
  */
-import { LogLevel, LogChannel, LogObject } from './logger.model';
+import { LogChannel, LogLevel, LogObject } from './logger.model';
 import { GeneralUtil } from '../util/util';
 
 /**
@@ -54,6 +54,64 @@ export class Logger {
             this.debugCss = this.debugCssDark;
             this.verboseCss = this.verboseCssDark;
         }
+    }
+
+    /**
+     * Turn of all logging
+     */
+    public turnOffAllLogging(): void {
+        this.silent(true);
+        this.suppress(true);
+        this.logLevel = LogLevel.Off;
+    }
+
+    /**
+     * Turn on all logging
+     * Defaults to LogLevel.ERROR; Errors and critical issues only.
+     */
+    public turnOnAllLogging(): void {
+        this.silent(false);
+        this.suppress(false);
+        this.logLevel = LogLevel.Error;
+    }
+
+    /**
+     * Turn on VERBOSE logging
+     */
+    public turnOnVerboseLogging(): void {
+        this.turnOnAllLogging();
+        this.logLevel = LogLevel.Verbose
+    }
+
+    /**
+     * Turn on DEBUG logging
+     */
+    public turnOnDebugLogging(): void {
+        this.turnOnAllLogging();
+        this.logLevel = LogLevel.Debug;
+    }
+    /**
+     * Turn on INFO logging
+     */
+    public turnOnInfoLogging(): void {
+        this.turnOnAllLogging();
+        this.logLevel = LogLevel.Info;
+    }
+
+    /**
+     * Turn on WARN logging
+     */
+    public turnOnWarnLogging(): void {
+        this.turnOnAllLogging();
+        this.logLevel = LogLevel.Warn;
+    }
+
+    /**
+     * Turn on ERROR logging
+     */
+    public turnOnErrorLogging(): void {
+        this.turnOnAllLogging();
+        this.logLevel = LogLevel.Error;
     }
 
     /**

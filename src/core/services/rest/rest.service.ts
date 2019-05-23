@@ -92,6 +92,7 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
     }
 
     private disableCORS(val: boolean): void {
+        this.log.info(`Disabling CORS and credentials`, this.getName());
         this.disableCorsAndCredentials = val;
     }
 
@@ -254,10 +255,12 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
     }
 
     offline(): void {
+        this.log.info(`RestService (Local / Browser): OFFLINE`, this.getName());
         this.restStream.close();
     }
 
     online(): void {
+        this.log.info(`RestService (Local / Browser): ONLINE`, this.getName());
         this.listenForRequests();
     }
 }

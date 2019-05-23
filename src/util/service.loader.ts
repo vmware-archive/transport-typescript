@@ -1,3 +1,5 @@
+import { RestService } from '../core/services/rest/rest.service';
+
 export class ServiceLoader {
 
     private static serviceCollection: Set<any> = new Set();
@@ -54,5 +56,20 @@ export class ServiceLoader {
             }
         );
         return locatedService;
+    }
+
+    /**
+     * Get a reference directly to the local RestService
+     */
+    public static getRestService(): RestService {
+        return ServiceLoader.getService(RestService);
+    }
+
+    public static offlineLocalRestService(): void {
+        ServiceLoader.getRestService().offline();
+    }
+
+    public static onlineLocalRestService(): void {
+        ServiceLoader.getRestService().offline();
     }
 }

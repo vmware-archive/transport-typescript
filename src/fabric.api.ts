@@ -7,6 +7,7 @@ import { MessageFunction } from './bus.api';
 import { StoreStream } from './store.api';
 import { APIRequest } from './core/model/request.model';
 import { Observable } from 'rxjs';
+import { APIResponse } from './core/model/response.model';
 
 export enum FabricConnectionState {
     Connected = 'connected',
@@ -76,6 +77,24 @@ export interface FabricApi {
     generateFabricRequest<T>(requestCommand: string, payload?: T): APIRequest<T>;
 
     /**
+     * Generate a return payload designed for fabric services, essentially a shortcut.
+     * This is generally used for testing, however may come in handy when we experiment with p2p designs.
+     * @param id the UUID response.
+     * @param payload to send with request command (optional)
+     * @param error optional error boolean
+     * @param errorCode optional error code
+     * @param errorMessage optional error message
+     * @param version optional version number.
+     */
+    generateFabricResponse<T>(
+        id: UUID,
+        payload: T,
+        error?: boolean,
+        errorCode?: number,
+        errorMessage?: string,
+        version?: number): APIResponse<T>;
+
+    /**
      * Get fabric version.
      */
     getFabricVersion(): Observable<string>;
@@ -96,4 +115,14 @@ export interface FabricApi {
      * Get access token from the sessionStorage using the key defined with setAccessTokenSessionStorageKey()
      */
     getAccessToken(): string;
+
+    /**
+     * Switch to using fabric based RestService, no more security issues, un-restricted power!
+     */
+    useFabricRestService(): void;
+
+    /**
+     * Switch to using local based RestService, engage browser CORS and all the sandbox security you can handle.
+     */
+    useLocalRestService(): void;
 }

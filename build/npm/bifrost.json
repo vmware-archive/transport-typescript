@@ -23,6 +23,22 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "5/23/19",
+            "version": "0.14.7",
+            "notes": [
+                {
+                    "description": "Added support for Fabric based RestService calls.",
+                    "review_url": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/65"
+                },
+                {
+                    "description": "Improved test coverage across app, added more tests for edge cases."
+                },
+                {
+                    "description": "Deprecated old galacticRequest code from AbstractService."
+                }
+            ]
+        },
+        {
             "date": "4/3/19",
             "version": "0.14.6",
             "notes": [

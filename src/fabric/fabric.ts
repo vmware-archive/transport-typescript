@@ -13,6 +13,7 @@ import { APIRequest } from '../core/model/request.model';
 import { APIResponse } from '../core/model/response.model';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { RestService } from '../core/services/rest/rest.service';
 
 
 export class FabricApiImpl implements FabricApi {
@@ -171,6 +172,18 @@ export class FabricApiImpl implements FabricApi {
         return new APIRequest<T>(requestCommand, payload, GeneralUtil.genUUID(), 1);
     }
 
+    generateFabricResponse<T>(id: UUID,
+                              payload: T,
+                              error = false,
+                              errorCode = 0,
+                              errorMessage = '',
+                              version = 1): APIResponse<T> {
+        if (!payload) {
+            payload = '' as any;
+        }
+        return new APIResponse<T>(payload,  error, errorCode, errorMessage, id, version);
+    }
+
     getFabricVersion(): Observable<string> {
 
         // open version channel.
@@ -202,6 +215,7 @@ export class FabricApiImpl implements FabricApi {
     }
 
     setAccessTokenSessionStorageKey(key: string): void {
+        this.bus.logger.debug(`Setting access token session storage key to: ${key}`, 'FabricApi');
         this.accessTokenSessionStorageKey = key;
     }
 
@@ -212,4 +226,17 @@ export class FabricApiImpl implements FabricApi {
     getAccessToken(): string {
         return sessionStorage.getItem(this.getAccessTokenSessionStorageKey()) || '';
     }
+
+    useFabricRestService(): void {
+        this.bus.logger.info('Switching to Fabric based RestService, all REST calls will be routed via fabric',
+            'FabricApi');
+        this.bus.markChannelAsGalactic('fabric-rest');
+    }
+
+    useLocalRestService(): void {
+        this.bus.logger.info('Switching local RestService, all REST calls will be routed via browser',
+            'FabricApi');
+        this.bus.markChannelAsLocal('fabric-rest');
+    }
+
 }

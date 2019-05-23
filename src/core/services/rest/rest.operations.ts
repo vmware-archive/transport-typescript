@@ -4,6 +4,7 @@ import { UUID } from '../../../bus';
 import { HttpRequest, RestError, RestObject } from './rest.model';
 import { GeneralUtil } from '../../../util/util';
 import { RestService } from './rest.service';
+import { FabricUtil } from '../../../fabric/fabric.util';
 
 export interface RestOperation {
     id?: UUID;
@@ -110,26 +111,77 @@ export class RestOperations extends AbstractCore {
         if (operation.id) {
             id = operation.id;
         } else {
-            id = GeneralUtil.genUUIDShort();
+            id = GeneralUtil.genUUID();
+        }
+        restRequestObject.id = id;
+
+        // set the payload
+        let requestPayload: any = restRequestObject;
+
+        // check if the channel is galactic, if so, wrap in a request object
+        if (this.bus.isGalacticChannel(RestService.channel)) {
+            let apiClassValue = operation.apiClass;
+            if (!operation.apiClass) {
+                apiClassValue = 'java.lang.String';
+            }
+
+            let javaRest = {
+                apiClass: apiClassValue, // this allows us to deal with any response.
+                uri: operation.uri,
+                method: operation.method,
+                body: operation.body,
+                responseType: 'string',
+                headers: operation.headers,
+                sentFrom: from
+            };
+
+            requestPayload = this.fabric.generateFabricRequest(operation.method, javaRest);
         }
 
         this.log.debug(`restServiceRequest fired for URI: ${operation.uri} with id: ${id}`, from);
 
         const transaction = this.bus.createTransaction(TransactionType.ASYNC, 'rest-operations-' + id);
-        transaction.sendRequest(RestService.channel, restRequestObject);
+        transaction.sendRequest(RestService.channel, requestPayload);
 
         transaction.onComplete(
             (restResponseObject: RestObject[]) => {
-                this.log.debug(
-                    `Received REST response for request: ${restResponseObject[0].request} ${restResponseObject[0].uri}`
-                    , from);
-                operation.successHandler(restResponseObject[0].response);
+                const fabricResponseObject: any = restResponseObject[0];
+                let responseObject = fabricResponseObject.response;
+
+                // check if this is a response coming from the backend.
+                // if so, unpack the JSON payload
+                if (FabricUtil.isPayloadFabricResponse(fabricResponseObject)) {
+
+                    // try to parse, some payloads are raw, some are ready to go,
+                    try {
+                        responseObject = JSON.parse(fabricResponseObject.payload);
+
+                    } catch {
+                        // can't be unpacked, must be good to go - or completely invalid.
+                    }
+
+                    this.log.debug(
+                        `Received Fabric REST response for request: ${operation.uri}`
+                        , from);
+
+                } else {
+                    this.log.debug(
+                        `Received Browser REST response for request: ${operation.uri}`
+                        , from);
+
+                }
+                operation.successHandler(responseObject);
             }
         );
 
         if (operation.errorHandler) {
             transaction.onError<RestError>(
-                (error: RestError) => {
+                (error: any) => {
+
+                    if (error.payload) {
+                        error = error.payload;
+                    }
+
                     operation.errorHandler(error);
                 }
             );

@@ -91,6 +91,11 @@ export interface BusStoreApi {
      * Wipe out everything, will eradicate all state from all stores by destroying all stores.
      */
     wipeAllStores(): void;
+
+    /**
+     * Get ALL stores.
+     */
+    getAllStores(): Array<BusStore<any>>;
 }
 
 /**
