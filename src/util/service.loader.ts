@@ -62,7 +62,15 @@ export class ServiceLoader {
      * Get a reference directly to the local RestService
      */
     public static getRestService(): RestService {
-        return ServiceLoader.getService(RestService);
+        let restService = null;
+        ServiceLoader.serviceCollection.forEach(
+            (currentService: any) => {
+                if (currentService.hasOwnProperty('isRestService')) {
+                    restService = currentService;
+                }
+            }
+        );
+        return restService;
     }
 
     public static offlineLocalRestService(): void {

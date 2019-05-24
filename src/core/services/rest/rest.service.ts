@@ -27,6 +27,8 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
     private disableCorsAndCredentials: boolean = false;
     private restStream: MessageHandler;
 
+    public readonly isRestService = true; // need this because rest service gets munged in production.
+
     public getName(): string {
         return this.name;
     }
