@@ -24,11 +24,21 @@
     "changelogHistory": [
         {
             "date": "5/23/19",
+            "version": "0.14.10",
+            "notes": [
+                {
+                    "description": "Improved reliability of ServiceLoader to pull out RestService correctly.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/68"
+                }
+            ]
+        },
+        {
+            "date": "5/23/19",
             "version": "0.14.9",
             "notes": [
                 {
                     "description": "Fixed small glitch in Transactions when handling errors, fix subscription leak",
-                    "review_url": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/67"
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/67"
                 }
             ]
         },
@@ -38,7 +48,7 @@
             "notes": [
                 {
                     "description": "Fixed small glitch in ServiceLoader when enabling/disabling RestService, added tests to validate.",
-                    "review_url": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/66"
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/66"
                 }
             ]
         },
@@ -48,7 +58,7 @@
             "notes": [
                 {
                     "description": "Added support for Fabric based RestService calls.",
-                    "review_url": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/65"
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/65"
                 },
                 {
                     "description": "Improved test coverage across app, added more tests for edge cases."
@@ -64,7 +74,7 @@
             "notes": [
                 {
                     "description": "Support a case where DELETE call might not have body",
-                    "review_url": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/64"
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/64"
                 }
             ]
         },
