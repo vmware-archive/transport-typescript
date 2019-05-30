@@ -146,7 +146,7 @@ export class RestOperations extends AbstractCore {
         transaction.onComplete(
             (restResponseObject: RestObject[]) => {
                 const fabricResponseObject: any = restResponseObject[0];
-                let responseObject = fabricResponseObject.response;
+                let responseObject = fabricResponseObject.payload;
 
                 // check if this is a response coming from the backend.
                 // if so, unpack the JSON payload

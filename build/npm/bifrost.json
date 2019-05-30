@@ -23,6 +23,16 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "5/30/19",
+            "version": "0.14.11",
+            "notes": [
+                {
+                    "description": "Fixed a bug in the rest.operations.ts where fabricResponseObject was accessing a property that does not exist in the APIResponse object.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/70"
+                }
+            ]
+        },
+        {
             "date": "5/23/19",
             "version": "0.14.10",
             "notes": [
