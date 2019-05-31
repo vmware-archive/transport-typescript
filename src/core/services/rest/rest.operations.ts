@@ -165,6 +165,7 @@ export class RestOperations extends AbstractCore {
                         , from);
 
                 } else {
+                    responseObject = fabricResponseObject.response;
                     this.log.debug(
                         `Received Browser REST response for request: ${operation.uri}`
                         , from);

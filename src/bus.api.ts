@@ -18,7 +18,7 @@ import { FabricApi } from './fabric.api';
 import { BrokerConnector } from './bridge';
 
 // current version
-const version = '0.14.11';
+const version = '0.14.12';
 
 export type ChannelName = string;
 export type SentFrom = string;

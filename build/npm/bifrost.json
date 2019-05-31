@@ -24,6 +24,16 @@
     "changelogHistory": [
         {
             "date": "5/30/19",
+            "version": "0.14.12",
+            "notes": [
+                {
+                    "description": "Fixed a bug introduced by 0.14.11 where local RestService called by restServiceRequest() is broken. It works with the new remote REST service as well.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/71"
+                }
+            ]
+        },
+        {
+            "date": "5/30/19",
             "version": "0.14.11",
             "notes": [
                 {
