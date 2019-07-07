@@ -757,7 +757,7 @@ function runApiPerformanceTestOverXHR(host: string, loops: number, done: Functio
     );
 
     for(let x = 0; x < loops; x++) {
-        bus.sendRequestMessageWithId(chan, true, GeneralUtil.genUUIDShort());
+        bus.sendRequestMessageWithId(chan, true, GeneralUtil.genUUID());
     }
     timeBefore = performance.now();
 }

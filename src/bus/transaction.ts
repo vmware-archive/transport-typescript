@@ -36,7 +36,7 @@ export class BusTransactionImpl implements BusTransaction {
         this.transactionType = transactionType;
         this.requests = [];
         this.name = name;
-        this.id = GeneralUtil.genUUIDShort();
+        this.id = GeneralUtil.genUUID();
         this.transactionErrorChannel = 'transaction-' + this.id + '-errors';
         this.log.info('🏦 Transaction Created', this.transactionName());
     }
@@ -122,7 +122,7 @@ export class BusTransactionImpl implements BusTransaction {
         this.log.debug('➡️ Transaction: Sending ' + type + ' Request to channel: '
             + request.channel, this.transactionName());
 
-        const mId = GeneralUtil.genUUIDShort(); // use message ID's to make sure we only react to each explicit response
+        const mId = GeneralUtil.genUUID(); // use message ID's to make sure we only react to each explicit response
         const handler = this.bus.listenStream(request.channel, this.name, mId);
         handler.handle(
             (response: any) => {

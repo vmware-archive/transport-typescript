@@ -23,6 +23,16 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "7/7/19",
+            "version": "0.14.13",
+            "notes": [
+                {
+                    "description": "Deprecated short UUID generation from GeneralUtil. It's not valid and confuses cross platform technologies.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/72"
+                }
+            ]
+        },
+        {
             "date": "5/30/19",
             "version": "0.14.12",
             "notes": [

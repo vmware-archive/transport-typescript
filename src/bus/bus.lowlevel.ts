@@ -37,7 +37,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
     constructor(private eventBusRef: EventBus, channelMap: Map<string, Channel>, logger: Logger) {
         this.internalChannelMap = channelMap;
-        this.id = GeneralUtil.genUUIDShort();
+        this.id = GeneralUtil.genUUID();
 
         // create monitor stream.
         this.monitorStream = new Channel(this.monitorChannel);

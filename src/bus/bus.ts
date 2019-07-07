@@ -386,7 +386,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         name = this.getName(),
         proxyBroadcast: boolean = false): void {
 
-        this.api.send(cname, new Message(GeneralUtil.genUUIDShort(), 1, proxyBroadcast).error(payload), name);
+        this.api.send(cname, new Message(GeneralUtil.genUUID(), 1, proxyBroadcast).error(payload), name);
     }
 
 
@@ -548,7 +548,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
     }
 
     public createTransaction(type: TransactionType = TransactionType.ASYNC,
-                             name: string = 'Transaction' + GeneralUtil.genUUIDShort()): BusTransaction {
+                             name: string = 'Transaction' + GeneralUtil.genUUID()): BusTransaction {
         return new BusTransactionImpl(this, this.log, type, name);
     }
 

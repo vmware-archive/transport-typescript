@@ -40,7 +40,7 @@ export class RestOperations extends AbstractCore {
 
     constructor() {
         super();
-        this.id = GeneralUtil.genUUIDShort();
+        this.id = GeneralUtil.genUUID();
     }
 
     public setGlobalHttpHeaders(headers: any, from: SentFrom) {

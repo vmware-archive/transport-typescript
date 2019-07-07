@@ -44,7 +44,7 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
 
     constructor(private bus: EventBus, private type: StoreType) {
         this.cache = new Map<UUID, any>();
-        this.uuid = GeneralUtil.genUUIDShort();
+        this.uuid = GeneralUtil.genUUID();
         this.cacheStreamChan = `stores::store-change-${this.uuid}-${type}`;
         this.cacheMutationChan = `stores::store-mutation-${this.uuid}-${type}`;
         this.cacheReadyChan = `stores::store-ready-${this.uuid}-${type}`;

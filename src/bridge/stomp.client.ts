@@ -141,7 +141,7 @@ export class StompClient implements EventBusEnabled {
     public disconnect(messageHeaders?: any): void {
         let headers = messageHeaders || {};
         if (this._socket) {
-            headers.receipt = 'disconnect-' + GeneralUtil.genUUIDShort();
+            headers.receipt = 'disconnect-' + GeneralUtil.genUUID();
             this.transmit(StompClient.STOMP_DISCONNECT, headers);
             this._socket.close();
         } else {
@@ -206,12 +206,12 @@ export class StompClient implements EventBusEnabled {
 
     public beginTransaction(transactionId: string, header?: any): StompTransaction {
         let headers = header || {};
-        headers.transaction = GeneralUtil.genUUIDShort();
+        headers.transaction = GeneralUtil.genUUID();
         if (transactionId) {
             headers.transaction = transactionId;
         }
         if (!headers.receipt) {
-            headers.receipt = GeneralUtil.genUUIDShort();
+            headers.receipt = GeneralUtil.genUUID();
         }
 
         // store this receipt so we can let the user know if/when we get a notification back.

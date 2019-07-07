@@ -57,7 +57,7 @@ export class StompSession {
     constructor(config: StompConfig, private log: Logger, private bus?: EventBus) {
         this._config = config;
         this._client = new StompClient(log, bus);
-        this._id = GeneralUtil.genUUIDShort();
+        this._id = GeneralUtil.genUUID();
         if (config.sessionId) {
             this._id = config.sessionId;
         }
