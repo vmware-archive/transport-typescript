@@ -5,7 +5,7 @@ import { GeneralUtil } from '../../util/util';
 export class APIRequest<PayloadT> extends AbstractFrame {
 
     public static build<ReqP>(request: string,
-                              payload?: ReqP, id: UUID = GeneralUtil.genUUIDShort(),
+                              payload?: ReqP, id: UUID = GeneralUtil.genUUID(),
                               version: number = 1): APIRequest<ReqP> {
         return new APIRequest<ReqP>(request, payload, id, version);
     }

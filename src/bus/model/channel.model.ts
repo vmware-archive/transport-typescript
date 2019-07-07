@@ -5,6 +5,7 @@ import { Subject } from 'rxjs';
 import { Message } from './message.model';
 import { UUID } from '../store/store.model';
 import { StompParser } from '../../bridge/stomp.parser';
+import { GeneralUtil } from '../../util/util';
 
 /**
  * A Channel object represents a single channel on the message bus.
@@ -59,7 +60,7 @@ export class Channel {
     }
 
     createSubscriber(): UUID {
-        const id: UUID = StompParser.genUUIDShort();
+        const id: UUID = StompParser.genUUID();
         this.subscribers.set(id, {id: id, subscribed: new Date().getDate()});
         return id;
     }
@@ -73,7 +74,7 @@ export class Channel {
     }
 
     createObserver(): UUID {
-        const id: UUID = StompParser.genUUIDShort();
+        const id: UUID = GeneralUtil.genUUID();
         this.observers.set(id, {id: id, subscribed: new Date().getDate()});
         this.latestObserver = id;
         return id;

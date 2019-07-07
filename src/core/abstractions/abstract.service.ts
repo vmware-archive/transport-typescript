@@ -1,8 +1,7 @@
-import { ChannelName, MessageArgs, MessageFunction, MessageHandler, ORG_ID, ORGS, SentFrom } from '../../bus.api';
+import { ChannelName, MessageArgs, MessageHandler, ORG_ID, ORGS, SentFrom } from '../../bus.api';
 import {AbstractBase} from './abstract.base';
 import {HttpRequest, RestError, RestObject} from '../services/rest/rest.model';
 import {APIRequest} from '../model/request.model';
-import {APIResponse} from '../model/response.model';
 import {BusStore, UUID} from '../../bus';
 import {GeneralUtil} from '../../util/util';
 import {GeneralError} from '../model/error.model';
@@ -104,7 +103,7 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase implemen
 
         super(name);
 
-        this.id = GeneralUtil.genUUIDShort();
+        this.id = GeneralUtil.genUUID();
 
         // set the service channel.
         this.serviceChannel = serviceChannel;
@@ -197,7 +196,7 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase implemen
 
             const messageHandler = this.bus
                 .requestOnceWithId(
-                    GeneralUtil.genUUIDShort(),
+                    GeneralUtil.genUUID(),
                     channel,
                     requestObject,
                     null,

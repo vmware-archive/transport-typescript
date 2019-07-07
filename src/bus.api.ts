@@ -137,7 +137,7 @@ export abstract class EventBus {
      * This should only be called when re-booting the bus.
      */
     public static rebuildId(): string {
-         return `eventbus-${GeneralUtil.genUUIDShort()}-${EventBus.version}`;
+         return `eventbus-${GeneralUtil.genUUID()}-${EventBus.version}`;
     }
 
     /**

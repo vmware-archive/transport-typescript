@@ -193,7 +193,7 @@ export class FabricApiImpl implements FabricApi {
 
         if (this.connected) {
             handler = this.bus.requestOnceWithId(
-                GeneralUtil.genUUIDShort(),
+                GeneralUtil.genUUID(),
                 FabricApiImpl.versionChannel,
                 this.generateFabricRequest('version', '')
             );

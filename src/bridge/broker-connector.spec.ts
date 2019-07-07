@@ -46,7 +46,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
             configCustomId = createStandardConfig(false, false, 'puppy-love'); //custom forced Id for session.
             configApplicationPrefix = createStandardConfig(true, false, 'anything', '/dogs'); // custom check for application prefix.
 
-            subId = GeneralUtil.genUUIDShort();
+            subId = GeneralUtil.genUUID();
 
             //bus.api.silenceLog(true);
             //bus.api.suppressLog(true);

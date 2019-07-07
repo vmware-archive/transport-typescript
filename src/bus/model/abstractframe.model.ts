@@ -7,7 +7,7 @@ export abstract class AbstractFrame {
     public created: number;
     public version: number;
     
-    constructor(id: UUID = GeneralUtil.genUUIDShort(), version: number = 1) {
+    constructor(id: UUID = GeneralUtil.genUUID(), version: number = 1) {
         this.id = id;
         this.version = version;
         this.created = Date.now();

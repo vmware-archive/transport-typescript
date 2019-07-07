@@ -54,7 +54,7 @@ export class FakeService extends AbstractAutoService<FakeRequestObject, FakeResp
                     },
                     (err: RestError) => {
                         this.apiFailureHandler(apiObject, err);
-                    }, new CallerArgs(GeneralUtil.genUUIDShort(), this.getName()));
+                    }, new CallerArgs(GeneralUtil.genUUID(), this.getName()));
 
                 break;
             }

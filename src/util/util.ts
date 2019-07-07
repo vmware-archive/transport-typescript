@@ -12,6 +12,9 @@ export class GeneralUtil {
         return uuid;
     }
 
+    /**
+     * @deprecated do not use, this is not a valid UUID and it confuses our backend systems.
+     */
     public static genUUIDShort(): string {
         return GeneralUtil.genUUID().substr(0, 8);
     }
