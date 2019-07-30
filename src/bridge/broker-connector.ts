@@ -208,12 +208,6 @@ export class BrokerConnector implements EventBusEnabled {
                 'fabric.generateFabricRequest() if you\'re not using auto-generated services', this.getName());
         }
 
-        // TODO: move this out into a separate function, as there's a need to add more headers
-        // For now, we will only support an header for access token header
-        const headers: {[key: string]: string | number} = {
-            accessToken: this.bus.fabric.getAccessToken()
-        };
-
         let cleanedChannel = [StompParser.convertChannelToSubscription(channel)];
 
         this._sessions.forEach(session => {
@@ -231,7 +225,7 @@ export class BrokerConnector implements EventBusEnabled {
                 StompClient.STOMP_MESSAGE,
                 session.id,
                 destination,
-                StompParser.generateStompReadyMessage(payload, headers)
+                StompParser.generateStompReadyMessage(payload, this.getGlobalHeaders())
             );
             this.log.debug('Sending Galactic Message for session ' + session.id +
                 ' to destination ' + destination, this.getName());
@@ -398,6 +392,12 @@ export class BrokerConnector implements EventBusEnabled {
         this.sendBusCommandResponseRaw(msg, channel, echoStatus);
     }
 
+    private getGlobalHeaders(): {[key: string]: string | number} {
+        return {
+            accessToken: this.bus.fabric.getAccessToken()
+        };
+    }
+
     public connectClient(config: StompConfig): void {
         let session = new StompSession(config, this.log, this.bus);
 
@@ -554,9 +554,8 @@ export class BrokerConnector implements EventBusEnabled {
     public subscribeToDestination(data: StompSubscription): void {
         let session = this._sessions.get(data.session);
         if (session && session !== null) {
-
             // subscribe to broker destination
-            let subscriptionSubject = session.subscribe(data.destination, data.id);
+            let subscriptionSubject = session.subscribe(data.destination, data.id, this.getGlobalHeaders());
             let message: StompBusCommand =
                 StompParser.generateStompBusCommand(
                     StompClient.STOMP_SUBSCRIBED,
