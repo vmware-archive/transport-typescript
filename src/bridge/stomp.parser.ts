@@ -93,6 +93,7 @@ export class StompParser {
                         }
                     }
                 }
+                out = out + 'accept-version:1.2\n'; // hard wire this in, mandatory for spring 5.1.6+
                 if (body) {
                     // build content-length not implemtened in original library
                     if (command === 'SEND') {
