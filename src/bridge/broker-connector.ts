@@ -24,7 +24,7 @@ export class BrokerConnector implements EventBusEnabled {
     public connectDelay: number = 20;
     public connecting: boolean = false;
 
-    private _currentSession: StompSession = null;
+    private currentSession: StompSession = null;
 
     // helper methods for boilerplate commands.
     static fireSubscriptionCommand(bus: EventBus,
@@ -403,14 +403,14 @@ export class BrokerConnector implements EventBusEnabled {
     public connectClient(config: StompConfig): void {
 
         // Ignore the connect request in case we are in connecting or connected state.
-        if (this._currentSession && this._currentSession.client &&
-              (this._currentSession.client.connectionState === ConnectionState.Connecting ||
-                  this._currentSession.client.connectionState === ConnectionState.Connected)) {
+        if (this.currentSession && this.currentSession.client &&
+              (this.currentSession.client.connectionState === ConnectionState.Connecting ||
+                  this.currentSession.client.connectionState === ConnectionState.Connected)) {
             return;
         }
 
         let session = new StompSession(config, this.log, this.bus);
-        this._currentSession = session;
+        this.currentSession = session;
 
         let connection = session.connect();
         this.connecting = true;
