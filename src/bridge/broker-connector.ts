@@ -1,4 +1,4 @@
-import { StompClient } from './stomp.client';
+import { ConnectionState, StompClient } from './stomp.client';
 import { Observable, Subscription } from 'rxjs';
 import {
     StompSession, BrokerConnectorChannel, StompBusCommand, StompSubscription, StompMessage,
@@ -23,6 +23,8 @@ export class BrokerConnector implements EventBusEnabled {
     public reconnectDelay: number = 5000;
     public connectDelay: number = 20;
     public connecting: boolean = false;
+
+    private currentSession: StompSession = null;
 
     // helper methods for boilerplate commands.
     static fireSubscriptionCommand(bus: EventBus,
@@ -399,7 +401,16 @@ export class BrokerConnector implements EventBusEnabled {
     }
 
     public connectClient(config: StompConfig): void {
+
+        // Ignore the connect request in case we are in connecting or connected state.
+        if (this.currentSession && this.currentSession.client &&
+              (this.currentSession.client.connectionState === ConnectionState.Connecting ||
+                  this.currentSession.client.connectionState === ConnectionState.Connected)) {
+            return;
+        }
+
         let session = new StompSession(config, this.log, this.bus);
+        this.currentSession = session;
 
         let connection = session.connect();
         this.connecting = true;

@@ -23,6 +23,16 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "8/20/19",
+            "version": "0.14.16",
+            "notes": [
+                {
+                    "description": "Ensure that after automatic re-connect there will be only one active StompSession.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/75"
+                }
+            ]
+        },
+        {
             "date": "8/5/19",
             "version": "0.14.15",
             "notes": [

@@ -17,6 +17,12 @@ export interface StompTransaction {
     abort: Function;
 }
 
+export enum ConnectionState {
+   Connecting,
+   Connected,
+   Disconnected
+}
+
 export class StompClient implements EventBusEnabled {
 
     getName(): string {
@@ -61,6 +67,8 @@ export class StompClient implements EventBusEnabled {
     private _transactionReceipts: Map<string, Subject<any>>;
     private _heartbeater: any;
 
+    private currentConnectionState: ConnectionState;
+
     constructor(private log: Logger, private bus?: EventBus) {
 
         this._transactionReceipts = new Map<string, Subject<StompMessage>>();
@@ -70,6 +78,7 @@ export class StompClient implements EventBusEnabled {
         this._ackObserver = new Subject<StompMessage>();
         this._subscriptionObserver = new Subject<StompMessage>();
 
+        this.currentConnectionState = ConnectionState.Disconnected;
     }
 
     public getSubscription(id: string): Subject<StompMessage> {
@@ -77,6 +86,10 @@ export class StompClient implements EventBusEnabled {
             return this._subscriptions.get(id);
         }
         return null;
+    }
+
+    get connectionState(): ConnectionState {
+        return this.currentConnectionState;
     }
 
     get clientSocket(): any {
@@ -252,6 +265,7 @@ export class StompClient implements EventBusEnabled {
             this.log.info('Error is not STOMP packet, cannot be unmarshalled', this.getName());
         }
 
+        this.currentConnectionState = ConnectionState.Disconnected;
         // switch connection state to error for fabric consumers.
         if (this.bus) {
             this.log.debug('Informing Fabric subscribers that the connection has failed via store.', this.getName());
@@ -276,6 +290,7 @@ export class StompClient implements EventBusEnabled {
             });
             this.log.info('WebSocket has been closed', this.getName());
         });
+        this.currentConnectionState = ConnectionState.Disconnected;
         this._socketConnected = false;
         this._stompConnectedObserver = null;
         if (this._heartbeater) {
@@ -357,6 +372,7 @@ export class StompClient implements EventBusEnabled {
                 this.log.debug('STOMP client now connected, alerting subscribers', this.getName());
                 this._stompConnected = true;
                 this._stompConnectedObserver.next(true);
+                this.currentConnectionState = ConnectionState.Connected;
                 break;
 
             case StompClient.STOMP_MESSAGE:
@@ -443,6 +459,7 @@ export class StompClient implements EventBusEnabled {
         this._config = config;
         this._socketConnected = false;
         this._stompConnectedObserver = new Subject<Boolean>(); // rebuild for every connection
+        this.currentConnectionState = ConnectionState.Connecting;
 
         let ws: any;
         ws = this._config.generateSocket();
