@@ -12,8 +12,8 @@ gulp.task('karma', function (done) {
     new Server({
         configFile: configFile,
         reporters: ["kjhtml", "spec", "karma-typescript"],
-    }, function() {
-        done();
+    }, function(errCode) {
+        done(errCode);
     }).start();
 });
 
@@ -21,8 +21,8 @@ gulp.task('karma:debug', function (done) {
     new Server({
         configFile: configFileDebug,
         reporters: ['spec']
-    }, function() {
+    }, function(errCode) {
         // Ignore possible errors, the log should be enough when using :verbose
-        done();
+        done(errCode);
     }).start();
 });
