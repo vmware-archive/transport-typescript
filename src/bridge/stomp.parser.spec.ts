@@ -83,18 +83,21 @@ describe('Stomp Parser [stomp.parser]', () => {
 
             let expectedMessage1 = 'CONNECT\n' +
                 'test-header:hello\n' +
-                'some-value:1234\n\n' +
+                'some-value:1234\n' +
+                'accept-version:1.2\n\n' +
                 'stompy is a friend of stampy the elephant\0';
 
             let expectedMessage2 = 'MESSAGE\n' +
                 'test-header:hello\n' +
-                'some-value:1234\n\n' +
+                'some-value:1234\n' +
+                'accept-version:1.2\n\n' +
                 'hey hey hey!\0';
 
 
             let expectedMessage3 = 'MESSAGE\n' +
                 'test-header:hello\n' +
-                'some-value:1234\n\n' +
+                'some-value:1234\n' +
+                'accept-version:1.2\n\n' +
                 '{"look":"an-object","with":"properties"}\0';
 
             expect(message1).toEqual(expectedMessage1);
@@ -231,10 +234,10 @@ describe('Stomp Parser [stomp.parser]', () => {
         () => {
 
             let msg = StompParser.frame('TEST', { potato: 'tasty'}, 'tasty potato?');
-            expect(msg.toString()).toEqual('TEST\npotato:tasty\n\ntasty potato?');
+            expect(msg.toString()).toEqual('TEST\npotato:tasty\naccept-version:1.2\n\ntasty potato?');
 
             msg = StompParser.frame('TEST', null, 'tasty potato?');
-            expect(msg.toString()).toEqual('TEST\n\ntasty potato?');
+            expect(msg.toString()).toEqual('TEST\naccept-version:1.2\n\ntasty potato?');
             
         }
     );
