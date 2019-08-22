@@ -23,6 +23,16 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "8/21/19",
+            "version": "0.14.17",
+            "notes": [
+                {
+                    "description": "Change npm package license to VMW_Proprietary",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/77"
+                }
+            ]
+        },
+        {
             "date": "8/20/19",
             "version": "0.14.16",
             "notes": [

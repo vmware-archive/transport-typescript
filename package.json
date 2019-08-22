@@ -1,8 +1,8 @@
 {
   "name": "@vmw/bifrost",
-  "version": "0.14.16",
+  "version": "0.14.17",
   "private": false,
-  "license": "0BSD",
+  "license": "VMW_Proprietary",
   "repository": "git@gitlab.eng.vmware.com:bifrost/typescript.git",
   "dependencies": {
     "karma-jasmine-html-reporter": "^1.4.0",
