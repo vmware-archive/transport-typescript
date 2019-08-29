@@ -28,7 +28,7 @@
             "notes": [
                 {
                     "description": "Remove galactic channel subscriptions when the STOMP WebSocket is closed. This fixes https://gitlab.eng.vmware.com/bifrost/typescript/issues/5",
-                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/80"
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/83"
                 }
             ]
         },
