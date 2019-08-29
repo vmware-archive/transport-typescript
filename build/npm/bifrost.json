@@ -23,6 +23,16 @@
     "license": "0BSD",
     "changelogHistory": [
         {
+            "date": "8/28/19",
+            "version": "0.14.18",
+            "notes": [
+                {
+                    "description": "VMC and bifrost now handle AutoMockService.forceResponse identically",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/79"
+                }
+            ]
+        },
+        {
             "date": "8/21/19",
             "version": "0.14.17",
             "notes": [

@@ -18,10 +18,10 @@ export const MOCK_UNIMPLEMENTED_ERROR = 444;
 
 export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObject, RestObject> {
     public mustFail = false;
-    public forceResponse: any;
     protected name = 'AbstractAutoRestMock';
     private listensTo: string;
     private restError = new RestError('Fake Error.', MOCK_FAKE_ERROR, 'fakeUri');
+    private pvtForceResponse: Array<any>;
     protected debug = false;
 
     constructor(name: string, listensTo: string) {
@@ -29,6 +29,40 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
         this.name = name;
         this.listensTo = listensTo;
         this.log.info(`♣️ Mock RestService Booted: ${name} with id: ${this.id}`, this.getName());
+    }
+
+    /**
+     * Check if there is a forced response without popping the stack
+     */
+    public get hasForceResponse(): boolean {
+        return !!this.pvtForceResponse;
+    }
+
+    /**
+     * Push a response onto the stack. If a NULL is passed, set the stack to undefined.
+     *
+     * @param response any
+     */
+    public set forceResponse(response: any) {
+        if (!response) {
+            this.pvtForceResponse = undefined;
+            return;
+        }
+
+        if (!this.pvtForceResponse) {
+            this.pvtForceResponse = [];
+        }
+
+        this.pvtForceResponse.push(response);
+    }
+
+    /**
+     * Return the value at the top of the stack. Pop the stack unless there is only one element in the stack.
+     */
+    public get forceResponse(): any {
+        return this.pvtForceResponse && this.pvtForceResponse.length > 1
+            ? this.pvtForceResponse.pop()
+            : this.pvtForceResponse[0];
     }
 
     protected handleData(data: any, restObject: RestObject, args?: MessageArgs) {
@@ -67,7 +101,7 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
         }
 
         // This allows a specific response to be sent back
-        if (this.forceResponse) {
+        if (this.hasForceResponse) {
             this.handleData(this.forceResponse, restRequestObject, requestArgs);
             return;
         }
