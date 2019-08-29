@@ -487,6 +487,7 @@ export class BrokerConnector implements EventBusEnabled {
 
         let session = this._sessions.get(sessionId);
         if (session && session !== null) {
+            this.clearGalacticSubscriptionsFromSession(session);
             session.disconnect();
             this._sessions.delete(sessionId);
         } else {
@@ -515,6 +516,20 @@ export class BrokerConnector implements EventBusEnabled {
         }
     }
 
+    private clearGalacticSubscriptionsFromSession(session: StompSession) {
+        if (!session || !session.getGalacticSubscriptions()) {
+            return;
+        }
+        session.getGalacticSubscriptions().forEach((sub: Subscription, channelName: string) => {
+           if (sub) {
+              sub.unsubscribe();
+              // close the channel to fix the channel reference count
+              this.bus.api.close(channelName, this.getName());
+           }
+        });
+        session.getGalacticSubscriptions().clear();
+    }
+
     private reconnectTimer(config: StompConfig) {
 
         // only enable if autoReconnect is set.
@@ -536,6 +551,8 @@ export class BrokerConnector implements EventBusEnabled {
         this._closeObservable.subscribe(
             (evt: any) => {
                 this.log.warn('WebSocket to broker closed!', this.getName());
+                this.sessions.forEach(
+                      session => this.clearGalacticSubscriptionsFromSession(session));
                 this.sessions.clear();
 
                 if (!this.reconnecting) {
@@ -552,6 +569,8 @@ export class BrokerConnector implements EventBusEnabled {
         this._errorObservable.subscribe(
             (err: any) => {
                 this.log.error('Error occurred with WebSocket, Unable to connect to broker!', this.getName());
+                this.sessions.forEach(
+                     session => this.clearGalacticSubscriptionsFromSession(session));
                 this._sessions.clear();
                 let msg
                     = StompParser.generateStompBusCommand(
