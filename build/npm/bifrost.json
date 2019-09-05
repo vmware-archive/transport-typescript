@@ -20,8 +20,18 @@
     //@endexclude
     "author": "Dave Shanley <dshanley@vmware.com>",
     "contributors": ["Akmal Khan <akmalk@vmware.com>","Etienne Le Sueur <elesueur@vmware.com>","Ashwini Manjunath <ashwinim@vmware.com>", "Matt Critchlow <mcritch@vmware.com>", "Andrii Alieksashyn <aalieksashyn@vmware.com>", "Stoyan Hristov <shristov@vmware.com>", "Josh Kim <kjosh@vmware.com>"],
-    "license": "0BSD",
+    "license": "VMW_Proprietary",
     "changelogHistory": [
+        {
+            "date": "9/5/19",
+            "version": "0.14.20",
+            "notes": [
+                {
+                    "description": "Change npm package license to VMW_Proprietary",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/85"
+                }
+            ]
+        },
         {
             "date": "8/29/19",
             "version": "0.14.19",
