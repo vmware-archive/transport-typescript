@@ -20,7 +20,7 @@
     //@endexclude
     "author": "Dave Shanley <dshanley@vmware.com>",
     "contributors": ["Akmal Khan <akmalk@vmware.com>","Etienne Le Sueur <elesueur@vmware.com>","Ashwini Manjunath <ashwinim@vmware.com>", "Matt Critchlow <mcritch@vmware.com>", "Andrii Alieksashyn <aalieksashyn@vmware.com>", "Stoyan Hristov <shristov@vmware.com>", "Josh Kim <kjosh@vmware.com>"],
-    "license": "0BSD",
+    "license": "VMW_Proprietary",
     "changelogHistory": [
         {
             "date": "8/29/19",
