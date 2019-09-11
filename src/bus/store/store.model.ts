@@ -4,7 +4,7 @@
 
 import { StoreStream, MutateStream } from '../../store.api';
 import { Subscription, Observable } from 'rxjs';
-import { MessageFunction } from '../../bus.api';
+import { MessageArgs, MessageFunction, SentFrom } from '../../bus.api';
 import { Logger } from '../../log';
 
 export type UUID = string;
@@ -15,13 +15,20 @@ export class MutationRequestWrapper<T, E = any> {
     value: T;
     errorHandler: MessageFunction<E>;
     successHandler: MessageFunction<T>;
+    uuid: UUID;
+    stateChangeType: any;
 
     constructor(value: T,
                 successHandler?: MessageFunction<T>,
-                errorHandler?: MessageFunction<E>) {
+                errorHandler?: MessageFunction<E>,
+                uuid?: UUID,
+                stateChangeType?: any) {
+
         this.value = value;
         this.successHandler = successHandler;
         this.errorHandler = errorHandler;
+        this.uuid = uuid;
+        this.stateChangeType = stateChangeType;
     }
 }
 
@@ -80,6 +87,22 @@ export class StoreStateMutation<T, V, S = any, E = any> extends BaseStoreState<T
     }
 }
 
+/**
+ * StoreMessageArgs contains additional information for store change messages
+ * like the id of the object which was changed and the state change type.
+ */
+export class StoreMessageArgs implements MessageArgs {
+    stateChangeType: any|undefined;
+    uuid: UUID;
+    version: number = 1;
+    from: SentFrom = '';
+
+    constructor(uuid: UUID, changeType?: any) {
+       this.uuid = uuid;
+       this.stateChangeType = changeType;
+    }
+}
+
 export class StoreStreamImpl<T, E = any> implements StoreStream<T> {
 
     protected subscription: Subscription;
@@ -96,7 +119,7 @@ export class StoreStreamImpl<T, E = any> implements StoreStream<T> {
                 if (successHandler) {
 
                     // forward onto subscriber.
-                    successHandler(req.value);
+                    successHandler(req.value, new StoreMessageArgs(req.uuid, req.stateChangeType));
 
                 } else {
                     this.log.error('unable to handle cache stream event, no handler provided.', 'StoreStream');

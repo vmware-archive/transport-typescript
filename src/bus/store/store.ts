@@ -177,7 +177,8 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
         return stream.pipe(
             map(
                 (stateChange: StoreStateChange<S, T>) => {
-                    return new MutationRequestWrapper(stateChange.value);
+                    return new MutationRequestWrapper(
+                          stateChange.value, null, null, stateChange.id, stateChange.type);
                 }
             )
         );
