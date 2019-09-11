@@ -2,7 +2,7 @@
  * Copyright(c) VMware Inc. 2017
  */
 
-import { UUID } from './store.model';
+import { StoreMessageArgs, UUID } from './store.model';
 import { BusStore, StoreStream, MutateStream } from '../../store.api';
 import { MessageFunction } from '../../bus.api';
 import { EventBus } from '../../bus.api';
@@ -136,10 +136,12 @@ describe('BusStore [store/store.model]', () => {
 
         cache.onChange<State.Created>('magnum', State.Created)
             .subscribe(
-                (d: Dog) => {
+                (d: Dog, args: StoreMessageArgs) => {
                     expect(d.dogName).toEqual('maggie');
                     expect(d.dogAge).toEqual(12);
                     expect(d.dogPhrase).toEqual('get the kitty');
+                    expect(args.uuid).toBe("magnum");
+                    expect(args.stateChangeType).toBe(State.Created);
                     counter++;
                 }
             );
@@ -211,9 +213,12 @@ describe('BusStore [store/store.model]', () => {
         const store: BusStore<string> = bus.stores.createStore('dog');
         store.onChange<State.Created>('magnum')
             .subscribe(
-                () => {
+                (val: string, args: StoreMessageArgs) => {
                     count++;
-                    if (count === 3) {
+                    if (count === 1) {
+                        expect(args.stateChangeType).toBe(State.Created);
+                    } else if (count === 3) {
+                        expect(args.stateChangeType).toBe("fart");
                         done();
                     }
                 }
@@ -274,8 +279,14 @@ describe('BusStore [store/store.model]', () => {
 
         cache.onAllChanges<State.Created>(State.Created)
             .subscribe(
-                () => {
+                (d: any, args: StoreMessageArgs) => {
                     counter++;
+                    if (counter === 1) {
+                        expect(args.uuid).toBe("something-else");
+                        expect(args.stateChangeType).toBe(State.Created);
+                    } else if (counter === 2) {
+                       expect(args.uuid).toBe("magnum");
+                    }
                 }
             );
 
@@ -335,9 +346,15 @@ describe('BusStore [store/store.model]', () => {
 
         listen<State, Dog>(cache, State.Created, State.Updated)
             .subscribe(
-                () => {
+                (d: Dog, args: StoreMessageArgs) => {
                     counter++;
+                    if (counter === 1) {
+                        expect(args.uuid).toBe("fox");
+                        expect(args.stateChangeType).toBe(State.Created);
+                    }
                     if (counter === 2) {
+                        expect(args.uuid).toBe("fox");
+                        expect(args.stateChangeType).toBe(State.Updated);
                         done();
                     }
                 }
