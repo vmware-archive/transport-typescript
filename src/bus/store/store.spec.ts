@@ -86,6 +86,19 @@ describe('BusStore [store/store.model]', () => {
             }));
         });
 
+        it('reset() method retrieves the store content', () => {
+            const galacticStore = new StoreImpl<string>(bus, 'galacticStore', 'store-sync-channel');
+            spyOn(bus, 'sendGalacticMessage').and.returnValue({});
+            galacticStore.reset();
+
+            expect(bus.sendGalacticMessage).toHaveBeenCalledWith('store-sync-channel', jasmine.objectContaining({
+                request: 'openStore',
+                payload: {
+                    storeId: 'galacticStore'
+                }
+            }));
+        });
+
         it('put() method triggers updateStoreRequest', (done) => {
             spyOn(bus, 'sendGalacticMessage').and.returnValue({});
             const galacticStore = new StoreImpl<string>(bus, 'galacticStore', 'store-sync-channel');

@@ -47,7 +47,7 @@ export class StoreManager implements BusStoreApi {
         } else {
             const store: BusStore<T> = this.getStore(objectType);
             if (store.isGalacticStore()) {
-                this.bus.logger.error("createStore() called with already existing global store!");
+                this.bus.logger.error("createStore() called with already existing galactic store!");
             }
             this.bus.logger.verbose(`Stores: Returning reference to ${objectType} as it already exists`);
             return store;
