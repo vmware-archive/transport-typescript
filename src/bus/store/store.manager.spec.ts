@@ -6,6 +6,7 @@ import { EventBus } from '../../bus.api';
 import { Logger, LogLevel } from '../../log';
 import { BusStore } from '../../store.api';
 import { BusTestUtil } from '../../util/test.util';
+import { StoreImpl } from "./store";
 
 describe('Store Manager [store/store.manager]', () => {
 
@@ -21,6 +22,13 @@ describe('Store Manager [store/store.manager]', () => {
             log = bus.api.logger();
         }
     );
+
+    it('destroyStore() method calls store`s closeStore() method', () => {
+        const testStore = <StoreImpl<string>> bus.stores.createStore('testStore');
+        spyOn(testStore, 'closeStore');
+        bus.stores.destroyStore('testStore');
+        expect(testStore.closeStore).toHaveBeenCalled();
+    });
 
     it('Check readyJoin works', (done) => {
 

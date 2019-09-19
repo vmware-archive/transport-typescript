@@ -67,6 +67,13 @@ export interface BusStoreApi {
      */
     createStore<T>(objectType: StoreType, map?: Map<UUID, T>): BusStore<T>;
 
+   /**
+    * Opens a galactic store.
+    * @param {StoreType} objectType
+    * @returns {BusStore<T>}
+    */
+    openGalacticStore<T>(objectType: StoreType): BusStore<T>;
+
     /**
      * Get a reference to the existing store. If the store does not exist, nothing will be returned.
      * @param {StoreType} objectType the string ID of the store you want a reference to (i.e. 'UserStore')
@@ -74,7 +81,9 @@ export interface BusStoreApi {
     getStore<T>(objectType: StoreType): BusStore<T>;
 
     /**
-     * Destroy a store (destructive)
+     * Destroy a store (destructive). If called for a galactic store, will trigger closeGalacticStore
+     * request to the backend and will destroy the local store copy (store's items on the backend will not
+     * be affected).
      * @param {StoreType} objectType the string ID of the store you want to destroy (i.e. 'UserStore')
      */
     destroyStore(objectType: StoreType): boolean;
@@ -156,6 +165,7 @@ export interface BusStore<T> {
      * Populate the cache with a collection of objects and their ID's.
      * @param {Map<UUID, T>} items a Map of your UUID's mapped to your Objects.
      * @returns {boolean} if the cache has already been populated (has objects), will return false.
+     * This method has no effect for galactic stores.
      */
     populate(items: Map<UUID, T>): boolean;
 
@@ -199,8 +209,15 @@ export interface BusStore<T> {
     reset(): void;
 
     /**
+     * Return true if this is a galactic store.
+     */
+    isGalacticStore(): boolean;
+
+    /**
      * Set lambda that is used to auto-reload this store.
      * @param serviceCallFunction function should encapsulate a service call.
+     *
+     * This method has no effect for galactic stores.
      */
     setAutoReloadServiceTrigger(serviceCallFunction: Function): void;
 
@@ -208,21 +225,29 @@ export interface BusStore<T> {
      * Start automatic reload. The store will refetch its data (using setAutoReloadServiceTrigger). The store is
      * considered stale once the TTL has passed.
      * @param timeToLiveInMs how long to hold data in the store before refetching. (default is 10 seconds)
+     *
+     * This method has no effect for galactic stores.
      */
     startAutoReload(timeToLiveInMs: number): void;
 
     /**
      * Restart auto-reload timer.
+     *
+     * This method has no effect for galactic stores.
      */
     refreshApiDelay(): void;
 
     /**
      * Reload store with refresh service call.
+     *
+     * This method has no effect for galactic stores.
      */
     reloadStore(): void;
 
     /**
      * Stop Store from auto-refreshing.
+     *
+     * This method has no effect for galactic stores.
      */
     stopAutoReload(): void;
 }

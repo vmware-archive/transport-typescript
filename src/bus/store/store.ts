@@ -11,9 +11,10 @@ import {
     StoreType
 } from './store.model';
 import { BusStore, StoreStream, MutateStream } from '../../store.api';
-import { EventBus, EventBusEnabled, MessageFunction } from '../../bus.api';
+import { EventBus, EventBusEnabled, MessageFunction, MessageHandler } from '../../bus.api';
 import { Logger } from '../../log/logger.service';
 import { GeneralUtil } from '../../util/util';
+import { BrokerConnectorChannel, StompBusCommand, StompClient } from "../../bridge";
 
 interface Predicate<T> {
     (value: T): boolean;
@@ -38,11 +39,19 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
     private cacheInitialized = false;
     private name: string;
 
+    private galacticStoreVersion: number;
+    private syncChannelMessageHandler: MessageHandler<any>;
+    private connectionMessageHandler: MessageHandler<any>;
+    private isGalactic: boolean = false;
+
     public getObjectChannel(id: UUID): UUID {
         return 'store-' + this.uuid + '-object-' + id;
     }
 
-    constructor(private bus: EventBus, private type: StoreType) {
+    constructor(private bus: EventBus, private type: StoreType, private galacticStoreSyncChannel: string = null) {
+
+        this.isGalactic = !!this.galacticStoreSyncChannel;
+
         this.cache = new Map<UUID, any>();
         this.uuid = GeneralUtil.genUUID();
         this.cacheStreamChan = `stores::store-change-${this.uuid}-${type}`;
@@ -51,6 +60,84 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
         this.log = bus.api.logger();
         this.name = type;
         this.log.info(`🗄️ Store: New Store [${type}] was created with id ${this.uuid}, named ${type}`);
+
+        if (this.isGalactic) {
+            this.initGalacticStore();
+        }
+    }
+
+    private initGalacticStore() {
+
+        this.syncChannelMessageHandler =
+                this.bus.listenStream(this.galacticStoreSyncChannel, this.getName());
+
+        this.syncChannelMessageHandler.handle( (response: any) => {
+            if (!response || response.storeId !== this.type) {
+                // the response is for another store
+                return;
+            }
+            if (response.responseType === "storeContentResponse") {
+                this.galacticStoreVersion = response.storeVersion;
+                this.cache.clear();
+                Object.keys(response.items).forEach(
+                        key => this.cache.set(key, response.items[key]));
+                this.initialize();
+            } else if (response.responseType === "updateStoreResponse") {
+
+                if (response.storeVersion > this.galacticStoreVersion + 1) {
+                    // If the backend store version is greater than local version + 1 this means
+                    // that we have missed some store updates.
+                    this.log.warn("Detected missing updates for store: " + this.type);
+                }
+
+                this.galacticStoreVersion = Math.max(this.galacticStoreVersion, response.storeVersion);
+                if (response.newItemValue === null || response.newItemValue === undefined) {
+                    this.removeLocal(response.itemId, "galacticSyncRemove");
+                } else {
+                    this.putLocal(response.itemId, response.newItemValue, "galacticSyncUpdate");
+                }
+            }
+        });
+
+        this.requestStoreContent();
+
+        // listen for STOMP connect events on broker connector channel to update
+        // the store content.
+        this.connectionMessageHandler = this.bus.listenStream(BrokerConnectorChannel.status);
+        this.connectionMessageHandler.handle(
+                (busCommand: StompBusCommand) => {
+                    switch (busCommand.command) {
+                        case StompClient.STOMP_CONNECTED:
+                            this.requestStoreContent();
+                            break;
+                    }
+                });
+    }
+
+    closeStore() {
+        if (this.isGalacticStore()) {
+            const closeStoreRequest = this.bus.fabric.generateFabricRequest(
+                    "closeStore",
+                    {
+                        storeId: this.type
+                    });
+            this.bus.sendGalacticMessage(this.galacticStoreSyncChannel, closeStoreRequest);
+            if (this.syncChannelMessageHandler) {
+                this.syncChannelMessageHandler.close();
+            }
+            if (this.connectionMessageHandler) {
+                this.connectionMessageHandler.close();
+            }
+        }
+    }
+
+    private requestStoreContent() {
+        const openStoreRequest = this.bus.fabric.generateFabricRequest(
+                "openStore",
+                {
+                    storeId: this.type
+                });
+        this.bus.sendGalacticMessage(this.galacticStoreSyncChannel, openStoreRequest);
     }
 
     private sendChangeBroadcast<C>(changeType: C, id: UUID, value: T): void {
@@ -79,7 +166,7 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
     }
 
     populate(items: Map<UUID, T>): boolean {
-        if (this.cache.size === 0) {
+        if (this.cache.size === 0 && !this.isGalacticStore()) {
             this.cache = new Map(items.entries());
             this.log.info('🗄️ Store: Populated with  ' + this.cache.size + ' values', this.type);
             this.initialize();
@@ -89,16 +176,41 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
     }
 
     put<S>(id: UUID, value: T, state: S): void {
+        if (this.isGalacticStore()) {
+            this.putGalactic(id, value, state);
+        } else {
+            this.putLocal(id, value, state);
+        }
+    }
+
+    private putLocal<S>(id: UUID, value: T, state: S): void {
         this.cache.set(id, value);
         this.sendChangeBroadcast(state, id, value);
         this.log.info('🗄️ Store: Added new object with id: ' + id, this.type);
     }
 
-    get(id: UUID): T {
-        return this.cache.get(id);
+    private putGalactic<S>(id: UUID, value: T, state: S): void {
+        const updateStoreRequest = this.bus.fabric.generateFabricRequest(
+                "updateStore",
+                {
+                    storeId: this.type,
+                    clientStoreVersion: this.galacticStoreVersion,
+                    itemId: id,
+                    newItemValue: value
+                });
+        this.bus.sendGalacticMessage(
+                this.galacticStoreSyncChannel, updateStoreRequest);
     }
 
     remove<S>(id: UUID, state: S): boolean {
+        if (this.isGalacticStore()) {
+            return this.removeGalactic(id, state);
+        } else {
+            return this.removeLocal(id, state);
+        }
+    }
+
+    private removeLocal<S>(id: UUID, state: S): boolean {
         if (this.cache.has(id)) {
             const obj = this.cache.get(id);
             this.sendChangeBroadcast(state, id, obj);
@@ -108,6 +220,31 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
             return true;
         }
         return false;
+    }
+
+    private removeGalactic<S>(id: UUID, state: S): boolean {
+        if (this.cache.has(id)) {
+            const updateStoreRequest = this.bus.fabric.generateFabricRequest(
+                    "updateStore",
+                    {
+                        storeId: this.type,
+                        clientStoreVersion: this.galacticStoreVersion,
+                        itemId: id,
+                        newItemValue: null
+                    });
+            this.bus.sendGalacticMessage(
+                    this.galacticStoreSyncChannel, updateStoreRequest);
+            return true;
+        }
+        return false;
+    }
+
+    get(id: UUID): T {
+        return this.cache.get(id);
+    }
+
+    isGalacticStore() {
+        return this.isGalactic;
     }
 
     onChange<S>(id: UUID, ...stateChangeType: S[]): StoreStream<T> {
@@ -243,6 +380,10 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
         this.cache.clear();
         this.cacheInitialized = false;
         this.log.warn(`🗄️ Store: [${this.name}] (${this.uuid}) has been reset. All data wiped `, this.name);
+
+        if (this.isGalacticStore()) {
+            this.requestStoreContent();
+        }
     }
 
     whenReady(readyFunction: MessageFunction<Map<UUID, T>>): void {
@@ -268,6 +409,10 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
     }
 
     startAutoReload(timeToLiveInMs: number = 10000): void { // defaults to 10 seconds.
+        if (this.isGalacticStore()) {
+            this.log.warn("Called startAutoReload() API on galactic store: " + this.type);
+            return;
+        }
         this.reloadTTL = timeToLiveInMs;
         this.stopAutoReload(); // stop any existing reload interval
 
@@ -282,12 +427,22 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
     }
 
     stopAutoReload(): void {
+        if (this.isGalacticStore()) {
+            this.log.warn("Called stopAutoReload() API on galactic store: " + this.type);
+            return;
+        }
+
         if (this.reloadIntervalTracker) {
             clearInterval(this.reloadIntervalTracker);
         }
     }
 
     refreshApiDelay(): void {
+        if (this.isGalacticStore()) {
+            this.log.warn("Called refreshApiDelay() API on galactic store: " + this.type);
+            return;
+        }
+
         this.stopAutoReload();
         if (this.reloadHandler) {
             this.reloadIntervalTracker = setInterval(
@@ -303,6 +458,11 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
     }
 
     reloadStore(): void {
+        if (this.isGalacticStore()) {
+            this.log.warn("Called reloadStore() API on galactic store: " + this.type);
+            return;
+        }
+
         this.refreshApiDelay();
         if (this.reloadHandler) {
             this.reloadHandler();
@@ -313,6 +473,11 @@ export class StoreImpl<T> implements BusStore<T>, EventBusEnabled {
     }
 
     setAutoReloadServiceTrigger(serviceCallFunction: Function): void {
+        if (this.isGalacticStore()) {
+            this.log.warn("Called setAutoReloadServiceTrigger() API on galactic store: " + this.type);
+            return;
+        }
+
         this.reloadHandler = serviceCallFunction;
     }
 }

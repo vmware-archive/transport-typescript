@@ -8,6 +8,7 @@ import { MessageFunction } from '../../bus.api';
 import { EventBus } from '../../bus.api';
 import { Logger } from '../../log';
 import { BusTestUtil } from '../../util/test.util';
+import { StoreImpl } from "./store";
 
 enum State {
     Created = 'Created',
@@ -38,8 +39,184 @@ describe('BusStore [store/store.model]', () => {
         bus.api.destroyAllChannels();
     });
 
+    describe('Galactic stores', () => {
+        it('openGalacticStore returns galactic store instance', () => {
+            const galacticStore = bus.stores.createStore('galacticStore');
+            expect(galacticStore).not.toBeNull();
+            expect(galacticStore.isGalacticStore).toBeTruthy();
+            expect(bus.stores.getStore('galacticStore')).toBe(galacticStore);
+        });
+
+        it('when created request store content', (done) => {
+            spyOn(bus, 'sendGalacticMessage').and.returnValue({});
+            const galacticStore = new StoreImpl<string>(bus, 'galacticStore', 'store-sync-channel');
+
+            expect(bus.sendGalacticMessage).toHaveBeenCalledWith('store-sync-channel', jasmine.objectContaining({
+                request: 'openStore',
+                payload: {
+                    storeId: 'galacticStore'
+                }
+            }));
+
+            galacticStore.whenReady( m => {
+                expect(galacticStore.get('item1')).toBe('value1');
+                done();
+            });
+
+            bus.sendResponseMessage('store-sync-channel', {
+                responseType: 'storeContentResponse',
+                storeId: 'galacticStore',
+                items: {
+                    'item1': 'value1'
+                }
+            });
+        });
+
+        it('closeStore() method triggers closeStore request', () => {
+            spyOn(bus, 'sendGalacticMessage').and.returnValue({});
+            const galacticStore = new StoreImpl<string>(bus, 'galacticStore', 'store-sync-channel');
+
+            galacticStore.closeStore();
+
+            expect(bus.sendGalacticMessage).toHaveBeenCalledWith('store-sync-channel', jasmine.objectContaining({
+                request: 'closeStore',
+                payload: {
+                    storeId: 'galacticStore'
+                }
+            }));
+        });
+
+        it('reset() method retrieves the store content', () => {
+            const galacticStore = new StoreImpl<string>(bus, 'galacticStore', 'store-sync-channel');
+            spyOn(bus, 'sendGalacticMessage').and.returnValue({});
+            galacticStore.reset();
+
+            expect(bus.sendGalacticMessage).toHaveBeenCalledWith('store-sync-channel', jasmine.objectContaining({
+                request: 'openStore',
+                payload: {
+                    storeId: 'galacticStore'
+                }
+            }));
+        });
+
+        it('put() method triggers updateStoreRequest', (done) => {
+            spyOn(bus, 'sendGalacticMessage').and.returnValue({});
+            const galacticStore = new StoreImpl<string>(bus, 'galacticStore', 'store-sync-channel');
+
+            bus.sendResponseMessage('store-sync-channel', {
+                responseType: 'storeContentResponse',
+                storeId: 'galacticStore',
+                items: {
+                    'item1': 'value1'
+                },
+                storeVersion: 1
+            });
+
+            galacticStore.whenReady( m => {
+                galacticStore.put('item1', 'value2', 'update_item');
+                expect(bus.sendGalacticMessage).toHaveBeenCalledWith('store-sync-channel', jasmine.objectContaining({
+                    request: 'updateStore',
+                    payload: {
+                        storeId: 'galacticStore',
+                        clientStoreVersion: 1,
+                        itemId: 'item1',
+                        newItemValue: 'value2'
+                    }
+                }));
+                done();
+            });
+        });
+
+        it('remove() method triggers updateStoreRequest', (done) => {
+            spyOn(bus, 'sendGalacticMessage').and.returnValue({});
+            const galacticStore = new StoreImpl<string>(bus, 'galacticStore', 'store-sync-channel');
+
+            bus.sendResponseMessage('store-sync-channel', {
+                responseType: 'storeContentResponse',
+                storeId: 'galacticStore',
+                items: {
+                    'item1': 'value1'
+                },
+                storeVersion: 1
+            });
+
+            galacticStore.whenReady( m => {
+                galacticStore.remove('item1', 'remove_item');
+                expect(bus.sendGalacticMessage).toHaveBeenCalledWith('store-sync-channel', jasmine.objectContaining({
+                    request: 'updateStore',
+                    payload: {
+                        storeId: 'galacticStore',
+                        clientStoreVersion: 1,
+                        itemId: 'item1',
+                        newItemValue: null
+                    }
+                }));
+                done();
+            });
+        });
+
+        it('galactic updates trigger store change handlers', (done) => {
+            const galacticStore = new StoreImpl<string>(bus, 'galacticStore', 'store-sync-channel');
+
+            bus.sendResponseMessage('store-sync-channel', {
+                responseType: 'storeContentResponse',
+                storeId: 'galacticStore',
+                items: {
+                    'item1': 'value1'
+                },
+                storeVersion: 1
+            });
+
+            galacticStore.onAllChanges().subscribe( (item: string, args: StoreMessageArgs) => {
+                expect(item).toBe('value2');
+                expect(args.uuid).toBe('item1');
+                expect(args.stateChangeType).toBe('galacticSyncUpdate');
+                expect(galacticStore.get('item1')).toBe('value2');
+                done();
+            });
+
+            bus.sendResponseMessage('store-sync-channel', {
+                responseType: 'updateStoreResponse',
+                storeId: 'galacticStore',
+                itemId: 'item1',
+                newItemValue:  'value2',
+                storeVersion: 2
+            });
+        });
+
+        it('galactic remove updates trigger store change handlers', (done) => {
+            const galacticStore = new StoreImpl<string>(bus, 'galacticStore', 'store-sync-channel');
+
+            bus.sendResponseMessage('store-sync-channel', {
+                responseType: 'storeContentResponse',
+                storeId: 'galacticStore',
+                items: {
+                    'item1': 'value1'
+                },
+                storeVersion: 1
+            });
+
+            galacticStore.onChange('item1').subscribe( (item: string, args: StoreMessageArgs) => {
+                expect(item).toBe('value1');
+                expect(args.uuid).toBe('item1');
+                expect(args.stateChangeType).toBe('galacticSyncRemove');
+                expect(galacticStore.get('item1')).toBeUndefined();
+                done();
+            });
+
+            bus.sendResponseMessage('store-sync-channel', {
+                responseType: 'updateStoreResponse',
+                storeId: 'galacticStore',
+                itemId: 'item1',
+                newItemValue:  null,
+                storeVersion: 2
+            });
+        });
+    });
+
     it('Check cache has been set up correctly', () => {
         expect(bus.stores.getStore('string')).not.toBeNull();
+        expect(bus.stores.getStore('string').isGalacticStore()).toBeFalsy();
         expect(bus.stores.getStore('string').populate(new Map<UUID, string>())).toBeTruthy();
     });
 
