@@ -81,7 +81,7 @@ export interface BusStoreApi {
     getStore<T>(objectType: StoreType): BusStore<T>;
 
     /**
-     * Destroy a store (destructive). If called for a global store, will trigger closeGalacticStore
+     * Destroy a store (destructive). If called for a galactic store, will trigger closeGalacticStore
      * request to the backend and will destroy the local store copy (store's items on the backend will not
      * be affected).
      * @param {StoreType} objectType the string ID of the store you want to destroy (i.e. 'UserStore')
