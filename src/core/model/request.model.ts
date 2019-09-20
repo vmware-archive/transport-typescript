@@ -5,17 +5,19 @@ import { GeneralUtil } from '../../util/util';
 export class APIRequest<PayloadT> extends AbstractFrame {
 
     public static build<ReqP>(request: string,
-                              payload?: ReqP, id: UUID = GeneralUtil.genUUID(),
-                              version: number = 1): APIRequest<ReqP> {
-        return new APIRequest<ReqP>(request, payload, id, version);
+                              messageHeader?: {[key: string]: any}, payload?: ReqP,
+                              id: UUID = GeneralUtil.genUUID(), version: number = 1): APIRequest<ReqP> {
+        return new APIRequest<ReqP>(request, payload, id, version, messageHeader);
     }
 
+    public headers: {[key: string]: any};
     public payload: PayloadT;
     public request: string;
 
-    constructor(request: string, payload: PayloadT, id: UUID, version: number) {
+    constructor(request: string, payload: PayloadT, id: UUID, version: number, headers?: {[key: string]: any}) {
         super(id, version);
         this.request = request;
         this.payload = payload;
+        this.headers = headers;
     }
 }

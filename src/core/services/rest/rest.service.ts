@@ -62,7 +62,6 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
                     && restObject.request !== HttpRequest.DisableCORSAndCredentials) {
                     this.doHttpRequest(restObject, args);
                 } else {
-
                     switch (restObject.request) {
                         case HttpRequest.UpdateGlobalHeaders:
                             this.updateHeaders(restObject.headers);
@@ -165,6 +164,11 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
 
         // merge globals and request headers
         const requestHeaders = {...restObject.headers, ...globalHeaders};
+
+        // set XSRF token if it is enabled
+        if (this.fabric.isXsrfTokenEnabled()) {
+            requestHeaders[this.fabric.getXsrfTokenStoreKey()] = this.fabric.getXsrfToken();
+        }
 
         this.log.debug(`Rest Service: preparing headers ${requestHeaders}`, this.getName());
 

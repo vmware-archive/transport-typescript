@@ -13,8 +13,6 @@ import { APIRequest } from '../core/model/request.model';
 import { APIResponse } from '../core/model/response.model';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { RestService } from '../core/services/rest/rest.service';
-
 
 export class FabricApiImpl implements FabricApi {
 
@@ -27,6 +25,10 @@ export class FabricApiImpl implements FabricApi {
     private connectionStore: BusStore<FabricConnectionState>;
     private fabricDisconnectHandler: MessageHandler<StompBusCommand>;
     private accessTokenSessionStorageKey: string = 'csp-auth-token';
+    private customHeaderPrefix: string = 'X-';
+    private xsrfTokenEnabled: boolean = false;
+    private xsrfTokenStoreKey: string = `${this.customHeaderPrefix}XSRF-TOKEN`;
+
 
     constructor(private readonly bus: EventBus) {
         this.bus = bus;
@@ -165,11 +167,16 @@ export class FabricApiImpl implements FabricApi {
 
     }
 
-    generateFabricRequest<T>(requestCommand: string, payload?: T): APIRequest<T> {
+    generateFabricRequest<T>(requestCommand: string, payload?: T, headers?: {[key: string]: any}): APIRequest<T> {
         if (!payload) {
             payload = '' as any;
         }
-        return new APIRequest<T>(requestCommand, payload, GeneralUtil.genUUID(), 1);
+
+        if (this.bus.fabric.isXsrfTokenEnabled()) {
+            headers = {...headers, [this.bus.fabric.getXsrfTokenStoreKey()]: this.bus.fabric.getXsrfToken()};
+        }
+
+        return new APIRequest<T>(requestCommand, payload, GeneralUtil.genUUID(), 1, headers);
     }
 
     generateFabricResponse<T>(id: UUID,
@@ -225,6 +232,42 @@ export class FabricApiImpl implements FabricApi {
 
     getAccessToken(): string {
         return sessionStorage.getItem(this.getAccessTokenSessionStorageKey()) || '';
+    }
+
+    setXsrfToken(token: string): void {
+        this.bus.stores.createStore(Stores.XsrfToken).put(this.getXsrfTokenStoreKey(), token, 'xsrftokenSet');
+    }
+
+    getXsrfToken(): string {
+        // return the token if found in the cookie
+        const token: string | null = GeneralUtil.getCookie(
+            this.getXsrfTokenStoreKey().replace(this.customHeaderPrefix, ''));
+        if (token !== null) {
+            return token;
+        }
+
+        return this.bus.stores.createStore<string>(Stores.XsrfToken).get(this.getXsrfTokenStoreKey()) || '';
+    }
+
+    setXsrfTokenStoreKey(key: string): void {
+        this.bus.logger.debug(`Setting XSRF token store key to: ${key}`, 'FabricApi');
+        this.xsrfTokenStoreKey = key;
+    }
+
+    getXsrfTokenStoreKey(): string {
+        return this.xsrfTokenStoreKey;
+    }
+
+    isXsrfTokenEnabled(): boolean {
+        return this.xsrfTokenEnabled;
+    }
+
+    setXsrfTokenEnabled(value: boolean): void {
+        if (value) {
+            // construct or get a xsrf token store
+            this.bus.stores.createStore(Stores.XsrfToken);
+        }
+        this.xsrfTokenEnabled = value;
     }
 
     useFabricRestService(): void {

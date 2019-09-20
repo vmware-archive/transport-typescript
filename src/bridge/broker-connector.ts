@@ -395,9 +395,11 @@ export class BrokerConnector implements EventBusEnabled {
     }
 
     private getGlobalHeaders(): {[key: string]: string | number} {
-        return {
+        const headers: any = {
             accessToken: this.bus.fabric.getAccessToken()
         };
+
+        return headers;
     }
 
     public connectClient(config: StompConfig): void {

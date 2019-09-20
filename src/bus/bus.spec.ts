@@ -2063,7 +2063,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         it('galacticRequest() works correctly.',
             (done) => {
                 const id: UUID = GeneralUtil.genUUIDShort();
-                const req: APIRequest<string> = APIRequest.build('testAPI', 'ember loves to play?', id);
+                const req: APIRequest<string> = APIRequest.build('testAPI', null, 'ember loves to play?', id);
                 bus.requestGalactic('ember-station', req,
                     (resp: APIResponse<string>) => {
                         expect(resp.id).toEqual(id);
