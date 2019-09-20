@@ -117,6 +117,39 @@ export interface FabricApi {
     getAccessToken(): string;
 
     /**
+     * Set store key for xsrf token.
+     * @param key key stored in cookie representing the xsrf token
+     */
+    setXsrfTokenStoreKey(key: string): void;
+
+    /**
+     * Get store key for xsrf token.
+     * as a header.
+     */
+    getXsrfTokenStoreKey(): string;
+
+    /**
+     * Set xsrf token
+     */
+    setXsrfToken(token: string): void;
+
+    /**
+     * Get xsrf token either from cookie or from bifrost store
+     */
+    getXsrfToken(): string;
+
+    /**
+     * Get whether the XSRF token is enabled
+     */
+    isXsrfTokenEnabled(): boolean;
+
+    /**
+     * Set whether the XSRF token should be injected into the request headers
+     * @param value
+     */
+    setXsrfTokenEnabled(value: boolean): void;
+
+    /**
      * Switch to using fabric based RestService, no more security issues, un-restricted power!
      */
     useFabricRestService(): void;

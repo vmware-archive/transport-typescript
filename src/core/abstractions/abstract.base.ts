@@ -38,6 +38,20 @@ export abstract class AbstractBase extends AbstractCore implements EventBusEnabl
     }
 
     /**
+     * Enable automatic XSRF token handling.
+     */
+    protected enableXsrfTokenHandling() {
+        this.fabric.setXsrfTokenEnabled(true);
+    }
+
+    /**
+     * Disable automatic XSRF token handling.
+     */
+    protected disableXsrfTokenHandling() {
+        this.fabric.setXsrfTokenEnabled(false);
+    }
+
+    /**
      * Enable Dev Mode.
      * > Disables CORS and credentials for local RestService
      */

@@ -27,4 +27,24 @@ export class GeneralUtil {
             return false;
         }
     }
+
+    /**
+     * Returns the value of the specified cookie
+     * @param name
+     */
+    public static getCookie(name: string): string {
+        const cookieName = name + '=';
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            let c = cookies[i];
+            while (c.charAt(0) === ' ') {
+                c = c.substring(1, c.length);
+            }
+
+            if (c.indexOf(cookieName) === 0) {
+                return c.substring(cookieName.length, c.length);
+            }
+        }
+        return null;
+    }
 }

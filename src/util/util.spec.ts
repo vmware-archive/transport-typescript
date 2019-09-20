@@ -8,4 +8,10 @@ describe('Bus Util [util/bus.util.spec]', () => {
             expect(GeneralUtil.isObject('{"cutestBaby": "melody"}')).toBeTruthy();
         }
     );
+
+    it('Check a cookie can be fetched', () => {
+        spyOnProperty(document, 'cookie').and.returnValue('cookie=cracker; pine=apple;');
+        expect(GeneralUtil.getCookie('cookie')).toBe('cracker');
+        expect(GeneralUtil.getCookie('apple')).toBeNull();
+    });
 });

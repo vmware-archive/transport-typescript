@@ -3,9 +3,9 @@ import { Logger, LogLevel } from '../log';
 import { BusTestUtil } from '../util/test.util';
 import { FabricConnectionState } from '../fabric.api';
 import { FabricApiImpl } from './fabric';
-import { Message } from '../bus';
-import { RestService } from '../core/services/rest/rest.service';
-import { ServiceLoader } from '../util/service.loader';
+import { BusStore, Message } from '../bus';
+import { GeneralUtil } from '../util/util';
+import { Stores } from './fabric.model';
 
 /**
  * Copyright(c) VMware Inc. 2019
@@ -274,4 +274,74 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
         }
     );
 
+    it('Check we can get/set the XSRF token store key',
+        () => {
+            spyOn(bus.logger, 'debug').and.callThrough();
+            bus.fabric.setXsrfTokenStoreKey('123');
+            expect(bus.logger.debug)
+                .toHaveBeenCalledWith('Setting XSRF token store key to: 123', 'FabricApi');
+        }
+    );
+
+    it('Check if XSRF token handling can be toggled',
+        () => {
+            bus.fabric.setXsrfTokenEnabled(true);
+            expect(bus.fabric.isXsrfTokenEnabled()).toBeTruthy();
+
+            bus.fabric.setXsrfTokenEnabled(false);
+            expect(bus.fabric.isXsrfTokenEnabled()).toBeFalsy();
+        }
+    );
+
+    it('Check if XSRF token can be read from cookie',
+        () => {
+            const id: string = GeneralUtil.genUUID();
+            bus.stores.getStore(Stores.XsrfToken);
+
+            // fetch the token from cookie
+            spyOnProperty(document, 'cookie').and.returnValue(`XSRF-TOKEN=${id}`);
+            expect(bus.fabric.getXsrfToken()).toBe(id);
+        }
+    );
+
+    it('Check if XSRF token can be read from store',
+        (done) => {
+            const id: string = GeneralUtil.genUUID();
+            const store: BusStore<string> = bus.stores.createStore(Stores.XsrfToken);
+
+            // fetch the token from store
+            store.whenReady(() => {
+                expect(bus.fabric.getXsrfToken()).toBe(id);
+                done();
+            });
+
+            store.populate(new Map<string, string>([[bus.fabric.getXsrfTokenStoreKey(), id]]));
+        }
+    );
+
+    it('Check if XSRF token can be set',
+        () => {
+            const id: string = GeneralUtil.genUUID();
+            spyOnProperty(document, 'cookie').and.returnValue(`XSRF-TOKEN=${id}`);
+
+            // expect bus.stores.getStore not to have been called because a cookie containing the token is found
+            spyOn(bus.stores, 'getStore').and.callThrough();
+            bus.fabric.setXsrfTokenEnabled(true);
+            bus.fabric.setXsrfToken(id);
+            expect(bus.stores.getStore).toHaveBeenCalled();
+        }
+    );
+
+    it('Check that when XSRF token is null, an empty value is returned from getXsrfToken()',
+        (done) => {
+            const store: BusStore<string> = bus.stores.createStore(Stores.XsrfToken);
+            store.whenReady(() => {
+                expect(bus.fabric.getXsrfToken()).toBe('');
+                done();
+            });
+
+            store.reset();
+            store.initialize();
+        }
+    );
 });

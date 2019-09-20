@@ -13,6 +13,14 @@ class MyTestClass extends AbstractBase {
         super('MyTestClass');
     }
 
+    public enableXsrfTokenHandling() {
+        super.enableXsrfTokenHandling();
+    }
+
+    public disableXsrfTokenHandling() {
+        super.disableXsrfTokenHandling();
+    }
+
     public testDevMode(): void {
         super.enableDevMode();
     }
@@ -81,4 +89,11 @@ describe('Bifröst Abstract Operations [cores/abstractions/abstract.operations]'
             expect(RestOperations.getInstance().restServiceRequest).toHaveBeenCalled();
         }
     );
+
+    it('Check if XSRF token handling is toggled on and off', () => {
+        testClass.enableXsrfTokenHandling();
+        expect(bus.fabric.isXsrfTokenEnabled()).toBeTruthy();
+        testClass.disableXsrfTokenHandling();
+        expect(bus.fabric.isXsrfTokenEnabled()).toBeFalsy();
+    });
 });

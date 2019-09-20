@@ -12,8 +12,12 @@ export abstract class AbstractMessageObject<TRequest, TPayload> extends Abstract
      * @param request - enumerated TRequest
      * @param channel - string channel for service requests
      * @param payload - request and response payloads
+     * @param headers - message headers
      */
-    constructor(public readonly request?: TRequest, public readonly channel?: string | null | undefined, public payload?: TPayload) {
+    constructor(public readonly request?: TRequest,
+                public readonly channel?: string | null | undefined,
+                public payload?: TPayload,
+                public headers?: {[key: string]: any}) {
         super();
     }
 }

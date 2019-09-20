@@ -23,6 +23,16 @@
     "license": "VMW_Proprietary",
     "changelogHistory": [
         {
+            "date": "9/4/19",
+            "version": "0.14.23",
+            "notes": [
+                {
+                    "description": "Add support for X-XSRF-TOKEN for both local and remote REST services",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/84"
+                }
+            ]
+        },
+        {
             "date": "9/19/19",
             "version": "0.14.22",
             "notes": [
@@ -31,7 +41,8 @@
                     "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/87"
                 }
             ]
-        }, {
+        },
+        {
             "date": "9/11/19",
             "version": "0.14.21",
             "notes": [
@@ -40,7 +51,8 @@
                     "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/86"
                 }
             ]
-        }, {
+        },
+        {
             "date": "9/5/19",
             "version": "0.14.20",
             "notes": [

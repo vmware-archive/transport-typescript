@@ -3,7 +3,8 @@
  */
 
 export enum Stores {
-    FabricConnection = 'stores::fabric-connection'
+    FabricConnection = 'fabric-connection',
+    XsrfToken = 'xsrf-token'
 }
 
 export enum FabricConnectionStoreKey {
