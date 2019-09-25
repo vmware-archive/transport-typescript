@@ -6,11 +6,9 @@ import { AbstractCore } from '../../abstractions/abstract.core';
 import { HttpClient } from './http.client';
 import { BifrostHttpclient } from './bifrost.httpclient';
 import { FabricService } from '../../abstractions/fabric.service';
+import { GLOBAL_HEADERS, GLOBAL_HEADERS_UPDATE, HEADERS_STORE } from '../../../fabric/fabric';
 
 const REFRESH_RETRIES = 3;
-const GLOBAL_HEADERS = 'global-headers';
-const GLOBAL_HEADERS_UPDATE = 'update';
-
 
 /**
  * REST Service that operates standard functions on behalf of consumers and services.
@@ -42,7 +40,7 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
             this.httpClient = httpClient;
         }
 
-        this.headerStore = this.storeManager.createStore('bifrost::RestService');
+        this.headerStore = this.storeManager.createStore(HEADERS_STORE);
         this.listenForRequests();
         this.log.info(`${this.name} Online`);
 

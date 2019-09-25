@@ -47,8 +47,8 @@ describe('Store Manager [store/store.manager]', () => {
 
         bus.stores.readyJoin(['ember', 'fox']).whenReady(
             (stores: Array<BusStore<any>>) => {
-                expect(stores.length).toEqual(2);
-                expect(stores[0].get('fox')).toEqual('honk');
+                expect(stores.length).toEqual(3);
+                expect(stores[1].get('fox')).toEqual('honk');
                 done();
             }
         );
@@ -73,11 +73,11 @@ describe('Store Manager [store/store.manager]', () => {
 
         let itemCount = store1.allValues().length + store2.allValues().length;
 
-        expect(bus.stores.getAllStores().length).toEqual(2);
+        expect(bus.stores.getAllStores().length).toEqual(3);
         expect(itemCount).toEqual(4);
 
         bus.stores.wipeAllStores();
-        expect(bus.stores.getAllStores().length).toEqual(2);
+        expect(bus.stores.getAllStores().length).toEqual(3);
 
         itemCount = store1.allValues().length; + store2.allValues().length;
         expect(itemCount).toEqual(0);

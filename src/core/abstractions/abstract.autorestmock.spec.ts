@@ -12,6 +12,10 @@ class AutoRestTest extends AbstractAutoRestMock {
     }
 
     public testHandleData(): void {
+        super.handleData('test', new RestObject(HttpRequest.Get, 'test'));
+    }
+
+    public testHandleDataWithArgs(): void {
         super.handleData('test', new RestObject(HttpRequest.Get, 'test'),
             {version: 1, from: 'nowhere', uuid: '123'});
     }
@@ -61,6 +65,10 @@ class AutoRestTest extends AbstractAutoRestMock {
         this.handleRequest(HttpRequest.Delete);
     }
 
+    public testHandleServiceUnknownRequest(): void {
+        this.handleRequest(HttpRequest.DisableCORSAndCredentials);
+    }
+
     protected httpGet(restRequestObject: RestObject) {
         super.httpGet(restRequestObject);
         this.log.verbose('GET request handled');
@@ -101,8 +109,16 @@ describe('Bifröst Abstract AutoRestMock [cores/abstractions/abstract.autorestmo
 
     it('Check handleData() works',
         () => {
-            spyOn(bus, 'sendResponseMessageWithId').and.callThrough();
+            spyOn(bus, 'sendResponseMessage').and.callThrough();
             test.testHandleData();
+            expect(bus.sendResponseMessage).toHaveBeenCalled();
+        }
+    );
+
+    it('Check handleData() works with arguments',
+        () => {
+            spyOn(bus, 'sendResponseMessageWithId').and.callThrough();
+            test.testHandleDataWithArgs();
             expect(bus.sendResponseMessageWithId).toHaveBeenCalled();
         }
     );
@@ -160,6 +176,21 @@ describe('Bifröst Abstract AutoRestMock [cores/abstractions/abstract.autorestmo
             spyOn(bus.logger, 'verbose').and.callThrough();
             test.testHandleServiceDeleteRequest();
             expect(bus.logger.verbose).toHaveBeenCalledWith('DELETE request handled');
+        }
+    );
+
+    it('Check handleServiceRequest works for an unknown request',
+        () => {
+            test.testHandleServiceUnknownRequest();
+            expect(bus.logger)
+        }
+    );
+
+    it('Check handleServiceRequest works for a forced error response',
+        () => {
+            spyOn(bus, 'sendErrorMessageWithId').and.callThrough();
+            test.testHandleServiceMustFail();
+            expect(bus.sendErrorMessageWithId).toHaveBeenCalled();
         }
     );
 

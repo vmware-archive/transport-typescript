@@ -41,7 +41,7 @@ describe('BusStore [store/store.model]', () => {
 
     describe('Galactic stores', () => {
         it('openGalacticStore returns galactic store instance', () => {
-            const galacticStore = bus.stores.createStore('galacticStore');
+            const galacticStore = bus.stores.openGalacticStore('galacticStore');
             expect(galacticStore).not.toBeNull();
             expect(galacticStore.isGalacticStore).toBeTruthy();
             expect(bus.stores.getStore('galacticStore')).toBe(galacticStore);

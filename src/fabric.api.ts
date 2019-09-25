@@ -158,4 +158,9 @@ export interface FabricApi {
      * Switch to using local based RestService, engage browser CORS and all the sandbox security you can handle.
      */
     useLocalRestService(): void;
+
+    /**
+     * Return global HTTP headers
+     */
+    getGlobalHttpHeaders(): any;
 }

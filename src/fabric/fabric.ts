@@ -14,6 +14,10 @@ import { APIResponse } from '../core/model/response.model';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+export const HEADERS_STORE = 'bifrost-headers-store';
+export const GLOBAL_HEADERS = 'global-headers';
+export const GLOBAL_HEADERS_UPDATE = 'update';
+
 export class FabricApiImpl implements FabricApi {
 
     public static readonly versionChannel = 'fabric-version';
@@ -23,6 +27,7 @@ export class FabricApiImpl implements FabricApi {
     private connectHandler: MessageFunction<string>;
     private disconnectHandler: Function;
     private connectionStore: BusStore<FabricConnectionState>;
+    private headersStore: BusStore<any>;
     private fabricDisconnectHandler: MessageHandler<StompBusCommand>;
     private accessTokenSessionStorageKey: string = 'csp-auth-token';
     private customHeaderPrefix: string = 'X-';
@@ -32,6 +37,7 @@ export class FabricApiImpl implements FabricApi {
 
     constructor(private readonly bus: EventBus) {
         this.bus = bus;
+        this.headersStore = this.bus.stores.createStore(HEADERS_STORE);
     }
 
     isConnected(): boolean {
@@ -282,4 +288,7 @@ export class FabricApiImpl implements FabricApi {
         this.bus.markChannelAsLocal('fabric-rest');
     }
 
+    getGlobalHttpHeaders(): any {
+        return this.headersStore.get(GLOBAL_HEADERS);
+    }
 }
