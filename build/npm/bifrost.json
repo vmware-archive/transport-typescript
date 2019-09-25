@@ -23,6 +23,16 @@
     "license": "VMW_Proprietary",
     "changelogHistory": [
         {
+            "date": "9/24/19",
+            "version": "0.14.24",
+            "notes": [
+                {
+                    "description": "Add getter to expose HTTP global headers so remote REST calls can easily access them",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/89"
+                }
+            ]
+        },
+        {
             "date": "9/4/19",
             "version": "0.14.23",
             "notes": [
