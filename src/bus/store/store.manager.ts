@@ -2,7 +2,7 @@ import { BusStoreApi, BusStore, StoreReadyResult } from '../../store.api';
 import { StoreType, UUID } from './store.model';
 import { StoreImpl } from './store';
 import { EventBus } from '../../bus.api';
-import { GeneralUtil } from "../../util/util";
+import { GeneralUtil } from '../../util/util';
 
 /**
  * Copyright(c) VMware Inc. 2016-2019
@@ -28,7 +28,7 @@ export class StoreManager implements BusStoreApi {
         } else {
             const store: BusStore<T> = this.getStore(objectType);
             if (!store.isGalacticStore()) {
-                this.bus.logger.error("openGalacticStore() called with already existing local store!");
+                this.bus.logger.error('openGalacticStore() called with already existing local store!');
             }
             this.bus.logger.verbose(`Stores: Returning reference to ${objectType} as it already exists`);
             return store;
@@ -47,7 +47,7 @@ export class StoreManager implements BusStoreApi {
         } else {
             const store: BusStore<T> = this.getStore(objectType);
             if (store.isGalacticStore()) {
-                this.bus.logger.error("createStore() called with already existing galactic store!");
+                this.bus.logger.error('createStore() called with already existing galactic store!');
             }
             this.bus.logger.verbose(`Stores: Returning reference to ${objectType} as it already exists`);
             return store;
@@ -105,8 +105,8 @@ export class StoreManager implements BusStoreApi {
         }
         // Generate unique fabric-store-sync galactic channel name and open
         // the galactic channel.
-        this.galacticStoreSyncChannel = "fabric-store-sync." +
-              Date.now().toString(32) + "-" + GeneralUtil.genUUID();
+        this.galacticStoreSyncChannel = 'fabric-store-sync.' +
+              Date.now().toString(32) + '-' + GeneralUtil.genUUID();
         this.bus.markChannelAsGalactic(this.galacticStoreSyncChannel);
     }
 }
