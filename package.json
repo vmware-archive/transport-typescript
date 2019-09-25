@@ -56,7 +56,7 @@
     "build": "gulp build",
     "test": "gulp test",
     "build-docs": "node_modules/typedoc/bin/typedoc --out dist/npm/bifrost/docs --exclude \"**/*+(e2e|spec|index).ts\" --excludePrivate --name \"VMware Bifröst (TypeScript)\"  src",
-    "prepare": "gulp npm:prepare --version $npm_package_version; npm run build-docs",
+    "prepare": "gulp npm:prepare --version $npm_package_version && npm run build-docs",
     "publish": "npm publish dist/npm/bifrost"
   }
 }
