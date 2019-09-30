@@ -23,6 +23,16 @@
     "license": "VMW_Proprietary",
     "changelogHistory": [
         {
+            "date": "9/25/19",
+            "version": "0.14.25",
+            "notes": [
+                {
+                    "description": "Enforce use of typescript library of version 3.2 to be compatible with Angular 7",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/90"
+                }
+            ]
+        },
+        {
             "date": "9/24/19",
             "version": "0.14.24",
             "notes": [
