@@ -1,6 +1,6 @@
 {
   "name": "@vmw/bifrost",
-  "version": "0.14.24",
+  "version": "0.14.25",
   "private": false,
   "license": "VMW_Proprietary",
   "repository": "git@gitlab.eng.vmware.com:bifrost/typescript.git",
@@ -46,7 +46,7 @@
     "systemjs-builder": "^0.16.13",
     "tslint": "5.11.0",
     "typedoc": "^0.14.2",
-    "typescript": "^3.2.4",
+    "typescript": "<3.3",
     "uglifyjs-webpack-plugin": "^2.1.2",
     "webpack": "^4.29.6",
     "webpack-rxjs-externals": "^2.0.0",
