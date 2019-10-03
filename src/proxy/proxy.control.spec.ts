@@ -306,7 +306,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                         .toHaveBeenCalledWith(`Event bus broadcast refused by bus ${EventBus.id}, origin not registered: http://localhost:9876`
                             , EventBus.id);
                     done();
-                }, 5
+                }, 30
             );
         });
 
@@ -778,7 +778,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 expect(proxyMessage.type).toEqual(MessageType.MessageTypeRequest);
                 expect(message.payload).toEqual('will we sleep?');
                 completeCount++;
-            }
+            };
 
             // check the frame got the
             frames[0].addEventListener('message', frameHandler, {capture: true});
