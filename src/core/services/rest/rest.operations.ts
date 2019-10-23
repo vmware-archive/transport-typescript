@@ -3,7 +3,7 @@ import { BusTransaction, MessageFunction, SentFrom, TransactionType } from '../.
 import { UUID } from '../../../bus';
 import { HttpRequest, RestError, RestObject } from './rest.model';
 import { GeneralUtil } from '../../../util/util';
-import { RestService } from './rest.service';
+import { RequestCorsMode, RequestCredentialsMode, RestService } from './rest.service';
 import { FabricUtil } from '../../../fabric/fabric.util';
 
 export interface RestOperation {
@@ -57,6 +57,9 @@ export class RestOperations extends AbstractCore {
 
     /**
      * Dev use only, don't use this in production.
+     *
+     * @deprecated This method is deprecated in lieu of the new method that would allow full combinations of
+     * CORS and credentials modes. See {@link configureCorsAndCredentials}.
      */
     public disableCorsAndCredentials(from: SentFrom) {
 
@@ -64,6 +67,32 @@ export class RestOperations extends AbstractCore {
             HttpRequest.DisableCORSAndCredentials,
             null,
             null
+        );
+
+        this.bus.sendRequestMessage(RestService.channel, restRequestObject, from);
+    }
+
+    /**
+     * Configure cross-origin requests (CORS) and credentials policies with Fetch API.
+     * CORS mode tells whether cross-origin requests can be made successfully across domains.
+     * Credentials is Fetch equivalent of `XmlHttpRequest::withCredentials` that indicates whether the user agent
+     * should send cookies from one domain to another. The default values for the CORS and credentials are
+     * `cors` and `same-origin`, respectively and they require their server counterpart configured accordingly
+     * to work properly. See the following references for more information.
+     *
+     * https://developer.mozilla.org/en-US/docs/Web/API/Request/mode
+     * https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials
+     *
+     * @param corsMode
+     * @param credentialsMode
+     * @param from
+     */
+    public configureCorsAndCredentials(corsMode: RequestCorsMode,
+                                       credentialsMode: RequestCredentialsMode, from: SentFrom) {
+        const restRequestObject: RestObject = new RestObject(
+            HttpRequest.ConfigureCORSAndCredentials,
+            null,
+            {corsMode, credentialsMode}
         );
 
         this.bus.sendRequestMessage(RestService.channel, restRequestObject, from);

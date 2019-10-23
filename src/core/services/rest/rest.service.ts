@@ -10,6 +10,24 @@ import { GLOBAL_HEADERS, GLOBAL_HEADERS_UPDATE, HEADERS_STORE } from '../../../f
 
 const REFRESH_RETRIES = 3;
 
+export enum RequestCorsMode {
+    SAME_ORIGIN = 'same-origin',
+    NO_CORS = 'no-cors',
+    CORS = 'cors',
+    NAVIGATE = 'navigate'
+}
+
+export enum RequestCredentialsMode {
+    OMIT = 'omit',
+    SAME_ORIGIN = 'same-origin',
+    INCLUDE = 'include'
+}
+
+export interface RequestConfigureBody {
+    corsMode: RequestCorsMode;
+    credentialsMode: RequestCredentialsMode;
+}
+
 /**
  * REST Service that operates standard functions on behalf of consumers and services.
  */
@@ -22,6 +40,8 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
     private name: string = 'RESTService';
     private httpClient: HttpClient;
     private globalBaseUri: string;
+    private corsMode: string = 'cors';
+    private credentialsMode: string = 'same-origin';
     private disableCorsAndCredentials: boolean = false;
     private restStream: MessageHandler;
 
@@ -57,7 +77,8 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
 
                 if (restObject.request !== HttpRequest.UpdateGlobalHeaders
                     && restObject.request !== HttpRequest.SetRestServiceHostOptions
-                    && restObject.request !== HttpRequest.DisableCORSAndCredentials) {
+                    && restObject.request !== HttpRequest.DisableCORSAndCredentials
+                    && restObject.request !== HttpRequest.ConfigureCORSAndCredentials) {
                     this.doHttpRequest(restObject, args);
                 } else {
                     switch (restObject.request) {
@@ -73,6 +94,9 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
                             this.disableCORS(true);
                             break;
 
+                        case HttpRequest.ConfigureCORSAndCredentials:
+                            this.updateCorsModeAndCredentials(restObject.body);
+                            break;
                         default:
                             break;
                     }
@@ -93,6 +117,12 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
     private disableCORS(val: boolean): void {
         this.log.info(`Disabling CORS and credentials`, this.getName());
         this.disableCorsAndCredentials = val;
+    }
+
+    private updateCorsModeAndCredentials(body: RequestConfigureBody): void {
+        this.log.info(`Configuring CORS mode and credentials with CORS mode: ${body.corsMode}, credentials mode: ${body.credentialsMode}`, this.getName());
+        this.corsMode = body.corsMode;
+        this.credentialsMode = body.credentialsMode;
     }
 
     private handleData(data: any, restObject: RestObject, args: MessageArgs) {
@@ -228,14 +258,16 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
         let requestInit: any = {
             method: restObject.request,
             headers: headers,
-            mode: 'cors',
-            credentials: 'same-origin',
+            mode: this.corsMode,
+            credentials: this.credentialsMode,
             referrerPolicy: 'origin-when-cross-origin',
         };
 
+        // keeping it until the deprecated methods are removed.
         if (this.disableCorsAndCredentials) {
-            //requestInit.mode = 'cors';
-            requestInit.credentials = 'omit';
+            this.log.warn('Use of disableCorsAndCredentials is deprecated and strongly discouraged. This will' +
+                'conflict with the configurer method updateCorsModeAndCredentials().');
+            requestInit.credentials = 'include';
         }
 
         // GET requests may not have a body

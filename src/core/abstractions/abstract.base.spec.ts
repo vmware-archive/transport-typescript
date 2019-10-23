@@ -7,6 +7,7 @@ import { BusTestUtil } from '../../util/test.util';
 import { Logger } from '../../log';
 import { RestOperations } from '../services/rest/rest.operations';
 import { HttpRequest } from '..';
+import { RequestCorsMode, RequestCredentialsMode } from '../services/rest/rest.service';
 
 class MyTestClass extends AbstractBase {
     constructor() {
@@ -23,6 +24,10 @@ class MyTestClass extends AbstractBase {
 
     public testDevMode(): void {
         super.enableDevMode();
+    }
+
+    public testConfigureCorsAndCredentials(corsMode: RequestCorsMode, credentialsMode: RequestCredentialsMode): void {
+        super.configureCorsAndCredentials(corsMode, credentialsMode);
     }
 
     public testHostStuff(): void {
@@ -95,5 +100,13 @@ describe('Bifröst Abstract Operations [cores/abstractions/abstract.operations]'
         expect(bus.fabric.isXsrfTokenEnabled()).toBeTruthy();
         testClass.disableXsrfTokenHandling();
         expect(bus.fabric.isXsrfTokenEnabled()).toBeFalsy();
+    });
+
+    it('Check if CORS and credentials policies can be configured',
+        () => {
+            spyOn(RestOperations.getInstance(), 'configureCorsAndCredentials').and.callThrough();
+            testClass.testConfigureCorsAndCredentials(RequestCorsMode.NO_CORS, RequestCredentialsMode.OMIT);
+            expect(RestOperations.getInstance().configureCorsAndCredentials).toHaveBeenCalledWith(
+                'no-cors', 'omit', 'MyTestClass');
     });
 });
