@@ -1,13 +1,13 @@
 import { ChannelName, MessageArgs, MessageHandler, ORG_ID, ORGS, SentFrom } from '../../bus.api';
-import {AbstractBase} from './abstract.base';
-import {HttpRequest, RestError, RestObject} from '../services/rest/rest.model';
-import {APIRequest} from '../model/request.model';
-import {BusStore, UUID} from '../../bus';
-import {GeneralUtil} from '../../util/util';
-import {GeneralError} from '../model/error.model';
-import {ApiObject} from './abstract.apiobject';
-import {AbstractMessageObject} from './abstract.messageobject';
-import {RestService} from '../services/rest/rest.service';
+import { AbstractBase } from './abstract.base';
+import { HttpRequest, RestError, RestObject } from '../services/rest/rest.model';
+import { APIRequest } from '../model/request.model';
+import { BusStore, UUID } from '../../bus';
+import { GeneralUtil } from '../../util/util';
+import { GeneralError } from '../model/error.model';
+import { ApiObject } from './abstract.apiobject';
+import { AbstractMessageObject } from './abstract.messageobject';
+import { RestService } from '../services/rest/rest.service';
 import { Subscription } from 'rxjs';
 import { FabricService } from './fabric.service';
 
@@ -22,7 +22,8 @@ const HTTP_REQUEST_MAP: Array<[string, HttpRequest]> = [
     ['DELETE', HttpRequest.Delete],
     ['UPDATE_HEADERS', HttpRequest.UpdateGlobalHeaders],
     ['HOST_OPTIONS', HttpRequest.SetRestServiceHostOptions],
-    ['CORS_OPTIONS', HttpRequest.DisableCORSAndCredentials]
+    ['CORS_OPTIONS', HttpRequest.DisableCORSAndCredentials],
+    ['CORS_CREDENTIALS_OPTIONS', HttpRequest.ConfigureCORSAndCredentials]
 
 ];
 

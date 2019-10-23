@@ -18,6 +18,7 @@ export enum HttpRequest {
     UpdateGlobalHeaders = 'UpdateGlobalHeaders',
     SetRestServiceHostOptions = 'SetRestServiceHostOptions',
     DisableCORSAndCredentials = 'DisableCORSAndCredentials',
+    ConfigureCORSAndCredentials = 'ConfigureCORSAndCredentials'
 }
 
 export enum RestErrorType {

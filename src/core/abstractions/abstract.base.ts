@@ -1,7 +1,7 @@
 import { BusTransaction, EventBusEnabled } from '../../bus.api';
 import { AbstractCore } from './abstract.core';
 import { RestOperation, RestOperations } from '../services/rest/rest.operations';
-
+import { RequestCorsMode, RequestCredentialsMode } from '../services/rest/rest.service';
 
 /**
  * Provides any class access to the EventBus, Rest Operations and higher level operations.
@@ -54,10 +54,20 @@ export abstract class AbstractBase extends AbstractCore implements EventBusEnabl
     /**
      * Enable Dev Mode.
      * > Disables CORS and credentials for local RestService
+     * @deprecated See {@link disableCorsAndCredentials}
      */
     protected enableDevMode() {
         this.log.warn(`Application set to dev mode, not to be used in production`);
         this.restOperations.disableCorsAndCredentials(this.getName());
+    }
+
+    /**
+     * Configure CORS and credentials policies.
+     * @param corsMode
+     * @param credentialsMode
+     */
+    protected configureCorsAndCredentials(corsMode: RequestCorsMode, credentialsMode: RequestCredentialsMode) {
+        this.restOperations.configureCorsAndCredentials(corsMode, credentialsMode, this.getName());
     }
 
     getName(): string {

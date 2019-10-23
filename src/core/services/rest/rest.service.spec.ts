@@ -460,6 +460,29 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
         }
     );
 
+    it('Should update CORS and credentials options.',
+        (done) => {
+            const id = GeneralUtil.genUUIDShort();
+            const packet: any = {};
+            Object.assign(packet, restPayloadPost);
+
+            spyOn(bus.logger, 'info').and.callThrough();
+
+            packet['op'] = 'CORS_CREDENTIALS_OPTIONS';
+            packet['body'] = { corsMode: 'cors', credentialsMode: 'include' };
+
+            const requestObject = new FakeRestRelayRequestObject(FakeChannel.request, packet);
+            bus.sendRequestMessageWithId(FakeChannel.request, requestObject, id);
+            bus.api.tickEventLoop(
+                () => {
+                    expect(bus.logger.info)
+                        .toHaveBeenCalledWith(`Configuring CORS mode and credentials with CORS mode: cors, credentials mode: include`, 'RESTService');
+                    done();
+                }, 50
+            );
+        }
+    );
+
     it('Check service can go online',
         () => {
                 spyOn(bus.logger, 'info').and.callThrough();
