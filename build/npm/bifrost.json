@@ -23,6 +23,16 @@
     "license": "VMW_Proprietary",
     "changelogHistory": [
         {
+            "date": "12/9/19",
+            "version": "0.14.27",
+            "notes": [
+                {
+                    "description": "Fix a bug with galactic messages from concurrent message requests",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/94"
+                }
+            ]
+        },
+        {
             "date": "10/16/19",
             "version": "0.14.26",
             "notes": [

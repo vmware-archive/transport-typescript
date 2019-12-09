@@ -635,11 +635,13 @@ export class BrokerConnector implements EventBusEnabled {
                     // check if response is an error
                     if (payload && payload.error) {
                         // send an error instead, this is not a good message.
-                        respChannelObject.stream.next(new Message().error(payload));
+                        // a STOMP message needs to be ALWAYS sent back to the original request that it's intended for.
+                        // for that reason, we are setting the Message ID with the payload ID.
+                        respChannelObject.stream.next(new Message(payload.id).error(payload));
 
                     } else {
                         // bypass event loop for fast incoming socket events, the loop will slow things down.
-                        respChannelObject.stream.next(new Message().response(payload));
+                        respChannelObject.stream.next(new Message(payload.id).response(payload));
                     }
                 }
             );
