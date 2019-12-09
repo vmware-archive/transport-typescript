@@ -122,7 +122,8 @@ export class BusTransactionImpl implements BusTransaction {
         this.log.debug('➡️ Transaction: Sending ' + type + ' Request to channel: '
             + request.channel, this.transactionName());
 
-        const mId = GeneralUtil.genUUID(); // use message ID's to make sure we only react to each explicit response
+        // use message ID's to make sure we only react to each explicit response
+        const mId = request.payload && request.payload.id ? request.payload.id : GeneralUtil.genUUID();
         const handler = this.bus.listenStream(request.channel, this.name, mId);
         handler.handle(
             (response: any) => {
