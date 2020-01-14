@@ -23,6 +23,16 @@
     "license": "VMW_Proprietary",
     "changelogHistory": [
         {
+            "date": "1/14/20",
+            "version": "0.14.29",
+            "notes": [
+                {
+                    "description": "Add XSRF handling in abstract.operations.ts",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/97"
+                }
+            ]
+        },
+        {
             "date": "1/2/20",
             "version": "0.14.28",
             "notes": [

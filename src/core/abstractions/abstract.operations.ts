@@ -26,6 +26,13 @@ export abstract class AbstractOperations extends AbstractBase {
         const bus: EventBus = BusUtil.getBusInstance();
         const transaction: BusTransaction = bus.createTransaction(TransactionType.ASYNC, this.getName());
 
+        if (bus.fabric.isXsrfTokenEnabled()) {
+            (request as any)['headers'] = {
+                ...(request as any)['headers'],
+                [bus.fabric.getXsrfTokenStoreKey()]: bus.fabric.getXsrfToken()
+            };
+        }
+
         transaction.onComplete<AbstractMessageObject<RequestType, RetPayload>>(
             (resp: [AbstractMessageObject<RequestType, RetPayload>]) => {
                 successHandler(resp[0].payload);

@@ -81,4 +81,37 @@ describe('Bifröst Abstract Operations [cores/abstractions/abstract.operations]'
             );
         }
     );
+
+    it('Check callService with XSRF handling operates correctly.',
+        (done) => {
+
+            let channel = 'test-service-channel';
+
+            let sub = bus.api.getChannel(channel).subscribe(
+                (msg: Message) => {
+                    const payload = msg.payload as any;
+                    expect(payload.headers).toBeDefined();
+                    expect(payload.headers[bus.fabric.getXsrfTokenStoreKey()]).toBe('fake-token');
+                    expect(payload.query).toEqual('prettiest');
+                    // fake response
+                    if (msg.isRequest()) {
+                        msg.payload = {prettiest: 'melody'};
+                        bus.sendResponseMessageWithId(channel, msg, msg.id);
+                        sub.unsubscribe();
+                    }
+                }
+            );
+
+            bus.fabric.setXsrfTokenEnabled(true);
+            bus.fabric.setXsrfToken('fake-token');
+            operations.callService(channel, {query: 'prettiest'},
+                (resp: any) => {
+                    expect(resp.prettiest).toEqual('melody');
+                    done();
+                }
+            );
+
+        }
+    );
+
 });
