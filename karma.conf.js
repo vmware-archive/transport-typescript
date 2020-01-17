@@ -42,14 +42,10 @@ module.exports = function (config) {
             exclude: ['proxyTestApp/**/*.ts','chatClientApp/**/*.ts', './node_modules/**/*.d.ts']
         },
         customLaunchers: {
-            ChromeHeadless: {
-                base: 'Chrome',
+            ChromeDocker: {
+                base: 'ChromeHeadless',
                 flags: [
-                    '--headless',
-                    '--disable-gpu',
-                    '--remote-debugging-port=9222',
                     '--no-sandbox',
-                    '--disable-setuid-sandbox'
                 ],
                 debug: false
             }
@@ -63,13 +59,13 @@ module.exports = function (config) {
         // level of logging
         // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
 
-        logLevel: config.LOG_DISABLE,
+        logLevel: config.LOG_INFO,
         // enable / disable watching file and executing tests whenever any file changes
         autoWatch: true,
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['ChromeHeadless'],
+        browsers: ['ChromeDocker'],
 
 
         // Continuous Integration mode
