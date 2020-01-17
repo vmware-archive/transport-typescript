@@ -1,4 +1,4 @@
-image: geekykaran/headless-chrome-node-docker:latest
+image: vmcsizer-docker-local.artifactory.eng.vmware.com/vmc-sizer-build:1.14
 
 stages:
 - test
@@ -8,7 +8,7 @@ stages:
 cache: {}
 
 before_script:
-- npm install --registry https://build-artifactory.eng.vmware.com/artifactory/api/npm/npm
+- npm --unsafe-perm install --registry https://build-artifactory.eng.vmware.com/artifactory/api/npm/npm
 
 test:unit:
   stage: test
@@ -42,11 +42,19 @@ publish:bifrost:
   stage: publish
   dependencies:
   - build:bifrost
+  variables:
+    GIT_AUTHOR_EMAIL: "kjosh@vmware.com"
+    GIT_AUTHOR_NAME: "Josh Kim"
+    PROJECT_ID: "33114"
+    PROJECT_NAME: "EVE Portal UI"
+    PROJECT_REPO: "gitlab.eng.vmware.com/project-eve/portal-ui.git"
   script:
   - echo "Configuring .npmrc"
   - ./build/scripts/configure-npmrc-on-ci.sh
   - echo "Publishing @vmw/bifrost"
   - npm run publish
+  - echo "Proliferating to EVE Portal UI to create a merge request"
+  - ./build/scripts/update-portal-ui-dep.sh
   when: manual
   only:
   - master
