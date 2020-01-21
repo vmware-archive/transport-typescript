@@ -191,7 +191,7 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
         const globalHeaders = this.headerStore.get(GLOBAL_HEADERS);
 
         // merge globals and request headers
-        const requestHeaders = {...restObject.headers, ...globalHeaders};
+        const requestHeaders = {...globalHeaders, ...restObject.headers};
 
         // set XSRF token if it is enabled
         if (this.fabric.isXsrfTokenEnabled()) {
