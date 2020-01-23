@@ -6,7 +6,7 @@ import { EventBus, MessageFunction, MessageHandler, MessageType, ORG_ID, ORGS } 
 import { StompBusCommand } from '../bridge/stomp.model';
 import { BrokerConnector } from '../bridge/broker-connector';
 import { GeneralUtil } from '../util/util';
-import { FabricConnectionStoreKey, Stores } from './fabric.model';
+import { FabricConnectionStoreKey, RequestHeaderConsts, Stores } from './fabric.model';
 import { UUID } from '../bus/store/store.model';
 import { BusStore, StoreStream } from '../store.api';
 import { APIRequest } from '../core/model/request.model';
@@ -22,30 +22,37 @@ export class FabricApiImpl implements FabricApi {
 
     public static readonly versionChannel = 'fabric-version';
 
-    private connected: boolean = false;
-    private sessionId: UUID;
-    private connectHandler: MessageFunction<string>;
-    private disconnectHandler: Function;
-    private connectionStore: BusStore<FabricConnectionState>;
-    private headersStore: BusStore<any>;
+    private connectedMap: Map<String, boolean>;
+    private sessionIdMap: Map<String, UUID>;
+    private connectHandlerMap: Map<String, MessageFunction<string>>;
+    private disconnectHandlerMap: Map<String, Function>;
+    private connectionStoreMap: Map<String, BusStore<FabricConnectionState>>;
     private fabricDisconnectHandler: MessageHandler<StompBusCommand>;
-    private accessTokenSessionStorageKey: string = 'csp-auth-token';
-    private customHeaderPrefix: string = 'X-';
+    private headersStore: BusStore<any>;
+    private accessTokenSessionStorageKey: string = RequestHeaderConsts.CSP_AUTH_TOKEN;
     private xsrfTokenEnabled: boolean = false;
-    private xsrfTokenStoreKey: string = `${this.customHeaderPrefix}XSRF-TOKEN`;
+    private xsrfTokenStoreKey: string = `${RequestHeaderConsts.CUSTOM_HEADER_PREFIX}${RequestHeaderConsts.XSRF_TOKEN}`;
 
 
     constructor(private readonly bus: EventBus) {
         this.bus = bus;
         this.headersStore = this.bus.stores.createStore(HEADERS_STORE);
+        this.connectedMap = new Map<String, boolean>();
+        this.sessionIdMap = new Map<String, UUID>();
+        this.connectHandlerMap = new Map<String, MessageFunction<string>>();
+        this.disconnectHandlerMap = new Map<String, Function>();
+        this.connectionStoreMap = new Map<String, BusStore<FabricConnectionState>>();
     }
 
-    isConnected(): boolean {
-        return this.connected;
+    isConnected(connString: string): boolean {
+        return this.connectedMap.has(connString) && this.connectedMap.get(connString);
     }
 
-    whenConnectionStateChanges(): StoreStream<FabricConnectionState> {
-        return this.bus.stores.createStore(Stores.FabricConnection)
+    whenConnectionStateChanges(connString: string): StoreStream<FabricConnectionState> {
+        if (!this.connectionStoreMap.has(connString)) {
+            this.connectionStoreMap.set(connString, this.bus.stores.createStore(Stores.FabricConnection));
+        }
+        return this.connectionStoreMap.get(connString)
             .onAllChanges(
                 FabricConnectionState.Disconnected,
                 FabricConnectionState.Connected,
@@ -65,33 +72,36 @@ export class FabricApiImpl implements FabricApi {
         numRelays: number = 1,
         autoReconnect: boolean = false): void {
 
-        if (!this.connected) {
+        // create unique identifier for the session.
+        const connString: string = `${host}:${port}${endpoint}`;
+
+        if (!this.connectedMap.get(connString)) {
 
             // create reference to connection store.
-            if (!this.connectionStore) {
-                this.connectionStore = this.bus.stores.createStore(Stores.FabricConnection);
+            if (!this.connectionStoreMap.get(connString)) {
+                this.connectionStoreMap.set(connString, this.bus.stores.createStore(Stores.FabricConnection));
             }
-            this.createWindowConnectionEventListeners();
+            this.createWindowConnectionEventListeners(connString);
 
-            this.connectHandler = connectHandler;
-            this.disconnectHandler = disconnectHandler;
+            this.connectHandlerMap.set(connString, connectHandler);
+            this.disconnectHandlerMap.set(connString, disconnectHandler);
 
             const connectedHandler = (sessionId: string) => {
-                this.setConnected();
-                this.sessionId = sessionId;
-                this.connectHandler(sessionId);
+                this.setConnected(connString);
+                this.sessionIdMap.set(connString, sessionId);
+                this.connectHandlerMap.get(connString)(connString);
 
                 // listen for disconnect from broker connector.
                 // this needs to be refactored in a cleaner way.
                 if (!this.fabricDisconnectHandler) {
-                    this.fabricDisconnectHandler = this.bus.listenStream('bifrost-services::broker.connector-status');
+                    this.fabricDisconnectHandler = this.bus.listenStream(`bifrost-services::broker.connector-status`);
                     this.fabricDisconnectHandler.handle(
                         (busCommand: StompBusCommand) => {
                             switch (busCommand.command) {
                                 case 'DISCONNECTED':
-                                    this.setDisconnected();
-                                    if (this.disconnectHandler) {
-                                        this.disconnectHandler();
+                                    this.setDisconnected(connString);
+                                    if (this.disconnectHandlerMap.get(connString)) {
+                                        this.disconnectHandlerMap.get(connString)();
                                     }
                                     break;
                             }
@@ -121,52 +131,52 @@ export class FabricApiImpl implements FabricApi {
             );
         } else {
             // already connected, handle connection state.
-            if (this.connectHandler) {
-                this.connectHandler(this.sessionId);
+            if (this.connectHandlerMap.get(connString)) {
+                this.connectHandlerMap.get(connString)(this.sessionIdMap.get(connString));
             }
         }
     }
 
-    disconnect(): void {
-        BrokerConnector.fireDisconnectCommand(this.bus, this.sessionId);
-        this.setDisconnected();
+    disconnect(connString: string): void {
+        BrokerConnector.fireDisconnectCommand(this.bus, this.sessionIdMap.get(connString));
+        this.setDisconnected(connString);
     }
 
     setFabricCurrentOrgId(orgId: UUID): void {
         this.bus.stores.createStore(ORGS).put(ORG_ID, orgId, null);
     }
 
-    private createWindowConnectionEventListeners(): void {
+    private createWindowConnectionEventListeners(connString: string): void {
 
         // if the window object is available, lets listen for events from developer tools to aid testing.
         if (window) {
             window.addEventListener('offline', () => {
-                this.setDisconnected();
-                if (this.disconnectHandler) {
-                    this.disconnectHandler();
+                this.setDisconnected(connString);
+                if (this.disconnectHandlerMap.has(connString)) {
+                    this.disconnectHandlerMap.get(connString)();
                 }
             });
 
             window.addEventListener('online', () => {
-                this.setConnected();
-                if (this.connectHandler) {
-                    this.connectHandler(this.sessionId);
+                this.setConnected(connString);
+                if (this.connectHandlerMap.has(connString)) {
+                    this.connectHandlerMap.get(connString)(this.sessionIdMap.get(connString));
                 }
             });
         }
     }
 
-    private setConnected(): void {
-        this.connected = true;
-        this.connectionStore.put(
+    private setConnected(connString: string): void {
+        this.connectedMap.set(connString, true);
+        this.connectionStoreMap.get(connString).put(
             FabricConnectionStoreKey.State,
             FabricConnectionState.Connected,
             FabricConnectionState.Connected);
     }
 
-    private setDisconnected(): void {
-        this.connected = false;
-        this.connectionStore.put(
+    private setDisconnected(connString: string): void {
+        this.connectedMap.set(connString, false);
+        this.connectionStoreMap.get(connString).put(
             FabricConnectionStoreKey.State,
             FabricConnectionState.Disconnected,
             FabricConnectionState.Disconnected);
@@ -197,14 +207,14 @@ export class FabricApiImpl implements FabricApi {
         return new APIResponse<T>(payload,  error, errorCode, errorMessage, id, version);
     }
 
-    getFabricVersion(): Observable<string> {
+    getFabricVersion(connString: string): Observable<string> {
 
         // open version channel.
-        this.bus.markChannelAsGalactic(FabricApiImpl.versionChannel);
+        this.bus.markChannelAsGalactic(FabricApiImpl.versionChannel, connString);
 
         let handler: MessageHandler;
 
-        if (this.connected) {
+        if (this.connectedMap.get(connString)) {
             handler = this.bus.requestOnceWithId(
                 GeneralUtil.genUUID(),
                 FabricApiImpl.versionChannel,
@@ -247,7 +257,7 @@ export class FabricApiImpl implements FabricApi {
     getXsrfToken(): string {
         // return the token if found in the cookie
         const token: string | null = GeneralUtil.getCookie(
-            this.getXsrfTokenStoreKey().replace(this.customHeaderPrefix, ''));
+            this.getXsrfTokenStoreKey().replace(RequestHeaderConsts.CUSTOM_HEADER_PREFIX, ''));
         if (token !== null) {
             return token;
         }

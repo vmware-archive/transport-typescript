@@ -43,4 +43,14 @@ export class BusUtil {
     public static destroy(): void {
         BifrostEventBus.destroy();
     }
+
+    /**
+     * Return connection string used to establish and manage one or more Fabric connections
+     * @param {string} host hostname where Fabric backend is served
+     * @param {number} port port where Fabric backend is served
+     * @param {string} endpoint target endpoint
+     */
+    public static getFabricConnectionString(host: string, port: number, endpoint: string) {
+        return `${host}:${port}${endpoint}`;
+    }
 }

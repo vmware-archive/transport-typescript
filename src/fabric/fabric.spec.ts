@@ -6,6 +6,7 @@ import { FabricApiImpl } from './fabric';
 import { BusStore, Message } from '../bus';
 import { GeneralUtil } from '../util/util';
 import { Stores } from './fabric.model';
+import { Subscription } from 'rxjs';
 
 /**
  * Copyright(c) VMware Inc. 2019
@@ -15,6 +16,7 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
 
     let bus: EventBus;
     let log: Logger;
+    let bcSub: Subscription;
 
     beforeEach(
         () => {
@@ -29,7 +31,7 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
 
     it('Check default connected state is false',
         () => {
-            expect(bus.fabric.isConnected()).toBeFalsy();
+            expect(bus.fabric.isConnected('testhost:12345/fabric')).toBeFalsy();
         }
     );
 
@@ -72,11 +74,14 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
         (done) => {
             bus.fabric.connect(
                 () => {
-                    bus.fabric.disconnect();
+                    bus.fabric.disconnect('testhost:12345/fabric');
                 },
                 () => {
                     done();
-                }
+                },
+                'testhost',
+                12345,
+                '/fabric'
             );
         }
     );
@@ -134,7 +139,7 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
 
             let connectCount = 0;
 
-            bus.fabric.whenConnectionStateChanges()
+            bus.fabric.whenConnectionStateChanges('testhost:12345/fabric')
                 .subscribe(
                     (state: FabricConnectionState) => {
                         if (state == FabricConnectionState.Disconnected) {
@@ -144,7 +149,7 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
                         }
                         if (state == FabricConnectionState.Connected) {
                             if (connectCount <= 1) {
-                                bus.fabric.disconnect();
+                                bus.fabric.disconnect('testhost:12345/fabric');
                             }
                         }
                     }
@@ -185,7 +190,7 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
 
     it('Check for connection state change to connected',
         (done) => {
-            bus.fabric.whenConnectionStateChanges()
+            bus.fabric.whenConnectionStateChanges('testhost:12345/fabric')
                 .subscribe(
                     (state: FabricConnectionState) => {
                         expect(state).toEqual(FabricConnectionState.Connected);
@@ -213,7 +218,7 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
 
             bus.fabric.connect(
                 () => {
-                    bus.fabric.getFabricVersion().subscribe(
+                    bus.fabric.getFabricVersion('testhost:12345/fabric').subscribe(
                         (id: string) => {
                             expect(id).toEqual('1.2.3');
                             done();
@@ -221,7 +226,10 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
                     )
                 },
                 () => {
-                }
+                },
+                'testhost',
+                12345,
+                '/fabric'
             );
 
         }
@@ -265,7 +273,7 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
 
     it('Check we cannot get a version from the fabric, if we are not connected',
         (done) => {
-            bus.fabric.getFabricVersion().subscribe(
+            bus.fabric.getFabricVersion('testhost:12345/fabric').subscribe(
                 (value: string) => {
                     expect(value).toEqual('Version unavailable, not connected to fabric');
                     done();

@@ -10,9 +10,7 @@ import { Logger } from '../log/logger.service';
 import { StompParser } from '../bridge/stomp.parser';
 import { StompClient } from '../bridge/stomp.client';
 import { MonitorObject, MonitorType } from './model/monitor.model';
-import { APIRequest } from '../core/model/request.model';
 import { UUID } from './store/store.model';
-import { APIResponse } from '../core/model/response.model';
 import { GeneralUtil } from '../util/util';
 import { MessageHandler, MessageResponder, MessageType } from '../bus.api';
 import { BridgeConnectionAdvancedConfig, StompConfig } from "../bridge";
@@ -694,7 +692,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         log.setStylingVisble(false);
         bus.api.suppressLog(true);
 
-        bus.listenGalacticStream('space-car');
+        bus.listenGalacticStream('space-car', 'EventBus', {brokerIdentity: 'connString', isPrivate: false});
 
         bus.api.tickEventLoop(
             () => {
@@ -1829,7 +1827,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
           it('populates the correct stompConfig parameters',
                 () => {
 
-                   const requestStreamSpy = spyOn(bus, "requestStream").and.returnValue({
+                   const requestStreamSpy = spyOn(bus, "requestStreamWithId").and.returnValue({
                       handle: () => {}
                    });
 
@@ -1855,8 +1853,8 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                          advancedConfig
                    );
 
-                   expect(bus.requestStream).toHaveBeenCalled();
-                   let stompCmd: StompBusCommand = requestStreamSpy.calls.mostRecent().args[1];
+                   expect(bus.requestStreamWithId).toHaveBeenCalled();
+                   let stompCmd: StompBusCommand = requestStreamSpy.calls.mostRecent().args[2];
                    const stompConfig: StompConfig = stompCmd.payload;
                    expect(stompConfig.heartbeatIn).toBe(advancedConfig.heartbeatIncomingInterval);
                    expect(stompConfig.heartbeatOut).toBe(advancedConfig.heartbeatOutgoingInterval);
@@ -1884,7 +1882,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                         }
                     );
 
-                bus.listenGalacticStream('space-dogs');
+                bus.listenGalacticStream('space-dogs', null, {brokerIdentity: 'connString', isPrivate: false});
             });
 
         it('listenGalacticStream() works correctly with multiple subscribers.',
@@ -1911,8 +1909,8 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                         }
                     );
 
-                const handler1 = bus.listenGalacticStream('space-dogs');
-                const handler2 = bus.listenGalacticStream('space-dogs');
+                const handler1 = bus.listenGalacticStream('space-dogs', null, {brokerIdentity: 'connString', isPrivate: false});
+                const handler2 = bus.listenGalacticStream('space-dogs', null, {brokerIdentity: 'connString', isPrivate: false});
 
                 handler1.handle(
                     () => {
@@ -1946,7 +1944,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
         it('isGalacticChannel() works correctly.',
             () => {
-                bus.listenGalacticStream('space-dogs');
+                bus.listenGalacticStream('space-dogs', null, {brokerIdentity: 'connString', isPrivate: false});
                 bus.listenStream('earth-dogs');
                 expect(bus.isGalacticChannel('space-dogs')).toBeTruthy();
                 expect(bus.isGalacticChannel('earth-dogs')).toBeFalsy();
@@ -1973,7 +1971,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                         }
                     );
 
-                bus.listenGalacticStream('space-dogs');
+                bus.listenGalacticStream('space-dogs', null, {brokerIdentity: 'connString', isPrivate: false});
                 bus.sendGalacticMessage('space-dogs', 'off to the moon goes fox!');
             });
         
@@ -1981,7 +1979,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             const channelName = 'space-cats';
 
             beforeEach(() => {                
-                bus.markChannelAsGalactic(channelName);
+                bus.markChannelAsGalactic(channelName, 'connString');
             });
 
             it('sets the channel to be galactic', () => {
@@ -2059,49 +2057,6 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                 bus.markChannelAsLocal(channelName);
             });
         });
-
-        it('galacticRequest() works correctly.',
-            (done) => {
-                const id: UUID = GeneralUtil.genUUIDShort();
-                const req: APIRequest<string> = APIRequest.build('testAPI', null, 'ember loves to play?', id);
-                bus.requestGalactic('ember-station', req,
-                    (resp: APIResponse<string>) => {
-                        expect(resp.id).toEqual(id);
-                        expect(resp.payload).toEqual('scooty butt chase jump');
-                        done();
-                    });
-                bus.api.getMonitor()
-                    .subscribe(
-                        (message: Message) => {
-                            const mo = message.payload as MonitorObject;
-                            switch (mo.type) {
-                                case MonitorType.MonitorGalacticData:
-                                    expect(mo.channel).toEqual('ember-station');
-
-                                    const data: APIRequest<string> = mo.data as APIRequest<string>;
-                                    expect(data.id).toEqual(id);
-
-                                    const resp: APIResponse<string> =
-                                        APIResponse.build('scooty butt chase jump', id);
-                                    bus.sendResponseMessage('ember-station', resp);
-                                    break;
-
-                                default:
-                                    break;
-                            }
-                        }
-                    );
-            });
-
-        it('galacticRequest() works correctly without a channel or payload.',
-            () => {
-
-                spyOn(log, 'error').and.callThrough();
-                bus.requestGalactic(null, null, null);
-                expect(log.error).toHaveBeenCalledWith('Cannot send Galactic APIRequest, ' +
-                    'payload or channel is empty.', 'EventBus');
-
-            });
     });
 
 

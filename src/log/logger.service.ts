@@ -10,14 +10,23 @@ import { GeneralUtil } from '../util/util';
  * Log Levels and output.
  */
 export class Logger {
-    private dateCss = 'color: blue;';
-    private fromCss = 'color: green';
-    private normalCss = 'color: black;';
-    private errorCss = 'color: red;';
-    private warnCss = 'color: orange;';
-    private infoCss = 'color: brown;';
-    private debugCss = 'color: black;';
-    private verboseCss = 'color: cyan;';
+    public get dateCss() { return this._dateCss; }
+    public get fromCss() { return this._fromCss; }
+    public get normalCss() { return this._normalCss; }
+    public get errorCss() { return this._errorCss; }
+    public get warnCss() { return this._warnCss; }
+    public get infoCss() { return this._infoCss; }
+    public get debugCss() { return this._debugCss; }
+    public get verboseCss() { return this._verboseCss; }
+
+    private _dateCss = 'color: blue;';
+    private _fromCss = 'color: green';
+    private _normalCss = 'color: black;';
+    private _errorCss = 'color: red;';
+    private _warnCss = 'color: orange;';
+    private _infoCss = 'color: brown;';
+    private _debugCss = 'color: black;';
+    private _verboseCss = 'color: cyan;';
 
     /* dark theme friendly colors */
     private dateCssDark = 'color: #ec96fb;';
@@ -45,14 +54,14 @@ export class Logger {
     useDarkTheme(flag: boolean) {
         this.useDarkThemeFriendlyColors = flag;
         if (this.useDarkThemeFriendlyColors) {
-            this.dateCss = this.dateCssDark;
-            this.fromCss = this.fromCssDark;
-            this.normalCss = this.normalCssDark;
-            this.errorCss = this.errorCssDark;
-            this.warnCss = this.warnCssDark;
-            this.infoCss = this.infoCssDark;
-            this.debugCss = this.debugCssDark;
-            this.verboseCss = this.verboseCssDark;
+            this._dateCss = this.dateCssDark;
+            this._fromCss = this.fromCssDark;
+            this._normalCss = this.normalCssDark;
+            this._errorCss = this.errorCssDark;
+            this._warnCss = this.warnCssDark;
+            this._infoCss = this.infoCssDark;
+            this._debugCss = this.debugCssDark;
+            this._verboseCss = this.verboseCssDark;
         }
     }
 

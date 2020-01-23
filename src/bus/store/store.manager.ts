@@ -18,8 +18,8 @@ export class StoreManager implements BusStoreApi {
         this.internalStoreMap = new Map<StoreType, BusStore<any>>();
     }
 
-    openGalacticStore<T>(objectType: StoreType): BusStore<T> {
-        this.initGalacticStoreSyncChannel();
+    openGalacticStore<T>(objectType: StoreType, brokerIdentity?: string): BusStore<T> {
+        this.initGalacticStoreSyncChannel(brokerIdentity);
         if (!this.getStore(objectType)) {
             this.bus.logger.verbose(`Store: Opening galactic store ${objectType} as it does not exist!`);
             const store: BusStore<T> = new StoreImpl<T>(this.bus, objectType, this.galacticStoreSyncChannel);
@@ -99,7 +99,7 @@ export class StoreManager implements BusStoreApi {
         };
     }
 
-    private initGalacticStoreSyncChannel() {
+    private initGalacticStoreSyncChannel(brokerIdentity?: string) {
         if (this.galacticStoreSyncChannel) {
             return;
         }
@@ -107,6 +107,6 @@ export class StoreManager implements BusStoreApi {
         // the galactic channel.
         this.galacticStoreSyncChannel = 'fabric-store-sync.' +
               Date.now().toString(32) + '-' + GeneralUtil.genUUID();
-        this.bus.markChannelAsGalactic(this.galacticStoreSyncChannel);
+        this.bus.markChannelAsGalactic(this.galacticStoreSyncChannel, brokerIdentity);
     }
 }

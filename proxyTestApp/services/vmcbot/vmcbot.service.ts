@@ -1,5 +1,5 @@
 import { AbstractService } from '@vmw/bifrost/core';
-import { EventBus, MessageArgs, MessageHandler } from '@vmw/bifrost/bus.api';
+import { ChannelBrokerMapping, EventBus, MessageArgs, MessageHandler } from '@vmw/bifrost/bus.api';
 import { VMCBotRequest, VMCBotResponse, VMCCommand } from './vmcbot.model';
 import { BaseTask } from '@vmc/vmc-api';
 import { ChatMessage, GeneralChatChannel } from '../../src/app/chat-message';
@@ -51,9 +51,9 @@ export class VMCBotService extends AbstractService<VMCBotRequest, VMCBotResponse
         );
     }
 
-    private listenToVMCTasks() {
+    private listenToVMCTasks(galacticConfig: ChannelBrokerMapping) {
 
-        this.bus.listenGalacticStream(`topic/orgs.${this.orgId}.tasks`, this.getName())
+        this.bus.listenGalacticStream(`topic/orgs.${this.orgId}.tasks`, this.getName(), galacticConfig)
             .handle(
                 (taskJson: any) => {
                     const task: BaseTask = new BaseTask(taskJson);

@@ -23,6 +23,16 @@
     "license": "VMW_Proprietary",
     "changelogHistory": [
         {
+            "date": "10/28/19",
+            "version": "0.15.0",
+            "notes": [
+                {
+                    "description": "Support multi-broker fabric communication. Also deprecated method bus.requestGalactic() was removed in this release.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/93"
+                }
+            ]
+        },
+        {
             "date": "1/20/20",
             "version": "0.14.30",
             "notes": [

@@ -9,16 +9,37 @@ import { APIRequest, Message } from '../../../bus';
 import { GeneralUtil } from '../../../util/util';
 import { BusTestUtil } from '../../../util/test.util';
 import { GeneralError } from '../../model/error.model';
+import { BrokerConnector, BrokerConnectorChannel, StompBusCommand, StompClient, StompConfig } from '../../../bridge';
+import { Subscription } from 'rxjs';
 
 describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () => {
 
     let bus: EventBus;
     let operations: RestOperations;
 
+    const connectToMockBroker = () => {
+        const configuration = new StompConfig(
+            '/somewhere',
+            'somehost',
+            12345,
+            '',
+            '',
+            false,
+            null
+        );
+
+        configuration.brokerConnectCount = 1;
+        configuration.testMode = true;
+        configuration.topicLocation = '/topic';
+        configuration.queueLocation = '/queue';
+        configuration.useTopics = true;
+        BrokerConnector.fireConnectCommand(bus, configuration);
+    };
 
     beforeEach(() => {
         bus = BusTestUtil.bootBus();
         operations = RestOperations.getInstance();
+        connectToMockBroker();
     });
 
     afterEach(() => {
@@ -166,6 +187,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
         (done) => {
 
             const id: string = GeneralUtil.genUUID();
+            let bcSub: Subscription;
             let sub = bus.api.getChannel(RestService.channel).subscribe(
                 (msg: Message) => {
 
@@ -175,21 +197,29 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
                     expect(uri).toEqual('http://melody.rose');
 
                     sub.unsubscribe();
+                    bcSub.unsubscribe();
                     bus.markChannelAsLocal(RestService.channel);
                     done();
                 }
             );
 
-            bus.markChannelAsGalactic(RestService.channel);
-
-            operations.restServiceRequest(
-                {
-                    id: id,
-                    uri: 'http://melody.rose',
-                    method: HttpRequest.Get,
-                    successHandler: () => {}
-                },'test'
-            );
+            bcSub = bus.listenStream(BrokerConnectorChannel.status)
+                .handle(
+                    (command: StompBusCommand) => {
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+                                bus.markChannelAsGalactic(RestService.channel);
+                                operations.restServiceRequest(
+                                    {
+                                        id: id,
+                                        uri: 'http://melody.rose',
+                                        method: HttpRequest.Get,
+                                        successHandler: () => {}
+                                    },'test'
+                                );
+                        }
+                    }
+                );
         }
     );
 
@@ -197,6 +227,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
         (done) => {
 
             const id: string = GeneralUtil.genUUID();
+            let bcSub: Subscription;
             let sub = bus.api.getChannel(RestService.channel).subscribe(
                 (msg: Message) => {
 
@@ -206,23 +237,36 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
                     const apiClass = restObject.apiClass;
                     expect(uri).toEqual('http://melody.rose');
                     expect(apiClass).toEqual('com.some.Class');
+                    bcSub.unsubscribe();
                     sub.unsubscribe();
                     bus.markChannelAsLocal(RestService.channel);
                     done();
                 }
             );
 
-            bus.markChannelAsGalactic(RestService.channel);
+            bcSub = bus.listenStream(BrokerConnectorChannel.status)
+                .handle(
+                    (command: StompBusCommand) => {
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+                                console.log('CONNECTED');
+                                bus.markChannelAsGalactic(RestService.channel);
+                                operations.restServiceRequest(
+                                    {
+                                        apiClass: 'com.some.Class',
+                                        id: id,
+                                        uri: 'http://melody.rose',
+                                        method: HttpRequest.Get,
+                                        successHandler: () => {}
+                                    },'test'
+                                );
+                                break;
 
-            operations.restServiceRequest(
-                {
-                    apiClass: 'com.some.Class',
-                    id: id,
-                    uri: 'http://melody.rose',
-                    method: HttpRequest.Get,
-                    successHandler: () => {}
-                },'test'
-            );
+                            default:
+                                break;
+                        }
+                    }
+                );
         }
     );
 

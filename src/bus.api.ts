@@ -10,15 +10,13 @@ import { StompBusCommand } from './bridge/stomp.model';
 import { BridgeConnectionAdvancedConfig } from './bridge/bridge.model';
 import { Logger } from './log/logger.service';
 import { LogLevel } from './log/logger.model';
-import { APIRequest } from './core/model/request.model';
-import { APIResponse } from './core/model/response.model';
 import { MessageProxyConfig, ProxyControl } from './proxy/message.proxy.api';
 import { GeneralUtil } from './util/util';
 import { FabricApi } from './fabric.api';
 import { BrokerConnector } from './bridge';
 
 // current version
-const version = '0.14.30';
+const version = '0.15.0';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -360,28 +358,6 @@ export abstract class EventBus {
 
 
     /**
-     * Send a command payload to Galactic channel and listen for response that matches UUID of APIRequest.
-     * (defaults to sendChannel if left blank). The handle() method on the MessageHandler instance is used to
-     * process incoming responses. The handler will stop processing any further responses after the first one.
-     *
-     * @param {ChannelName} sendChannel the Galactic channel to send the command to
-     * @param {APIRequest} request APIRequest to be sent as the command
-     * @param {MessageFunction<APIResponse<R>>} successHandler for a successful response to your command
-     * @param {MessageFunction<APIResponse<R>>} errorHandler for an un-successful response to your command
-     * @param {SentFrom} from optional name of the actor implementing (for logging)
-     * @returns {MessageHandler<APIResponse>} reference to MessageHandler, handle()
-     *                                             function receives any inbound response.
-     * @deprecated use markChannelAsGalactic() and fabric.generateFabricRequest()
-     */
-    abstract requestGalactic<T, R>(
-        sendChannel: ChannelName,
-        request: APIRequest<T>,
-        successHandler: MessageFunction<APIResponse<R>>,
-        errorHandler?: MessageFunction<APIResponse<R>>,
-        from?: SentFrom): void;
-
-
-    /**
      * Listen for a single response on a channel, process then automatically stop handling any more.
      *
      * @param {ChannelName} channel channel to listen to for responses.
@@ -433,10 +409,13 @@ export abstract class EventBus {
      *
      * @param {ChannelName} cname name of the broker mapped destination
      * @param {SentFrom} from optional calling actor (for logging)
+     * @param {ChannelBrokerMapping} galacticConfig optional galactic configuration containing broker destination and
+     *        channel publicity
      * @returns {MessageHandler<R>} reference to MessageHandler. All responses will be handled via the handle() method.
      * @deprecated use markChannelAsGalactic() and fabric.generateFabricRequest()
      */
-    abstract listenGalacticStream<R>(cname: ChannelName, from?: SentFrom): MessageHandler<R>;
+    abstract listenGalacticStream<R>(cname: ChannelName, from?: SentFrom,
+                                     galacticConfig?: ChannelBrokerMapping): MessageHandler<R>;
 
     /**
      * Check if a channel is marked as Galactic (mapped to broker) or not.
@@ -452,9 +431,11 @@ export abstract class EventBus {
      * All messages sent to the channel with the "channelName" name
      * will be transmitted to the remote destinations.
      * @param {ChannelName} channelName name of the channel
+     * @param {brokerIdentity} broker's host, port and endpoint used as its identity.
+     *        use BusUtil.getFabricConnectionString() to create one.
      * @param {isPrivate} whether the channel is a broadcast or a private channel
      */
-    abstract markChannelAsGalactic(channelName: ChannelName, isPrivate?: boolean): void;
+    abstract markChannelAsGalactic(channelName: ChannelName, brokerIdentity?: string, isPrivate?: boolean): void;
 
     /**
      * Marks channels as galactic.
@@ -466,8 +447,10 @@ export abstract class EventBus {
      * Marks a channel as local. All messages sent to a local channel will
      * be sent to local destinations and will NOT be sent to remote destinations.
      * @param {ChannelName} channelName name of the channel
+     * @param {brokerIdentity} broker's host, port and endpoint used as its identity.
+     *        use BusUtil.getFabricConnectionString() to create one.
      */
-    abstract markChannelAsLocal(channelName: ChannelName): void;
+    abstract markChannelAsLocal(channelName: ChannelName, brokerIdentity?: string): void;
 
     /**
      * Marks channels as local.
@@ -515,7 +498,7 @@ export abstract class EventBus {
      * @param {SentFrom} from optional calling actor (for logging)
      * @deprecated use markChannelAsGalactic() and fabric.generateFabricRequest()
      */
-    abstract closeGalacticChannel(cname: ChannelName, from?: SentFrom): void;
+    abstract closeGalacticChannel(cname: ChannelName, from?: SentFrom, brokerIdentity?: ChannelBrokerMapping): void;
 
     /**
      * Fire a galactic send notification to the montitor like it was a regular send on Observable. The
@@ -641,13 +624,15 @@ export interface EventBusLowApi {
      * Get or create a galactic channel. Channel will be mapped to broker destination and picked up by the bridge.
      *
      * @param {ChannelName} cname
+     * @param {ChannelBrokerMapping} galacticConfig optional - galactic configuration containing information including
+     *        broker connection string and whether channel is private or not
      * @param {SentFrom} from
      * @param {boolean} noRefCount optional - will prevent internal reference counting (defaults to false)
-     * @param {boolean} isPrivate optional - is channel private?
      * @returns {Observable<Message>}
      * @deprecated use markChannelAsGalactic()
      */
-    getGalacticChannel(cname: ChannelName, from?: SentFrom, noRefCount?: boolean, isPrivate?: boolean): Observable<Message>;
+    getGalacticChannel(cname: ChannelName, galacticConfig?: ChannelBrokerMapping,
+                       from?: SentFrom, noRefCount?: boolean): Observable<Message>;
 
     /**
      * Send simple API message to MessageResponder enabled calls. (non low-level API's)
@@ -892,9 +877,9 @@ export interface BusTransaction {
     /**
      * Once all responses to requests have been received, the transaction is complete.
      * The handler will return an array or all responses in the order the requests were sent.
-     * @param {MessageFunction<T>} completeHandler the closure you want to handle the completed payload.
+     * @param {MessageFunction<T[]>} completeHandler the closure you want to handle the completed payload.
      */
-    onComplete<RespT>(completeHandler: MessageFunction<[RespT]>): void;
+    onComplete<RespT>(completeHandler: MessageFunction<RespT[]>): void;
 
     /**
      * If an error is thrown by any of the responders, the transaction is aborted and the
@@ -914,4 +899,15 @@ export interface BusTransaction {
 
 export interface EventBusEnabled {
     getName(): string;
+}
+
+/**
+ * ChannelBrokerMapping is a fragment of information that represents the key bridging information
+ * between a local channel and a broker that the channel is mapped to. The interface consists of two properties,
+ * isPrivate to indicate whether the channel is private or public (broadcast), and brokerIdentity to hold the
+ * identity of the broker.
+ */
+export interface ChannelBrokerMapping {
+    isPrivate: boolean;
+    brokerIdentity: string;
 }
