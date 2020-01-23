@@ -20,7 +20,7 @@ export abstract class AbstractOperations extends AbstractBase {
     public callService<RequestType, RetPayload>(
         channel: ChannelName,
         request: RequestType,
-        successHandler: MessageFunction<RetPayload>,
+        successHandler: MessageFunction<RetPayload | RetPayload[]>,
         errorHandler?: MessageFunction<GeneralError>) {
 
         const bus: EventBus = BusUtil.getBusInstance();
@@ -34,8 +34,9 @@ export abstract class AbstractOperations extends AbstractBase {
         }
 
         transaction.onComplete<AbstractMessageObject<RequestType, RetPayload>>(
-            (resp: [AbstractMessageObject<RequestType, RetPayload>]) => {
-                successHandler(resp[0].payload);
+            (responses: AbstractMessageObject<RequestType, RetPayload>[]) => {
+                const transactionResults = responses.map(response => response.payload);
+                successHandler(transactionResults.length === 1 ? transactionResults[0] : transactionResults);
             }
         );
 

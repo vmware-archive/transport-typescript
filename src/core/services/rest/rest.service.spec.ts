@@ -500,8 +500,28 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
             const restService: RestService = ServiceLoader.getRestService();
             restService.offline();
             expect(bus.logger.info).toHaveBeenCalledWith('RestService (Local / Browser): OFFLINE', 'RESTService');
-
-
         }
     );
+
+    it('Check disableCorsAndCredentials deprecation warning shows up when invoked', (done) => {
+        spyOn(bus.logger, 'warn').and.callThrough();
+
+        let channel = bus.api.getResponseChannel(FakeChannel.request);
+        const id = GeneralUtil.genUUIDShort();
+        const packet: any = {};
+        Object.assign(packet, restPayloadPost);
+        packet['op'] = 'CORS_OPTIONS';
+        const requestObject = new FakeRestRelayRequestObject(FakeChannel.request, packet);
+        bus.sendRequestMessageWithId(FakeChannel.request, requestObject, id);
+
+        bus.api.tickEventLoop(() => {
+            packet['op'] = 'POST';
+            channel.subscribe(() => {
+                expect(bus.logger.warn).toHaveBeenCalled();
+                done();
+            });
+            bus.sendRequestMessageWithId(FakeChannel.request, requestObject, id);
+
+        }, 10);
+    });
 });

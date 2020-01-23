@@ -108,6 +108,7 @@ describe('Bifröst HTTP Client [cores/services/rest/bifrost.httpclient]', () => 
             );
         }
     );
+
     it('Can make bad POST fetch request',
         (done) => {
             fetchMock.post('http://appfabric.vmware.com/', 400 );
@@ -327,4 +328,20 @@ describe('Bifröst HTTP Client [cores/services/rest/bifrost.httpclient]', () => 
             );
         }
     );
+
+    it('Can handle TypeError', (done) => {
+        fetchMock.get('http://appfabric.vmware.com/', {
+            throws: new TypeError('network error')
+        });
+
+        let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
+        client.get(request,
+            () => { },
+            (failureObject: GeneralError) => {
+            console.log(failureObject.message);
+                expect(failureObject.message).toContain('Fatal HTTP Error:');
+                done();
+            }
+        );
+    });
 });

@@ -15,7 +15,7 @@ import { StompClient } from '../bridge/stomp.client';
 import { StompParser } from '../bridge/stomp.parser';
 import { BridgeConnectionAdvancedConfig } from '../bridge/bridge.model';
 import {
-    BusTransaction,
+    BusTransaction, ChannelBrokerMapping,
     ChannelName,
     EventBus,
     EventBusEnabled,
@@ -26,10 +26,6 @@ import {
 import { EventBusLowLevelApiImpl } from './bus.lowlevel';
 import { Logger } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
-import { APIRequest } from '../core/model/request.model';
-import { APIResponse } from '../core/model/response.model';
-import { Observable } from 'rxjs';
-import { filter } from 'rxjs/operators';
 import { StoreManager } from './store/store.manager';
 import { BusTransactionImpl } from './transaction';
 import { BrokerConnector } from '../bridge/broker-connector';
@@ -216,7 +212,8 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
             config.testMode = true;
         }
 
-        const handler: MessageHandler<StompBusCommand> = this.requestStream(
+        const handler: MessageHandler<StompBusCommand> = this.requestStreamWithId(
+            `${config.host}:${config.port}${config.endpoint}`,
             BrokerConnectorChannel.connection,
             StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, '', '', config),
         );
@@ -234,10 +231,11 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         return handler;
     }
 
-    public listenGalacticStream<T>(cname: ChannelName, name: SentFrom = this.getName()): MessageHandler<T> {
+    public listenGalacticStream<T>(cname: ChannelName, name: SentFrom = this.getName(),
+                                   galacticConfig?: ChannelBrokerMapping): MessageHandler<T> {
         if (!this.internalChannelMap.has(cname)) {
             this.api.getGalacticChannel(
-                cname, name, false, false); // create a public galactic channel by default;
+                cname, galacticConfig, name, false); // create a public galactic channel by default;
         }
         return this.listenStream(cname, name);
     }
@@ -249,10 +247,14 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         return false;
     }
 
-    public closeGalacticChannel(cname: ChannelName, from?: SentFrom): void {
+    public closeGalacticChannel(cname: ChannelName, from?: SentFrom, brokerIdentity?: ChannelBrokerMapping): void {
         this.api.getMonitorStream().send(
             new Message().request(
-                new MonitorObject().build(MonitorType.MonitorGalacticUnsubscribe, cname, from)
+                new MonitorObject().build(
+                    MonitorType.MonitorGalacticUnsubscribe,
+                    cname,
+                    from,
+                    brokerIdentity)
             )
         );
     }
@@ -505,48 +507,6 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         return this.api.close(cname, from);
     }
 
-    public requestGalactic<T, R>(
-        channel: string,
-        request: APIRequest<T>,
-        successHandler: MessageFunction<APIResponse<R>>,
-        errorHandler: MessageFunction<APIResponse<R>>,
-        from?: string): void {
-
-        if (!channel || !request) {
-            this.log.error('Cannot send Galactic APIRequest, payload or channel is empty.', this.getName());
-            return;
-        }
-
-        const conversationId: UUID = request.id;
-
-        const stream: Observable<Message> = this.api.getGalacticChannel(channel)
-            .pipe(
-                filter((message: Message) => {
-                    return (message.isResponse());
-                }),
-                filter((message: Message) => {
-                    const resp: APIResponse<R> = message.payload as APIResponse<R>;
-                    return conversationId === resp.id;
-                }));
-
-        const sub = stream.subscribe(
-            (msg: Message) => {
-                const resp: APIResponse<R> = msg.payload;
-                if (resp.error) {
-                    errorHandler(resp);
-                } else {
-                    this.log.debug('Galactic APIResponse Incoming: ' + resp.id);
-                    successHandler(resp);
-                }
-                sub.unsubscribe();
-                this.closeGalacticChannel(channel);
-            }
-        );
-
-        this.sendGalacticMessage(channel, request);
-
-    }
-
     public createTransaction(type: TransactionType = TransactionType.ASYNC,
                              name: string = 'Transaction' + GeneralUtil.genUUID()): BusTransaction {
         return new BusTransactionImpl(this, this.log, type, name);
@@ -570,7 +530,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         }
     }
 
-    public markChannelAsGalactic(channelName: ChannelName, isPrivate?: boolean): void {
+    public markChannelAsGalactic(channelName: ChannelName, brokerIdentity?: string, isPrivate?: boolean): void {
         const channel = this.api.getChannelObject(channelName);
         channel.setGalactic();
         if (isPrivate === true) {
@@ -582,7 +542,10 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         this.api.getMonitorStream().send(
             new Message().request(
                 new MonitorObject().build(
-                    MonitorType.MonitorNewGalacticChannel, channelName, this.getName(), channel.isPrivate)
+                    MonitorType.MonitorNewGalacticChannel,
+                    channelName,
+                    this.getName(),
+                    {isPrivate: channel.isPrivate, brokerIdentity: brokerIdentity} as ChannelBrokerMapping)
             )
         );
     }
@@ -593,13 +556,17 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
         }
     }
 
-    public markChannelAsLocal(channelName: ChannelName) {
+    public markChannelAsLocal(channelName: ChannelName, brokerIdentity?: string) {
         const channel = this.api.getChannelObject(channelName);
         channel.setLocal();
 
         this.api.getMonitorStream().send(
             new Message().request(
-                new MonitorObject().build(MonitorType.MonitorGalacticUnsubscribe, channelName, this.getName())
+                new MonitorObject().build(
+                    MonitorType.MonitorGalacticUnsubscribe,
+                    channelName,
+                    this.getName(),
+                    {isPrivate: channel.isPrivate, brokerIdentity} as ChannelBrokerMapping)
             )
         );
     }

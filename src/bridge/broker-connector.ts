@@ -9,7 +9,7 @@ import { StompValidator } from './stomp.validator';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
 import { Message } from '../bus/model/message.model';
 import { BifrostEventBus } from '../bus/bus';
-import { EventBus, EventBusEnabled } from '../bus.api';
+import { ChannelBrokerMapping, EventBus, EventBusEnabled } from '../bus.api';
 import { Logger } from '../log';
 import { FabricUtil } from '../fabric/fabric.util';
 
@@ -22,9 +22,10 @@ export class BrokerConnector implements EventBusEnabled {
     static serviceName: string = 'stomp.service';
     public reconnectDelay: number = 5000;
     public connectDelay: number = 20;
-    public connecting: boolean = false;
+    public connectingMap: Map<string, boolean> = new Map<string, boolean>();
 
-    private currentSession: StompSession = null;
+    private currentSessionMap: Map<string, StompSession> = new Map<string, StompSession>();
+    private channelBrokerIdentitiesMap: Map<string, Set<string>> = new Map<string, Set<string>>();
 
     // helper methods for boilerplate commands.
     static fireSubscriptionCommand(bus: EventBus,
@@ -109,11 +110,11 @@ export class BrokerConnector implements EventBusEnabled {
         return (this as any).constructor.name;
     }
 
-    private _errorObservable: Observable<Error>;
-    private _closeObservable: Observable<CloseEvent>;
+    private _errorObservables: Map<string, Observable<Error>> = new Map<string, Observable<Error>>();
+    private _closeObservables: Map<string, Observable<CloseEvent>> = new Map<string, Observable<CloseEvent>>();
     private _sessions: Map<string, StompSession>;
-    private _galaticChannels: Map<string, boolean>;
-    private _privateChannels: Map<string, boolean>;
+    private _galacticChannels: Map<string, {connectedBrokers: number}>;
+    private _privateChannels: Map<string, {[brokerIdentity: string]: boolean}>;
     private bus: BifrostEventBus;
     private reconnectTimerInstance: any;
     private reconnecting: boolean = false;
@@ -154,16 +155,16 @@ export class BrokerConnector implements EventBusEnabled {
         );
 
         this._sessions = new Map<string, StompSession>();
-        this._galaticChannels = new Map<string, boolean>();
-        this._privateChannels = new Map<string, boolean>();
+        this._galacticChannels = new Map<string, {connectedBrokers: number}>();
+        this._privateChannels = new Map<string, {[brokerIdentity: string]: boolean}>();
 
     }
 
-    get galacticChannels(): Map<string, boolean> {
-        return this._galaticChannels;
+    get galacticChannels(): Map<string, {connectedBrokers: number}> {
+        return this._galacticChannels;
     }
 
-    get privateChannels(): Map<string, boolean> {
+    get privateChannels(): Map<string, {[brokerIdentity: string]: boolean}> {
         return this._privateChannels;
     }
 
@@ -183,17 +184,28 @@ export class BrokerConnector implements EventBusEnabled {
         let mo = msg.payload as MonitorObject;
         switch (mo.type) {
             case MonitorType.MonitorNewGalacticChannel:
-                this.openGalacticChannel(mo.channel, mo.data);
+                // if galacticConfig is not present, try detecting the default broker identity with isPrivate
+                // set to true for a broadcast channel.
+                const galacticConfig: ChannelBrokerMapping = mo.data || {
+                    isPrivate: false,
+                    brokerIdentity: null
+                };
+                this.openGalacticChannel(mo.channel, galacticConfig);
                 break;
 
             case MonitorType.MonitorGalacticData:
-                this.sendGalacticMessage(mo.channel, mo.data);
+                const activeSessionIds = Array.from(this._sessions.values()).filter((stompSession: StompSession) => {
+                    return this.channelBrokerIdentitiesMap.get(mo.channel).has(this.getBrokerIdentityFromConfig(
+                        stompSession.config.host, stompSession.config.port, stompSession.config.endpoint));
+                }).map((stompSession: StompSession) => stompSession.id);
+
+                activeSessionIds.forEach((id: string) => this.sendGalacticMessage(mo.channel, mo.data, id));
                 break;
 
             case MonitorType.MonitorCompleteChannel:
             case MonitorType.MonitorGalacticUnsubscribe:
-                if (this._galaticChannels.get(mo.channel)) {
-                    this.closeGalacticChannel(mo.channel);
+                if (this._galacticChannels.get(mo.channel)) {
+                    this.closeGalacticChannel(mo.channel, mo.data);
                 }
                 break;
             default:
@@ -201,7 +213,7 @@ export class BrokerConnector implements EventBusEnabled {
         }
     }
 
-    private sendGalacticMessage(channel: string, payload: any): void {
+    private sendGalacticMessage(channel: string, payload: any, sessionId: string): void {
 
         // outbound message detected, if it's not a valid remote request, warn the consumer
         if (!FabricUtil.isPayloadFabricRequest(payload)) {
@@ -213,25 +225,30 @@ export class BrokerConnector implements EventBusEnabled {
         let cleanedChannel = [StompParser.convertChannelToSubscription(channel)];
 
         this._sessions.forEach(session => {
-            const config = session.config;
-            if (session.applicationDestinationPrefix) {
-                cleanedChannel.splice(0, 0, session.applicationDestinationPrefix);
-            }
+            const sessionBrokerIdentity = this.getBrokerIdentityFromConfig(
+                session.config.host, session.config.port, session.config.endpoint);
 
-            if (this._privateChannels.get(channel)) {
-                cleanedChannel.splice(1, 0, 'queue');
-            }
+            // send only if broker identity matches
+            if (sessionId === session.id) {
+                if (session.applicationDestinationPrefix) {
+                    cleanedChannel.splice(0, 0, session.applicationDestinationPrefix);
+                }
 
-            const destination = cleanedChannel.join('/');
-            const command: StompBusCommand = StompParser.generateStompBusCommand(
-                StompClient.STOMP_MESSAGE,
-                session.id,
-                destination,
-                StompParser.generateStompReadyMessage(payload, this.getGlobalHeaders())
-            );
-            this.log.debug('Sending Galactic Message for session ' + session.id +
-                ' to destination ' + destination, this.getName());
-            this.sendPacket(command);
+                if (this._privateChannels.get(channel)[sessionBrokerIdentity]) {
+                    cleanedChannel.splice(1, 0, 'queue');
+                }
+
+                const destination = cleanedChannel.join('/');
+                const command: StompBusCommand = StompParser.generateStompBusCommand(
+                    StompClient.STOMP_MESSAGE,
+                    session.id,
+                    destination,
+                    StompParser.generateStompReadyMessage(payload, this.getGlobalHeaders())
+                );
+                this.log.debug('Sending Galactic Message for session ' + session.id +
+                    ' to destination ' + destination, this.getName());
+                this.sendPacket(command);
+            }
         });
     }
 
@@ -239,51 +256,125 @@ export class BrokerConnector implements EventBusEnabled {
         return sessionId + '-' + channel;
     }
 
-    private openGalacticChannel(channel: string, isPrivate: boolean) {
+    private openGalacticChannel(channel: string, galacticConfig: ChannelBrokerMapping) {
         let cleanedChannel = StompParser.convertChannelToSubscription(channel);
-        this._galaticChannels.set(channel, true);
-        this._privateChannels.set(channel, isPrivate);
+
+        if (!galacticConfig.brokerIdentity) {
+            const defaultBrokerIdentityMatch = this.getDefaultBrokerIdentity();
+            if (defaultBrokerIdentityMatch.success) {
+                galacticConfig.brokerIdentity = defaultBrokerIdentityMatch.brokerIdentityStr;
+            } else {
+                if (defaultBrokerIdentityMatch.sessionsNum > 1) {
+                    this.log.error('More than one STOMP session was detected when trying to open galactic channel \'' +
+                        channel + '\'. You need to explicitly specify the target fabric broker in the second argument ' +
+                        'to bus.markChannelAsGalactic()');
+                } else if (defaultBrokerIdentityMatch.sessionsNum === 0) {
+                    this.log.warn('No session registered');
+                }
+                return;
+            }
+        }
+
+        // map channel to broker destination ID (host + port + endpoint)
+        if (!this.channelBrokerIdentitiesMap.has(channel)) {
+            this.channelBrokerIdentitiesMap.set(channel, new Set<string>([galacticConfig.brokerIdentity]));
+        } else {
+            this.channelBrokerIdentitiesMap.get(channel).add(galacticConfig.brokerIdentity);
+        }
+
+        // if this galactic channel entry doesn't exist, create one and initialize connectedBrokers with 0.
+        if (!this._galacticChannels.has(channel)) {
+            this._galacticChannels.set(channel, {connectedBrokers: 0});
+        }
+
+        // if this private channel entry doesn't exist, create one and initialize it with an empty object.
+        if (!this._privateChannels.has(channel)) {
+            this._privateChannels.set(channel, {});
+        }
+
+        this._privateChannels.get(channel)[galacticConfig.brokerIdentity] = galacticConfig.isPrivate;
 
         // if we're connected, kick things off
-        if (this._sessions.size >= 1) {
+        if (this.isSessionEstablished(galacticConfig)) {
             this._sessions.forEach(session => {
-                const config = session.config;
-                const subscriptionId = this.generateSubscriptionId(session.id, cleanedChannel);
-                const brokerPrefix = isPrivate ? config.queueLocation : config.topicLocation;
-                const destination =
-                    StompParser.generateGalacticDesintation(brokerPrefix, cleanedChannel, isPrivate);
-                const subscription =
-                    StompParser.generateStompBrokerSubscriptionRequest(
-                        session.id, destination, subscriptionId, isPrivate, brokerPrefix
-                    );
-                this.subscribeToDestination(subscription);
+                // subscribe to the broker channel only if broker identity matches
+                if (galacticConfig.brokerIdentity ===
+                    this.getBrokerIdentityFromConfig(session.config.host, session.config.port, session.config.endpoint)) {
+                    const config = session.config;
+                    const subscriptionId = this.generateSubscriptionId(session.id, cleanedChannel);
+                    const brokerPrefix = galacticConfig.isPrivate ? config.queueLocation : config.topicLocation;
+                    const destination =
+                        StompParser.generateGalacticDesintation(brokerPrefix, cleanedChannel, galacticConfig.isPrivate);
+                    const subscription =
+                        StompParser.generateStompBrokerSubscriptionRequest(
+                            session.id, destination, subscriptionId, galacticConfig.isPrivate, brokerPrefix
+                        );
+                    this._galacticChannels.get(channel).connectedBrokers++;
+                    this.subscribeToDestination(subscription);
+                }
 
             });
         }
     }
 
-    private closeGalacticChannel(channel: string) {
+    private closeGalacticChannel(channel: string, galacticConfig?: ChannelBrokerMapping) {
+
+        if (!galacticConfig.brokerIdentity) {
+            const defaultBrokerIdentityMatch = this.getDefaultBrokerIdentity();
+            if (defaultBrokerIdentityMatch.success) {
+                galacticConfig.brokerIdentity = defaultBrokerIdentityMatch.brokerIdentityStr;
+            } else {
+                if (defaultBrokerIdentityMatch.sessionsNum > 1) {
+                    this.log.error('More than one STOMP session was detected when trying to close galactic channel \'' +
+                        channel + '\'. You need to explicitly specify the target fabric broker in the second argument ' +
+                        'to bus.markChannelAsLocal()');
+                } else if (defaultBrokerIdentityMatch.sessionsNum === 0) {
+                    this.log.warn('No session registered');
+                }
+                return;
+            }
+        }
 
         let cleanedChannel = StompParser.convertChannelToSubscription(channel);
         if (this._sessions.size >= 1) {
-
             this._sessions.forEach(session => {
                 const config = session.config;
-                const subscriptionId = this.generateSubscriptionId(session.id, cleanedChannel);
-                const brokerPrefix = this._privateChannels.get(channel) ? config.queueLocation : config.topicLocation;
-                const destination =
-                    StompParser.generateGalacticDesintation(
-                        brokerPrefix, cleanedChannel, this._privateChannels.get(channel));
-                const subscription =
-                    StompParser.generateStompBrokerSubscriptionRequest(
-                        session.id, destination, subscriptionId, this._privateChannels.get(channel), brokerPrefix
-                    );
+                const sessionBrokerIdentity = this.getBrokerIdentityFromConfig(
+                    config.host, config.port, config.endpoint);
 
-                this.unsubscribeFromDestination(subscription);
+                const isPrivateChannel = this._privateChannels.get(channel)[sessionBrokerIdentity];
+                const subscriptionId = this.generateSubscriptionId(session.id, cleanedChannel);
+                const brokerPrefix = this._privateChannels.get(channel)[sessionBrokerIdentity] ?
+                    config.queueLocation : config.topicLocation;
+                const destination =
+                    StompParser.generateGalacticDesintation(brokerPrefix, cleanedChannel, isPrivateChannel);
+                const subscription = StompParser.generateStompBrokerSubscriptionRequest(
+                        session.id, destination, subscriptionId, isPrivateChannel, brokerPrefix);
+
+                // unsubscribe from destination only if broker identity matches
+                if (galacticConfig.brokerIdentity === sessionBrokerIdentity) {
+                    this.unsubscribeFromDestination(subscription);
+                }
             });
 
-            this._galaticChannels.delete(cleanedChannel);
-            this._privateChannels.delete(cleanedChannel);
+            // decrease the connectedBrokers count by 1
+            this._galacticChannels.get(channel).connectedBrokers--;
+
+            // if connectedBrokers === 0, destroy the entry from galacticChannels map
+            if (this._galacticChannels.get(channel).connectedBrokers === 0) {
+                this._galacticChannels.delete(channel);
+            }
+
+            // remove the broker identity from the private channel entry
+            delete this._privateChannels.get(channel)[galacticConfig.brokerIdentity];
+
+            // remove broker identity from channel-brokerIdentities mapping
+            this.channelBrokerIdentitiesMap.get(channel).delete(galacticConfig.brokerIdentity);
+
+            // if there is no key present in the entry, destroy the entry from privateChannels map
+            if (Object.keys(this._privateChannels.get(channel)).length === 0) {
+                this._privateChannels.delete(channel);
+            }
         } else {
             this.log.warn('unable to close galactic channel, no open sessions.', 'BrokerConnector');
         }
@@ -367,10 +458,10 @@ export class BrokerConnector implements EventBusEnabled {
                                       error: boolean = false): void {
 
         let messageType: Message =
-            new Message().response(command);
+            new Message(command.payload).response(command);
         if (error) {
             messageType =
-                new Message().error(command);
+                new Message(command.payload).error(command);
         }
         this.bus.api.send(
             channel,
@@ -404,18 +495,20 @@ export class BrokerConnector implements EventBusEnabled {
 
     public connectClient(config: StompConfig): void {
 
+        const connString: string = `${config.host}:${config.port}${config.endpoint}`;
+
         // Ignore the connect request in case we are in connecting or connected state.
-        if (this.currentSession && this.currentSession.client &&
-              (this.currentSession.client.connectionState === ConnectionState.Connecting ||
-                  this.currentSession.client.connectionState === ConnectionState.Connected)) {
+        if (this.currentSessionMap.has(connString) && this.currentSessionMap.get(connString).client &&
+              (this.currentSessionMap.get(connString).client.connectionState === ConnectionState.Connecting ||
+                  this.currentSessionMap.get(connString).client.connectionState === ConnectionState.Connected)) {
             return;
         }
 
         let session = new StompSession(config, this.log, this.bus);
-        this.currentSession = session;
+        this.currentSessionMap.set(connString, session);
 
         let connection = session.connect();
-        this.connecting = true;
+        this.connectingMap.set(connString, true);
 
         config.connectionSubjectRef = connection;
 
@@ -443,7 +536,10 @@ export class BrokerConnector implements EventBusEnabled {
                         let message: StompBusCommand =
                             StompParser.generateStompBusCommand(
                                 StompClient.STOMP_CONNECTED,    // not a command, but used for local notifications.
-                                session.id                      // each broker requires a session.
+                                session.id,                      // each broker requires a session.
+                                undefined,
+                                this.getBrokerIdentityFromConfig(
+                                    session.config.host, session.config.port, session.config.endpoint)
                             );
 
                         this.sendBusCommandResponseRaw(message, BrokerConnectorChannel.connection, true);
@@ -456,17 +552,29 @@ export class BrokerConnector implements EventBusEnabled {
                         );
 
                         // these are now available;
-                        this._errorObservable = session.client.socketErrorObserver;
-                        this._closeObservable = session.client.socketCloseObserver;
+                        this._errorObservables.set(session.id, session.client.socketErrorObserver);
+                        this._closeObservables.set(session.id, session.client.socketCloseObserver);
 
                         // add session to map
                         this._sessions.set(session.id, session);
-                        this.subscribeToClientObservables();
+                        this.subscribeToClientObservables(session);
 
                         // subscribe to all open channels
-                        this._galaticChannels.forEach((open, channel) =>
-                            this.openGalacticChannel(channel, this._privateChannels.get(channel)));
+                        this._galacticChannels.forEach((open, channel) => {
+                            const sessionBrokerIdentity = this.getBrokerIdentityFromConfig(
+                                session.config.host, session.config.port, session.config.endpoint);
 
+                            // only open galactic channels whose broker identity matches that of the session config
+                            if (this.channelBrokerIdentitiesMap.get(channel).has(sessionBrokerIdentity)) {
+                                // if the channel is open
+                                this.openGalacticChannel(
+                                    channel,
+                                    {
+                                        isPrivate: this._privateChannels.get(channel)[sessionBrokerIdentity],
+                                        brokerIdentity: connString
+                                    });
+                            }
+                        });
                         session.connected = true;
                     }
                 } else if (session.config.brokerConnectCount > session.connectionCount) {
@@ -526,7 +634,9 @@ export class BrokerConnector implements EventBusEnabled {
            if (sub) {
               sub.unsubscribe();
               // close the channel to fix the channel reference count
-              this.bus.api.close(channelName, this.getName());
+              if (this._galacticChannels.get(channelName).connectedBrokers === 0) {
+                  this.bus.api.close(channelName, this.getName());
+              }
            }
         });
         session.getGalacticSubscriptions().clear();
@@ -548,14 +658,31 @@ export class BrokerConnector implements EventBusEnabled {
         }
     }
 
-    private subscribeToClientObservables(): void {
+    private subscribeToClientObservables(s: StompSession): void {
 
-        this._closeObservable.subscribe(
+        this._closeObservables.get(s.id).subscribe(
             (evt: any) => {
+                const sessionsToDestroy: string[] = [];
                 this.log.warn('WebSocket to broker closed!', this.getName());
-                this.sessions.forEach(
-                      session => this.clearGalacticSubscriptionsFromSession(session));
-                this.sessions.clear();
+                this.sessions.forEach(session => {
+                    if (session.config.host === (evt.config as StompConfig).host &&
+                        session.config.port === (evt.config as StompConfig).port) {
+                        sessionsToDestroy.push(session.id);
+                    }
+                });
+
+                sessionsToDestroy.forEach((sessionId: string) => {
+                    const session = this.sessions.get(sessionId);
+                    for (let [chan, bIds] of this.channelBrokerIdentitiesMap.entries()) {
+                        // decrement connectedBrokers for the channel
+                        this._galacticChannels.get(chan).connectedBrokers--;
+
+                        // remove the connection string from the channelBrokerIdentitiesMap
+                        bIds.delete(`${session.config.host}:${session.config.port}${session.config.endpoint}`);
+                    }
+                    this.clearGalacticSubscriptionsFromSession(session);
+                    this.sessions.delete(sessionId);
+                });
 
                 if (!this.reconnecting) {
                     this.log.info('Starting re-connection timer', this.getName());
@@ -568,11 +695,11 @@ export class BrokerConnector implements EventBusEnabled {
             }
         );
 
-        this._errorObservable.subscribe(
+        this._errorObservables.get(s.id).subscribe(
             (err: any) => {
                 this.log.error('Error occurred with WebSocket, Unable to connect to broker!', this.getName());
                 this.sessions.forEach(
-                     session => this.clearGalacticSubscriptionsFromSession(session));
+                    session => this.clearGalacticSubscriptionsFromSession(session));
                 this._sessions.clear();
                 let msg
                     = StompParser.generateStompBusCommand(
@@ -605,7 +732,7 @@ export class BrokerConnector implements EventBusEnabled {
                 (msg: Message) => {
 
                     // send galactic message.
-                    this.sendGalacticMessage(channel, msg.payload);
+                    this.sendGalacticMessage(channel, msg.payload, session.id);
                 }
             );
             session.addGalacticSubscription(channel, sub);
@@ -646,7 +773,7 @@ export class BrokerConnector implements EventBusEnabled {
                 }
             );
 
-            this._closeObservable.subscribe(
+            this._closeObservables.get(session.id).subscribe(
                 () => {
                     subjectSubscription.unsubscribe();
                 }
@@ -693,6 +820,48 @@ export class BrokerConnector implements EventBusEnabled {
         } else {
             this.log.warn('unable to unsubscribe, no session found for id: ' + data.session, this.getName());
         }
+    }
+
+    /**
+     * Return the broker identity consisting of Fabric host, port and endpoint
+     * @param {string} host
+     * @param {number} port
+     * @param {string} endpoint
+     */
+    private getBrokerIdentityFromConfig(host: string, port: number, endpoint: string) {
+        return `${host}:${port}${endpoint}`;
+    }
+
+    /**
+     * Return true if session is established with the broker identified in galacticConfig
+     * @param {ChannelBrokerMapping} galacticConfig
+     * @return {boolean} true if session is established with the broker
+     */
+    private isSessionEstablished(galacticConfig: ChannelBrokerMapping): boolean {
+        return Array.from(this._sessions.values()).some((stompSession: StompSession) =>
+            this.getBrokerIdentityFromConfig(
+                stompSession.config.host,
+                stompSession.config.port,
+                stompSession.config.endpoint) === galacticConfig.brokerIdentity);
+    }
+
+    /**
+     * Return default brokerIdentity.
+     * @return {string} broker identity if there is only one session or
+     *         null if there more than one STOMP session is present
+     */
+    private getDefaultBrokerIdentity(): {success: boolean; sessionsNum: number; brokerIdentityStr: string} {
+        if (this._sessions.size > 1) {
+            return {success: false, sessionsNum: this._sessions.size, brokerIdentityStr: null};
+        }
+
+        const firstSession = Array.from(this._sessions.values())[0];
+        if (!firstSession) {
+            return {success: false, sessionsNum: 0, brokerIdentityStr: null};
+        }
+
+        return {success: true, sessionsNum: 1, brokerIdentityStr: this.getBrokerIdentityFromConfig(
+            firstSession.config.host, firstSession.config.port, firstSession.config.endpoint)};
     }
 }
 

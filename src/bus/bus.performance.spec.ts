@@ -679,7 +679,7 @@ function runApiPerformanceTestOverSocket(host: string, loops: number, done: Func
     const theBridgeIsReady = () => {
 
         timeBefore = performance.now();
-        bus.listenGalacticStream(chan)
+        bus.listenGalacticStream(chan, null, {brokerIdentity: 'connString', isPrivate: false})
             .handle(
                 () => {
                     responseCount++;

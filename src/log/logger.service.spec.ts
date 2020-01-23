@@ -248,5 +248,17 @@ describe('Log Service [log/logger.service.spec ]', () => {
             expect(log.last()).toBe('rose');
         }
     );
+
+    it('check dark theme colors', () => {
+        log.useDarkTheme(true);
+        expect(log.dateCss).toBe('color: #ec96fb;');
+        expect(log.fromCss).toBe('color: #FF9800;');
+        expect(log.normalCss).toBe('color: #03a9f4');
+        expect(log.errorCss).toBe('color: red;');
+        expect(log.warnCss).toBe('color: orange;');
+        expect(log.infoCss).toBe('color: #03a9f4');
+        expect(log.debugCss).toBe('color: #03a9f4');
+        expect(log.verboseCss).toBe('color: #03a9f4');
+    })
 });
 

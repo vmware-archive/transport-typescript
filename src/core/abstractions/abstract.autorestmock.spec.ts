@@ -49,6 +49,10 @@ class AutoRestTest extends AbstractAutoRestMock {
         this.handleRequest(HttpRequest.Get);
     }
 
+    public testHandleEmptyResponse(): void {
+        this.forceResponse = null;
+        this.handleRequest(HttpRequest.Get);
+    }
     public testHandleServicePostRequest(): void {
         this.handleRequest(HttpRequest.Post);
     }
@@ -202,4 +206,11 @@ describe('Bifröst Abstract AutoRestMock [cores/abstractions/abstract.autorestmo
         }
     );
 
+    it('Check empty response',
+        () => {
+            spyOn(bus.logger, 'error').and.callThrough();
+            test.testHandleEmptyResponse();
+            expect(bus.logger.error).toHaveBeenCalled();
+        }
+    );
 });

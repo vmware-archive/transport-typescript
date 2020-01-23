@@ -3,7 +3,7 @@ import { BrokerConnectorChannel, StompBusCommand, StompConfig, StompSession } fr
 import { StompParser } from './stomp.parser';
 import { StompClient } from './stomp.client';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
-import { EventBus } from '../bus.api';
+import { ChannelBrokerMapping, EventBus } from '../bus.api';
 import { LogLevel } from '../log/logger.model';
 import { GeneralUtil } from '../util/util';
 import { Logger } from '../log';
@@ -1018,7 +1018,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                             case StompClient.STOMP_CONNECTED:
 
                                 // trigger some expected traffic on the monitor channel
-                                bus.api.getGalacticChannel('fancycats', getName());
+                                bus.api.getGalacticChannel('fancycats', null, getName());
                                 break;
 
                             case StompClient.STOMP_SUBSCRIBED:
@@ -1104,7 +1104,8 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                 expect(bc.privateChannels.size).toEqual(2);
 
                                 // trigger an unsubscription via channel close
-                                bus.closeGalacticChannel('happy-puppers', getName());
+                                bus.closeGalacticChannel('happy-puppers', getName(),
+                                    {brokerIdentity: 'somehost:12345somewhere', isPrivate: false});
                                 break;
 
                             case StompClient.STOMP_UNSUBSCRIBED:
@@ -1125,8 +1126,16 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                     });
 
-                bus.api.getGalacticChannel('happy-puppers', getName());
-                bus.api.getGalacticChannel('naughty-kitties', getName());
+                bus.api.getGalacticChannel(
+                    'happy-puppers',
+                    {brokerIdentity: 'somehost:12345somewhere', isPrivate: false},
+                    getName(),
+                    false);
+                bus.api.getGalacticChannel(
+                    'naughty-kitties',
+                    {brokerIdentity: 'somehost:12345somewhere', isPrivate: false},
+                    getName(),
+                    false);
 
                 BrokerConnector.fireConnectCommand(bus, config);
 
@@ -1143,7 +1152,11 @@ describe('BrokerConnector [broker-connector.ts]', () => {
  
                  */
 
-                const chan = bus.api.getGalacticChannel('bouncy-pups');
+                const chan = bus.api.getGalacticChannel(
+                    'bouncy-pups',
+                    {brokerIdentity: 'somehost:12345somewhere', isPrivate: false},
+                    getName(),
+                    false);
                 chan.subscribe(
                     (msg: Message) => {
                         expect(msg.payload).toEqual('puppy1');
@@ -1191,6 +1204,11 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                                 break;
                         }
                     });
+                bus.api.getGalacticChannel(
+                    'sometopic',
+                    {brokerIdentity: 'somehost:12345somewhere', isPrivate: false},
+                    getName(),
+                    false);
                 BrokerConnector.fireConnectCommand(bus, config);
             }
         );
@@ -1228,6 +1246,11 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                             }
                         });
 
+                bus.api.getGalacticChannel(
+                    'sometopic',
+                    {brokerIdentity: 'somehost:12345somewhere', isPrivate: false},
+                    getName(),
+                    false);
                 BrokerConnector.fireConnectCommand(bus, configApplicationPrefix);
             }
         );
@@ -1236,7 +1259,10 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
             (done) => {
 
-                spyOn(log, 'debug').and.callThrough();
+                const debugLogMessages: string[] = [];
+                spyOn(log, 'debug').and.callFake((msg: string) => {
+                    debugLogMessages.push(msg);
+                });
 
                 /**
                  * Will check that application prefix is applied if part of config
@@ -1248,13 +1274,13 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                             switch (command.command) {
                                 case StompClient.STOMP_CONNECTED:
-                                    bc.privateChannels.set('sometopic', true);
+                                    bc.privateChannels.set('sometopic', {'somehost:12345somewhere': true});
                                     bus.sendGalacticMessage('sometopic', 'hello!');
                                     bus.api.tickEventLoop(
                                         () => {
-                                            expect(log.debug).toHaveBeenCalledWith(
-                                                'Sending Galactic Message for session anything to ' +
-                                                'destination /dogs/queue/sometopic', 'BrokerConnector');
+                                            expect(log.debug).toHaveBeenCalledTimes(7);
+                                            expect(debugLogMessages.indexOf('Sending Galactic Message for session ' +
+                                                'anything to destination /dogs/queue/sometopic')).toBeGreaterThan(-1);
                                             done();
                                         }
                                     );
@@ -1265,6 +1291,11 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                             }
                         });
 
+                bus.api.getGalacticChannel(
+                    'sometopic',
+                    {brokerIdentity: 'somehost:12345somewhere', isPrivate: true},
+                    getName(),
+                    false);
                 BrokerConnector.fireConnectCommand(bus, configApplicationPrefix);
             }
         );
@@ -1278,8 +1309,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                 /**
                  * Check that galactic channels cannot be closed if topics are no configured
                  */
-                bus.listenGalacticStream('pop');
-                bus.closeGalacticChannel('pop');
+                const brokerIdentity: ChannelBrokerMapping = {brokerIdentity: 'somehost:12345somewhere', isPrivate: false};
+                bus.listenGalacticStream('pop', null, brokerIdentity);
+                bus.closeGalacticChannel('pop', null, brokerIdentity);
 
                 bus.api.tickEventLoop(
                     () => {
@@ -1306,7 +1338,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
-                                bus.listenGalacticStream('pop');
+                                bus.listenGalacticStream('pop', null, {brokerIdentity: 'somehost:12345somewhere', isPrivate: false});
 
                                 BrokerConnector.fireSubscriptionCommand(bus,
                                     '123',
@@ -1467,7 +1499,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
 
-                                bus.listenGalacticStream('space-dogs');
+                                bus.listenGalacticStream('space-dogs', null, {brokerIdentity: 'somehost:12345somewhere', isPrivate: false});
 
                                 bus.api.tickEventLoop(
                                     () => {
@@ -1712,7 +1744,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                             socket.triggerEvent('close');
                         }
                     );
-                }
+                };
 
                 bus.listenStream(BrokerConnectorChannel.status)
                     .handle(
@@ -1760,6 +1792,117 @@ describe('BrokerConnector [broker-connector.ts]', () => {
         );
 
     });
+
+    describe('Multi-broker handling', () => {
+        it('We should see an error to specify target broker while opening a galactic channel if more than one broker is found', (done) => {
+            const config2 = createStandardConfig(true, false, null, null, 'anotherhost');
+            spyOn(bus.logger, 'error').and.callThrough();
+            let counter = 0;
+            bus.listenStream(BrokerConnectorChannel.status)
+                .handle(
+                    (command: StompBusCommand) => {
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+                                bus.markChannelAsGalactic('chan');
+                                counter++;
+                                if (counter == 2) {
+                                    bus.api.tickEventLoop(() => {
+                                        expect(bus.logger.error).toHaveBeenCalledWith('More than one STOMP session was detected ' +
+                                            'when trying to open galactic channel \'chan\'. You need to explicitly specify the target ' +
+                                            'fabric broker in the second argument to bus.markChannelAsGalactic()');
+                                        done();
+                                    }, 10);
+                                }
+
+                                break;
+                        }
+                    });
+
+            BrokerConnector.fireConnectCommand(bus, config);
+            BrokerConnector.fireConnectCommand(bus, config2);
+        });
+
+        it('We should see an error to specify target broker while closing a galactic channel if more than one broker is found', (done) => {
+            const config2 = createStandardConfig(true, false, null, null, 'anotherhost');
+            spyOn(bus.logger, 'error').and.callThrough();
+            let counter = 0;
+            bus.listenStream(BrokerConnectorChannel.status)
+                .handle(
+                    (command: StompBusCommand) => {
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+                                counter++;
+                                if (counter == 2) {
+                                    bc.galacticChannels.set('chan', {connectedBrokers: 2});
+                                    bus.markChannelAsLocal('chan');
+                                    bus.api.tickEventLoop(() => {
+                                        expect(bus.logger.error).toHaveBeenCalledWith('More than one STOMP session was detected ' +
+                                            'when trying to close galactic channel \'chan\'. You need to explicitly specify the target ' +
+                                            'fabric broker in the second argument to bus.markChannelAsLocal()');
+                                        done();
+                                    }, 10);
+                                }
+
+                                break;
+                        }
+                    });
+
+            BrokerConnector.fireConnectCommand(bus, config);
+            BrokerConnector.fireConnectCommand(bus, config2);
+        });
+
+        it('Galactic channel \'chan\' should be closed and destroyed if there is no broker connected', (done) => {
+            spyOn(bus.logger, 'error').and.callThrough();
+            bus.listenStream(BrokerConnectorChannel.status)
+                .handle(
+                    (command: StompBusCommand) => {
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+                                bus.markChannelAsGalactic('chan');
+                                bus.markChannelAsLocal('chan');
+                                bus.api.tickEventLoop(() => {
+                                    expect(bc.galacticChannels.get('chan')).toBeUndefined();
+                                    done();
+                                }, 10);
+
+                                break;
+                        }
+                    });
+
+            BrokerConnector.fireConnectCommand(bus, config);
+        });
+
+        it('Should throw a warning when attempting to close galactic channel where no broker session is found', (done) => {
+            const config2 = createStandardConfig(true, false, null, null, 'anotherhost');
+            spyOn(bus.logger, 'warn').and.callThrough();
+            let counter = 0;
+            bus.listenStream(BrokerConnectorChannel.status)
+                .handle(
+                    (command: StompBusCommand) => {
+                        switch (command.command) {
+                            case StompClient.STOMP_CONNECTED:
+                                counter++;
+                                if (counter == 2) {
+                                    for (let s of bc.sessions.values()) {
+                                        bc.disconnectClient(s.id);
+                                    }
+
+                                    bc.galacticChannels.set('chan', {connectedBrokers: 0});
+                                    bus.markChannelAsLocal('chan');
+                                    bus.api.tickEventLoop(() => {
+                                        expect(bus.logger.warn).toHaveBeenCalledWith('No session registered');
+                                        bc.galacticChannels.delete('chan');
+                                        done();
+                                    }, 10);
+                                }
+                                break;
+                        }
+                    });
+
+            BrokerConnector.fireConnectCommand(bus, config);
+            BrokerConnector.fireConnectCommand(bus, config2);
+        });
+    });
 });
 
 
@@ -1773,11 +1916,14 @@ function createStandardConfig(
     useTopics: boolean = true,
     multiBroker: boolean = false,
     customSession?: string,
-    applicationPrefix?: string): StompConfig {
+    applicationPrefix?: string,
+    host: string = 'somehost',
+    port: number = 12345,
+    endpoint: string = 'somewhere'): StompConfig {
     let configuration = new StompConfig(
-        'somwehere',
-        'somehost',
-        12345,
+        endpoint,
+        host,
+        port,
         '',
         '',
         false,

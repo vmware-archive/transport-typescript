@@ -125,18 +125,24 @@ export class BusTransactionImpl implements BusTransaction {
         // use message ID's to make sure we only react to each explicit response
         const mId = request.payload && request.payload.id ? request.payload.id : GeneralUtil.genUUID();
         const handler = this.bus.listenStream(request.channel, this.name, mId);
+        let handlerCallsCount = 0;
         handler.handle(
             (response: any) => {
+                handlerCallsCount++;
                 this.log.debug('⬅️ Transaction: Received ' + type + ' Response on channel: '
                     + request.channel + ' - ' + response, this.transactionName());
                 responseHandler(response);
-                handler.close();
+                if (handlerCallsCount >= this.getExpectedHandlerCalls(request)) {
+                    handler.close();
+                }
             },
             (error: any, args: MessageArgs) => {
-
+                handlerCallsCount++;
                 // send to onError handler.
                 this.bus.sendResponseMessageWithId(this.transactionErrorChannel, error, mId);
-                handler.close();
+                if (handlerCallsCount >= this.getExpectedHandlerCalls(request)) {
+                    handler.close();
+                }
             }
         );
         this.bus.sendRequestMessageWithId(request.channel, request.payload, mId);
@@ -167,8 +173,10 @@ export class BusTransactionImpl implements BusTransaction {
         const handler = (response: any) => {
             counter++;
             responses.push(response);
+            const totalExpectedHandlerCalls = requestList.map((request: TransactionRequest) =>
+                this.getExpectedHandlerCalls(request)).reduce((prev, curr) => prev + curr);
             this.transactionReceipt.requestsCompleted++;
-            if (counter >= this.requests.length) {
+            if (counter >= totalExpectedHandlerCalls) {
                 this.transactionCompleteHandler(responses);
                 return;
             }
@@ -215,10 +223,12 @@ export class BusTransactionImpl implements BusTransaction {
                     counter++;
                     responses.push(response);
                     this.transactionReceipt.requestsCompleted++;
+                    const totalExpectedHandlerCalls = requestList.map((request: TransactionRequest) =>
+                        this.getExpectedHandlerCalls(request)).reduce((prev, curr) => prev + curr);
                     if (req.nextRequest) {
                         this.syncStream.next(req.nextRequest);
                     }
-                    if (counter >= this.requests.length) {
+                    if (counter >= totalExpectedHandlerCalls) {
                         this.syncStream.complete();
                     }
                 };
@@ -248,5 +258,13 @@ export class BusTransactionImpl implements BusTransaction {
 
     private transactionCompletedMessage(msg: string): void {
         this.log.warn('Transaction Complete: ' + msg, this.transactionName());
+    }
+
+    private getExpectedHandlerCalls(request: TransactionRequest): number {
+        const matchingGalacticChannelRef = this.bus.brokerConnector.galacticChannels.get(request.channel);
+        const isGalacticRequest = this.bus.brokerConnector.galacticChannels.has(request.channel) &&
+            matchingGalacticChannelRef.connectedBrokers > 0;
+        const expectedNumOfHandlerCalls = isGalacticRequest ? matchingGalacticChannelRef.connectedBrokers : 1;
+        return expectedNumOfHandlerCalls;
     }
 }

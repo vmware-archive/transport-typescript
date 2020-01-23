@@ -70,9 +70,10 @@ export interface BusStoreApi {
    /**
     * Opens a galactic store.
     * @param {StoreType} objectType
+    * @param {string} brokerIdentity optional broker identity that looks like host:port/endpoint
     * @returns {BusStore<T>}
     */
-    openGalacticStore<T>(objectType: StoreType): BusStore<T>;
+    openGalacticStore<T>(objectType: StoreType, brokerIdentity?: string): BusStore<T>;
 
     /**
      * Get a reference to the existing store. If the store does not exist, nothing will be returned.

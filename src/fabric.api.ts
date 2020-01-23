@@ -57,17 +57,17 @@ export interface FabricApi {
     /**
      * Disconnect from fabric.
      */
-    disconnect(): void;
+    disconnect(connString: string): void;
 
     /**
      * returns current fabric connection status.
      */
-    isConnected(): boolean;
+    isConnected(connString: string): boolean;
 
     /**
      * Grab a reference to state stream for connections.
      */
-    whenConnectionStateChanges(): StoreStream<FabricConnectionState>;
+    whenConnectionStateChanges(connString: string): StoreStream<FabricConnectionState>;
 
     /**
      * Generate a payload designed for fabric services, essentially a shortcut.
@@ -97,7 +97,7 @@ export interface FabricApi {
     /**
      * Get fabric version.
      */
-    getFabricVersion(): Observable<string>;
+    getFabricVersion(connString: string): Observable<string>;
 
     /**
      * Set sessionStorage key for access token.
