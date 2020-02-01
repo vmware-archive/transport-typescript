@@ -263,9 +263,9 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase implemen
                 this.requestConverterMap.get(httpOp),
                 uri,                    // fully formed URI with path params and query params
                 body,
-                apiObject.getHeaders(), // headers
+                {},           // headers
                 {},   // queryStringParams
-                {},   // pathParams
+                {},        // pathParams
                 apiClass,
                 this.getName()
             );
