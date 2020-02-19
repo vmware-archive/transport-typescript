@@ -23,6 +23,16 @@
     "license": "VMW_Proprietary",
     "changelogHistory": [
         {
+            "date": "2/3/20",
+            "version": "0.15.1",
+            "notes": [
+                {
+                    "description": "Sync generateFabricRequest interface and implementation function signature",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/102"
+                }
+            ]
+        },
+        {
             "date": "10/28/19",
             "version": "0.15.0",
             "notes": [

@@ -73,8 +73,9 @@ export interface FabricApi {
      * Generate a payload designed for fabric services, essentially a shortcut.
      * @param requestCommand request command to run.
      * @param payload to send with request command (optional)
+     * @param headers to send with request body (optional)
      */
-    generateFabricRequest<T>(requestCommand: string, payload?: T): APIRequest<T>;
+    generateFabricRequest<T>(requestCommand: string, payload?: T, headers?: {[key: string]: any}): APIRequest<T>;
 
     /**
      * Generate a return payload designed for fabric services, essentially a shortcut.
