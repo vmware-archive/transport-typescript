@@ -23,6 +23,16 @@
     "license": "VMW_Proprietary",
     "changelogHistory": [
         {
+            "date": "2/13/20",
+            "version": "0.15.2",
+            "notes": [
+                {
+                    "description": "Fixed a bug with whenConnectionStateChanges so it works with multi brokers",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/103"
+                }
+            ]
+        },
+        {
             "date": "2/3/20",
             "version": "0.15.1",
             "notes": [
