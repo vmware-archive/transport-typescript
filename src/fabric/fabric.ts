@@ -6,7 +6,7 @@ import { EventBus, MessageFunction, MessageHandler, MessageType, ORG_ID, ORGS } 
 import { StompBusCommand } from '../bridge/stomp.model';
 import { BrokerConnector } from '../bridge/broker-connector';
 import { GeneralUtil } from '../util/util';
-import { FabricConnectionStoreKey, RequestHeaderConsts, Stores } from './fabric.model';
+import { RequestHeaderConsts, Stores } from './fabric.model';
 import { UUID } from '../bus/store/store.model';
 import { BusStore, StoreStream } from '../store.api';
 import { APIRequest } from '../core/model/request.model';
@@ -53,7 +53,7 @@ export class FabricApiImpl implements FabricApi {
             this.connectionStoreMap.set(connString, this.bus.stores.createStore(Stores.FabricConnection));
         }
         return this.connectionStoreMap.get(connString)
-            .onAllChanges(
+            .onChange(connString,
                 FabricConnectionState.Disconnected,
                 FabricConnectionState.Connected,
                 FabricConnectionState.Failed
@@ -169,7 +169,7 @@ export class FabricApiImpl implements FabricApi {
     private setConnected(connString: string): void {
         this.connectedMap.set(connString, true);
         this.connectionStoreMap.get(connString).put(
-            FabricConnectionStoreKey.State,
+            connString,
             FabricConnectionState.Connected,
             FabricConnectionState.Connected);
     }
@@ -177,7 +177,7 @@ export class FabricApiImpl implements FabricApi {
     private setDisconnected(connString: string): void {
         this.connectedMap.set(connString, false);
         this.connectionStoreMap.get(connString).put(
-            FabricConnectionStoreKey.State,
+            connString,
             FabricConnectionState.Disconnected,
             FabricConnectionState.Disconnected);
 

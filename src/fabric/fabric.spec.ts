@@ -199,7 +199,7 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
                 );
             bus.fabric.connect(() => {
             }, () => {
-            });
+            }, 'testhost', 12345, '/fabric');
         }
     );
 
