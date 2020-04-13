@@ -150,32 +150,12 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
             this.log.error('** APIRequest was: ' + restObject.body, this.getName());
             this.log.error('** Headers were: ' + this.headers, this.getName());
             this.log.groupEnd(LogLevel.Error);
-
-            switch (error.status) {
-                case 401:
-
-                    // retry the all to give the backend time to refresh any expired tokens.
-                    if (restObject.refreshRetries++ < REFRESH_RETRIES) {
-                        this.bus.api.tickEventLoop(
-                            () => {
-                                this.doHttpRequest(restObject, args);
-                            }
-                        );
-                    } else {
-                        this.bus.sendErrorMessageWithIdAndVersion(RestService.channel, error,
-                            args.uuid, args.version, this.getName());
-                    }
-                    break;
-
-                default:
-                    this.bus.sendErrorMessageWithIdAndVersion(RestService.channel, error,
-                        args.uuid, args.version, this.getName());
-            }
+            this.bus.sendErrorMessageWithIdAndVersion(RestService.channel, error,
+                                                      args.uuid, args.version, this.getName());
         } else {
             this.bus.sendErrorMessageWithIdAndVersion(RestService.channel, 'Http request failed, unknown error',
                 args.uuid, args.version, this.getName());
         }
-
     }
 
     private doHttpRequest(restObject: RestObject, args: MessageArgs) {
