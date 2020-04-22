@@ -23,6 +23,16 @@
     "license": "VMW_Proprietary",
     "changelogHistory": [
         {
+            "date": "4/22/20",
+            "version": "0.15.4",
+            "notes": [
+                {
+                    "description": "Error code handling has been normalized in the bifrost http client..",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/105"
+                }
+            ]
+        },
+        {
             "date": "4/13/20",
             "version": "0.15.3",
             "notes": [
