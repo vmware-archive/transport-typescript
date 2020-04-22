@@ -296,15 +296,15 @@ describe('Bifröst HTTP Client [cores/services/rest/bifrost.httpclient]', () => 
         (done) => {
             fetchMock.get('http://appfabric.vmware.com/', {
                 status: 500,
-                body: JSON.stringify({error_code: '500'})
+                body: JSON.stringify({error_code: 500})
             });
 
             let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
             client.get(request,
                 () => { },
                 (failureObject: GeneralError) => {
-                    expect(failureObject.status).toEqual('500');
-                    expect(failureObject.errorCode.error_code).toEqual('500');
+                    expect(failureObject.status).toEqual(500);
+                    expect(failureObject.errorCode.error_code).toEqual(500);
                     done();
                 }
             );
@@ -315,14 +315,14 @@ describe('Bifröst HTTP Client [cores/services/rest/bifrost.httpclient]', () => 
         (done) => {
             fetchMock.get('http://appfabric.vmware.com/', {
                 status: 500,
-                body: JSON.stringify({status: 'computer says no.'})
+                body: JSON.stringify({status: 500})
             });
 
             let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
             client.get(request,
                 () => { },
                 (failureObject: GeneralError) => {
-                    expect(failureObject.status).toEqual('computer says no.');
+                    expect(failureObject.status).toEqual(500);
                     done();
                 }
             );

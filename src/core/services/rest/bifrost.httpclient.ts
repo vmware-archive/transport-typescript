@@ -60,7 +60,7 @@ export class BifrostHttpclient implements HttpClient {
                         error.text().then(
                             resp => {
                                 let message: string = `HTTP Error ${error.status}: ${error.statusText}`;
-                                let status: string;
+                                let status: number = error.status;
                                 let errorCode: string;
                                 let respErrorObject: any;
 
@@ -79,12 +79,7 @@ export class BifrostHttpclient implements HttpClient {
 
                                     if (respErrorObject.hasOwnProperty('error_code')
                                         && respErrorObject.error_code != null) {
-                                        status = respErrorObject.error_code;
                                         errorCode = respErrorObject.error_code;
-                                    }
-
-                                    if (respErrorObject.hasOwnProperty('status')) {
-                                        status = respErrorObject.status;
                                     }
 
                                 } catch (err) {
