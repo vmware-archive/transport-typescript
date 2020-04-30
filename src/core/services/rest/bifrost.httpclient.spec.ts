@@ -6,7 +6,7 @@ import { Logger, LogLevel } from '../../../log';
 import { BusTestUtil } from '../../../util/test.util';
 import { BifrostHttpclient } from './bifrost.httpclient';
 
-import * as fetchMock from 'fetch-mock'
+import * as fetchMock from 'fetch-mock';
 import { HttpRequest } from './rest.model';
 import { GeneralError } from '../../model/error.model';
 
@@ -278,7 +278,7 @@ describe('Bifröst HTTP Client [cores/services/rest/bifrost.httpclient]', () => 
         (done) => {
             fetchMock.get('http://appfabric.vmware.com/', {
                 status: 500,
-                body: JSON.stringify({error_messages: ['oh','deary','me']})
+                body: JSON.stringify({error_messages: ['oh', 'deary', 'me']})
             });
 
             let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
@@ -339,8 +339,8 @@ describe('Bifröst HTTP Client [cores/services/rest/bifrost.httpclient]', () => 
             () => { },
             (failureObject: GeneralError) => {
             console.log(failureObject.message);
-                expect(failureObject.message).toContain('Fatal HTTP Error:');
-                done();
+            expect(failureObject.message).toContain('Fatal HTTP Error:');
+            done();
             }
         );
     });

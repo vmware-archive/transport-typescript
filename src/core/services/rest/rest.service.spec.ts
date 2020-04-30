@@ -431,7 +431,7 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
                         .toHaveBeenCalledWith('Updating global base URI to: http://my.new.host', 'RESTService');
                     done();
                 }, 50
-            )
+            );
 
 
         }
@@ -486,8 +486,8 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
     it('Check service can go online',
         () => {
                 spyOn(bus.logger, 'info').and.callThrough();
-                const restService: RestService = ServiceLoader.getRestService();
-                restService.online();
+                const rs: RestService = ServiceLoader.getRestService();
+                rs.online();
                 expect(bus.logger.info).toHaveBeenCalledWith('RestService (Local / Browser): ONLINE', 'RESTService');
 
 
@@ -497,8 +497,8 @@ describe('Fake Service [services/rest/rest.service.spec]', () => {
     it('Check service can go offline',
         () => {
             spyOn(bus.logger, 'info').and.callThrough();
-            const restService: RestService = ServiceLoader.getRestService();
-            restService.offline();
+            const rs: RestService = ServiceLoader.getRestService();
+            rs.offline();
             expect(bus.logger.info).toHaveBeenCalledWith('RestService (Local / Browser): OFFLINE', 'RESTService');
         }
     );

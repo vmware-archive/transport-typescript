@@ -6,7 +6,7 @@ import { EventBus } from '../../bus.api';
 import { Logger, LogLevel } from '../../log';
 import { BusStore } from '../../store.api';
 import { BusTestUtil } from '../../util/test.util';
-import { StoreImpl } from "./store";
+import { StoreImpl } from './store';
 
 describe('Store Manager [store/store.manager]', () => {
 
@@ -24,7 +24,7 @@ describe('Store Manager [store/store.manager]', () => {
     );
 
     it('destroyStore() method calls store`s closeStore() method', () => {
-        const testStore = <StoreImpl<string>> bus.stores.createStore('testStore');
+        const testStore = bus.stores.createStore('testStore') as StoreImpl<string>;
         spyOn(testStore, 'closeStore');
         bus.stores.destroyStore('testStore');
         expect(testStore.closeStore).toHaveBeenCalled();
@@ -64,12 +64,12 @@ describe('Store Manager [store/store.manager]', () => {
 
     it('check we can wipe all stores', () => {
 
-        const store1 =bus.stores.createStore('ember');
-        const store2 =bus.stores.createStore('fox');
-        store1.put('tip','top', null);
-        store1.put('cap','sap', null);
-        store2.put('spit','spot', null);
-        store2.put('pit','pot', null);
+        const store1 = bus.stores.createStore('ember');
+        const store2 = bus.stores.createStore('fox');
+        store1.put('tip', 'top', null);
+        store1.put('cap', 'sap', null);
+        store2.put('spit', 'spot', null);
+        store2.put('pit', 'pot', null);
 
         let itemCount = store1.allValues().length + store2.allValues().length;
 
@@ -79,7 +79,7 @@ describe('Store Manager [store/store.manager]', () => {
         bus.stores.wipeAllStores();
         expect(bus.stores.getAllStores().length).toEqual(3);
 
-        itemCount = store1.allValues().length; + store2.allValues().length;
+        itemCount = store1.allValues().length + store2.allValues().length;
         expect(itemCount).toEqual(0);
 
     });

@@ -37,7 +37,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
         expect(control.isListening()).toBeTruthy();
         expect(control.getAllowedOrigins().length).toBe(1);
         expect(control.getAllowedOrigins()[0]).toEqual('http://somewhere.out.there');
-        expect(control.getTargetedFrames().length).toEqual(0)
+        expect(control.getTargetedFrames().length).toEqual(0);
         expect(control.isTargetingAllFrames).toBeTruthy();
 
         expect(control.inDevMode()).toBeFalsy();
@@ -450,7 +450,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
                     const invalidProxyMessage =
                         new BusProxyMessage('time for a walk, pups', '', MessageType.MessageTypeRequest);
-                    window.postMessage(invalidProxyMessage, '*',); // send message, origin is local karma
+                    window.postMessage(invalidProxyMessage, '*', ); // send message, origin is local karma
                 }
             );
 
@@ -480,7 +480,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
                     const invalidProxyMessage =
                         new BusProxyMessage('who wants a treat?', 'somechan', null);
-                    window.postMessage(invalidProxyMessage, '*',); // send message, origin is local karma
+                    window.postMessage(invalidProxyMessage, '*', ); // send message, origin is local karma
                 },
             );
 
@@ -510,7 +510,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
                     const invalidProxyMessage =
                         new BusProxyMessage('', 'somechan', MessageType.MessageTypeRequest);
-                    window.postMessage(invalidProxyMessage, '*',); // send message, origin is local karma
+                    window.postMessage(invalidProxyMessage, '*', ); // send message, origin is local karma
                 }
             );
 
@@ -540,7 +540,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
                     const invalidProxyMessage =
                         new BusProxyMessage(null, 'somechan', MessageType.MessageTypeRequest);
-                    window.postMessage(invalidProxyMessage, '*',); // send message, origin is local karma
+                    window.postMessage(invalidProxyMessage, '*', ); // send message, origin is local karma
                 }
             );
 
@@ -570,7 +570,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
                     const invalidProxyMessage =
                         new BusProxyMessage('mr. hacker', 'somechan', MessageType.MessageTypeRequest);
-                    window.postMessage(invalidProxyMessage, '*',); // send message, origin is local karma
+                    window.postMessage(invalidProxyMessage, '*', ); // send message, origin is local karma
                 }
             );
 
@@ -718,7 +718,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 const message: Message = JSON.parse(proxyMessage.payload);
                 expect(message.payload).toEqual('milk-time');
                 completeCount++;
-            }
+            };
 
             // add event listeners to frames.
             frames[0].addEventListener('message', frameHandler, {capture: true});
@@ -807,7 +807,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     expect(completeCount).toEqual(2); // three frames, two events.
                     done();
                 }, 50
-            )
+            );
 
         });
 
@@ -820,7 +820,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                 const proxyMessage: BusProxyMessage = evt.data;
                 const message: Message = JSON.parse(proxyMessage.payload);
 
-                if(message.payload) { // ignore control messages, only proxied messages.
+                if (message.payload) { // ignore control messages, only proxied messages.
                     expect(message.payload).toEqual('giggles');
                     complete = true;
                 }
@@ -853,7 +853,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     window.parent.removeEventListener('message', msgHandler, true);
                     done();
                 }, 100
-            )
+            );
 
         });
 
@@ -902,7 +902,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
                     done();
                 }, 50
-            )
+            );
 
         });
 
@@ -940,7 +940,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     parent.window.removeEventListener('message', msgHandler, true);
                     done();
 
-                },10
+                }, 10
             );
 
         });
@@ -973,7 +973,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
 
                   control.stopListening();
 
-                },50
+                }, 50
             );
 
             bus.api.tickEventLoop(
@@ -985,7 +985,7 @@ describe('Proxy Controls [proxy/proxy.control.ts]', () => {
                     parent.window.removeEventListener('message', msgHandler, true);
                     done();
 
-                },100
+                }, 100
             );
 
         });

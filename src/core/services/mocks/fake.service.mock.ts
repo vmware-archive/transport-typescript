@@ -1,4 +1,4 @@
-import { CallerArgs } from "../..";
+import { CallerArgs } from '../..';
 import { AbstractAutoService } from '../../abstractions/abstract.autoservice';
 import {
     FakeChannel,

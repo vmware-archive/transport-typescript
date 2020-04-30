@@ -1,16 +1,14 @@
-var webpack = require('webpack');
-var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const path = require('path');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {
-    entry: './dist',
     mode: 'production',
-    output: {
-        filename: 'bifrost.umd.min.js',
-        // export to AMD, CommonJS, or window
-        libraryTarget: 'umd',
-        // the name exported to window
-        library: 'bifrost'
-    },
+    devtool: 'source-map',
+    entry: './src',
+    plugins: [
+        new CleanWebpackPlugin()
+    ],
     optimization: {
         minimizer: [new UglifyJsPlugin({
             parallel: true,
@@ -33,8 +31,33 @@ module.exports = {
             }
         })]
     },
+    performance: {
+        maxEntrypointSize: 512000,
+        maxAssetSize: 512000,
+    },
+    module: {
+        rules: [
+            {
+                test: /\.ts$/,
+                use: 'ts-loader',
+                include: [
+                    path.resolve(__dirname, 'src')
+                ]
+            }
+        ]
+    },
+    output: {
+        path: path.resolve(__dirname, 'dist'),
+        filename: 'bifrost.umd.min.js',
+        library: 'bifrost',
+        libraryTarget: 'umd'
+    },
+    resolve: {
+        extensions: ['.ts', '.js']
+    },
     externals: {
         'rxjs': 'rxjs',
         'rxjs/operators': 'rxjs/operators'
     }
 };
+

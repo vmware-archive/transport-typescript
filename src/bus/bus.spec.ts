@@ -13,8 +13,8 @@ import { MonitorObject, MonitorType } from './model/monitor.model';
 import { UUID } from './store/store.model';
 import { GeneralUtil } from '../util/util';
 import { MessageHandler, MessageResponder, MessageType } from '../bus.api';
-import { BridgeConnectionAdvancedConfig, StompConfig } from "../bridge";
-import { StompBusCommand } from "../bridge/stomp.model";
+import { BridgeConnectionAdvancedConfig, StompConfig } from '../bridge';
+import { StompBusCommand } from '../bridge/stomp.model';
 
 function makeCallCountCaller(done: any, targetCount: number): any {
     let count = 0;
@@ -532,8 +532,8 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         bus.api.enableMonitorDump(true);
         bus.api.silenceLog(false);
         bus.api.setLogLevel(LogLevel.Debug);
-        const log: Logger = bus.api.logger();
-        log.setStylingVisble(false);
+        const l: Logger = bus.api.logger();
+        l.setStylingVisble(false);
 
         bus.api.suppressLog(true);
         const chanData = bus.api.getChannel('ember-the-puppy', 'baby-pup');
@@ -586,8 +586,8 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         bus.api.enableMonitorDump(true);
         bus.api.silenceLog(false);
         bus.api.setLogLevel(LogLevel.Debug);
-        const log: Logger = bus.api.logger();
-        log.setStylingVisble(false);
+        const l: Logger = bus.api.logger();
+        l.setStylingVisble(false);
         bus.api.suppressLog(true);
 
         spyOn(bus.api.loggerInstance, 'info').and.callThrough();
@@ -619,8 +619,8 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         bus.api.enableMonitorDump(true);
         bus.api.silenceLog(false);
         bus.api.setLogLevel(LogLevel.Debug);
-        const log: Logger = bus.api.logger();
-        log.setStylingVisble(false);
+        const l: Logger = bus.api.logger();
+        l.setStylingVisble(false);
         bus.api.suppressLog(true);
 
         bus.listenOnce('naughty-dogs').handle(null);
@@ -643,8 +643,8 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         bus.api.enableMonitorDump(true);
         bus.api.silenceLog(false);
         bus.api.setLogLevel(LogLevel.Debug);
-        const log: Logger = bus.api.logger();
-        log.setStylingVisble(false);
+        const l: Logger = bus.api.logger();
+        l.setStylingVisble(false);
 
         bus.api.suppressLog(true);
 
@@ -666,8 +666,8 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         bus.api.enableMonitorDump(true);
         bus.api.silenceLog(false);
         bus.api.setLogLevel(LogLevel.Debug);
-        const log: Logger = bus.api.logger();
-        log.setStylingVisble(false);
+        const l: Logger = bus.api.logger();
+        l.setStylingVisble(false);
         bus.api.suppressLog(true);
 
         bus.sendRequestMessage('__maglingtonpuddles__', 'hi maggie!');
@@ -688,8 +688,8 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         bus.api.enableMonitorDump(true);
         bus.api.silenceLog(false);
         bus.api.setLogLevel(LogLevel.Debug);
-        const log: Logger = bus.api.logger();
-        log.setStylingVisble(false);
+        const l: Logger = bus.api.logger();
+        l.setStylingVisble(false);
         bus.api.suppressLog(true);
 
         bus.listenGalacticStream('space-car', 'EventBus', {brokerIdentity: 'connString', isPrivate: false});
@@ -1675,7 +1675,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                 bus.requestStreamWithId(id, 'ember-puppy', 2)
                     .handle(
                         () => {
-                            idCount++
+                            idCount++;
                         }
                     );
 
@@ -1701,7 +1701,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                         (payload: string, args: MessageArgs) => {
                             expect(args.from).toEqual('cotton');
                             expect(payload).toEqual('whats the chat?');
-                            return 'bark'
+                            return 'bark';
                         });
 
 
@@ -1726,7 +1726,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                             expect(args.from).toEqual('cotton');
                             expect(payload).toEqual('whats the chat?');
                             expect(args.version).toEqual(99);
-                            return 'bark'
+                            return 'bark';
                         });
 
 
@@ -1822,12 +1822,12 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
             }
         );
 
-       describe('when calling connectBridge() with advancedConfig param', () => {
+        describe('when calling connectBridge() with advancedConfig param', () => {
 
           it('populates the correct stompConfig parameters',
                 () => {
 
-                   const requestStreamSpy = spyOn(bus, "requestStreamWithId").and.returnValue({
+                   const requestStreamSpy = spyOn(bus, 'requestStreamWithId').and.returnValue({
                       handle: () => {}
                    });
 
@@ -1937,7 +1937,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
                         done();
                     },
                     50
-                )
+                );
 
             });
 

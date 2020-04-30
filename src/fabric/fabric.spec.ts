@@ -142,12 +142,12 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
             bus.fabric.whenConnectionStateChanges('testhost:12345/fabric')
                 .subscribe(
                     (state: FabricConnectionState) => {
-                        if (state == FabricConnectionState.Disconnected) {
+                        if (state === FabricConnectionState.Disconnected) {
                             const onlineEvent = new Event('online');
                             window.dispatchEvent(onlineEvent);
 
                         }
-                        if (state == FabricConnectionState.Connected) {
+                        if (state === FabricConnectionState.Connected) {
                             if (connectCount <= 1) {
                                 bus.fabric.disconnect('testhost:12345/fabric');
                             }
@@ -223,7 +223,7 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
                             expect(id).toEqual('1.2.3');
                             done();
                         }
-                    )
+                    );
                 },
                 () => {
                 },
@@ -278,7 +278,7 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
                     expect(value).toEqual('Version unavailable, not connected to fabric');
                     done();
                 }
-            )
+            );
         }
     );
 

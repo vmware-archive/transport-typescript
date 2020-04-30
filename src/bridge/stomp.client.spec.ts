@@ -4,7 +4,7 @@
 
 import { StompClient } from './stomp.client';
 import { Subject, pipe } from 'rxjs';
-import { mergeMap } from 'rxjs/operators'
+import { mergeMap } from 'rxjs/operators';
 import { StompParser } from './stomp.parser';
 import { StompMessage, StompConfig } from './stomp.model';
 import { Logger } from '../log';
@@ -692,7 +692,7 @@ describe('Stomp Client [stomp.client]', () => {
             }
         );
 
-       it('The client starts sending heartbeats using custom setInterval function',
+        it('The client starts sending heartbeats using custom setInterval function',
              (done) => {
 
                 config = new StompConfig(

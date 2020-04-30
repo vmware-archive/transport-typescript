@@ -8,7 +8,7 @@ import { MessageFunction } from '../../bus.api';
 import { EventBus } from '../../bus.api';
 import { Logger } from '../../log';
 import { BusTestUtil } from '../../util/test.util';
-import { StoreImpl } from "./store";
+import { StoreImpl } from './store';
 
 enum State {
     Created = 'Created',
@@ -317,7 +317,7 @@ describe('BusStore [store/store.model]', () => {
                     expect(d.dogName).toEqual('maggie');
                     expect(d.dogAge).toEqual(12);
                     expect(d.dogPhrase).toEqual('get the kitty');
-                    expect(args.uuid).toBe("magnum");
+                    expect(args.uuid).toBe('magnum');
                     expect(args.stateChangeType).toBe(State.Created);
                     counter++;
                 }
@@ -395,7 +395,7 @@ describe('BusStore [store/store.model]', () => {
                     if (count === 1) {
                         expect(args.stateChangeType).toBe(State.Created);
                     } else if (count === 3) {
-                        expect(args.stateChangeType).toBe("fart");
+                        expect(args.stateChangeType).toBe('fart');
                         done();
                     }
                 }
@@ -459,10 +459,10 @@ describe('BusStore [store/store.model]', () => {
                 (d: any, args: StoreMessageArgs) => {
                     counter++;
                     if (counter === 1) {
-                        expect(args.uuid).toBe("something-else");
+                        expect(args.uuid).toBe('something-else');
                         expect(args.stateChangeType).toBe(State.Created);
                     } else if (counter === 2) {
-                       expect(args.uuid).toBe("magnum");
+                       expect(args.uuid).toBe('magnum');
                     }
                 }
             );
@@ -526,11 +526,11 @@ describe('BusStore [store/store.model]', () => {
                 (d: Dog, args: StoreMessageArgs) => {
                     counter++;
                     if (counter === 1) {
-                        expect(args.uuid).toBe("fox");
+                        expect(args.uuid).toBe('fox');
                         expect(args.stateChangeType).toBe(State.Created);
                     }
                     if (counter === 2) {
-                        expect(args.uuid).toBe("fox");
+                        expect(args.uuid).toBe('fox');
                         expect(args.stateChangeType).toBe(State.Updated);
                         done();
                     }
@@ -921,7 +921,7 @@ describe('BusStore [store/store.model]', () => {
     });
 
     it('Test reload a store with no reload handler defined', () => {
-        spyOn(bus.logger,'warn').and.callThrough();
+        spyOn(bus.logger, 'warn').and.callThrough();
         const store = bus.stores.createStore('ReloadStoreTestNoHandler');
         store.reloadStore();
         expect(bus.logger.warn)

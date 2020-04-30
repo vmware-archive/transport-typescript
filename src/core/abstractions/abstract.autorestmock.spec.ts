@@ -32,7 +32,7 @@ class AutoRestTest extends AbstractAutoRestMock {
     private handleRequest (method: HttpRequest) {
         super.handleServiceRequest(new RestObject(method, 'test',
             null, null, null, null, null, 'myself'),
-            {version: 1, from: 'nowhere', uuid: '123'})
+            {version: 1, from: 'nowhere', uuid: '123'});
     }
 
     public testHandleServiceGetRequest(): void {
@@ -186,7 +186,7 @@ describe('Bifröst Abstract AutoRestMock [cores/abstractions/abstract.autorestmo
     it('Check handleServiceRequest works for an unknown request',
         () => {
             test.testHandleServiceUnknownRequest();
-            expect(bus.logger)
+            expect(bus.logger);
         }
     );
 
