@@ -259,6 +259,6 @@ describe('Log Service [log/logger.service.spec ]', () => {
         expect(log.infoCss).toBe('color: #03a9f4');
         expect(log.debugCss).toBe('color: #03a9f4');
         expect(log.verboseCss).toBe('color: #03a9f4');
-    })
+    });
 });
 

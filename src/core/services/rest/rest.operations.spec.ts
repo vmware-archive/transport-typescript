@@ -103,7 +103,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
                 }
             );
 
-            operations.setRestServiceHostOptions('melody','rose','test');
+            operations.setRestServiceHostOptions('melody', 'rose', 'test');
         }
     );
 
@@ -124,7 +124,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
                     uri: 'http://melody.rose',
                     method: HttpRequest.Get,
                     successHandler: () => {}
-                },'test'
+                }, 'test'
             );
         }
     );
@@ -153,7 +153,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
                         expect(payload.pretty).toEqual('baby');
                         done();
                     }
-                },'test'
+                }, 'test'
             );
         }
     );
@@ -178,7 +178,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
                     uri: 'http://melody.rose',
                     method: HttpRequest.Get,
                     successHandler: () => {}
-                },'test'
+                }, 'test'
             );
         }
     );
@@ -215,7 +215,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
                                         uri: 'http://melody.rose',
                                         method: HttpRequest.Get,
                                         successHandler: () => {}
-                                    },'test'
+                                    }, 'test'
                                 );
                         }
                     }
@@ -258,7 +258,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
                                         uri: 'http://melody.rose',
                                         method: HttpRequest.Get,
                                         successHandler: () => {}
-                                    },'test'
+                                    }, 'test'
                                 );
                                 break;
 
@@ -277,7 +277,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
             let sub = bus.api.getChannel(RestService.channel).subscribe(
                 (msg: Message) => {
 
-                    if(msg.isRequest()) {
+                    if (msg.isRequest()) {
 
                         const restObject: RestObject = msg.payload as RestObject;
                         expect(restObject.request).toEqual(HttpRequest.Get);
@@ -303,7 +303,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
                         sub.unsubscribe();
                         done();
                     }
-                },'test'
+                }, 'test'
             );
         }
     );
@@ -315,7 +315,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
             let sub = bus.api.getChannel(RestService.channel).subscribe(
                 (msg: Message) => {
 
-                    if(msg.isRequest()) {
+                    if (msg.isRequest()) {
 
                         const restObject: RestObject = msg.payload as RestObject;
                         expect(restObject.request).toEqual(HttpRequest.Get);
@@ -328,7 +328,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
                             bus.sendErrorMessageWithId(RestService.channel,
                                 bus.fabric.generateFabricResponse(
                                     restObject.id, err,
-                                    true ,500,
+                                    true , 500,
                                     'error'), msg.id);
                         }
                     }
@@ -348,7 +348,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
                         expect(error.message).toEqual('oh dear, the computer said no.');
                         done();
                     }
-                },'test'
+                }, 'test'
             );
         }
     );
@@ -360,7 +360,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
             let sub = bus.api.getChannel(RestService.channel).subscribe(
                 (msg: Message) => {
 
-                    if(msg.isRequest()) {
+                    if (msg.isRequest()) {
 
                         const restObject: RestObject = msg.payload as RestObject;
                         expect(restObject.request).toEqual(HttpRequest.Get);
@@ -390,7 +390,7 @@ describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () =>
                         expect(error.message).toEqual('oh dear, the computer said no... again');
                         done();
                     }
-                },'test'
+                }, 'test'
             );
         }
     );

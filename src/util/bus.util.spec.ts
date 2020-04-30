@@ -3,18 +3,12 @@ import { LogLevel } from '../log';
 
 describe('Bus Util [util/bus.util.spec]', () => {
 
-    beforeEach(
-        () => {
-
-        }
-    )
-
     it('Check we can boot and grab an instance of the bus correctly.',
         () => {
 
             const bus = BusUtil.bootBus();
             expect(bus).not.toBeNull();
-            const busCopy = BusUtil.getBusInstance()
+            const busCopy = BusUtil.getBusInstance();
             expect(busCopy).not.toBeNull();
             expect(bus).toEqual(busCopy);
 

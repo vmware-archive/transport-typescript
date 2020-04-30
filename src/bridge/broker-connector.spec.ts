@@ -1161,7 +1161,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                     (msg: Message) => {
                         expect(msg.payload).toEqual('puppy1');
                         count++;
-                        if (count == 3) {
+                        if (count === 3) {
                             done();
                         }
                     }
@@ -1319,7 +1319,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                         //Added galactic channel to broker subscription requests:
                         expect(log.warn)
                             .toHaveBeenCalledWith(
-                            'unable to close galactic channel, no open sessions.',bc.getName());
+                            'unable to close galactic channel, no open sessions.', bc.getName());
                         done();
                     }
                 );
@@ -1805,7 +1805,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                             case StompClient.STOMP_CONNECTED:
                                 bus.markChannelAsGalactic('chan');
                                 counter++;
-                                if (counter == 2) {
+                                if (counter === 2) {
                                     bus.api.tickEventLoop(() => {
                                         expect(bus.logger.error).toHaveBeenCalledWith('More than one STOMP session was detected ' +
                                             'when trying to open galactic channel \'chan\'. You need to explicitly specify the target ' +
@@ -1832,7 +1832,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
                                 counter++;
-                                if (counter == 2) {
+                                if (counter === 2) {
                                     bc.galacticChannels.set('chan', {connectedBrokers: 2});
                                     bus.markChannelAsLocal('chan');
                                     bus.api.tickEventLoop(() => {
@@ -1882,7 +1882,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                         switch (command.command) {
                             case StompClient.STOMP_CONNECTED:
                                 counter++;
-                                if (counter == 2) {
+                                if (counter === 2) {
                                     for (let s of bc.sessions.values()) {
                                         bc.disconnectClient(s.id);
                                     }

@@ -293,7 +293,7 @@ xdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         let counter = 0;
 
         timeBefore = performance.now();
-        for(let channel of chanArray) {
+        for (let channel of chanArray) {
             for (let x = 0; x < 100; x++) {
                 subArray.push(channel.subscribe(
                     () => {
@@ -325,7 +325,7 @@ xdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         let counter = 0;
 
         timeBefore = performance.now();
-        for(let channel of chanArray) {
+        for (let channel of chanArray) {
             for (let x = 0; x < 1000; x++) {
                 subArray.push(channel.subscribe(
                     () => {
@@ -357,7 +357,7 @@ xdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         let counter = 0;
 
         timeBefore = performance.now();
-        for(let channel of chanArray) {
+        for (let channel of chanArray) {
             for (let x = 0; x < 100; x++) {
                 subArray.push(channel.subscribe(
                     () => {
@@ -644,25 +644,25 @@ xdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
 
 function printTimeBefore(time: number) {
     if (printTimeLogs) {
-        bus.logger.info("time before: " + time);
+        bus.logger.info('time before: ' + time);
     }
 }
 
 function printTimeStep(step: string, time: number) {
     if (printTimeLogs) {
-        bus.logger.info("time " + step + ": " + time);
+        bus.logger.info('time ' + step + ': ' + time);
     }
 }
 
 function printTimeAfter(time: number) {
     if (printTimeLogs) {
-        bus.logger.info("time after: " + time);
+        bus.logger.info('time after: ' + time);
     }
 }
 
 function printTotalTime(time: number) {
     if (printTimeLogs) {
-        bus.logger.info("execution time total ms: " + time);
+        bus.logger.info('execution time total ms: ' + time);
     }
 }
 
@@ -684,7 +684,7 @@ function runApiPerformanceTestOverSocket(host: string, loops: number, done: Func
                 () => {
                     responseCount++;
                     timeAfter = performance.now();
-                    if(responseCount >= loops) {
+                    if (responseCount >= loops) {
 
                         printTotalTime(timeAfter - timeBefore);
                         expect(timeAfter - timeBefore).toBeLessThan(expectedRunTime);
@@ -694,12 +694,12 @@ function runApiPerformanceTestOverSocket(host: string, loops: number, done: Func
                 }
             );
 
-        for(let x = 0; x < loops; x++) {
+        for (let x = 0; x < loops; x++) {
             const request = new APIRequest(command, null, GeneralUtil.genUUID(), 1);
             bus.sendGalacticMessage(chan, request);
 
         }
-    }
+    };
 
     // we have to connect to the broker.
     bus.connectBridge(
@@ -736,7 +736,7 @@ function runApiPerformanceTestOverXHR(host: string, loops: number, done: Functio
                 bus.sendResponseMessageWithId(chan, JSON.parse(req.responseText), args.uuid);
 
             };
-            req.open("GET", `http://${host}:8080/${command}?val=` + performance.now());
+            req.open('GET', `http://${host}:8080/${command}?val=` + performance.now());
             req.send();
 
         }
@@ -745,7 +745,7 @@ function runApiPerformanceTestOverXHR(host: string, loops: number, done: Functio
     bus.listenStream(chan).handle(
         () => {
             responseCount++;
-            if(responseCount >= loops) {
+            if (responseCount >= loops) {
                 timeAfter = performance.now();
 
                 printTotalTime(timeAfter - timeBefore);
@@ -756,7 +756,7 @@ function runApiPerformanceTestOverXHR(host: string, loops: number, done: Functio
         }
     );
 
-    for(let x = 0; x < loops; x++) {
+    for (let x = 0; x < loops; x++) {
         bus.sendRequestMessageWithId(chan, true, GeneralUtil.genUUID());
     }
     timeBefore = performance.now();

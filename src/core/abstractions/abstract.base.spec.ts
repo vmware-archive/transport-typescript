@@ -35,7 +35,7 @@ class MyTestClass extends AbstractBase {
     }
 
     public testHeaderStuff(): void {
-        super.setGlobalHttpHeaders({'shh':'baby-is-asleep'});
+        super.setGlobalHttpHeaders({'shh': 'baby-is-asleep'});
     }
 
     public testRestServiceRequest(): void {
@@ -65,7 +65,7 @@ describe('Bifröst Abstract Operations [cores/abstractions/abstract.operations]'
         () => {
             spyOn(log, 'warn').and.callThrough();
             testClass.testDevMode();
-            expect(log.warn).toHaveBeenCalledWith('Application set to dev mode, not to be used in production')
+            expect(log.warn).toHaveBeenCalledWith('Application set to dev mode, not to be used in production');
         }
     );
 
@@ -74,7 +74,7 @@ describe('Bifröst Abstract Operations [cores/abstractions/abstract.operations]'
             spyOn(RestOperations.getInstance(), 'setRestServiceHostOptions').and.callThrough();
             testClass.testHostStuff();
             expect(RestOperations.getInstance().setRestServiceHostOptions)
-                .toHaveBeenCalledWith('melody','baby://','MyTestClass');
+                .toHaveBeenCalledWith('melody', 'baby://', 'MyTestClass');
         }
     );
 
@@ -83,7 +83,7 @@ describe('Bifröst Abstract Operations [cores/abstractions/abstract.operations]'
             spyOn(RestOperations.getInstance(), 'setGlobalHttpHeaders').and.callThrough();
             testClass.testHeaderStuff();
             expect(RestOperations.getInstance().setGlobalHttpHeaders)
-                .toHaveBeenCalledWith({'shh':'baby-is-asleep'}, 'MyTestClass');
+                .toHaveBeenCalledWith({'shh': 'baby-is-asleep'}, 'MyTestClass');
         }
     );
 

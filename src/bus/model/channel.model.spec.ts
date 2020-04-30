@@ -136,6 +136,6 @@ describe('Stream Model [channel.model]', () => {
 
         channel.setPublic();
         expect(channel.isPrivate).toBeFalsy();
-    })
+    });
 });
 

@@ -26,7 +26,7 @@ describe('Fabric Utils [fabric/fabric.util.spec]', () => {
     it('Check validation works for requests',
         () => {
             expect(FabricUtil.isPayloadFabricRequest(
-                bus.fabric.generateFabricRequest('hello','there')
+                bus.fabric.generateFabricRequest('hello', 'there')
             )).toBeTruthy();
         }
     );

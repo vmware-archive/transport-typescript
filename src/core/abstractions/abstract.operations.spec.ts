@@ -22,7 +22,7 @@ describe('Bifröst Abstract Operations [cores/abstractions/abstract.operations]'
     beforeEach(
         () => {
             bus = BusUtil.getBusInstance();
-           operations = new MyOperations();
+            operations = new MyOperations();
         }
     );
 

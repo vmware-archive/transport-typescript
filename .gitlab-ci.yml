@@ -28,7 +28,7 @@ build:bifrost:
   stage: build
   script:
   - echo "Building @vmw/bifrost"
-  - npm run prepare
+  - npm run pre-publish
   artifacts:
     paths:
     - dist
