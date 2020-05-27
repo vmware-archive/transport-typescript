@@ -1,6 +1,6 @@
 {
   "name": "@vmw/transport",
-  "version": "0.15.4",
+  "version": "1.0.0",
   "private": false,
   "license": "BSD-2-Clause",
   "repository": "git@github.com:vmware/transport.git",
