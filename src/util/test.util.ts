@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-import { BifrostEventBus, ORG_ID, ORGS, UUID } from '../bus';
+import { TransportEventBus, ORG_ID, ORGS, UUID } from '../bus';
 import { EventBus } from '../bus.api';
 import { LogLevel } from '../log';
 import { BusUtil } from './bus.util';
@@ -18,7 +18,7 @@ export class BusTestUtil extends BusUtil {
      * @returns {EventBus}
      */
     public static bootBus(): EventBus {
-        return BifrostEventBus.reboot();
+        return TransportEventBus.reboot();
     }
 
     /**
@@ -28,7 +28,7 @@ export class BusTestUtil extends BusUtil {
      * @returns {EventBus} the bus.
      */
     public static bootBusWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
-        return BifrostEventBus.rebootWithOptions(logLevel, disableBootMessage);
+        return TransportEventBus.rebootWithOptions(logLevel, disableBootMessage);
     }
 
     /**
@@ -36,6 +36,6 @@ export class BusTestUtil extends BusUtil {
      * @param orgId organization ID that is currently being managed.
      */
     public static setOrganizationId(orgId: UUID): void {
-        BifrostEventBus.getInstance().stores.createStore(ORGS).put(ORG_ID, orgId, null);
+        TransportEventBus.getInstance().stores.createStore(ORGS).put(ORG_ID, orgId, null);
     }
 }

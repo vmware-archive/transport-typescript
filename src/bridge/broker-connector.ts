@@ -13,7 +13,7 @@ import { StompParser } from '../bridge/stomp.parser';
 import { StompValidator } from './stomp.validator';
 import { MonitorChannel, MonitorObject, MonitorType } from '../bus/model/monitor.model';
 import { Message } from '../bus/model/message.model';
-import { BifrostEventBus } from '../bus/bus';
+import { TransportEventBus } from '../bus/bus';
 import { ChannelBrokerMapping, EventBus, EventBusEnabled } from '../bus.api';
 import { Logger } from '../log';
 import { FabricUtil } from '../fabric/fabric.util';
@@ -120,15 +120,15 @@ export class BrokerConnector implements EventBusEnabled {
     private _sessions: Map<string, StompSession>;
     private _galacticChannels: Map<string, {connectedBrokers: number}>;
     private _privateChannels: Map<string, {[brokerIdentity: string]: boolean}>;
-    private bus: BifrostEventBus;
+    private bus: TransportEventBus;
     private reconnectTimerInstance: any;
     private reconnecting: boolean = false;
 
-    setBus(bus: BifrostEventBus) {
+    setBus(bus: TransportEventBus) {
         this.bus = bus;
     }
 
-    init(bus: BifrostEventBus) {
+    init(bus: TransportEventBus) {
 
         this.setBus(bus);
 

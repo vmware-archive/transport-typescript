@@ -136,7 +136,7 @@ export interface FabricApi {
     setXsrfToken(token: string): void;
 
     /**
-     * Get xsrf token either from cookie or from bifrost store
+     * Get xsrf token either from cookie or from Transport store
      */
     getXsrfToken(): string;
 

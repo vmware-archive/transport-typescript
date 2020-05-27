@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-import { EventBus, BifrostEventBus, BrokerConnectorChannel, MessageArgs } from '../';
+import { EventBus, TransportEventBus, BrokerConnectorChannel, MessageArgs } from '../';
 import { LogLevel } from '../log/logger.model';
 import { Message } from './model/message.model';
 import { Channel } from './model/channel.model';
@@ -28,7 +28,7 @@ function makeCallCountCaller(done: any, targetCount: number): any {
     };
 }
 
-describe('BifrostEventBus [bus/bus.ts]', () => {
+describe('TransportEventBus [bus/bus.ts]', () => {
     const testChannel = '#local-channel';
     const testData = {
         name: 'test-name'
@@ -39,14 +39,14 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
     let log: Logger;
 
     beforeEach(() => {
-        bus = BifrostEventBus.rebootWithOptions(LogLevel.Error, true);
+        bus = TransportEventBus.rebootWithOptions(LogLevel.Error, true);
         bus.api.silenceLog(true);
         bus.api.suppressLog(true);
         bus.api.enableMonitorDump(false);
         log = bus.api.logger();
     });
     it('Check logging settings', () => {
-        bus = BifrostEventBus.rebootWithOptions(LogLevel.Info, true);
+        bus = TransportEventBus.rebootWithOptions(LogLevel.Info, true);
         bus.api.silenceLog(false);
         bus.api.suppressLog(true);
         bus.api.enableMonitorDump(false);
@@ -106,7 +106,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
 
     it('Check boot message is fired', () => {
 
-        bus = BifrostEventBus.bootWithOptions(LogLevel.Off, false);
+        bus = TransportEventBus.bootWithOptions(LogLevel.Off, false);
         expect(bus.api.logger().stylingVisble).toBeTruthy();
 
     });
@@ -1331,7 +1331,7 @@ describe('BifrostEventBus [bus/bus.ts]', () => {
         it('Say hi to magnum <3',
             (done) => {
                 // enable the easter egg and test it.
-                const castBus = bus as BifrostEventBus;
+                const castBus = bus as TransportEventBus;
                 castBus.easterEgg();
                 bus.requestOnce('__maglingtonpuddles__', 'hi maggie!')
                     .handle(

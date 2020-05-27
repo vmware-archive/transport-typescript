@@ -6,7 +6,7 @@
 import { HttpClient } from './http.client';
 import { GeneralError } from '../../model/error.model';
 
-export class BifrostHttpclient implements HttpClient {
+export class TransportHttpclient implements HttpClient {
 
     delete(request: Request, successHandler: Function, failureHandler: Function): void {
         this.httpOperation(request, successHandler, failureHandler);

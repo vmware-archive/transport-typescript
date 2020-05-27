@@ -12,15 +12,15 @@ import { GeneralUtil } from '../util/util';
 import { AbstractCore } from '../core';
 import { EventBus } from '../bus.api';
 
-export type BifrostSocket = WebSocket;
+export type TransportSocket = WebSocket;
 
 export class BrokerConnectorChannel {
 
-    static connection: string = 'bifrost-services::broker.connector-connection';
-    static subscription: string = 'bifrost-services::broker.connector-subscription';
-    static messages: string = 'bifrost-services::broker.connector-messages';
-    static error: string = 'bifrost-services::broker.connector-error';
-    static status: string = 'bifrost-services::broker.connector-status';
+    static connection: string = 'transport-services::broker.connector-connection';
+    static subscription: string = 'transport-services::broker.connector-subscription';
+    static messages: string = 'transport-services::broker.connector-messages';
+    static error: string = 'transport-services::broker.connector-error';
+    static status: string = 'transport-services::broker.connector-status';
 
 }
 export interface StompMessage {

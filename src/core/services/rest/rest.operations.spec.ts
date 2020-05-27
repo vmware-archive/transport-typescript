@@ -14,7 +14,7 @@ import { GeneralError } from '../../model/error.model';
 import { BrokerConnector, BrokerConnectorChannel, StompBusCommand, StompClient, StompConfig } from '../../../bridge';
 import { Subscription } from 'rxjs';
 
-describe('Bifröst Rest Operations [cores/services/rest/rest.operations]', () => {
+describe('Transport Rest Operations [cores/services/rest/rest.operations]', () => {
 
     let bus: EventBus;
     let operations: RestOperations;

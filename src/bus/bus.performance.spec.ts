@@ -19,7 +19,7 @@ let printTimeLogs: boolean = true;
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000000;
 
-xdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
+xdescribe('Transport Performance Testing [bus/bus.performance.spec.ts]', () => {
 
     let timeBefore: number;
     let timeAfter: number;
@@ -381,7 +381,7 @@ xdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         }
     });
 
-    describe('Bifröst Local Network Performance Validation Testing', () => {
+    describe('Transport Local Network Performance Validation Testing', () => {
 
         it('Round-trip XHR call via bus enabled service should take less than 50ms', (done) => {
             runApiPerformanceTestOverXHR('localhost', 1, done, 50, 'seed');
@@ -513,7 +513,7 @@ xdescribe('Bifröst Performance Testing [bus/bus.performance.spec.ts]', () => {
         });
     });
 
-    describe('Bifröst Remote Network Performance Validation Testing', () => {
+    describe('Transport Remote Network Performance Validation Testing', () => {
 
         it('(Remote) Round-trip XHR call via bus enabled service should take less than 90ms', (done) => {
             runApiPerformanceTestOverXHR('quobix.com', 1, done, 90, 'seed');
@@ -711,7 +711,7 @@ function runApiPerformanceTestOverSocket(host: string, loops: number, done: Func
         () => {
             theBridgeIsReady();
         },
-        '/bifrost',
+        '/transport',
         '/topic',
         '/queue',
         1,

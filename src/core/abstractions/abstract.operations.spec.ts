@@ -16,7 +16,7 @@ class MyOperations extends AbstractOperations {
     }
 }
 
-describe('Bifröst Abstract Operations [cores/abstractions/abstract.operations]', () => {
+describe('Transport Abstract Operations [cores/abstractions/abstract.operations]', () => {
 
     let bus: EventBus;
     let operations: MyOperations;

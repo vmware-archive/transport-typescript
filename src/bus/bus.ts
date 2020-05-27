@@ -37,7 +37,7 @@ import { FabricApi } from '../fabric.api';
 import { FabricApiImpl } from '../fabric/fabric';
 
 
-export class BifrostEventBus extends EventBus implements EventBusEnabled {
+export class TransportEventBus extends EventBus implements EventBusEnabled {
 
     private static instance: EventBus;
 
@@ -49,7 +49,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
     }
 
     public static getInstance(): EventBus {
-        return BifrostEventBus.boot();
+        return TransportEventBus.boot();
     }
 
     /**
@@ -137,7 +137,7 @@ export class BifrostEventBus extends EventBus implements EventBusEnabled {
 
         if (!disableBootMessage) {
             this.log.setStylingVisble(true);
-            this.log.info(`🌈 Bifröst v${EventBus.version} Initialized with Id: ${EventBus.id}, Hi!`,
+            this.log.info(`🌈 VMware Transport v${EventBus.version} Initialized with Id: ${EventBus.id}, Hi!`,
                 'EventBus');
 
         }

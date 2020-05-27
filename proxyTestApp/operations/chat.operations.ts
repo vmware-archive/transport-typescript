@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-import { EventBus } from '@vmw/bifrost/bus.api';
-import { AbstractCore } from '@vmw/bifrost/core';
+import { EventBus } from '@vmw/transport/bus.api';
+import { AbstractCore } from '@vmw/transport/core';
 import { BaseTask } from '@vmc/vmc-api';
 import { ChatMessage, GeneralChatChannel } from '../src/app/chat-message';
 

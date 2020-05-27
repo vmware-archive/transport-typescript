@@ -6,17 +6,17 @@
 import { EventBus } from '../../../bus.api';
 import { Logger, LogLevel } from '../../../log';
 import { BusTestUtil } from '../../../util/test.util';
-import { BifrostHttpclient } from './bifrost.httpclient';
+import { TransportHttpclient } from './transport.httpclient';
 
 import * as fetchMock from 'fetch-mock';
 import { HttpRequest } from './rest.model';
 import { GeneralError } from '../../model/error.model';
 
-describe('Bifröst HTTP Client [cores/services/rest/bifrost.httpclient]', () => {
+describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () => {
 
     let bus: EventBus;
     let log: Logger;
-    let client: BifrostHttpclient;
+    let client: TransportHttpclient;
 
     beforeEach(
         () => {
@@ -26,7 +26,7 @@ describe('Bifröst HTTP Client [cores/services/rest/bifrost.httpclient]', () => 
             bus.api.enableMonitorDump(false);
             bus.enableDevMode();
             log = bus.api.logger();
-            client = new BifrostHttpclient();
+            client = new TransportHttpclient();
         }
     );
 

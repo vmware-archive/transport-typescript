@@ -4,10 +4,10 @@
  */
 
 import { AfterViewChecked, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { EventBus, MessageHandler } from '@vmw/bifrost/bus.api';
+import { EventBus, MessageHandler } from '@vmw/transport/bus.api';
 import { ChatMessage, GeneralChatChannel } from '../chat-message';
 import { BaseTask } from '@vmc/vmc-api';
-import { GeneralError } from '@vmw/bifrost/core/model/error.model';
+import { GeneralError } from '@vmw/transport/core/model/error.model';
 import { ChatCommand, ServbotResponse } from '../servbot.model';
 import { ChatClientBase } from './chat-client.base';
 

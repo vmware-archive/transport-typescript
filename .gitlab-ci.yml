@@ -26,10 +26,10 @@ test:unit:
   - pushes
   - web
 
-build:bifrost:
+build:transport:
   stage: build
   script:
-  - echo "Building @vmw/bifrost"
+  - echo "Building @vmw/transport"
   - npm run pre-publish
   artifacts:
     paths:
@@ -40,10 +40,10 @@ build:bifrost:
   - pushes
   - web
 
-publish:bifrost:
+publish:transport:
   stage: publish
   dependencies:
-  - build:bifrost
+  - build:transport
   variables:
     GIT_AUTHOR_EMAIL: "kjosh@vmware.com"
     GIT_AUTHOR_NAME: "Josh Kim"
@@ -53,7 +53,7 @@ publish:bifrost:
   script:
   - echo "Configuring .npmrc"
   - ./build/scripts/configure-npmrc-on-ci.sh
-  - echo "Publishing @vmw/bifrost"
+  - echo "Publishing @vmw/transport"
   - npm run publish
   - echo "Proliferating to EVE Portal UI to create a merge request"
   - ./build/scripts/update-portal-ui-dep.sh

@@ -54,7 +54,7 @@ cd ${WORKING_DIR}/ui
 # upgrade bifrost TS and file a new MR into the target repo
 set -x
 git checkout -b ${WORKING_BRANCH}
-npm install --save @vmw/bifrost@${BIFROST_TS_RELEASE}
+npm install --save @vmw/transport@${BIFROST_TS_RELEASE}
 set +x
 git add package.json package-lock.json
 git commit -m "${COMMIT_MSG}"

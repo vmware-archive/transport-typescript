@@ -4,7 +4,7 @@
  */
 
 import { ChatMessage } from '../chat-message';
-import { AbstractBase } from '@vmw/bifrost/core';
+import { AbstractBase } from '@vmw/transport/core';
 import { ChatOperations } from '@operations/chat.operations';
 import { Mixin } from '@operations/mixin';
 import { BaseTask } from '@vmc/vmc-api';

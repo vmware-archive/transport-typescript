@@ -5,14 +5,14 @@
 
 import { AfterContentInit, Component, OnInit } from '@angular/core';
 
-import { EventBus, MessageHandler } from '@vmw/bifrost/bus.api';
-import { Message } from '@vmw/bifrost/bus/model/message.model';
-import { MonitorObject, MonitorType } from '@vmw/bifrost/bus/model/monitor.model';
-import { ProxyType } from '@vmw/bifrost/proxy/message.proxy.api';
-import { LogLevel } from '@vmw/bifrost/log';
+import { EventBus, MessageHandler } from '@vmw/transport/bus.api';
+import { Message } from '@vmw/transport/bus/model/message.model';
+import { MonitorObject, MonitorType } from '@vmw/transport/bus/model/monitor.model';
+import { ProxyType } from '@vmw/transport/proxy/message.proxy.api';
+import { LogLevel } from '@vmw/transport/log';
 import { ToastNotification } from '@vmw/ngx-components';
 import { ChatMessage, GeneralChatChannel } from '../chat-message';
-import { AbstractBase } from '@vmw/bifrost/core';
+import { AbstractBase } from '@vmw/transport/core';
 import { ServbotService } from '../../../services/servbot/servbot.service';
 
 @Component({
@@ -89,7 +89,7 @@ export class MainComponent extends AbstractBase implements OnInit {
                         break;
 
                     case MonitorType.MonitorBrokerConnectorConnected:
-                        this.postToast('Bifröst Extended', `Broker connector has extended bus`, false);
+                        this.postToast('Transport Extended', `Broker connector has extended bus`, false);
                         break;
 
                 }

@@ -4,8 +4,8 @@
  */
 
 import { Component, OnInit } from '@angular/core';
-import { ProxyControl, ProxyType } from '@vmw/bifrost/proxy';
-import { AbstractBase } from '@vmw/bifrost/core';
+import { ProxyControl, ProxyType } from '@vmw/transport/proxy';
+import { AbstractBase } from '@vmw/transport/core';
 import { GeneralChatChannel } from "../chat-message";
 
 @Component({

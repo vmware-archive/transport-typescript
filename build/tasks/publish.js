@@ -14,11 +14,11 @@ var VERSION = util.env.version;
 var npmFolder = "dist/npm/";
 
 /**
- * Preparing the bifrost package
+ * Preparing the Transport package
  */
 
 /**
- * The deliverables for bifrost are:
+ * The deliverables for Transport are:
  *   - the compiled js files in es5 with es2015 module format
  *   - the minified umd JS bundle
  *   - the Typescript declaration files
@@ -29,7 +29,7 @@ gulp.task("npm:publish:bundles", function () {
         'dist/**/*.d.ts',
         'dist/**/*.js',
         'dist/**/*.js.map',
-    ]).pipe(gulp.dest(npmFolder + "/bifrost"));
+    ]).pipe(gulp.dest(npmFolder + "/transport"));
 });
 
 /**
@@ -37,10 +37,10 @@ gulp.task("npm:publish:bundles", function () {
  * and copy it to the root of our package.
  */
 gulp.task("npm:publish:package", function () {
-    return gulp.src("build/npm/bifrost.json")
+    return gulp.src("build/npm/transport.json")
         .pipe(preprocess({context: {VERSION: VERSION}, extension: "js"}))
         .pipe(rename("package.json"))
-        .pipe(gulp.dest(npmFolder + "/bifrost"));
+        .pipe(gulp.dest(npmFolder + "/transport"));
 });
 
 gulp.task("npm:publish", ["npm:publish:bundles", "npm:publish:package"], function () {});

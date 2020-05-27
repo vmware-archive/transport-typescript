@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-import { EventBus, MessageFunction } from '@vmw/bifrost/bus.api';
-import { AbstractCore } from '@vmw/bifrost/core';
+import { EventBus, MessageFunction } from '@vmw/transport/bus.api';
+import { AbstractCore } from '@vmw/transport/core';
 import { VMCBotService } from '@services/vmcbot/vmcbot.service';
 import { VMCCommand } from '@services/vmcbot/vmcbot.model';
 

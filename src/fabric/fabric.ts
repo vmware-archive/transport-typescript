@@ -16,7 +16,7 @@ import { APIResponse } from '../core/model/response.model';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-export const HEADERS_STORE = 'bifrost-headers-store';
+export const HEADERS_STORE = 'transport-headers-store';
 export const GLOBAL_HEADERS = 'global-headers';
 export const GLOBAL_HEADERS_UPDATE = 'update';
 
@@ -96,7 +96,7 @@ export class FabricApiImpl implements FabricApi {
                 // listen for disconnect from broker connector.
                 // this needs to be refactored in a cleaner way.
                 if (!this.fabricDisconnectHandler) {
-                    this.fabricDisconnectHandler = this.bus.listenStream(`bifrost-services::broker.connector-status`);
+                    this.fabricDisconnectHandler = this.bus.listenStream(`transport-services::broker.connector-status`);
                     this.fabricDisconnectHandler.handle(
                         (busCommand: StompBusCommand) => {
                             switch (busCommand.command) {

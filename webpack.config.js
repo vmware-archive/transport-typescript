@@ -48,8 +48,8 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'bifrost.umd.min.js',
-        library: 'bifrost',
+        filename: 'transport.umd.min.js',
+        library: 'transport',
         libraryTarget: 'umd'
     },
     resolve: {

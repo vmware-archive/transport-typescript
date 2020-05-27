@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-import { BifrostEventBus } from '../bus';
+import { TransportEventBus } from '../bus';
 import { EventBus } from '../bus.api';
 import { LogLevel } from '../log';
 
@@ -17,7 +17,7 @@ export class BusUtil {
      * @returns {EventBus} the bus
      */
     public static getBusInstance(): EventBus {
-        return BifrostEventBus.getInstance();
+        return TransportEventBus.getInstance();
     }
 
     /**
@@ -25,7 +25,7 @@ export class BusUtil {
      * @returns {EventBus} the bus.
      */
     public static bootBus(): EventBus {
-        return BifrostEventBus.boot();
+        return TransportEventBus.boot();
     }
 
     /**
@@ -36,14 +36,14 @@ export class BusUtil {
      * @returns {EventBus} the bus
      */
     public static bootBusWithOptions(logLevel: LogLevel, disableBootMessage: boolean, darkTheme: boolean = false): EventBus {
-        return BifrostEventBus.bootWithOptions(logLevel, disableBootMessage, darkTheme);
+        return TransportEventBus.bootWithOptions(logLevel, disableBootMessage, darkTheme);
     }
 
     /**
      * Destroy the bus.
      */
     public static destroy(): void {
-        BifrostEventBus.destroy();
+        TransportEventBus.destroy();
     }
 
     /**

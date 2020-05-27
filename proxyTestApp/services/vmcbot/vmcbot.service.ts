@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-import { AbstractService } from '@vmw/bifrost/core';
-import { ChannelBrokerMapping, EventBus, MessageArgs, MessageHandler } from '@vmw/bifrost/bus.api';
+import { AbstractService } from '@vmw/transport/core';
+import { ChannelBrokerMapping, EventBus, MessageArgs, MessageHandler } from '@vmw/transport/bus.api';
 import { VMCBotRequest, VMCBotResponse, VMCCommand } from './vmcbot.model';
 import { BaseTask } from '@vmc/vmc-api';
 import { ChatMessage, GeneralChatChannel } from '../../src/app/chat-message';

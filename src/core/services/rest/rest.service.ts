@@ -9,7 +9,7 @@ import { LogLevel } from '../../../log';
 import { BusStore } from '../../../store.api';
 import { AbstractCore } from '../../abstractions/abstract.core';
 import { HttpClient } from './http.client';
-import { BifrostHttpclient } from './bifrost.httpclient';
+import { TransportHttpclient } from './transport.httpclient';
 import { FabricService } from '../../abstractions/fabric.service';
 import { GLOBAL_HEADERS, GLOBAL_HEADERS_UPDATE, HEADERS_STORE } from '../../../fabric/fabric';
 
@@ -60,7 +60,7 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
         super();
 
         if (!httpClient) {
-            this.httpClient = new BifrostHttpclient();
+            this.httpClient = new TransportHttpclient();
         } else {
             this.httpClient = httpClient;
         }

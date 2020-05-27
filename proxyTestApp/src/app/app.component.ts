@@ -4,9 +4,9 @@
  */
 
 import { Component } from '@angular/core';
-import { BusUtil } from '@vmw/bifrost/util/bus.util';
-import { LogLevel } from '@vmw/bifrost/log';
-import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
+import { BusUtil } from '@vmw/transport/util/bus.util';
+import { LogLevel } from '@vmw/transport/log';
+import { ServiceLoader } from '@vmw/transport/util/service.loader';
 import { ServbotService } from '@services/servbot/servbot.service';
 import { VMCBotService } from '@services/vmcbot/vmcbot.service';
 

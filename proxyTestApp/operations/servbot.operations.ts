@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-import { EventBus, MessageFunction } from '@vmw/bifrost/bus.api';
-import { AbstractCore } from '@vmw/bifrost/core';
-import { GeneralError } from '@vmw/bifrost/core/model/error.model';
-import { GeneralUtil } from '@vmw/bifrost/util/util';
+import { EventBus, MessageFunction } from '@vmw/transport/bus.api';
+import { AbstractCore } from '@vmw/transport/core';
+import { GeneralError } from '@vmw/transport/core/model/error.model';
+import { GeneralUtil } from '@vmw/transport/util/util';
 import { ServbotService } from '../services/servbot/servbot.service';
 import { ChatCommand, ServbotResponse } from '../services/servbot/servbot.model';
 

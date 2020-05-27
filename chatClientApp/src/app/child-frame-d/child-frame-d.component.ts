@@ -4,10 +4,10 @@
  */
 
 import { Component, OnInit } from '@angular/core';
-import { AbstractBase } from '@vmw/bifrost/core';
-import { ProxyControl } from '@vmw/bifrost/proxy';
+import { AbstractBase } from '@vmw/transport/core';
+import { ProxyControl } from '@vmw/transport/proxy';
 import { GeneralChatChannel } from '../chat-message';
-import { ProxyType } from '@vmw/bifrost/proxy/message.proxy.api';
+import { ProxyType } from '@vmw/transport/proxy/message.proxy.api';
 
 @Component({
     selector: 'app-child-frame-d',

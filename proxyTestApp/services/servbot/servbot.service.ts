@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-import { AbstractService } from '@vmw/bifrost/core';
-import { EventBus, MessageArgs } from '@vmw/bifrost/bus.api';
-import { BusStore } from '@vmw/bifrost/store.api';
+import { AbstractService } from '@vmw/transport/core';
+import { EventBus, MessageArgs } from '@vmw/transport/bus.api';
+import { BusStore } from '@vmw/transport/store.api';
 import { ChatCommand, ServbotRequest, ServbotResponse } from './servbot.model';
 import { ChatMessage, GeneralChatChannel } from '../../src/app/chat-message';
-import { APIResponse } from '@vmw/bifrost/core/model/response.model';
-import { RestOperation } from '@vmw/bifrost/core/services/rest/rest.operations';
-import { HttpRequest } from '@vmw/bifrost/core/services/rest/rest.model';
-import { GeneralError } from '@vmw/bifrost/core/model/error.model';
+import { APIResponse } from '@vmw/transport/core/model/response.model';
+import { RestOperation } from '@vmw/transport/core/services/rest/rest.operations';
+import { HttpRequest } from '@vmw/transport/core/services/rest/rest.model';
+import { GeneralError } from '@vmw/transport/core/model/error.model';
 import { Joke } from './joke.model';
 import { Mixin } from '@operations/mixin';
 import { ChatOperations } from '@operations/chat.operations';

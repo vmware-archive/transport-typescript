@@ -61,9 +61,9 @@
     "build-commonjs": "tsc -d --declarationDir ./dist",
     "build": "gulp clean && npm run build-umd && npm run build-commonjs",
     "test": "tslint -p . && karma start karma.conf",
-    "build-docs": "node_modules/typedoc/bin/typedoc --out dist/npm/bifrost/docs --exclude \"**/*+(e2e|spec|index).ts\" --excludePrivate --name \"VMware Bifröst (TypeScript)\"  src",
+    "build-docs": "node_modules/typedoc/bin/typedoc --out dist/npm/transport/docs --exclude \"**/*+(e2e|spec|index).ts\" --excludePrivate --name \"VMware Transport (TypeScript)\"  src",
     "build-package": "gulp npm:publish --version $npm_package_version",
     "pre-publish": "npm run build && npm run build-package && npm run build-docs",
-    "publish": "npm publish dist/npm/bifrost"
+    "publish": "npm publish dist/npm/transport"
   }
 }

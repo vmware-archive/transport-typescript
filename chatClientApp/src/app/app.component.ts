@@ -4,8 +4,8 @@
  */
 
 import { Component } from '@angular/core';
-import { BusUtil } from '@vmw/bifrost/util/bus.util';
-import { LogLevel } from '@vmw/bifrost/log';
+import { BusUtil } from '@vmw/transport/util/bus.util';
+import { LogLevel } from '@vmw/transport/log';
 
 // create bus and load services.
 BusUtil.bootBusWithOptions(LogLevel.Debug, false);

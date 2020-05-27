@@ -4,11 +4,11 @@
  */
 
 import { Component, OnInit } from '@angular/core';
-import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
-import { RestService } from '@vmw/bifrost/core/services/rest/rest.service';
+import { ServiceLoader } from '@vmw/transport/util/service.loader';
+import { RestService } from '@vmw/transport/core/services/rest/rest.service';
 import { TangoAngularHttpClientAdapter } from '@vmw/tango';
 import { HttpClient } from '@angular/common/http';
-import { BusStore } from '@vmw/bifrost/store.api';
+import { BusStore } from '@vmw/transport/store.api';
 import { RestyBase } from './resty.base';
 
 

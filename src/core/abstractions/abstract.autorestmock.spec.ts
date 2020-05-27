@@ -100,7 +100,7 @@ class AutoRestTest extends AbstractAutoRestMock {
     }
 }
 
-describe('Bifröst Abstract AutoRestMock [cores/abstractions/abstract.autorestmock.spec]', () => {
+describe('Transport Abstract AutoRestMock [cores/abstractions/abstract.autorestmock.spec]', () => {
 
     let bus: EventBus;
     let test: AutoRestTest;
