@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { BaseTask } from '../../vmc-models/api/vmc-api';
 
 export interface ChatMessage {

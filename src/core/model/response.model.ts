@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { AbstractFrame } from '../../bus/model/abstractframe.model';
 import { UUID } from '../../bus/store/store.model';
 

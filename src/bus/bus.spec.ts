@@ -1,6 +1,8 @@
-/**
- * Copyright(c) VMware Inc. 2016-2017
+/*
+ * Copyright 2017-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  */
+
 import { EventBus, BifrostEventBus, BrokerConnectorChannel, MessageArgs } from '../';
 import { LogLevel } from '../log/logger.model';
 import { Message } from './model/message.model';

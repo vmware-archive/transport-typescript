@@ -1,5 +1,6 @@
 /*
- * Copyright © 2018 VMware, Inc. All rights reserved.
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  * AUTO-GENERATED 2018-07-02 15:34:07 - DO NOT EDIT DIRECTLY
  *
  */

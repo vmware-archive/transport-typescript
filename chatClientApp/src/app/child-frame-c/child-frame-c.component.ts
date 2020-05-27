@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018-2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { Component, OnInit } from '@angular/core';
 import { ProxyType } from '@vmw/bifrost/proxy/message.proxy.api';
 import { ProxyControl } from '@vmw/bifrost/proxy';

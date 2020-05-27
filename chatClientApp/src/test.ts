@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 // This file is required by karma.conf.js and loads recursively all the .spec and framework files
 
 import 'zone.js/dist/zone-testing';

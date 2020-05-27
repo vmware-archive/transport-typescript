@@ -1,3 +1,5 @@
+# NOTE: THIS SHOULD NOT BE CHECKED INTO GITHUB REPO
+
 image: vmcsizer-docker-local.artifactory.eng.vmware.com/vmc-sizer-build:1.14
 
 stages:

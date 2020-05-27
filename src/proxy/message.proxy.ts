@@ -1,5 +1,6 @@
 /*
- * Copyright(c) VMware Inc. 2019
+ * Copyright 2018-2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  */
 
 import { EventBus } from '../bus.api';

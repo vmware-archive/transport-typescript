@@ -1,6 +1,8 @@
-/**
- * Copyright(c) VMware Inc., 2016
+/*
+ * Copyright 2017-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  */
+
 import { LogChannel, LogLevel, LogObject } from './logger.model';
 import { GeneralUtil } from '../util/util';
 

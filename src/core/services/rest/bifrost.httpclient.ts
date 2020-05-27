@@ -1,6 +1,8 @@
-/**
- * Copyright(c) VMware Inc. 2018
+/*
+ * Copyright 2018-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  */
+
 import { HttpClient } from './http.client';
 import { GeneralError } from '../../model/error.model';
 

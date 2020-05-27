@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { ChatMessage } from '../chat-message';
 import { AbstractBase } from '@vmw/bifrost/core';
 import { ChatCommand, ServbotResponse } from '../servbot.model';

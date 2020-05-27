@@ -1,5 +1,6 @@
 /*
- * Copyright © 2018 VMware, Inc. All rights reserved.
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  * AUTO-GENERATED 2018-08-01 13:16:08 - DO NOT EDIT DIRECTLY
  *
  */
@@ -435,7 +436,7 @@ export class BaseVsanDiskGroup {
         if (json) {
             this.cache_volume = new BaseStorageVolume(json['cache_volume']);
             Object.assign(this.cache_volume, json['cache_volume']);
-            
+
             if (json['capacity_volumes']) {
                 this.capacity_volumes = [];
                 for (let item of json['capacity_volumes']) {
@@ -460,7 +461,7 @@ export class BaseVsanDiskGroupSpec {
         if (json) {
             this.cache_volume_spec = new BaseStorageVolumeSpec(json['cache_volume_spec']);
             Object.assign(this.cache_volume_spec, json['cache_volume_spec']);
-            
+
             if (json['capacity_volume_specs']) {
                 this.capacity_volume_specs = [];
                 for (let item of json['capacity_volume_specs']) {
@@ -482,7 +483,7 @@ export class BaseVsanHostConfiguration {
     public  diskgroups: Array<BaseVsanDiskGroup>;
     constructor (json?: any) {
         if (json) {
-            
+
             if (json['diskgroups']) {
                 this.diskgroups = [];
                 for (let item of json['diskgroups']) {
@@ -503,7 +504,7 @@ export class BaseVsanHostConfigurationSpec {
     public  diskgroup_specs: Array<BaseVsanDiskGroupSpec>;
     constructor (json?: any) {
         if (json) {
-            
+
             if (json['diskgroup_specs']) {
                 this.diskgroup_specs = [];
                 for (let item of json['diskgroup_specs']) {

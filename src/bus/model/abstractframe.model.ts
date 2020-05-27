@@ -1,5 +1,9 @@
+/*
+ * Copyright 2018-2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { UUID } from '../store/store.model';
-import { StompParser } from '../../bridge/stomp.parser';
 import { GeneralUtil } from '../../util/util';
 
 export abstract class AbstractFrame {

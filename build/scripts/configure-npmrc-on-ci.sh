@@ -1,4 +1,5 @@
 #!/bin/bash
+# NOTE: THIS SHOULD NOT BE CHECKED INTO GITHUB REPO
 
 ROOT=$(cd $(dirname $0)/../.. ; pwd)
 

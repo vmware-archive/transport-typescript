@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018-2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 /**
  * Provides any class access to the EventBus, StoreManager and Logger.
  */

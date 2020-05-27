@@ -1,9 +1,9 @@
 {
-  "name": "@vmw/bifrost",
+  "name": "@vmw/transport",
   "version": "0.15.4",
   "private": false,
-  "license": "VMW_Proprietary",
-  "repository": "git@gitlab.eng.vmware.com:bifrost/typescript.git",
+  "license": "BSD-2-Clause",
+  "repository": "git@github.com:vmware/transport.git",
   "dependencies": {
     "karma-jasmine-html-reporter": "^1.4.0",
     "rxjs": "^6.4.0"

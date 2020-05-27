@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { AbstractBase } from '@vmw/bifrost/core';
 import { ServbotOperations } from '@operations/servbot.operations';
 import { MessageFunction } from '@vmw/bifrost/bus.api';

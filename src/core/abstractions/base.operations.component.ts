@@ -1,6 +1,8 @@
-/**
- * Copyright(c) VMware Inc. 2018
+/*
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  */
+
 import { AbstractBase } from './abstract.base';
 import { Mixin } from '../util/operation.mixin';
 import { AbstractOperations } from './abstract.operations';

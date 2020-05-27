@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 // This is the service version object that is returned by all services.
 // It is constructed by servgen from a service's request/response
 

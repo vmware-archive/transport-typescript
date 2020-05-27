@@ -1,3 +1,8 @@
+/*
+ * Copyright 2017-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 module.exports = function (config) {
     config.set({
         basePath: './',

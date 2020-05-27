@@ -1,6 +1,8 @@
-/**
- * Copyright(c) VMware Inc. 2018-2019
+/*
+ * Copyright 2018-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  */
+
 import {AbstractBase} from './abstract.base';
 import { BusTransaction, ChannelName, EventBus, MessageFunction, TransactionType } from '../../bus.api';
 import {GeneralError} from '../model/error.model';

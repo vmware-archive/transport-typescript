@@ -1,3 +1,8 @@
+/*
+ * Copyright 2017-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { BrokerConnector } from './broker-connector';
 import { BrokerConnectorChannel, StompBusCommand, StompConfig, StompSession } from './stomp.model';
 import { StompParser } from './stomp.parser';

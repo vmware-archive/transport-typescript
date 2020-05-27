@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { BusStoreApi, BusStore, StoreReadyResult } from '../../store.api';
 import { StoreType, UUID } from './store.model';
 import { StoreImpl } from './store';

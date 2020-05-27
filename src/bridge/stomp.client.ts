@@ -1,3 +1,8 @@
+/*
+ * Copyright 2017-2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { Observable, Subject, fromEvent, pipe } from 'rxjs';
 import { StompParser } from './stomp.parser';
 import { StompMessage, StompConfig } from './stomp.model';

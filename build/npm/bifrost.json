@@ -1,17 +1,14 @@
 {
-    "name": "@vmw/bifrost",
+    "name": "@vmw/transport",
     "version": "/* @echo VERSION */",
     "description": "Channel / stream based event bus & model store that extends to brokers via WebSockets & STOMP.",
     "homepage": "TBA",
     "repository" : {
         "type" : "git",
-        "url" : "git@gitlab.eng.vmware.com:bifrost/typescript.git"
+        "url" : "git@github.com:vmware/transport.git"
     },
     "peerDependencies": {
         "rxjs": "^6.4.0"
-    },
-    "publishConfig": {
-        "registry": "http://build-artifactory.eng.vmware.com:80/artifactory/api/npm/npm"
     },
     //@exclude
     "scripts": {
@@ -20,8 +17,18 @@
     //@endexclude
     "author": "Dave Shanley <dshanley@vmware.com>",
     "contributors": ["Akmal Khan <akmalk@vmware.com>","Etienne Le Sueur <elesueur@vmware.com>","Ashwini Manjunath <ashwinim@vmware.com>", "Matt Critchlow <mcritch@vmware.com>", "Andrii Alieksashyn <aalieksashyn@vmware.com>", "Stoyan Hristov <shristov@vmware.com>", "Josh Kim <kjosh@vmware.com>"],
-    "license": "VMW_Proprietary",
+    "license": "BSD-2-Clause",
     "changelogHistory": [
+        {
+            "date": "5/27/20",
+            "version": "1.0.0",
+            "notes": [
+                {
+                    "description": "Rebrand VMware Bifrost to VMware Transport as an official open source project",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/TBD"
+                }
+            ]
+        },
         {
             "date": "4/22/20",
             "version": "0.15.4",

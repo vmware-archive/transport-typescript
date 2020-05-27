@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { Component } from '@angular/core';
 import { BusUtil } from '@vmw/bifrost/util/bus.util';
 import { LogLevel } from '@vmw/bifrost/log';

@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018-2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { AbstractService } from '@vmw/bifrost/core';
 import { EventBus, MessageArgs } from '@vmw/bifrost/bus.api';
 import { BusStore } from '@vmw/bifrost/store.api';

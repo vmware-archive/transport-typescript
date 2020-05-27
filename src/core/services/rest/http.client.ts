@@ -1,6 +1,8 @@
-/**
- * Copyright(c) VMware Inc. 2018
+/*
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  */
+
 export interface HttpClient {
     get(request: Request, successHandler: Function, failureHandler: Function): void;
     post(request: Request, successHandler: Function, failureHandler: Function): void;

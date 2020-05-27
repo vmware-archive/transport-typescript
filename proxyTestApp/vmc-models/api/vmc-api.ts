@@ -1,5 +1,6 @@
 /*
- * Copyright © 2018 VMware, Inc. All rights reserved.
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  * AUTO-GENERATED 2018-07-10 10:01:45 - DO NOT EDIT DIRECTLY
  *
  */
@@ -886,7 +887,7 @@ export class BaseConnectivityValidationSubGroup {
         if (json) {
             this.help = json['help'];
             this.id = json['id'];
-            
+
             if (json['inputs']) {
                 this.inputs = [];
                 for (let item of json['inputs']) {
@@ -894,7 +895,7 @@ export class BaseConnectivityValidationSubGroup {
                 }
             }
             this.label = json['label'];
-            
+
             if (json['tests']) {
                 this.tests = [];
                 for (let item of json['tests']) {
@@ -928,7 +929,7 @@ export class BaseConnectivityValidationGroup {
         if (json) {
             this.id = json['id'];
             this.name = json['name'];
-            
+
             if (json['sub_groups']) {
                 this.sub_groups = [];
                 for (let item of json['sub_groups']) {
@@ -950,7 +951,7 @@ export class BaseConnectivityValidationGroups {
     public  groups: Array<BaseConnectivityValidationGroup>;    // description: List of groups.
     constructor (json?: any) {
         if (json) {
-            
+
             if (json['groups']) {
                 this.groups = [];
                 for (let item of json['groups']) {
@@ -988,7 +989,7 @@ export class BaseConnectivityValidationSubGroupResult {
                              // 'ONPREM_VCENTER', 'ONPREM_PSC', 'ACTIVE_DIRECTORY', 'ONPREM_ESX']
     constructor (json?: any) {
         if (json) {
-            
+
             if (json['results']) {
                 this.results = [];
                 for (let item of json['results']) {
@@ -1011,7 +1012,7 @@ export class BaseConnectivityValidationGroupResultWrapper {
                                                                          // result.
     constructor (json?: any) {
         if (json) {
-            
+
             if (json['results']) {
                 this.results = [];
                 for (let item of json['results']) {
@@ -1473,7 +1474,7 @@ export class BaseDelegatedAccessSshResponse {
     constructor (json?: any) {
         if (json) {
             this.end_time = json['end_time'];
-            
+
             if (json['esx_access']) {
                 this.esx_access = [];
                 for (let item of json['esx_access']) {
@@ -1626,7 +1627,7 @@ export class BaseFirewallRule {
             this.revision = json['revision'];
             this.rule_interface = json['rule_interface'];
             this.rule_type = json['rule_type'];
-            
+
             if (json['services']) {
                 this.services = [];
                 for (let item of json['services']) {
@@ -1969,7 +1970,7 @@ export class BaseMapZonesResult {
                                               // operation.
     constructor (json?: any) {
         if (json) {
-            
+
             if (json['connected_accounts_changed']) {
                 this.connected_accounts_changed = [];
                 for (let item of json['connected_accounts_changed']) {
@@ -2660,7 +2661,7 @@ export class BaseReportUsageRecord {
     public  timestamp          : string;    // description: timestamp of the record
     constructor (json?: any) {
         if (json) {
-            
+
             if (json['billable_usages']) {
                 this.billable_usages = [];
                 for (let item of json['billable_usages']) {
@@ -2759,14 +2760,14 @@ export class BaseReservationSchedule extends BaseMaintenanceWindowGet {
     constructor (json?: any) {
         super(json);
         if (json) {
-            
+
             if (json['reservations']) {
                 this.reservations = [];
                 for (let item of json['reservations']) {
                     this.reservations.push(Object.assign(new BaseReservation(item), item));
                 }
             }
-            
+
             if (json['reservations_mw']) {
                 this.reservations_mw = [];
                 for (let item of json['reservations_mw']) {
@@ -3085,7 +3086,7 @@ export class BaseSddcConfig {
         if (json) {
             this.account_link_config = new BaseAccountLinkConfig(json['account_link_config']);
             Object.assign(this.account_link_config, json['account_link_config']);
-            
+
             if (json['account_link_sddc_config']) {
                 this.account_link_sddc_config = [];
                 for (let item of json['account_link_sddc_config']) {
@@ -3204,7 +3205,7 @@ export class BaseAwsEsxHost extends BaseEsxHost {
         super(json);
         if (json) {
             this.instance_id = json['instance_id'];
-            
+
             if (json['internal_public_ip_pool']) {
                 this.internal_public_ip_pool = [];
                 for (let item of json['internal_public_ip_pool']) {
@@ -3544,7 +3545,7 @@ export class BaseL2Vpn {
         if (json) {
             this.enabled = json['enabled'];
             this.listener_ip = json['listener_ip'];
-            
+
             if (json['sites']) {
                 this.sites = [];
                 for (let item of json['sites']) {
@@ -4194,7 +4195,7 @@ export class BaseTask extends BaseAbstractEntity {
             this.recorded_features = json['recorded_features'];
             this.resource_id = json['resource_id'];
             this.resource_type = json['resource_type'];
-            
+
             if (json['service_errors']) {
                 this.service_errors = [];
                 for (let item of json['service_errors']) {
@@ -4204,21 +4205,21 @@ export class BaseTask extends BaseAbstractEntity {
             this.start_time = json['start_time'];
             this.status = json['status'];
             this.sub_status = json['sub_status'];
-            
+
             if (json['task_error_details']) {
                 this.task_error_details = [];
                 for (let item of json['task_error_details']) {
                     this.task_error_details.push(Object.assign(new BaseTaskErrorDetails(item), item));
                 }
             }
-            
+
             if (json['task_progress_phases']) {
                 this.task_progress_phases = [];
                 for (let item of json['task_progress_phases']) {
                     this.task_progress_phases.push(Object.assign(new BaseTaskProgressPhase(item), item));
                 }
             }
-            
+
             if (json['task_sub_status_transitions']) {
                 this.task_sub_status_transitions = [];
                 for (let item of json['task_sub_status_transitions']) {
@@ -4284,7 +4285,7 @@ export class BaseTcpConnectivityValidationResult extends BaseConnectivityValidat
     constructor (json?: any) {
         super(json);
         if (json) {
-            
+
             if (json['results']) {
                 this.results = [];
                 for (let item of json['results']) {
@@ -4342,7 +4343,7 @@ export class BaseOfferInstancesHolder {
     public  on_demand: BaseOnDemandOfferInstance;
     constructor (json?: any) {
         if (json) {
-            
+
             if (json['offers']) {
                 this.offers = [];
                 for (let item of json['offers']) {
@@ -4456,7 +4457,7 @@ export class BaseUsageJobBatchError extends BaseAbstractEntity {
     constructor (json?: any) {
         super(json);
         if (json) {
-            
+
             if (json['error_records']) {
                 this.error_records = [];
                 for (let item of json['error_records']) {
@@ -4599,7 +4600,7 @@ export class BaseUsageSearchResponse {
     public  subscriptions: Array<BaseCspSubscriptionInfo>;
     constructor (json?: any) {
         if (json) {
-            
+
             if (json['subscriptions']) {
                 this.subscriptions = [];
                 for (let item of json['subscriptions']) {
@@ -4770,7 +4771,7 @@ export class BaseVpcInfoSubnets {
         if (json) {
             this.cidr_block = json['cidr_block'];
             this.description = json['description'];
-            
+
             if (json['subnets']) {
                 this.subnets = [];
                 for (let item of json['subnets']) {
@@ -5027,7 +5028,7 @@ export class BaseVpn {
             this.pfs_enabled = json['pfs_enabled'];
             this.pre_shared_key = json['pre_shared_key'];
             this.state = json['state'];
-            
+
             if (json['tunnel_statuses']) {
                 this.tunnel_statuses = [];
                 for (let item of json['tunnel_statuses']) {
@@ -5082,7 +5083,7 @@ export class BaseGateway {
         if (json) {
             this.eip = json['eip'];
             this.eip_set = json['eip_set'];
-            
+
             if (json['firewall_rules']) {
                 this.firewall_rules = [];
                 for (let item of json['firewall_rules']) {
@@ -5095,7 +5096,7 @@ export class BaseGateway {
             this.primary_dns_set = json['primary_dns_set'];
             this.secondary_dns = json['secondary_dns'];
             this.secondary_dns_set = json['secondary_dns_set'];
-            
+
             if (json['vpns']) {
                 this.vpns = [];
                 for (let item of json['vpns']) {
@@ -5136,7 +5137,7 @@ export class BaseComputeGateway extends BaseGateway {
         if (json) {
             this.l2_vpn = new BaseL2Vpn(json['l2_vpn']);
             Object.assign(this.l2_vpn, json['l2_vpn']);
-            
+
             if (json['logical_networks']) {
                 this.logical_networks = [];
                 for (let item of json['logical_networks']) {
@@ -5144,7 +5145,7 @@ export class BaseComputeGateway extends BaseGateway {
                 }
             }
             this.logical_networks_populated = json['logical_networks_populated'];
-            
+
             if (json['nat_rules']) {
                 this.nat_rules = [];
                 for (let item of json['nat_rules']) {
@@ -5175,7 +5176,7 @@ export class BaseGatewayTemplate {
     public  vpns          : Array<BaseVpn>;
     constructor (json?: any) {
         if (json) {
-            
+
             if (json['firewall_rules']) {
                 this.firewall_rules = [];
                 for (let item of json['firewall_rules']) {
@@ -5186,7 +5187,7 @@ export class BaseGatewayTemplate {
             this.public_ip = new BaseSddcPublicIp(json['public_ip']);
             Object.assign(this.public_ip, json['public_ip']);
             this.secondary_dns = json['secondary_dns'];
-            
+
             if (json['vpns']) {
                 this.vpns = [];
                 for (let item of json['vpns']) {
@@ -5215,14 +5216,14 @@ export class BaseComputeGatewayTemplate extends BaseGatewayTemplate {
         if (json) {
             this.l2_vpn = new BaseL2Vpn(json['l2_vpn']);
             Object.assign(this.l2_vpn, json['l2_vpn']);
-            
+
             if (json['logical_networks']) {
                 this.logical_networks = [];
                 for (let item of json['logical_networks']) {
                     this.logical_networks.push(Object.assign(new BaseLogicalNetwork(item), item));
                 }
             }
-            
+
             if (json['nat_rules']) {
                 this.nat_rules = [];
                 for (let item of json['nat_rules']) {
@@ -5279,14 +5280,14 @@ export class BaseNetworkTemplate {
     public  management_gateway_templates: Array<BaseManagementGatewayTemplate>;
     constructor (json?: any) {
         if (json) {
-            
+
             if (json['compute_gateway_templates']) {
                 this.compute_gateway_templates = [];
                 for (let item of json['compute_gateway_templates']) {
                     this.compute_gateway_templates.push(Object.assign(new BaseComputeGatewayTemplate(item), item));
                 }
             }
-            
+
             if (json['management_gateway_templates']) {
                 this.management_gateway_templates = [];
                 for (let item of json['management_gateway_templates']) {
@@ -5352,21 +5353,21 @@ export class BaseCluster {
             this.cluster_name = json['cluster_name'];
             this.cluster_state = json['cluster_state'];
             this.cluster_vcenter_mo_id = json['cluster_vcenter_mo_id'];
-            
+
             if (json['disk_group_list']) {
                 this.disk_group_list = [];
                 for (let item of json['disk_group_list']) {
                     this.disk_group_list.push(Object.assign(new BaseVsanDiskGroup(item), item));
                 }
             }
-            
+
             if (json['esx_host_list']) {
                 this.esx_host_list = [];
                 for (let item of json['esx_host_list']) {
                     this.esx_host_list.push(Object.assign(new BaseEsxHost(item), item));
                 }
             }
-            
+
             if (json['volume_list']) {
                 this.volume_list = [];
                 for (let item of json['volume_list']) {
@@ -5478,7 +5479,7 @@ export class BaseSddcResourceConfig {
             this.cloud_password = json['cloud_password'];
             this.cloud_user_group = json['cloud_user_group'];
             this.cloud_username = json['cloud_username'];
-            
+
             if (json['clusters']) {
                 this.clusters = [];
                 for (let item of json['clusters']) {
@@ -5490,7 +5491,7 @@ export class BaseSddcResourceConfig {
             this.dns_with_management_vm_private_ip = json['dns_with_management_vm_private_ip'];
             this.esx_cluster_id = json['esx_cluster_id'];
             this.esx_host_subnet = json['esx_host_subnet'];
-            
+
             if (json['esx_hosts']) {
                 this.esx_hosts = [];
                 for (let item of json['esx_hosts']) {
@@ -5562,7 +5563,7 @@ export class BaseAwsSddcResourceConfig extends BaseSddcResourceConfig {
     constructor (json?: any) {
         super(json);
         if (json) {
-            
+
             if (json['account_link_sddc_config']) {
                 this.account_link_sddc_config = [];
                 for (let item of json['account_link_sddc_config']) {
@@ -5575,7 +5576,7 @@ export class BaseAwsSddcResourceConfig extends BaseSddcResourceConfig {
             this.backup_restore_bucket = json['backup_restore_bucket'];
             this.dvs_uuid = json['dvs_uuid'];
             this.edge_vmci_auth_token = json['edge_vmci_auth_token'];
-            
+
             if (json['internal_public_ip_pool']) {
                 this.internal_public_ip_pool = [];
                 for (let item of json['internal_public_ip_pool']) {
@@ -5585,7 +5586,7 @@ export class BaseAwsSddcResourceConfig extends BaseSddcResourceConfig {
             this.max_num_public_ip = json['max_num_public_ip'];
             this.mgw_intermediate_ip = json['mgw_intermediate_ip'];
             this.no_nat = json['no_nat'];
-            
+
             if (json['public_ip_pool']) {
                 this.public_ip_pool = [];
                 for (let item of json['public_ip_pool']) {
@@ -5722,7 +5723,7 @@ export class BaseSddcTemplate extends BaseAbstractEntity {
     constructor (json?: any) {
         super(json);
         if (json) {
-            
+
             if (json['account_link_sddc_configs']) {
                 this.account_link_sddc_configs = [];
                 for (let item of json['account_link_sddc_configs']) {
@@ -5887,7 +5888,7 @@ export class BaseZeroSddcResourceConfig extends BaseSddcResourceConfig {
         super(json);
         if (json) {
             this.max_num_public_ip = json['max_num_public_ip'];
-            
+
             if (json['public_ip_pool']) {
                 this.public_ip_pool = [];
                 for (let item of json['public_ip_pool']) {

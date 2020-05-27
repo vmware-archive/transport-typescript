@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { AfterViewChecked, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { EventBus, MessageHandler } from '@vmw/bifrost/bus.api';
 import { ChatMessage, GeneralChatChannel } from '../chat-message';

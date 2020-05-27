@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({name: 'taskType'})

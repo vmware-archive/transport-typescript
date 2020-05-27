@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { LogLevel } from '../log/logger.model';
 import { EventBus, Message, MessageArgs } from '../index';
 import { BusTestUtil } from '../util/test.util';

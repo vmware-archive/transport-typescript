@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018-2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { UUID, StoreType } from '../store/store.model';
 import { StompParser } from '../../bridge/stomp.parser';
 import { TransactionReceipt } from '../../bus.api';

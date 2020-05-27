@@ -1,6 +1,8 @@
-/**
- * Copyright(c) VMware Inc. 2016-2019
+/*
+ * Copyright 2017-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  */
+
 import { StoreType, UUID } from './bus/store/store.model';
 import { BusStoreApi } from './store.api';
 import { Message, MessageHandlerConfig } from './bus/model/message.model';

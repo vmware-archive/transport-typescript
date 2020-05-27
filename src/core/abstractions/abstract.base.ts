@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018-2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { BusTransaction, EventBusEnabled } from '../../bus.api';
 import { AbstractCore } from './abstract.core';
 import { RestOperation, RestOperations } from '../services/rest/rest.operations';

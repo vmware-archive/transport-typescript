@@ -1,7 +1,9 @@
-/**
- * Copyright(c) VMware Inc. 2018
+/*
+ * Copyright 2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  */
-import { ChannelName, EventBus, MessageType } from '../bus.api';
+
+import { ChannelName, MessageType } from '../bus.api';
 //import { ProxyControlImpl } from './proxy.control';
 
 export const GLOBAL = window;

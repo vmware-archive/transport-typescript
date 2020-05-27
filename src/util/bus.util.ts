@@ -1,6 +1,8 @@
-/**
- * Copyright(c) VMware Inc. 2016-2018
+/*
+ * Copyright 2018-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  */
+
 import { BifrostEventBus } from '../bus';
 import { EventBus } from '../bus.api';
 import { LogLevel } from '../log';

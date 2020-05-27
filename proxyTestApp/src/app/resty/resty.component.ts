@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018-2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { Component, OnInit } from '@angular/core';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
 import { RestService } from '@vmw/bifrost/core/services/rest/rest.service';

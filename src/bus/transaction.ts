@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { UUID, StoreType } from './store/store.model';
 import { MessageArgs, MessageFunction } from '../bus.api';
 import { BusTransaction, TransactionReceipt, TransactionType, EventBus, ChannelName } from '../bus.api';

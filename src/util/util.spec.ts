@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018-2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { GeneralUtil } from './util';
 
 describe('Bus Util [util/bus.util.spec]', () => {

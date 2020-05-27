@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { VmcTaskComponent } from './vmc-task.component';

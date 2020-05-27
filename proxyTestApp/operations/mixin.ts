@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 export function Mixin(baseCtors: Function[]) {
     return function (derivedCtor: Function) {
         baseCtors.forEach(baseCtor => {

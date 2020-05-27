@@ -1,5 +1,6 @@
-/**
- * Copyright(c) VMware Inc. 2016-2019
+/*
+ * Copyright 2017-2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  */
 
 import { Message } from '../model/message.model';

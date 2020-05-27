@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018-2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { AfterContentInit, Component, OnInit } from '@angular/core';
 
 import { EventBus, MessageHandler } from '@vmw/bifrost/bus.api';

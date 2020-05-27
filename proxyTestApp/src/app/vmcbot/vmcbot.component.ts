@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { Component, OnInit } from '@angular/core';
 import { VMCBotBase } from './vmcbot.base';
 

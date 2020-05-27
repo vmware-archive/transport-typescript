@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 // These are mock objects for use by FakeService
 // They are only used for tests and excluded from production build
 

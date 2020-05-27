@@ -1,5 +1,6 @@
 /*
- * Copyright © 2018 VMware, Inc. All rights reserved.
+ * Copyright 2018 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
  * AUTO-GENERATED 2018-05-15 16:08:13 - DO NOT EDIT DIRECTLY
  *
  */
@@ -55,7 +56,7 @@ export class BaseRolesResponse {
     public  serviceRoles: Array<BaseServiceRole>;
     constructor (json?: any) {
         if (json) {
-            
+
             if (json['serviceRoles']) {
                 this.serviceRoles = [];
                 for (let item of json['serviceRoles']) {

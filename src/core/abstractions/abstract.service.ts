@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 import { ChannelName, MessageArgs, MessageHandler, ORG_ID, ORGS, SentFrom } from '../../bus.api';
 import { AbstractBase } from './abstract.base';
 import { HttpRequest, RestError, RestObject } from '../services/rest/rest.model';
