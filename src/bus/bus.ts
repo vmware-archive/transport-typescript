@@ -214,7 +214,7 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
         }
 
         const handler: MessageHandler<StompBusCommand> = this.requestStreamWithId(
-            `${config.host}:${config.port}${config.endpoint}`,
+            GeneralUtil.getFabricConnectionString(config.host, config.port, config.endpoint),
             BrokerConnectorChannel.connection,
             StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, '', '', config),
         );

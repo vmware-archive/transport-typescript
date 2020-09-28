@@ -46,11 +46,37 @@ export class FabricApiImpl implements FabricApi {
         this.connectionStoreMap = new Map<String, BusStore<FabricConnectionState>>();
     }
 
-    isConnected(connString: string): boolean {
+    getDefaultConnectionString(): string {
+        if (this.connectedMap.size === 1) {
+            return this.connectedMap.keys().next().value.toString();
+        } else if (this.connectedMap.size === 0) {
+            this.bus.logger.error('Could not determine the default connection string. No active broker connection detected.', 'FabricApi');
+        } else {
+            this.bus.logger.error('Could not determine the default connection string. ' +
+                'There is more than one active connection. Please provide the connection string manually', 'FabricApi');
+        }
+        return '';
+    }
+
+    getConnectionStateStore(connString?: string): BusStore<FabricConnectionState> {
+        connString = connString || this.getDefaultConnectionString();
+        let store: BusStore<FabricConnectionState>;
+        if (!this.connectionStoreMap.has(connString)) {
+            store = this.bus.stores.createStore(Stores.FabricConnection);
+            this.connectionStoreMap.set(connString, store);
+        } else {
+            store = this.connectionStoreMap.get(connString);
+        }
+        return store;
+    }
+
+    isConnected(connString?: string): boolean {
+        connString = connString || this.getDefaultConnectionString();
         return this.connectedMap.has(connString) && this.connectedMap.get(connString);
     }
 
-    whenConnectionStateChanges(connString: string): StoreStream<FabricConnectionState> {
+    whenConnectionStateChanges(connString?: string): StoreStream<FabricConnectionState> {
+        connString = connString || this.getDefaultConnectionString();
         if (!this.connectionStoreMap.has(connString)) {
             this.connectionStoreMap.set(connString, this.bus.stores.createStore(Stores.FabricConnection));
         }
@@ -72,10 +98,10 @@ export class FabricApiImpl implements FabricApi {
         topicLocation: string = '/topic',
         queueLocation: string = '/queue',
         numRelays: number = 1,
-        autoReconnect: boolean = false): void {
+        autoReconnect: boolean = true): void {
 
         // create unique identifier for the session.
-        const connString: string = `${host}:${port}${endpoint}`;
+        const connString: string = GeneralUtil.getFabricConnectionString(host, port, endpoint);
 
         if (!this.connectedMap.get(connString)) {
 
@@ -139,7 +165,8 @@ export class FabricApiImpl implements FabricApi {
         }
     }
 
-    disconnect(connString: string): void {
+    disconnect(connString?: string): void {
+        connString = connString || this.getDefaultConnectionString();
         BrokerConnector.fireDisconnectCommand(this.bus, this.sessionIdMap.get(connString));
         this.setDisconnected(connString);
     }
@@ -168,15 +195,13 @@ export class FabricApiImpl implements FabricApi {
         }
     }
 
-    private setConnected(connString: string): void {
+    private setConnected(connString?: string): void {
+        connString = connString || this.getDefaultConnectionString();
         this.connectedMap.set(connString, true);
-        this.connectionStoreMap.get(connString).put(
-            connString,
-            FabricConnectionState.Connected,
-            FabricConnectionState.Connected);
     }
 
-    private setDisconnected(connString: string): void {
+    private setDisconnected(connString?: string): void {
+        connString = connString || this.getDefaultConnectionString();
         this.connectedMap.set(connString, false);
         this.connectionStoreMap.get(connString).put(
             connString,
@@ -209,7 +234,8 @@ export class FabricApiImpl implements FabricApi {
         return new APIResponse<T>(payload,  error, errorCode, errorMessage, id, version);
     }
 
-    getFabricVersion(connString: string): Observable<string> {
+    getFabricVersion(connString?: string): Observable<string> {
+        connString = connString || this.getDefaultConnectionString();
 
         // open version channel.
         this.bus.markChannelAsGalactic(FabricApiImpl.versionChannel, connString);

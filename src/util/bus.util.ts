@@ -6,6 +6,7 @@
 import { TransportEventBus } from '../bus';
 import { EventBus } from '../bus.api';
 import { LogLevel } from '../log';
+import { GeneralUtil } from './util';
 
 /**
  * Test utility to encapsulate bus operations for test runs.
@@ -47,12 +48,15 @@ export class BusUtil {
     }
 
     /**
-     * Return connection string used to establish and manage one or more Fabric connections
+     * Return connection string used to establish and manage one or more Fabric connections.
+     *
      * @param {string} host hostname where Fabric backend is served
      * @param {number} port port where Fabric backend is served
      * @param {string} endpoint target endpoint
+     *
+     * @deprecated Use GeneralUtil.getFabricConnectionString()
      */
     public static getFabricConnectionString(host: string, port: number, endpoint: string) {
-        return `${host}:${port}${endpoint}`;
+        return GeneralUtil.getFabricConnectionString(host, port, endpoint);
     }
 }
