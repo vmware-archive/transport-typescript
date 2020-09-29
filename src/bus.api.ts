@@ -18,7 +18,7 @@ import { FabricApi } from './fabric.api';
 import { BrokerConnector } from './bridge';
 
 // current version
-const version = '1.0.0';
+const version = '1.1.0';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -434,7 +434,7 @@ export abstract class EventBus {
      * will be transmitted to the remote destinations.
      * @param {ChannelName} channelName name of the channel
      * @param {brokerIdentity} broker's host, port and endpoint used as its identity.
-     *        use BusUtil.getFabricConnectionString() to create one.
+     *        use GeneralUtil.getFabricConnectionString() to create one.
      * @param {isPrivate} whether the channel is a broadcast or a private channel
      */
     abstract markChannelAsGalactic(channelName: ChannelName, brokerIdentity?: string, isPrivate?: boolean): void;
@@ -450,7 +450,7 @@ export abstract class EventBus {
      * be sent to local destinations and will NOT be sent to remote destinations.
      * @param {ChannelName} channelName name of the channel
      * @param {brokerIdentity} broker's host, port and endpoint used as its identity.
-     *        use BusUtil.getFabricConnectionString() to create one.
+     *        use GeneralUtil.getFabricConnectionString() to create one.
      */
     abstract markChannelAsLocal(channelName: ChannelName, brokerIdentity?: string): void;
 

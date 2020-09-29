@@ -20,6 +20,16 @@
     "license": "BSD-2-Clause",
     "changelogHistory": [
         {
+            "date": "9/1/20",
+            "version": "1.1.0",
+            "notes": [
+                {
+                    "description": "Make connString detection automatic and fix FabricConnectionState related bugs",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/108"
+                }
+            ]
+        },
+        {
             "date": "5/27/20",
             "version": "1.0.0",
             "notes": [

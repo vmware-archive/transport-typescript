@@ -6,8 +6,12 @@
 import { ConnectionState, StompClient } from './stomp.client';
 import { Observable, Subscription } from 'rxjs';
 import {
-    StompSession, BrokerConnectorChannel, StompBusCommand, StompSubscription, StompMessage,
-    StompConfig
+    BrokerConnectorChannel,
+    StompBusCommand,
+    StompConfig,
+    StompMessage,
+    StompSession,
+    StompSubscription
 } from '../bridge/stomp.model';
 import { StompParser } from '../bridge/stomp.parser';
 import { StompValidator } from './stomp.validator';
@@ -17,6 +21,8 @@ import { TransportEventBus } from '../bus/bus';
 import { ChannelBrokerMapping, EventBus, EventBusEnabled } from '../bus.api';
 import { Logger } from '../log';
 import { FabricUtil } from '../fabric/fabric.util';
+import { FabricConnectionState } from '../fabric.api';
+import { GeneralUtil } from '../util/util';
 
 /**
  * Service is responsible for handling all STOMP communications over a socket.
@@ -200,7 +206,7 @@ export class BrokerConnector implements EventBusEnabled {
 
             case MonitorType.MonitorGalacticData:
                 const activeSessionIds = Array.from(this._sessions.values()).filter((stompSession: StompSession) => {
-                    return this.channelBrokerIdentitiesMap.get(mo.channel).has(this.getBrokerIdentityFromConfig(
+                    return this.channelBrokerIdentitiesMap.get(mo.channel).has(GeneralUtil.getFabricConnectionString(
                         stompSession.config.host, stompSession.config.port, stompSession.config.endpoint));
                 }).map((stompSession: StompSession) => stompSession.id);
 
@@ -230,7 +236,7 @@ export class BrokerConnector implements EventBusEnabled {
         let cleanedChannel = [StompParser.convertChannelToSubscription(channel)];
 
         this._sessions.forEach(session => {
-            const sessionBrokerIdentity = this.getBrokerIdentityFromConfig(
+            const sessionBrokerIdentity = GeneralUtil.getFabricConnectionString(
                 session.config.host, session.config.port, session.config.endpoint);
 
             // send only if broker identity matches
@@ -304,7 +310,7 @@ export class BrokerConnector implements EventBusEnabled {
             this._sessions.forEach(session => {
                 // subscribe to the broker channel only if broker identity matches
                 if (galacticConfig.brokerIdentity ===
-                    this.getBrokerIdentityFromConfig(session.config.host, session.config.port, session.config.endpoint)) {
+                    GeneralUtil.getFabricConnectionString(session.config.host, session.config.port, session.config.endpoint)) {
                     const config = session.config;
                     const subscriptionId = this.generateSubscriptionId(session.id, cleanedChannel);
                     const brokerPrefix = galacticConfig.isPrivate ? config.queueLocation : config.topicLocation;
@@ -344,7 +350,7 @@ export class BrokerConnector implements EventBusEnabled {
         if (this._sessions.size >= 1) {
             this._sessions.forEach(session => {
                 const config = session.config;
-                const sessionBrokerIdentity = this.getBrokerIdentityFromConfig(
+                const sessionBrokerIdentity = GeneralUtil.getFabricConnectionString(
                     config.host, config.port, config.endpoint);
 
                 const isPrivateChannel = this._privateChannels.get(channel)[sessionBrokerIdentity];
@@ -500,7 +506,7 @@ export class BrokerConnector implements EventBusEnabled {
 
     public connectClient(config: StompConfig): void {
 
-        const connString: string = `${config.host}:${config.port}${config.endpoint}`;
+        const connString: string = GeneralUtil.getFabricConnectionString(config.host, config.port, config.endpoint);
 
         // Ignore the connect request in case we are in connecting or connected state.
         if (this.currentSessionMap.has(connString) && this.currentSessionMap.get(connString).client &&
@@ -543,7 +549,7 @@ export class BrokerConnector implements EventBusEnabled {
                                 StompClient.STOMP_CONNECTED,    // not a command, but used for local notifications.
                                 session.id,                      // each broker requires a session.
                                 undefined,
-                                this.getBrokerIdentityFromConfig(
+                                GeneralUtil.getFabricConnectionString(
                                     session.config.host, session.config.port, session.config.endpoint)
                             );
 
@@ -566,7 +572,7 @@ export class BrokerConnector implements EventBusEnabled {
 
                         // subscribe to all open channels
                         this._galacticChannels.forEach((open, channel) => {
-                            const sessionBrokerIdentity = this.getBrokerIdentityFromConfig(
+                            const sessionBrokerIdentity = GeneralUtil.getFabricConnectionString(
                                 session.config.host, session.config.port, session.config.endpoint);
 
                             // only open galactic channels whose broker identity matches that of the session config
@@ -594,6 +600,9 @@ export class BrokerConnector implements EventBusEnabled {
                     this.sendBusCommandResponseRaw(message, BrokerConnectorChannel.connection, true);
                 }
 
+                // upon (re)connection update FabricConnectionState store
+                this.bus.fabric.getConnectionStateStore(connString)
+                    .put(connString, FabricConnectionState.Connected, FabricConnectionState.Connected);
             }
         );
     }
@@ -683,7 +692,7 @@ export class BrokerConnector implements EventBusEnabled {
                         this._galacticChannels.get(chan).connectedBrokers--;
 
                         // remove the connection string from the channelBrokerIdentitiesMap
-                        bIds.delete(`${session.config.host}:${session.config.port}${session.config.endpoint}`);
+                        bIds.delete(GeneralUtil.getFabricConnectionString(session.config.host, session.config.port, session.config.endpoint));
                     }
                     this.clearGalacticSubscriptionsFromSession(session);
                     this.sessions.delete(sessionId);
@@ -828,23 +837,13 @@ export class BrokerConnector implements EventBusEnabled {
     }
 
     /**
-     * Return the broker identity consisting of Fabric host, port and endpoint
-     * @param {string} host
-     * @param {number} port
-     * @param {string} endpoint
-     */
-    private getBrokerIdentityFromConfig(host: string, port: number, endpoint: string) {
-        return `${host}:${port}${endpoint}`;
-    }
-
-    /**
      * Return true if session is established with the broker identified in galacticConfig
      * @param {ChannelBrokerMapping} galacticConfig
      * @return {boolean} true if session is established with the broker
      */
     private isSessionEstablished(galacticConfig: ChannelBrokerMapping): boolean {
         return Array.from(this._sessions.values()).some((stompSession: StompSession) =>
-            this.getBrokerIdentityFromConfig(
+            GeneralUtil.getFabricConnectionString(
                 stompSession.config.host,
                 stompSession.config.port,
                 stompSession.config.endpoint) === galacticConfig.brokerIdentity);
@@ -865,7 +864,7 @@ export class BrokerConnector implements EventBusEnabled {
             return {success: false, sessionsNum: 0, brokerIdentityStr: null};
         }
 
-        return {success: true, sessionsNum: 1, brokerIdentityStr: this.getBrokerIdentityFromConfig(
+        return {success: true, sessionsNum: 1, brokerIdentityStr: GeneralUtil.getFabricConnectionString(
             firstSession.config.host, firstSession.config.port, firstSession.config.endpoint)};
     }
 }

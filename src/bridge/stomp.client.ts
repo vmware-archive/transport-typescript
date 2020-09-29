@@ -273,9 +273,11 @@ export class StompClient implements EventBusEnabled {
         this.currentConnectionState = ConnectionState.Disconnected;
         // switch connection state to error for fabric consumers.
         if (this.bus) {
+            const connString: string = GeneralUtil.getFabricConnectionString(this._config.host, this._config.port, this._config.endpoint);
             this.log.debug('Informing Fabric subscribers that the connection has failed via store.', this.getName());
-            this.bus.stores.createStore(Stores.FabricConnection)
-                .put(FabricConnectionStoreKey.State, FabricConnectionState.Failed, FabricConnectionState.Failed);
+            this.bus.fabric
+                .getConnectionStateStore(connString)
+                .put(connString, FabricConnectionState.Failed, FabricConnectionState.Failed);
         }
 
         this.log.error('Error with WebSocket, Connection Failed', this.getName());

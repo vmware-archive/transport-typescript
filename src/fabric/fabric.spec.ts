@@ -10,7 +10,7 @@ import { FabricConnectionState } from '../fabric.api';
 import { FabricApiImpl } from './fabric';
 import { BusStore, Message } from '../bus';
 import { GeneralUtil } from '../util/util';
-import { Stores } from './fabric.model';
+import { FabricConnectionStoreKey, Stores } from './fabric.model';
 import { Subscription } from 'rxjs';
 
 /**
@@ -34,6 +34,12 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
         }
     );
 
+    it('Check calling any Fabric method while not connected would print out a warning', () => {
+        spyOn(bus.logger, 'error').and.callThrough();
+        bus.fabric.isConnected();
+        expect(bus.logger.error).toHaveBeenCalledWith('Could not determine the default connection string. No active broker connection detected.', 'FabricApi');
+    });
+
     it('Check default connected state is false',
         () => {
             expect(bus.fabric.isConnected('testhost:12345/fabric')).toBeFalsy();
@@ -45,6 +51,9 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
             bus.fabric.connect(
                 (sessionId: string) => {
                     expect(sessionId).not.toBeNull();
+                    spyOn(bus.logger, 'error').and.callThrough();
+                    bus.fabric.isConnected();
+                    expect(bus.logger.error).not.toHaveBeenCalled();
                     done();
                 },
                 () => {
@@ -357,4 +366,21 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
             store.initialize();
         }
     );
+
+    it('Check getConnectionStateStore creates a new FabricConnectionState store if it does not exist', () => {
+        let store = bus.fabric.getConnectionStateStore('new');
+        expect(store).not.toBeFalsy();
+
+        // set a state
+        store.put(FabricConnectionStoreKey.State, FabricConnectionState.Connected, FabricConnectionState.Connected);
+
+        // assert the value to be FabricConnectionState.Connected
+        expect(store.get(FabricConnectionStoreKey.State)).toBe(FabricConnectionState.Connected);
+
+        // get the handle again
+        store = bus.fabric.getConnectionStateStore('new');
+
+        // assert the value to be FabricConnectionState.Connected
+        expect(store.get(FabricConnectionStoreKey.State)).toBe(FabricConnectionState.Connected);
+    });
 });
