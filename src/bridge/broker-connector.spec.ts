@@ -59,6 +59,64 @@ describe('BrokerConnector [broker-connector.ts]', () => {
 
         });
 
+    describe('Global headers should be passed to the StompSession', () => {
+        beforeEach(() => {
+            // Patch the currentSessionMap to spy on the objects it creates.
+            const origCurrentSessionMapSetter = bc['currentSessionMap'].set.bind(bc['currentSessionMap']);
+            spyOn(bc['currentSessionMap'], 'set').and.callFake((key: string, value: StompSession) => {
+                spyOn(value, 'connect').and.callThrough();
+                spyOn(value, 'subscribe').and.callThrough();
+                spyOn(value, 'unsubscribe').and.callThrough();
+                spyOn(value, 'disconnect').and.callThrough();
+                return origCurrentSessionMapSetter(key, value);
+            });
+        });
+
+        it('CONNECT, SUBSCRIBE, UNSUBSCRIBE and DISCONNECT messages should include global headers', (done) => {
+            const connString: string = GeneralUtil.getFabricConnectionString(config.host, config.port, config.endpoint);
+            const globalHeaderKeys = Object.keys(bc['getGlobalHeaders']());
+
+            // Test 1: CONNECT message should include global headers.
+            bc.connectClient(config);
+            const session = bc['currentSessionMap'].get(connString) as jasmine.SpyObj<StompSession>;
+            const subscriptionData = {
+                id: 'whatever',
+                destination: 'wherever',
+                session: session.id,
+                isQueue: false,
+                brokerPrefix: 'fake'
+            };            
+            let headers = session.connect.calls.mostRecent().args[0];
+            let headerKeys = Object.keys(headers);
+            expect(globalHeaderKeys.every(key => headerKeys.includes(key))).toBeTruthy();
+
+            bus.api.tickEventLoop(
+                () => {
+                    // Test 2: SUBSCRIBE message should include global headers.
+                    bc.subscribeToDestination(subscriptionData);
+                    headers = session.subscribe.calls.mostRecent().args[2];
+                    headerKeys = Object.keys(headers);
+                    expect(globalHeaderKeys.every(key => headerKeys.includes(key))).toBeTruthy();
+
+                    // Test 3: UNSUBSCRIBE message should include global headers.
+                    bc.unsubscribeFromDestination(subscriptionData);
+                    headers = session.unsubscribe.calls.mostRecent().args[1];
+                    headerKeys = Object.keys(headers);
+                    expect(globalHeaderKeys.every(key => headerKeys.includes(key))).toBeTruthy();
+
+                    // Test 4: DISCONNECT message should include global headers.
+                    bc.disconnectClient(session.id);
+                    headers = session.disconnect.calls.mostRecent().args[0];
+                    headerKeys = Object.keys(headers);
+                    expect(globalHeaderKeys.every(key => headerKeys.includes(key))).toBeTruthy();                    
+
+                    done();
+                },
+                10 // found by trial and error.
+            );
+        });        
+    });
+
     describe('Service configuration and basic connect/disconnect', () => {
 
         it('We should be able to set the configuration',

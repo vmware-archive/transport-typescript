@@ -143,7 +143,16 @@ describe('Stomp Model [stomp.config]', () => {
 
                 expect((s instanceof WebSocket)).toBeFalsy();
                 expect((s instanceof MockSocket)).toBeTruthy();
+                expect((s as MockSocket).protocols).toBeUndefined();
                 expect(config.config).not.toBeNull();
+
+                config.sendAccessTokenDuringHandshake = true;
+                config.getAccessTokenFunction = () => 'mock-token';
+                config.accessTokenHeaderKey = 'access-token';
+                config.protocols = ['dummy'];
+                s = config.generateSocket();
+                expect((s as MockSocket).protocols).toContain('dummy');
+                expect((s as MockSocket).protocols).toContain('access-token.mock-token');
             }
         );
     });

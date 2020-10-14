@@ -19,6 +19,7 @@ import { map } from 'rxjs/operators';
 export const HEADERS_STORE = 'transport-headers-store';
 export const GLOBAL_HEADERS = 'global-headers';
 export const GLOBAL_HEADERS_UPDATE = 'update';
+export const DEFAULT_ACCESS_TOKEN_KEY = 'accessToken';
 
 export class FabricApiImpl implements FabricApi {
 
@@ -274,8 +275,53 @@ export class FabricApiImpl implements FabricApi {
         return this.accessTokenSessionStorageKey;
     }
 
+    private _getAccessTokenFunction: () => string;
+    get getAccessTokenFunction() {
+        return this._getAccessTokenFunction;
+    }
+
+    set getAccessTokenFunction(value: () => string) {
+        this._getAccessTokenFunction = value;
+    }
+
+    private _accessTokenHeaderKey = DEFAULT_ACCESS_TOKEN_KEY;
+    get accessTokenHeaderKey(): string {
+        return this._accessTokenHeaderKey;
+    }
+
+    set accessTokenHeaderKey(value: string) {
+        this._accessTokenHeaderKey = value;
+    }
+
     getAccessToken(): string {
-        return sessionStorage.getItem(this.getAccessTokenSessionStorageKey()) || '';
+        let token: string;
+        if (this.getAccessTokenFunction) {
+            token = this.getAccessTokenFunction();
+        } else {
+            const key = this.getAccessTokenSessionStorageKey();
+            token = sessionStorage.getItem(key);
+        }
+        return token || '';
+    }
+
+    private _sendAccessTokenDuringHandshake = false;
+
+    get sendAccessTokenDuringHandshake() {
+        return this._sendAccessTokenDuringHandshake;
+    }
+
+    set sendAccessTokenDuringHandshake(value: boolean) {
+        this._sendAccessTokenDuringHandshake = value;
+    }
+
+    private _protocols: Array<string>;
+
+    get protocols() {
+        return this._protocols;
+    }
+
+    set protocols(value: Array<string>) {
+        this._protocols = value;
     }
 
     setXsrfToken(token: string): void {

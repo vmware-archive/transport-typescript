@@ -497,8 +497,9 @@ export class BrokerConnector implements EventBusEnabled {
     }
 
     private getGlobalHeaders(): {[key: string]: string | number} {
+        const accessTokenHeaderKey = this.bus.fabric.accessTokenHeaderKey;
         const headers: any = {
-            accessToken: this.bus.fabric.getAccessToken()
+            [accessTokenHeaderKey]: this.bus.fabric.getAccessToken(),
         };
 
         return headers;
@@ -518,7 +519,7 @@ export class BrokerConnector implements EventBusEnabled {
         let session = new StompSession(config, this.log, this.bus);
         this.currentSessionMap.set(connString, session);
 
-        let connection = session.connect();
+        let connection = session.connect(this.getGlobalHeaders());
         this.connectingMap.set(connString, true);
 
         config.connectionSubjectRef = connection;
@@ -612,7 +613,7 @@ export class BrokerConnector implements EventBusEnabled {
         let session = this._sessions.get(sessionId);
         if (session && session !== null) {
             this.clearGalacticSubscriptionsFromSession(session);
-            session.disconnect();
+            session.disconnect(this.getGlobalHeaders());
             this._sessions.delete(sessionId);
         } else {
             this.log.warn('unable to disconnect client, no active session with id: ' +
@@ -691,8 +692,11 @@ export class BrokerConnector implements EventBusEnabled {
                         // decrement connectedBrokers for the channel
                         this._galacticChannels.get(chan).connectedBrokers--;
 
-                        // remove the connection string from the channelBrokerIdentitiesMap
-                        bIds.delete(GeneralUtil.getFabricConnectionString(session.config.host, session.config.port, session.config.endpoint));
+                        // If the client will not immediately try to reconnect, clean up by
+                        // removing the connection string from the channelBrokerIdentitiesMap
+                        if (!evt.config.autoReconnect) {
+                            bIds.delete(GeneralUtil.getFabricConnectionString(session.config.host, session.config.port, session.config.endpoint));
+                        }
                     }
                     this.clearGalacticSubscriptionsFromSession(session);
                     this.sessions.delete(sessionId);
@@ -805,7 +809,7 @@ export class BrokerConnector implements EventBusEnabled {
     public unsubscribeFromDestination(data: StompSubscription): void {
         let session = this._sessions.get(data.session);
         if (session && session !== null) {
-            session.unsubscribe(data.id);
+            session.unsubscribe(data.id, this.getGlobalHeaders());
 
             let message: StompBusCommand =
                 StompParser.generateStompBusCommand(

@@ -20,6 +20,19 @@
     "license": "BSD-2-Clause",
     "changelogHistory": [
         {
+            "date": "10/13/20",
+            "version": "1.2.0",
+            "notes": [
+                {
+                    "description": "APIs added to allow non-cookie based websocket authentication. This is a backward compatible feature addition.",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/110"
+                },
+                {
+                    "description": "When autoReconnect is true, all previously subscribed galactic channels re-subscribe after re-connect."
+                }
+            ]
+        },         
+        {
             "date": "9/1/20",
             "version": "1.1.0",
             "notes": [

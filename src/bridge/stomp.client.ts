@@ -147,13 +147,13 @@ export class StompClient implements EventBusEnabled {
         this._useMockSocket = true;
     }
 
-    public connect(config: StompConfig): Subject<Boolean> {
+    public connect(config: StompConfig, messageHeaders?: any): Subject<Boolean> {
 
         if (this._socket && this._stompConnectedObserver !== null) {
             return this._stompConnectedObserver;
         }
 
-        return this.create(config);
+        return this.create(config, messageHeaders);
     }
 
     public disconnect(messageHeaders?: any): void {
@@ -309,15 +309,19 @@ export class StompClient implements EventBusEnabled {
         this._socket.send('\n');
     }
 
-    private onOpen(evt: Event) {
+    private onOpen(evt: Event, messageHeaders?: any) {
         this._socketConnected = true;
         this.log.debug('WebSocket opened', this.getName());
-        this.transmit(StompClient.STOMP_CONNECT, {
-            login: this._config.getConfig().user,
-            passcode: this._config.getConfig().pass,
-            'heart-beat': this._config.getConfig().heartbeatOut +
-                ',' + this._config.getConfig().heartbeatIn
-        });
+        const headers = Object.assign(
+            {
+                login: this._config.getConfig().user,
+                passcode: this._config.getConfig().pass,
+                'heart-beat': this._config.getConfig().heartbeatOut +
+                    ',' + this._config.getConfig().heartbeatIn            
+            },
+            messageHeaders ? messageHeaders : {}
+        );
+        this.transmit(StompClient.STOMP_CONNECT, headers);
 
         if (this._config.getConfig().heartbeatOut
             && this._config.getConfig().heartbeatOut > 0) {
@@ -462,7 +466,7 @@ export class StompClient implements EventBusEnabled {
         }
     }
 
-    private create(config: StompConfig): Subject<Boolean> {
+    private create(config: StompConfig, messageHeaders?: any): Subject<Boolean> {
         this._config = config;
         this._socketConnected = false;
         this._stompConnectedObserver = new Subject<Boolean>(); // rebuild for every connection
@@ -503,7 +507,7 @@ export class StompClient implements EventBusEnabled {
             );
 
         this._socketOpenObserver
-            .subscribe((evt: Event) => this.onOpen(evt));
+            .subscribe((evt: Event) => this.onOpen(evt, messageHeaders));
 
         this._socketMessageObserver
             .subscribe((evt: MessageEvent) => this.onMessage(evt));

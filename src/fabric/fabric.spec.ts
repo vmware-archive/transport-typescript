@@ -285,6 +285,17 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
         }
     );
 
+    it('Check we can get an access token',
+        () => {
+            spyOn(sessionStorage, 'getItem');
+            bus.fabric.getAccessToken();
+            expect(sessionStorage.getItem).toHaveBeenCalled();
+            bus.fabric.getAccessTokenFunction = () => 'mock-token';
+            const token = bus.fabric.getAccessToken();
+            expect(token).toBe('mock-token');
+        }
+    );    
+
     it('Check we cannot get a version from the fabric, if we are not connected',
         (done) => {
             bus.fabric.getFabricVersion('testhost:12345/fabric').subscribe(
