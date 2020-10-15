@@ -20,6 +20,16 @@
     "license": "BSD-2-Clause",
     "changelogHistory": [
         {
+            "date": "10/9/20",
+            "version": "1.2.1",
+            "notes": [
+                {
+                    "description": "Make getDefaultConnectionString() get connString from connectionStoreMap which guarantees consistent results",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/111"
+                }
+            ]
+        },
+        {
             "date": "10/13/20",
             "version": "1.2.0",
             "notes": [

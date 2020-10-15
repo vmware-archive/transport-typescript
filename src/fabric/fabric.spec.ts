@@ -37,7 +37,9 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
     it('Check calling any Fabric method while not connected would print out a warning', () => {
         spyOn(bus.logger, 'error').and.callThrough();
         bus.fabric.isConnected();
-        expect(bus.logger.error).toHaveBeenCalledWith('Could not determine the default connection string. No active broker connection detected.', 'FabricApi');
+        expect(bus.logger.error).toHaveBeenCalledWith('Could not determine the default connection string because fabric.connect() likely ' +
+            'was not called first. You can either call fabric.connect() first or optionally provide ' +
+            'a connection string, if you know it, to the method you were calling as an argument.', 'FabricApi');
     });
 
     it('Check default connected state is false',

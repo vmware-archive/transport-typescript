@@ -48,10 +48,12 @@ export class FabricApiImpl implements FabricApi {
     }
 
     getDefaultConnectionString(): string {
-        if (this.connectedMap.size === 1) {
-            return this.connectedMap.keys().next().value.toString();
-        } else if (this.connectedMap.size === 0) {
-            this.bus.logger.error('Could not determine the default connection string. No active broker connection detected.', 'FabricApi');
+        if (this.connectionStoreMap.size === 1) {
+            return this.connectionStoreMap.keys().next().value.toString();
+        } else if (this.connectionStoreMap.size === 0) {
+            this.bus.logger.error('Could not determine the default connection string because fabric.connect() likely ' +
+                'was not called first. You can either call fabric.connect() first or optionally provide ' +
+                'a connection string, if you know it, to the method you were calling as an argument.', 'FabricApi');
         } else {
             this.bus.logger.error('Could not determine the default connection string. ' +
                 'There is more than one active connection. Please provide the connection string manually', 'FabricApi');
