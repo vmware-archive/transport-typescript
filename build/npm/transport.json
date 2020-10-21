@@ -20,6 +20,16 @@
     "license": "BSD-2-Clause",
     "changelogHistory": [
         {
+            "date": "10/20/20",
+            "version": "1.2.2",
+            "notes": [
+                {
+                    "description": "Added forceError for AbstractAutoRestMock so users can force custom error messages during test",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/112"
+                }
+            ]
+        },
+        {
             "date": "10/9/20",
             "version": "1.2.1",
             "notes": [

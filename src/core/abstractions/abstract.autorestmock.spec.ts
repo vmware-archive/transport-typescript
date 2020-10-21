@@ -40,6 +40,11 @@ class AutoRestTest extends AbstractAutoRestMock {
         this.handleRequest(HttpRequest.Get);
     }
 
+    public testHandleServiceForceError(): void {
+        this.forceError = 'error';
+        this.handleRequest(HttpRequest.Get);
+    }
+
     public testHandleServiceMustFail(): void {
         this.mustFail = true;
         this.handleRequest(HttpRequest.Get);
@@ -188,6 +193,14 @@ describe('Transport Abstract AutoRestMock [cores/abstractions/abstract.autorestm
         () => {
             test.testHandleServiceUnknownRequest();
             expect(bus.logger);
+        }
+    );
+
+    it('Check handleServiceRequest works for a custom forced error response',
+        () => {
+            spyOn(bus, 'sendErrorMessageWithId').and.callThrough();
+            test.testHandleServiceForceError();
+            expect(bus.sendErrorMessageWithId).toHaveBeenCalled();
         }
     );
 
