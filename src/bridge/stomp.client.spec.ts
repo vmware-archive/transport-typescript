@@ -272,6 +272,29 @@ describe('Stomp Client [stomp.client]', () => {
             }
         );
 
+        it('CONNECT message should include headers',
+            (done) => {
+                const origGenerateSocket = config.generateSocket.bind(config);
+                let mockSocket: jasmine.SpyObj<WebSocket>;
+                spyOn(config, 'generateSocket').and.callFake(() => {
+                    mockSocket = origGenerateSocket();
+                    spyOn(mockSocket, 'send');
+                    return mockSocket;
+                });
+
+                client.connect(config, { test: 'test'});
+
+                setTimeout(() => {
+                    let message = mockSocket.send.calls.mostRecent().args[0];
+                    let frame = StompParser.unmarshal(message);
+                    const headerKeys = Object.keys(frame.headers);
+                    expect(frame.command).toBe(StompClient.STOMP_CONNECT);
+                    expect(headerKeys.includes('test')).toBeTruthy();
+                    done();
+                });
+            }
+        );        
+
         it('We should be able to subscribe successfully',
             (done) => {
                 client.connect(config).subscribe(() => {

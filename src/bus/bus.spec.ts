@@ -1839,6 +1839,15 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                       startIntervalFunction:  (handler: any, timeout?: any, ...args: any[]) => { return 67; }
                    };
 
+                   const accessTokenHeaderKey = 'access-token';
+                   const mockToken = 'mock-token';
+                   const sendAccessTokenDuringHandshake = true;
+                   const protocols = ['dummy'];
+                   bus.fabric.getAccessTokenFunction = () => mockToken;
+                   bus.fabric.accessTokenHeaderKey = accessTokenHeaderKey;
+                   bus.fabric.sendAccessTokenDuringHandshake = sendAccessTokenDuringHandshake;
+                   bus.fabric.protocols = protocols;
+
                    bus.connectBridge(
                          () => {},
                          '/somewhere',
@@ -1861,6 +1870,11 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                    expect(stompConfig.heartbeatIn).toBe(advancedConfig.heartbeatIncomingInterval);
                    expect(stompConfig.heartbeatOut).toBe(advancedConfig.heartbeatOutgoingInterval);
                    expect(stompConfig.startIntervalFunction).toBe(advancedConfig.startIntervalFunction);
+                   expect(stompConfig.accessTokenHeaderKey).toBe(accessTokenHeaderKey);
+                   expect(stompConfig.sendAccessTokenDuringHandshake).toBe(sendAccessTokenDuringHandshake);
+                   expect(stompConfig.protocols).toEqual(protocols);
+                   const token = stompConfig.accessToken;
+                   expect(token).toBe(mockToken);
                 }
           );
        });

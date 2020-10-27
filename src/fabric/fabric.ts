@@ -19,6 +19,7 @@ import { map } from 'rxjs/operators';
 export const HEADERS_STORE = 'transport-headers-store';
 export const GLOBAL_HEADERS = 'global-headers';
 export const GLOBAL_HEADERS_UPDATE = 'update';
+export const DEFAULT_ACCESS_TOKEN_KEY = 'accessToken';
 
 export class FabricApiImpl implements FabricApi {
 
@@ -47,10 +48,12 @@ export class FabricApiImpl implements FabricApi {
     }
 
     getDefaultConnectionString(): string {
-        if (this.connectedMap.size === 1) {
-            return this.connectedMap.keys().next().value.toString();
-        } else if (this.connectedMap.size === 0) {
-            this.bus.logger.error('Could not determine the default connection string. No active broker connection detected.', 'FabricApi');
+        if (this.connectionStoreMap.size === 1) {
+            return this.connectionStoreMap.keys().next().value.toString();
+        } else if (this.connectionStoreMap.size === 0) {
+            this.bus.logger.error('Could not determine the default connection string because fabric.connect() likely ' +
+                'was not called first. You can either call fabric.connect() first or optionally provide ' +
+                'a connection string, if you know it, to the method you were calling as an argument.', 'FabricApi');
         } else {
             this.bus.logger.error('Could not determine the default connection string. ' +
                 'There is more than one active connection. Please provide the connection string manually', 'FabricApi');
@@ -274,8 +277,53 @@ export class FabricApiImpl implements FabricApi {
         return this.accessTokenSessionStorageKey;
     }
 
+    private _getAccessTokenFunction: () => string;
+    get getAccessTokenFunction() {
+        return this._getAccessTokenFunction;
+    }
+
+    set getAccessTokenFunction(value: () => string) {
+        this._getAccessTokenFunction = value;
+    }
+
+    private _accessTokenHeaderKey = DEFAULT_ACCESS_TOKEN_KEY;
+    get accessTokenHeaderKey(): string {
+        return this._accessTokenHeaderKey;
+    }
+
+    set accessTokenHeaderKey(value: string) {
+        this._accessTokenHeaderKey = value;
+    }
+
     getAccessToken(): string {
-        return sessionStorage.getItem(this.getAccessTokenSessionStorageKey()) || '';
+        let token: string;
+        if (this.getAccessTokenFunction) {
+            token = this.getAccessTokenFunction();
+        } else {
+            const key = this.getAccessTokenSessionStorageKey();
+            token = sessionStorage.getItem(key);
+        }
+        return token || '';
+    }
+
+    private _sendAccessTokenDuringHandshake = false;
+
+    get sendAccessTokenDuringHandshake() {
+        return this._sendAccessTokenDuringHandshake;
+    }
+
+    set sendAccessTokenDuringHandshake(value: boolean) {
+        this._sendAccessTokenDuringHandshake = value;
+    }
+
+    private _protocols: Array<string>;
+
+    get protocols() {
+        return this._protocols;
+    }
+
+    set protocols(value: Array<string>) {
+        this._protocols = value;
     }
 
     setXsrfToken(token: string): void {

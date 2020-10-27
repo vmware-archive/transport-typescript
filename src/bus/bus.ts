@@ -201,6 +201,10 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
         config.queueLocation = queueLocation;
         config.brokerConnectCount = numBrokerRelays;
         config.autoReconnect = autoReconnect;
+        config.getAccessTokenFunction = this.fabric.getAccessToken.bind(this.fabric);
+        config.accessTokenHeaderKey = this.fabric.accessTokenHeaderKey;
+        config.sendAccessTokenDuringHandshake = this.fabric.sendAccessTokenDuringHandshake;
+        config.protocols = this.fabric.protocols ? this.fabric.protocols.slice() : undefined;
 
         if (advancedConfig) {
             config.heartbeatIn = advancedConfig.heartbeatIncomingInterval;

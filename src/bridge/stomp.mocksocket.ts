@@ -16,7 +16,7 @@ export class MockSocket {
     public transactionId: string;
     public receiptId: string;
 
-    constructor(private url?: string) {
+    constructor(public url?: string, public protocols?: string[]) {
         // fire once the mock socket has been created and returned.
         setTimeout(() => this.triggerEvent('open', [true]), 0);
     }

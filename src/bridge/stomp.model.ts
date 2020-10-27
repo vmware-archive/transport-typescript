@@ -9,8 +9,8 @@ import { MockSocket } from './stomp.mocksocket';
 import { UUID } from '../bus/store/store.model';
 import { Logger } from '../log';
 import { GeneralUtil } from '../util/util';
-import { AbstractCore } from '../core';
 import { EventBus } from '../bus.api';
+import { DEFAULT_ACCESS_TOKEN_KEY } from '../fabric/fabric';
 
 export type TransportSocket = WebSocket;
 
@@ -101,8 +101,8 @@ export class StompSession {
         return this._applicationDestinationPrefix;
     }
 
-    connect(): Subject<Boolean> {
-        return this._client.connect(this._config);
+    connect(messageHeaders?: any): Subject<Boolean> {
+        return this._client.connect(this._config, messageHeaders);
     }
 
     send(destination: string, messageHeaders?: any, body?: any): boolean {
@@ -156,6 +156,10 @@ export class StompConfig {
     private _topicLocation: string = '/topic';
     private _queueLocation: string = '/queue';
     private _startIntervalFunction: (handler: any, timeout?: any, ...args: any[]) => number;
+    private _getAccessTokenFunction: () => string;
+    private _accessTokenHeaderKey = DEFAULT_ACCESS_TOKEN_KEY;
+    private _sendAccessTokenDuringHandshake = false;
+    private _protocols: Array<string>;
 
     private numBrokerConnect: number = 1;
     public connectionSubjectRef: Subject<Boolean>; // used to manipulate multi connect messages from relays.
@@ -295,6 +299,41 @@ export class StompConfig {
        return this._heartbeatOut;
     }
 
+    set getAccessTokenFunction(value: () => string) {
+        this._getAccessTokenFunction = value;
+    }
+
+    get accessToken() {
+        if (!this._getAccessTokenFunction) {
+            throw new Error('getAccessTokenFunction not set');
+        }
+        return this._getAccessTokenFunction();
+    }
+
+    set accessTokenHeaderKey(value: string) {
+        this._accessTokenHeaderKey = value;
+    }
+
+    get accessTokenHeaderKey() {
+        return this._accessTokenHeaderKey;
+    }
+
+    set sendAccessTokenDuringHandshake(value: boolean) {
+        this._sendAccessTokenDuringHandshake = value;
+    }
+
+    get sendAccessTokenDuringHandshake() {
+        return this._sendAccessTokenDuringHandshake;
+    }
+
+    set protocols(value: Array<string>) {
+        this._protocols = value;
+    }
+
+    get protocols() {
+        return this._protocols;
+    }
+
     public getConfig(): any {
         return {
             endpoint: this._endpoint,
@@ -321,10 +360,23 @@ export class StompConfig {
     }
 
     public generateSocket(): any {
+        let protocols = this.protocols;
+        if (protocols) {
+            // Make sure we don't mutate the client's array.
+            protocols = protocols.slice();
+        }
+        if (this.sendAccessTokenDuringHandshake) {
+            const accessToken = this.accessToken;
+            const accessTokenProtocol = `${this.accessTokenHeaderKey}.${accessToken}`;
+            if (!protocols) {
+                protocols = [];
+            }
+            protocols.push(accessTokenProtocol);
+        }        
         if (this._testMode) {
-            return new MockSocket();
+            return new MockSocket(this.generateConnectionURI(), protocols);
         } else {
-            return new WebSocket(this.generateConnectionURI());
+            return new WebSocket(this.generateConnectionURI(), protocols);
         }
     }
 

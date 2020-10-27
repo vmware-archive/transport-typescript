@@ -121,6 +121,7 @@ export interface FabricApi {
     /**
      * Set sessionStorage key for access token.
      * @param key key stored in sessionStorage representing the access token
+     * @default 'csp-auth-token'
      */
     setAccessTokenSessionStorageKey(key: string): void;
 
@@ -131,7 +132,36 @@ export interface FabricApi {
     getAccessTokenSessionStorageKey(): string;
 
     /**
-     * Get access token from the sessionStorage using the key defined with setAccessTokenSessionStorageKey()
+     * Function that returns an access token when called. If this is set then this function
+     * is used when requesting an access token, else a token is looked for in session
+     * storage under the key returned by getAccessTokenSessionStorageKey().
+     * @default undefined
+     */
+    getAccessTokenFunction: () => string;
+
+    /**
+     * Key used when writing the access token in a message header or protocol.
+     * @default 'accessToken'.
+     */
+    accessTokenHeaderKey: string;
+
+    /**
+     * Protocols to send to the server during websocket handshake.
+     * @default undefined.
+     */
+    protocols: Array<string>;
+
+    /**
+     * When true "<accessTokenHeaderKey>.<token>" will be sent as a 
+     * sec-websocket-protocol header to the server during the websocket handshake. Useful for 
+     * non-cookie based authentication implementations.
+     * @default false.
+     */
+    sendAccessTokenDuringHandshake: boolean;
+
+    /**
+     * Get access token using getAccessTokenFunction if set else session storage 
+     * under the key returned by getAccessTokenSessionStorageKey()
      */
     getAccessToken(): string;
 
