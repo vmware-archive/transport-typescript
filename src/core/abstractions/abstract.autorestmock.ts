@@ -22,6 +22,7 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
     private listensTo: string;
     private restError = new RestError('Fake Error.', MOCK_FAKE_ERROR, 'fakeUri');
     private pvtForceResponse: Array<any>;
+    private pvtForceError: Array<any>;
     protected debug = false;
 
     constructor(name: string, listensTo: string) {
@@ -65,6 +66,40 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
             : this.pvtForceResponse[0];
     }
 
+    /**
+     * Check if there is a forced error without popping the stack
+     */
+    public get hasForceError(): boolean {
+        return !!this.pvtForceError;
+    }
+
+    /**
+     * Push a error onto the stack. If a NULL is passed, set the stack to undefined.
+     *
+     * @param error any
+     */
+    public set forceError(error: any) {
+        if (!error) {
+            this.pvtForceError = undefined;
+            return;
+        }
+
+        if (!this.pvtForceError) {
+            this.pvtForceError = [];
+        }
+
+        this.pvtForceError.push(error);
+    }
+
+    /**
+     * Return the value at the top of the stack. Pop the stack unless there is only one element in the stack.
+     */
+    public get forceError(): any {
+        return this.pvtForceError && this.pvtForceError.length > 1
+            ? this.pvtForceError.pop()
+            : this.pvtForceError[0];
+    }
+
     protected handleData(data: any, restObject: RestObject, args?: MessageArgs) {
         restObject.response = data;
         if (args) {
@@ -74,7 +109,7 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
         }
     }
 
-    protected handleError(err: RestError, restObject: RestObject, args?: MessageArgs) {
+    protected handleError(err: any, restObject: RestObject, args?: MessageArgs) {
         if (args) {
             this.bus.sendErrorMessageWithId(RestService.channel, err, args.uuid, this.getName());
         } else {
@@ -91,6 +126,12 @@ export abstract class AbstractAutoRestMock extends AbstractAutoService<RestObjec
     protected handleServiceRequest(restRequestObject: RestObject, requestArgs?: MessageArgs) {
         // ignore requestors that are not from "our" service
         if (restRequestObject.senderName !== this.listensTo) {
+            return;
+        }
+
+        // handle forced backend custom error
+        if (this.hasForceError) {
+            this.handleError(this.forceError, restRequestObject, requestArgs);
             return;
         }
 
