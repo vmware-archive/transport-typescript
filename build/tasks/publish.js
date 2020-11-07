@@ -6,11 +6,10 @@
 var gulp = require('gulp-help')(require('gulp'));
 var rename = require('gulp-rename');
 var preprocess = require('gulp-preprocess');
-var util = require('gulp-util');
 
 
 // All packages share the same version number.
-var VERSION = util.env.version;
+var VERSION = process.env.npm_package_version;
 var npmFolder = "dist/npm/";
 
 /**
@@ -25,7 +24,7 @@ var npmFolder = "dist/npm/";
  *   - the source maps.
  */
 gulp.task("npm:publish:bundles", function () {
-    gulp.src([
+    return gulp.src([
         'dist/**/*.d.ts',
         'dist/**/*.js',
         'dist/**/*.js.map',
