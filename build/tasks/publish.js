@@ -43,6 +43,6 @@ gulp.task("npm:publish:package", function () {
         .pipe(gulp.dest(npmFolder + "/transport"));
 });
 
-gulp.task("npm:publish", ["npm:publish:bundles", "npm:publish:package"], function () {});
+gulp.task("npm:publish", gulp.series("npm:publish:bundles", "npm:publish:package"));
 
-gulp.task("npm:all", ["npm:publish"], function () {});
+gulp.task("npm:all", gulp.series("npm:publish"));
