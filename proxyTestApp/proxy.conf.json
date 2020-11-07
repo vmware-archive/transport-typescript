@@ -1,7 +1,0 @@
-{
-  "/servbot": {
-    "target": "http://localhost:8090",
-    "changeOrigin": true,
-    "logLevel": "info"
-  }
-}
