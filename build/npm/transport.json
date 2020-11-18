@@ -20,6 +20,16 @@
     "license": "BSD-2-Clause",
     "changelogHistory": [
         {
+            "date": "11/18/20",
+            "version": "1.2.3",
+            "notes": [
+                {
+                    "description": "whenConnectionStateChanges now fires properly even after fabric connection was previously established",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/113"
+                }
+            ]
+        },
+        {
             "date": "10/20/20",
             "version": "1.2.2",
             "notes": [
