@@ -83,6 +83,17 @@ export class FabricApiImpl implements FabricApi {
         if (!this.connectionStoreMap.has(connString)) {
             this.connectionStoreMap.set(connString, this.bus.stores.createStore(Stores.FabricConnection));
         }
+
+        // immediately fire the current state of the FabricConnectionState store so it can be aware of changes to
+        // fabric connection state that occurred before whenConnectionStateChanges method was called. note this logic
+        // is scheduled as a macrotask so it is guaranteed to fire after the store has been subscribed.
+        const currentState = this.bus.stores.getStore<FabricConnectionState>(Stores.FabricConnection).get(connString);
+        if (currentState !== undefined) {
+            this.bus.api.tickEventLoop(() => {
+                this.bus.stores.getStore(Stores.FabricConnection).put(connString, currentState, currentState);
+            });
+        }
+
         return this.connectionStoreMap.get(connString)
             .onChange(connString,
                 FabricConnectionState.Disconnected,
