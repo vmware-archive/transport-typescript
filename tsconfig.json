@@ -1,9 +1,9 @@
 {
     "compilerOptions": {
-      "target": "es5",
+      "target": "es2015",
       "baseUrl": "./",
       "outDir": "./dist",
-      "module": "commonjs",
+      "module": "es2015",
       "moduleResolution": "node",
       "sourceMap": true,
       "emitDecoratorMetadata": true,
@@ -15,7 +15,7 @@
         "es5",
         "es6",
         "es7",
-        "es2015"
+        "es2020"
       ],
       "removeComments": false,
       "noImplicitAny": true,

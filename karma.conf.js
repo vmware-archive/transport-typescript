@@ -40,6 +40,9 @@ module.exports = function (config) {
         ],
         karmaTypescriptConfig: {
             tsconfig: "./tsconfig.json", // this will get rid of all compiler error messages
+            compilerOptions: {
+                module: 'commonjs'
+            },
             reports: {
                 "text-summary": "",
                 "html": "coverage/"

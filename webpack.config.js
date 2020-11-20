@@ -1,6 +1,6 @@
 const path = require('path');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
     mode: 'production',
@@ -10,24 +10,14 @@ module.exports = {
         new CleanWebpackPlugin()
     ],
     optimization: {
-        minimizer: [new UglifyJsPlugin({
-            parallel: true,
-            cache: true,
-            uglifyOptions: {
-                warnings: false,
-                parse: {},
-                compress: {
-                    sequences: true,
-                    dead_code: true,
-                    conditionals: true,
-                    booleans: true,
-                    unused: true,
-                    if_return: true,
-                    join_vars: true,
-                    passes: 5
-                },
+        minimize: true,
+        minimizer: [new TerserPlugin({
+            terserOptions: {
                 mangle: true,
-                mangle_props: true
+                module: true,
+                compress: {
+                    passes: 5
+                }
             }
         })]
     },
