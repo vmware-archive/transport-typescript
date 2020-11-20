@@ -20,6 +20,15 @@
     "license": "BSD-2-Clause",
     "changelogHistory": [
         {
+            "date": "11/19/20",
+            "version": "1.2.4",
+            "notes": [
+                {
+                    "description": "Transport is now packaged under ES2015",
+                    "review_uri": "https://gitlab.eng.vmware.com/bifrost/typescript/merge_requests/114"
+                }
+            ]
+        },{
             "date": "11/18/20",
             "version": "1.2.3",
             "notes": [
