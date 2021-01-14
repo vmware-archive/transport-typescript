@@ -20,8 +20,76 @@ that results in a super fast, super scalable mechanism for actors to communicate
 Transport can be extended from communication within UI components (for managing
 Single Page Application states), to UI-to-backend or even backend-to-backend communication.
 
-## Documentation
-Work in progress
+###[View Transport TypeScript Documentation](https://vmware.github.io/transport/ts)
+
+## Quick Start
+
+```
+npm install @vmware/transport-typescript --save
+```
+
+### Adding Transport to an Angular application
+Angular provides angular.json (for Angular 7+) and angular-cli.json (for Angular 4-5).
+
+In this file, there is a section defined as scripts. This section is where you provide third party scripts to be booted and loaded by your Angular application.
+
+You will need to add the Transport UMD file to this section. It's already been saved in your node_modules folder. Just provide an entry like the one below.
+
+Configuring angular.json
+```json
+...
+"scripts": [
+   "node_modules/@vmware/transport/transport.umd.min.js"
+]
+...
+```
+Your application is ready to go, now you just need to boot transport
+
+Angular provides a src/main.ts file, which is essentially your initialization script, that you can use to Initialize the Bus.
+
+### Importing Transport in your code
+The main interface you will need is EventBus. It provides access to the most common methods.
+
+```
+import { EventBus } from '@vmware/transport-typescript';
+```
+
+### Hello World
+
+```typescript
+export class HelloWorldComponent extends AbstractBase implements OnInit {
+
+    constructor() {
+        super('HelloWorldComponent');
+        this.run();
+    }
+
+    run() {
+
+        // define a channel to talk on.
+        let myChannel = 'some-channel';
+
+        // listen for requests on 'myChannel' and return a response.
+        this.bus.respondOnce(myChannel)
+            .generate(
+                (request: string) => {
+                    this.log.info(`Request Received: ${request}, Sending Response...`);
+                    return 'world';
+                }
+            );
+
+        this.log.info('Sending Request');
+
+        // send request 'hello' on channel 'myChannel'.
+        this.bus.requestOnce(myChannel, 'hello')
+            .handle(
+                (response: string) => {
+                    this.log.info(`hello ${response}`);
+                }
+            );
+    }
+}
+```
 
 ## Contributing
 
@@ -33,7 +101,7 @@ as an open-source patch. For more detailed information, refer to [CONTRIBUTING.m
 ## License
 BSD-2-Clause
 
-Copyright (c) 2017-2020, VMware, Inc.
+Copyright (c) 2017-2021, VMware, Inc.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
