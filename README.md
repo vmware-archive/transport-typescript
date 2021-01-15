@@ -1,4 +1,4 @@
-# VMware Transport - TypeScript
+# Transport - TypeScript
 
 ## Overview
 ### What is Transport?
@@ -21,6 +21,8 @@ Transport can be extended from communication within UI components (for managing
 Single Page Application states), to UI-to-backend or even backend-to-backend communication.
 
 ### [View Transport TypeScript Documentation](https://vmware.github.io/transport/ts)
+
+#### [Transport Docs Repo](https://github.com/vmware/transport)
 
 ## Quick Start
 
@@ -90,6 +92,8 @@ export class HelloWorldComponent extends AbstractBase implements OnInit {
     }
 }
 ```
+
+### [Read More TypeScript Documentation](https://vmware.github.io/transport/ts)
 
 ## Contributing
 
