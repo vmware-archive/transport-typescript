@@ -20,7 +20,7 @@ that results in a super fast, super scalable mechanism for actors to communicate
 Transport can be extended from communication within UI components (for managing
 Single Page Application states), to UI-to-backend or even backend-to-backend communication.
 
-###[View Transport TypeScript Documentation](https://vmware.github.io/transport/ts)
+### [View Transport TypeScript Documentation](https://vmware.github.io/transport/ts)
 
 ## Quick Start
 
