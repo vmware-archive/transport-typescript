@@ -1,0 +1,13 @@
+language: node_js
+
+node_js:
+  - lts/*
+
+cache: npm
+
+jobs:
+  include:
+    - stage: test
+      script:
+        - npm install
+        - npm test
