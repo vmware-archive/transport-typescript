@@ -1,0 +1,36 @@
+name: Transport Post-merge pipeline
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@vmw'
+      - run: npm install
+      - run: npm test
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@vmw'
+      - run: npm install
+      - run: npm run pre-publish
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build-artifacts
+          path: dist
