@@ -20,6 +20,15 @@
     "license": "BSD-2-Clause",
     "changelogHistory": [
         {
+            "date": "2/10/20",
+            "version": "1.2.5",
+            "notes": [
+                {
+                    "description": "Official release of Transport into public npm repository",
+                    "review_uri": "https://github.com/vmware/transport-typescript/pull/27"
+                }
+            ]
+        },{
             "date": "11/19/20",
             "version": "1.2.4",
             "notes": [
