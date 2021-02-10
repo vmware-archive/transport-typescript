@@ -2,10 +2,10 @@
     "name": "@vmw/transport",
     "version": "/* @echo VERSION */",
     "description": "Channel / stream based event bus & model store that extends to brokers via WebSockets & STOMP.",
-    "homepage": "TBA",
+    "homepage": "https://vmware.github.io/transport/",
     "repository" : {
         "type" : "git",
-        "url" : "git@github.com:vmware/transport.git"
+        "url" : "git@github.com:vmware/transport-typescript.git"
     },
     "peerDependencies": {
         "rxjs": "^6.4.0"
@@ -20,6 +20,15 @@
     "license": "BSD-2-Clause",
     "changelogHistory": [
         {
+            "date": "2/11/20",
+            "version": "1.2.6",
+            "notes": [
+                {
+                    "description": "Add README for npm entry and update project homepage",
+                    "review_uri": "https://github.com/vmware/transport-typescript/pull/29"
+                }
+            ]
+        },{
             "date": "2/10/20",
             "version": "1.2.5",
             "notes": [

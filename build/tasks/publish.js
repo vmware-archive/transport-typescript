@@ -28,6 +28,7 @@ gulp.task("npm:publish:bundles", function () {
         'dist/**/*.d.ts',
         'dist/**/*.js',
         'dist/**/*.js.map',
+        'README.md'
     ]).pipe(gulp.dest(npmFolder + "/transport"));
 });
 
