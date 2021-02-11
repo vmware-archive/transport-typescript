@@ -45,7 +45,12 @@ module.exports = function (config) {
             },
             reports: {
                 "text-summary": "",
-                "html": "coverage/"
+                "html": "coverage/",
+                "cobertura": {
+                    "directory": "coverage",
+                    "subdirectory": "cobertura",
+                    "filename": "coverage.xml"
+                }
             },
             exclude: ['proxyTestApp/**/*.ts','chatClientApp/**/*.ts', './node_modules/**/*.d.ts']
         },
