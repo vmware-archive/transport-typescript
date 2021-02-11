@@ -24,6 +24,8 @@ jobs:
           path: dist
   publish:
     runs-on: ubuntu-20.04
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     needs:
       - build
     steps:
@@ -35,8 +37,6 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           scope: '@vmw'
       - run: npm whoami
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Download build artifacts
         uses: actions/download-artifact@v2
         with:
