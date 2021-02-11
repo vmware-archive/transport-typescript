@@ -46,8 +46,7 @@ module.exports = {
         extensions: ['.ts', '.js']
     },
     externals: {
-        'rxjs': 'rxjs',
-        'rxjs/operators': 'rxjs/operators'
+        'rxjs': 'rxjs'
     }
 };
 
