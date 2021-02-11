@@ -10,6 +10,7 @@
     "peerDependencies": {
         "rxjs": "^6.4.0"
     },
+    "main": "./transport.umd.min.js",
     //@exclude
     "scripts": {
         "prepare": "echo 'Error: Please run \"npm run prepare\" on the parent project' && exit 1"
@@ -20,7 +21,16 @@
     "license": "BSD-2-Clause",
     "changelogHistory": [
         {
-            "date": "2/11/20",
+            "date": "2/11/21",
+            "version": "1.2.7",
+            "notes": [
+                {
+                    "description": "Update README for accurate getting started and fix UMD module",
+                    "review_uri": "https://github.com/vmware/transport-typescript/pull/31"
+                }
+            ]
+        },{
+            "date": "2/11/21",
             "version": "1.2.6",
             "notes": [
                 {
@@ -29,7 +39,7 @@
                 }
             ]
         },{
-            "date": "2/10/20",
+            "date": "2/10/21",
             "version": "1.2.5",
             "notes": [
                 {

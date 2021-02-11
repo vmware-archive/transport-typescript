@@ -27,11 +27,37 @@ Single Page Application states), to UI-to-backend or even backend-to-backend com
 ## Quick Start
 
 ```
-npm install @vmware/transport-typescript --save
+npm install @vmw/transport --save
 ```
 
-### Adding Transport to an Angular application
-Angular provides angular.json (for Angular 7+) and angular-cli.json (for Angular 4-5).
+### Adding Transport to your web application
+
+#### Option 1: ES6 module import (recommended)
+This is the recommended way to import Transport as it allows build management tool
+such as Webpack to treeshake unused exports of the library shaving off some bits in size.
+
+To import and initialize Transport, simply call `BusUtil.bootBus()` as follows:
+
+```typescript
+import { BusUtil } from '@vmw/transport/util/bus.util';
+
+// boot the event bus!
+BusUtil.bootBus();
+
+// once booted you can access the event bus instance from BusUtil.getInstance()
+console.log(BusUtil.getInstance());
+
+// you can destroy the event bus like this.
+BusUtil.destroy();
+
+// then boot the bus again with options to customize it. for example you can
+// initialize the bus with the log level set to warning, the boot message
+// enabled (second argument), and the dark console theme applied (third argument).
+BusUtil.bootBusWithOptions(LogLevel.Warn, false, true);
+```
+
+#### Option 2: Using UMD module in Angular
+Angular provides `angular.json` (for Angular 7+) and `angular-cli.json` (for Angular 4-5).
 
 In this file, there is a section defined as scripts. This section is where you provide third party scripts to be booted and loaded by your Angular application.
 
@@ -41,19 +67,45 @@ Configuring angular.json
 ```json
 ...
 "scripts": [
-   "node_modules/@vmware/transport/transport.umd.min.js"
+   "node_modules/@vmw/transport/transport.umd.min.js"
 ]
 ...
 ```
 Your application is ready to go, now you just need to boot transport
 
 Angular provides a src/main.ts file, which is essentially your initialization script, that you can use to Initialize the Bus.
+See Option 1 above for instructions on initializing the bus. 
+
+#### Option 3: UMD module import through HTML `<script>` tag
+Alternatively if you would like to use Transport in a simple setup, say an HTML
+with WebComponents in it, you can import the UMD version of the library via a `script` tag.
+Note that RxJS is the only prerequisite for Transport so make sure to import it first.
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/rxjs@6.6.3/bundles/rxjs.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@vmw/transport@latest/transport.umd.min.js"></script>
+<script>
+   // boot the event bus!
+   transport.TransportEventBus.boot();
+
+   // once booted you can access the event bus instance at window.AppEventBus.
+   console.log(AppEventBus);
+
+   // destroy the event bus.
+   transport.TransportEventBus.destroy();
+
+   // boot the event bus with options.
+   transport.TransportEventBus.bootWithOptions(1, false, true);
+
+</script>
+```
+
 
 ### Importing Transport in your code
 The main interface you will need is EventBus. It provides access to the most common methods.
 
 ```
-import { EventBus } from '@vmware/transport-typescript';
+import { EventBus } from '@vmw/transport';
 ```
 
 ### Hello World
