@@ -187,45 +187,30 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
 
         // generate fetch headers, init and request objects.
         const requestHeadersObject = new Headers(requestHeaders);
-        const requestInit = this.generateRequestInitObject(restObject, requestHeadersObject);
-        let httpRequest;
+        const requestInit: RequestInit = this.generateRequestInitObject(restObject, requestHeadersObject);
 
-        // try to create fetch request.
-        try {
-
-            const uri: string = this.globalBaseUri + restObject.uri;
-            this.log.debug(`Rest Service: Preparing Fetch Request for URI: ${uri}`, this.getName());
-            httpRequest = new Request(uri, requestInit);
-
-
-        } catch (e) {
-            this.log.error(`Rest Service: Cannot create request: ${e}`, this.getName());
-            this.handleError(
-                new RestError('Invalid HTTP request.', RestErrorType.UnknownMethod, restObject.uri),
-                restObject,
-                args);
-            return;
-        }
+        const uri: string = this.globalBaseUri + restObject.uri;
+        this.log.debug(`Rest Service: Preparing Fetch Request for URI: ${uri}`, this.getName());
 
         switch (restObject.request) {
             case HttpRequest.Get:
-                this.httpClient.get(httpRequest, successHandler, errorHandler);
+                this.httpClient.get(uri, requestInit, successHandler, errorHandler);
                 break;
 
             case HttpRequest.Post:
-                this.httpClient.post(httpRequest, successHandler, errorHandler);
+                this.httpClient.post(uri, requestInit, successHandler, errorHandler);
                 break;
 
             case HttpRequest.Patch:
-                this.httpClient.patch(httpRequest, successHandler, errorHandler);
+                this.httpClient.patch(uri, requestInit, successHandler, errorHandler);
                 break;
 
             case HttpRequest.Put:
-                this.httpClient.put(httpRequest, successHandler, errorHandler);
+                this.httpClient.put(uri, requestInit, successHandler, errorHandler);
                 break;
 
             case HttpRequest.Delete:
-                this.httpClient.delete(httpRequest, successHandler, errorHandler);
+                this.httpClient.delete(uri, requestInit, successHandler, errorHandler);
                 break;
 
             default:
@@ -238,7 +223,7 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
         }
     }
 
-    private generateRequestInitObject(restObject: RestObject, headers: Headers): any {
+    private generateRequestInitObject(restObject: RestObject, headers: Headers): RequestInit {
 
         let requestInit: any = {
             method: restObject.request,
