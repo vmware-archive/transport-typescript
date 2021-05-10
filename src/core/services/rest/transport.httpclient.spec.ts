@@ -38,10 +38,10 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can make valid GET fetch request',
         (done) => {
-            fetchMock.get('http://appfabric.vmware.com/', 'ok');
-
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
-            client.get(request,
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.get(url, 'ok');
+            client.get(url, 
+                {method: HttpRequest.Get},
                 (responseObject: any) => {
                     expect(responseObject).toEqual('ok');
                     done();
@@ -53,10 +53,11 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can make GET fetch request that handles server error',
         (done) => {
-            fetchMock.get('http://appfabric.vmware.com/', 500 );
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.get(url, 500 );
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
-            client.get(request,
+            client.get(url, 
+                {method: HttpRequest.Get},
                 () => { },
                 (failureObject: GeneralError) => {
                     expect(failureObject.message).toEqual('HTTP Error 500: Internal Server Error');
@@ -65,12 +66,14 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
             );
         }
     );
+
     it('Can make bad GET fetch request',
         (done) => {
+            const url = 'http://appfabric.vmware.com';
             fetchMock.get('http://appfabric.vmware.com/', 400);
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
-            client.get(request,
+            client.get(url, 
+                {method: HttpRequest.Get},
                 () => {
                 },
                 (failureObject: GeneralError) => {
@@ -83,11 +86,12 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can make valid POST fetch request',
         (done) => {
-            fetchMock.post('http://appfabric.vmware.com/', 'ok');
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.post(url, 'ok');
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Post, body: 'hi!'});
-            client.post(request,
-                (responseObject: any) => {
+            client.post(url,
+                    {method: HttpRequest.Post, body: 'hi!'},
+                    (responseObject: any) => {
                     expect(responseObject).toEqual('ok');
                     done();
                 },
@@ -98,10 +102,11 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can make POST fetch request that handles server error',
         (done) => {
-            fetchMock.post('http://appfabric.vmware.com/', 500);
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.post(url, 500);
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Post, body: 'hi!'});
-            client.post(request,
+            client.post(url,
+                {method: HttpRequest.Post, body: 'hi!'},
                 () => { },
                 (failureObject: GeneralError) => {
                     expect(failureObject.message).toEqual('HTTP Error 500: Internal Server Error');
@@ -113,10 +118,11 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can make bad POST fetch request',
         (done) => {
-            fetchMock.post('http://appfabric.vmware.com/', 400 );
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.post(url, 400 );
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Post, body: 'hi!'});
-            client.post(request,
+            client.post(url,
+                {method: HttpRequest.Post, body: 'hi!'},
                 () => { },
                 (failureObject: GeneralError) => {
                     expect(failureObject.message).toEqual('HTTP Error 400: Bad Request');
@@ -128,10 +134,11 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can make valid PATCH fetch request',
         (done) => {
-            fetchMock.patch('http://appfabric.vmware.com/', 'ok');
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.patch(url, 'ok');
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Patch, body: 'hi!'});
-            client.patch(request,
+            client.patch(url,
+                {method: HttpRequest.Patch, body: 'hi!'},
                 (responseObject: any) => {
                     expect(responseObject).toEqual('ok');
                     done();
@@ -143,10 +150,11 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can make PATCH fetch request that handles server error',
         (done) => {
-            fetchMock.patch('http://appfabric.vmware.com/', 500);
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.patch(url, 500);
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Patch, body: 'hi!'});
-            client.patch(request,
+            client.patch(url,
+                {method: HttpRequest.Patch, body: 'hi!'},
                 () => { },
                 (failureObject: GeneralError) => {
                     expect(failureObject.message).toEqual('HTTP Error 500: Internal Server Error');
@@ -155,12 +163,14 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
             );
         }
     );
+
     it('Can make bad PATCH fetch request',
         (done) => {
-            fetchMock.patch('http://appfabric.vmware.com/', 400 );
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.patch(url, 400 );
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Patch, body: 'hi!'});
-            client.patch(request,
+            client.patch(url,
+                {method: HttpRequest.Patch, body: 'hi!'},
                 () => { },
                 (failureObject: GeneralError) => {
                     expect(failureObject.message).toEqual('HTTP Error 400: Bad Request');
@@ -172,10 +182,11 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can make valid PUT fetch request',
         (done) => {
-            fetchMock.put('http://appfabric.vmware.com/', 'ok');
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.put(url, 'ok');
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Put, body: 'hi!'});
-            client.put(request,
+            client.put(url,
+                {method: HttpRequest.Put, body: 'hi!'},
                 (responseObject: any) => {
                     expect(responseObject).toEqual('ok');
                     done();
@@ -187,10 +198,11 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can make PUT fetch request that handles server error',
         (done) => {
-            fetchMock.put('http://appfabric.vmware.com/', 500);
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.put(url, 500);
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Put, body: 'hi!'});
-            client.put(request,
+            client.put(url,
+                {method: HttpRequest.Put, body: 'hi!'},
                 () => { },
                 (failureObject: GeneralError) => {
                     expect(failureObject.message).toEqual('HTTP Error 500: Internal Server Error');
@@ -199,12 +211,14 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
             );
         }
     );
+
     it('Can make bad PUT fetch request',
         (done) => {
-            fetchMock.put('http://appfabric.vmware.com/', 400 );
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.put(url, 400 );
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Put, body: 'hi!'});
-            client.put(request,
+            client.put(url,
+                {method: HttpRequest.Put, body: 'hi!'},
                 () => { },
                 (failureObject: GeneralError) => {
                     expect(failureObject.message).toEqual('HTTP Error 400: Bad Request');
@@ -216,10 +230,11 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can make valid DELETE fetch request',
         (done) => {
-            fetchMock.delete('http://appfabric.vmware.com/', 'ok');
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.delete(url, 'ok');
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Delete});
-            client.delete(request,
+            client.delete(url,
+                {method: HttpRequest.Delete},
                 (responseObject: any) => {
                     expect(responseObject).toEqual('ok');
                     done();
@@ -231,10 +246,11 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can make DELETE fetch request that handles server error',
         (done) => {
-            fetchMock.delete('http://appfabric.vmware.com/', 500);
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.delete(url, 500);
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Delete});
-            client.delete(request,
+            client.delete(url,
+                {method: HttpRequest.Delete},
                 () => { },
                 (failureObject: GeneralError) => {
                     expect(failureObject.message).toEqual('HTTP Error 500: Internal Server Error');
@@ -243,12 +259,14 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
             );
         }
     );
+
     it('Can make bad DELETE fetch request',
         (done) => {
-            fetchMock.delete('http://appfabric.vmware.com/', 400 );
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.delete(url, 400 );
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Delete});
-            client.delete(request,
+            client.delete(url,
+                {method: HttpRequest.Delete},
                 () => { },
                 (failureObject: GeneralError) => {
                     expect(failureObject.message).toEqual('HTTP Error 400: Bad Request');
@@ -260,13 +278,14 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can handle error message object (mainly from ss-base consumers)',
         (done) => {
-            fetchMock.get('http://appfabric.vmware.com/', {
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.get(url, {
                 status: 500,
                 body: JSON.stringify({message: 'oh dear.'})
             });
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
-            client.get(request,
+            client.get(url,
+                {method: HttpRequest.Get},
                 () => { },
                 (failureObject: GeneralError) => {
                     expect(failureObject.message).toEqual('HTTP Error 500: Internal Server Error -  oh dear.');
@@ -278,13 +297,14 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can handle error messages array object (mainly from ss-base consumers)',
         (done) => {
-            fetchMock.get('http://appfabric.vmware.com/', {
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.get(url, {
                 status: 500,
                 body: JSON.stringify({error_messages: ['oh', 'deary', 'me']})
             });
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
-            client.get(request,
+            client.get(url,
+                {method: HttpRequest.Get},
                 () => { },
                 (failureObject: GeneralError) => {
                     expect(failureObject.message).toEqual('HTTP Error 500: Internal Server Error -  oh, deary, me');
@@ -296,13 +316,14 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can handle error code (mainly from ss-base consumers)',
         (done) => {
-            fetchMock.get('http://appfabric.vmware.com/', {
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.get(url, {
                 status: 500,
                 body: JSON.stringify({error_code: 500})
             });
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
-            client.get(request,
+            client.get(url,
+                {method: HttpRequest.Get},
                 () => { },
                 (failureObject: GeneralError) => {
                     expect(failureObject.status).toEqual(500);
@@ -315,13 +336,14 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
 
     it('Can handle error status (mainly from ss-base consumers)',
         (done) => {
-            fetchMock.get('http://appfabric.vmware.com/', {
+            const url = 'http://appfabric.vmware.com';
+            fetchMock.get(url, {
                 status: 500,
                 body: JSON.stringify({status: 500})
             });
 
-            let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
-            client.get(request,
+            client.get(url,
+                {method: HttpRequest.Get},
                 () => { },
                 (failureObject: GeneralError) => {
                     expect(failureObject.status).toEqual(500);
@@ -332,12 +354,13 @@ describe('Transport HTTP Client [cores/services/rest/transport.httpclient]', () 
     );
 
     it('Can handle TypeError', (done) => {
-        fetchMock.get('http://appfabric.vmware.com/', {
+        const url = 'http://appfabric.vmware.com';
+        fetchMock.get(url, {
             throws: new TypeError('network error')
         });
 
-        let request = new Request('http://appfabric.vmware.com', {method: HttpRequest.Get});
-        client.get(request,
+        client.get(url,
+            {method: HttpRequest.Get},
             () => { },
             (failureObject: GeneralError) => {
             console.log(failureObject.message);

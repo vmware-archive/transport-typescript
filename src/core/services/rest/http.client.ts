@@ -4,9 +4,9 @@
  */
 
 export interface HttpClient {
-    get(request: Request, successHandler: Function, failureHandler: Function): void;
-    post(request: Request, successHandler: Function, failureHandler: Function): void;
-    put(request: Request, successHandler: Function, failureHandler: Function): void;
-    patch(request: Request, successHandler: Function, failureHandler: Function): void;
-    delete(request: Request, successHandler: Function, failureHandler: Function): void;
+    get(uri: string, requestInit: RequestInit, successHandler: Function, failureHandler: Function): void;
+    post(uri: string, requestInit: RequestInit, successHandler: Function, failureHandler: Function): void;
+    put(uri: string, requestInit: RequestInit, successHandler: Function, failureHandler: Function): void;
+    patch(uri: string, requestInit: RequestInit, successHandler: Function, failureHandler: Function): void;
+    delete(uri: string, requestInit: RequestInit, successHandler: Function, failureHandler: Function): void;
 }

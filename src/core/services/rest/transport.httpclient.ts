@@ -8,35 +8,36 @@ import { GeneralError } from '../../model/error.model';
 
 export class TransportHttpclient implements HttpClient {
 
-    delete(request: Request, successHandler: Function, failureHandler: Function): void {
-        this.httpOperation(request, successHandler, failureHandler);
+    delete(uri: string, requestInit: RequestInit, successHandler: Function, failureHandler: Function): void {
+        this.httpOperation(uri, requestInit, successHandler, failureHandler);
     }
 
-    get(request: Request, successHandler: Function, failureHandler: Function): void {
-        this.httpOperation(request, successHandler, failureHandler);
+    get(uri: string, requestInit: RequestInit, successHandler: Function, failureHandler: Function): void {
+        this.httpOperation(uri, requestInit, successHandler, failureHandler);
     }
 
-    patch(request: Request, successHandler: Function, failureHandler: Function): void {
-        this.httpOperation(request, successHandler, failureHandler);
+    patch(uri: string, requestInit: RequestInit, successHandler: Function, failureHandler: Function): void {
+        this.httpOperation(uri, requestInit, successHandler, failureHandler);
     }
 
-    post(request: Request, successHandler: Function, failureHandler: Function): void {
-        this.httpOperation(request, successHandler, failureHandler);
+    post(uri: string, requestInit: RequestInit, successHandler: Function, failureHandler: Function): void {
+        this.httpOperation(uri, requestInit, successHandler, failureHandler);
     }
 
-    put(request: Request, successHandler: Function, failureHandler: Function): void {
-        this.httpOperation(request, successHandler, failureHandler);
+    put(uri: string, requestInit: RequestInit, successHandler: Function, failureHandler: Function): void {
+        this.httpOperation(uri, requestInit, successHandler, failureHandler);
     }
 
     private httpOperation(
-        request: Request,
+        uri: string, 
+        requestInit: RequestInit,
         successHandler: Function,
         errorHandler: Function
     ) {
 
         // use magic fetch!
         fetch(
-            request
+            uri, requestInit
         ).then(
             (response: Response) => {
                 if (response.ok) {
