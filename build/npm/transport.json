@@ -21,6 +21,15 @@
     "license": "BSD-2-Clause",
     "changelogHistory": [
         {
+            "date": "5/10/21",
+            "version": "1.2.8",
+            "notes": [
+                {
+                    "description": "Fix ReadableStream issue in Safari",
+                    "review_uri": "https://github.com/vmware/transport-typescript/pull/37"
+                }
+            ]
+        },{
             "date": "2/11/21",
             "version": "1.2.7",
             "notes": [
