@@ -21,6 +21,15 @@
     "license": "BSD-2-Clause",
     "changelogHistory": [
         {
+            "date": "5/14/21",
+            "version": "1.2.9",
+            "notes": [
+                {
+                    "description": "Fix missing protocol and host in httpclient uri",
+                    "review_uri": "https://github.com/vmware/transport-typescript/pull/44"
+                }
+            ]
+        },{
             "date": "5/10/21",
             "version": "1.2.8",
             "notes": [

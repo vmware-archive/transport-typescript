@@ -189,28 +189,41 @@ export class RestService extends AbstractCore implements EventBusEnabled, Fabric
         const requestHeadersObject = new Headers(requestHeaders);
         const requestInit: RequestInit = this.generateRequestInitObject(restObject, requestHeadersObject);
 
-        const uri: string = this.globalBaseUri + restObject.uri;
-        this.log.debug(`Rest Service: Preparing Fetch Request for URI: ${uri}`, this.getName());
+        let httpRequest;
+
+        // try to create fetch request.
+        try {
+            const uri: string = this.globalBaseUri + restObject.uri;
+            this.log.debug(`Rest Service: Preparing Fetch Request for URI: ${uri}`, this.getName());
+            httpRequest = new Request(uri);
+        } catch (e) {
+            this.log.error(`Rest Service: Cannot create request: ${e}`, this.getName());
+            this.handleError(
+                new RestError('Invalid HTTP request.', RestErrorType.UnknownMethod, restObject.uri),
+                restObject,
+                args);
+            return;
+        }
 
         switch (restObject.request) {
             case HttpRequest.Get:
-                this.httpClient.get(uri, requestInit, successHandler, errorHandler);
+                this.httpClient.get(httpRequest.url, requestInit, successHandler, errorHandler);
                 break;
 
             case HttpRequest.Post:
-                this.httpClient.post(uri, requestInit, successHandler, errorHandler);
+                this.httpClient.post(httpRequest.url, requestInit, successHandler, errorHandler);
                 break;
 
             case HttpRequest.Patch:
-                this.httpClient.patch(uri, requestInit, successHandler, errorHandler);
+                this.httpClient.patch(httpRequest.url, requestInit, successHandler, errorHandler);
                 break;
 
             case HttpRequest.Put:
-                this.httpClient.put(uri, requestInit, successHandler, errorHandler);
+                this.httpClient.put(httpRequest.url, requestInit, successHandler, errorHandler);
                 break;
 
             case HttpRequest.Delete:
-                this.httpClient.delete(uri, requestInit, successHandler, errorHandler);
+                this.httpClient.delete(httpRequest.url, requestInit, successHandler, errorHandler);
                 break;
 
             default:
