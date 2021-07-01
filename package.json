@@ -60,6 +60,10 @@
     "build-docs": "node_modules/typedoc/bin/typedoc --out dist/npm/transport/docs --exclude \"**/*+(e2e|spec|index).ts\" --excludePrivate --name \"VMware Transport (TypeScript)\"  src",
     "build-package": "gulp npm:publish",
     "pre-publish": "npm run build && npm run build-package && npm run build-docs",
-    "publish": "npm publish dist/npm/transport --access public"
+    "publish": "npm publish dist/npm/transport --access public",
+    "preinstall": "npx npm-force-resolutions"
+  },
+  "resolutions": {
+    "glob-parent": "^5.1.2"
   }
 }
