@@ -109,6 +109,7 @@ export class FabricApiImpl implements FabricApi {
         host?: string,
         port?: number,
         endpoint: string = '/fabric',
+        useSSL: boolean = false,
         topicLocation: string = '/topic',
         queueLocation: string = '/queue',
         numRelays: number = 1,
@@ -166,7 +167,7 @@ export class FabricApiImpl implements FabricApi {
                         '/pub',
                         null,
                         null,
-                        false,
+                        useSSL,
                         autoReconnect
                     );
                 }
@@ -224,13 +225,13 @@ export class FabricApiImpl implements FabricApi {
 
     }
 
-    generateFabricRequest<T>(requestCommand: string, payload?: T, headers?: {[key: string]: any}): APIRequest<T> {
+    generateFabricRequest<T>(requestCommand: string, payload?: T, headers?: { [key: string]: any }): APIRequest<T> {
         if (!payload) {
             payload = '' as any;
         }
 
         if (this.bus.fabric.isXsrfTokenEnabled()) {
-            headers = {...headers, [this.bus.fabric.getXsrfTokenStoreKey()]: this.bus.fabric.getXsrfToken()};
+            headers = { ...headers, [this.bus.fabric.getXsrfTokenStoreKey()]: this.bus.fabric.getXsrfToken() };
         }
 
         return new APIRequest<T>(requestCommand, payload, GeneralUtil.genUUID(), 1, headers);
@@ -245,7 +246,7 @@ export class FabricApiImpl implements FabricApi {
         if (!payload) {
             payload = '' as any;
         }
-        return new APIResponse<T>(payload,  error, errorCode, errorMessage, id, version);
+        return new APIResponse<T>(payload, error, errorCode, errorMessage, id, version);
     }
 
     getFabricVersion(connString?: string): Observable<string> {

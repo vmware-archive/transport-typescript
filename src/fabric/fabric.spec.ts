@@ -77,6 +77,7 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
                 'somehost',
                 8080,
                 '/somewhere',
+                false,
                 '/jabber',
                 '/blabber',
                 1,
@@ -296,7 +297,7 @@ describe('Fabric Essentials [fabric/fabric.spec]', () => {
             const token = bus.fabric.getAccessToken();
             expect(token).toBe('mock-token');
         }
-    );    
+    );
 
     it('Check we cannot get a version from the fabric, if we are not connected',
         (done) => {

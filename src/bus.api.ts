@@ -18,7 +18,7 @@ import { FabricApi } from './fabric.api';
 import { BrokerConnector } from './bridge';
 
 // current version
-const version = '1.2.9';
+const version = '1.3.0';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -137,7 +137,7 @@ export abstract class EventBus {
      * This should only be called when re-booting the bus.
      */
     public static rebuildId(): string {
-         return `eventbus-${GeneralUtil.genUUID()}-${EventBus.version}`;
+        return `eventbus-${GeneralUtil.genUUID()}-${EventBus.version}`;
     }
 
     /**
