@@ -34,14 +34,15 @@ export interface FabricApi {
     /**
      *  Connect to fabric endpoint. Defaults to current host and port on '/fabric'
      *
-     * @param endpoint What endpoint are you connecting to? Defaults to /fabric
-     * @param topicLocation What topic location are you subscribing to. /topic by default
-     * @param queueLocation What queue location are you subscribing to. /queue by default
-     * @param host hostname of your fabric endpoint, defaults to current host
-     * @param port port of your fabric endpoint, defaults to current port
-     * @param numRelays how many relays are being used? Defaults to 1.
      * @param connectHandler lambda to fire when the fabric is connected.
      * @param disconnectHandler  lambda to fire when the fabric is disconnected.
+     * @param host hostname of your fabric endpoint, defaults to current host
+     * @param port port of your fabric endpoint, defaults to current port
+     * @param endpoint What endpoint are you connecting to? Defaults to /fabric
+     * @param useSSL whether to use secure WebSocket protocol (wss://) instead of ws://
+     * @param topicLocation What topic location are you subscribing to. /topic by default
+     * @param queueLocation What queue location are you subscribing to. /queue by default
+     * @param numRelays how many relays are being used? Defaults to 1.
      * @param autoReconnect if disconnected, want to auto-reconnect? defaults to true.
      */
     connect(
@@ -50,6 +51,7 @@ export interface FabricApi {
         host?: string,
         port?: number,
         endpoint?: string,
+        useSSL?: boolean,
         topicLocation?: string,
         queueLocation?: string,
         numRelays?: number,
@@ -152,15 +154,15 @@ export interface FabricApi {
     protocols: Array<string>;
 
     /**
-     * When true "<accessTokenHeaderKey>.<token>" will be sent as a 
-     * sec-websocket-protocol header to the server during the websocket handshake. Useful for 
+     * When true "<accessTokenHeaderKey>.<token>" will be sent as a
+     * sec-websocket-protocol header to the server during the websocket handshake. Useful for
      * non-cookie based authentication implementations.
      * @default false.
      */
     sendAccessTokenDuringHandshake: boolean;
 
     /**
-     * Get access token using getAccessTokenFunction if set else session storage 
+     * Get access token using getAccessTokenFunction if set else session storage
      * under the key returned by getAccessTokenSessionStorageKey()
      */
     getAccessToken(): string;
