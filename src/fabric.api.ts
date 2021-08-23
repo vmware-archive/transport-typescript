@@ -13,6 +13,7 @@ import { APIResponse } from './core/model/response.model';
 export enum FabricConnectionState {
     Connected = 'connected',
     Disconnected = 'disconnected',
+    Connecting = 'connecting',
     Failed = 'failed'
 }
 
