@@ -173,17 +173,13 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     }
 
     sendRequest(cname: string, payload: any, name?: string): void {
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
+        const mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
         this.send(mh.sendChannel, new Message().request(mh), name);
     }
 
     sendResponse(cname: string, payload: any, name?: string): void {
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
-        this.tickEventLoop(
-            () => {
-                this.send(mh.sendChannel, new Message().response(mh), name);
-            }
-        );
+        const mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
+        this.send(mh.sendChannel, new Message().response(mh), name);
     }
 
     complete(cname: ChannelName, from?: SentFrom): boolean {
