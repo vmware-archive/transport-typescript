@@ -15,7 +15,7 @@ import {
     MessageHandlerConfig
 } from './model/message.model';
 import { Observable, Subject, Subscription, merge } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { bufferTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { Logger } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
 import { MonitorChannel, MonitorObject, MonitorType } from './model/monitor.model';
@@ -23,16 +23,26 @@ import { LogUtil } from '../log/util';
 import { UUID } from './store/store.model';
 import { GeneralUtil } from '../util/util';
 
+type BufferedSendPayload = {
+    channel: string;
+    messagePayload: Message | MessageHandlerConfig,
+    name?: string;
+};
+
 export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
     readonly channelMap: Map<ChannelName, Channel>;
+
+    public loggerInstance: Logger;
+
     private log: Logger;
     private monitorChannel = MonitorChannel.stream;
     private monitorStream: Channel;
     private dumpMonitor: boolean;
     private internalChannelMap: Map<string, Channel>;
-    public loggerInstance: Logger;
     private id: UUID;
+    private bufferedSendStream: Subject<BufferedSendPayload>;
+    private sendBufferFlushInterval = 500;
 
     public getId(): UUID {
         return this.id;
@@ -41,6 +51,28 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     constructor(private eventBusRef: EventBus, channelMap: Map<string, Channel>, logger: Logger) {
         this.internalChannelMap = channelMap;
         this.id = GeneralUtil.genUUID();
+
+        // create a buffered stream for sendResponse and sendRequest methods
+        this.bufferedSendStream = new Subject<BufferedSendPayload>();
+        this.bufferedSendStream.pipe(
+            bufferTime(this.sendBufferFlushInterval),
+            distinctUntilChanged((x: Array<BufferedSendPayload>, y: Array<BufferedSendPayload>) => {
+                return x.length === 0 && y.length === 0;
+            })
+            ).subscribe({
+                next: (mhs: Array<BufferedSendPayload>) => {
+                    this.tickEventLoop(
+                        () => {
+                            mhs.forEach((buf: BufferedSendPayload) => {
+                                if (buf.messagePayload instanceof MessageHandlerConfig) {
+                                    this.send(buf.messagePayload.sendChannel, new Message().response(buf.messagePayload));
+                                } else {
+                                    this.send(buf.channel, buf.messagePayload, buf.name);
+                                }
+                            });
+                        });
+                }
+            });
 
         // create monitor stream.
         this.monitorStream = new Channel(this.monitorChannel);
@@ -173,17 +205,21 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     }
 
     sendRequest(cname: string, payload: any, name?: string): void {
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
+        const mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
         this.send(mh.sendChannel, new Message().request(mh), name);
     }
 
     sendResponse(cname: string, payload: any, name?: string): void {
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
-        this.tickEventLoop(
-            () => {
-                this.send(mh.sendChannel, new Message().response(mh), name);
-            }
-        );
+        const mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
+        this.send(mh.sendChannel, new Message().response(mh), name);
+    }
+
+    sendBufferedResponse(cname: string, payload: Message | MessageHandlerConfig, name?: string): void {
+        this.bufferedSendStream.next({
+            channel: cname,
+            messagePayload: payload,
+            name
+        });
     }
 
     complete(cname: ChannelName, from?: SentFrom): boolean {

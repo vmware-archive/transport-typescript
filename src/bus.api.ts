@@ -18,7 +18,7 @@ import { FabricApi } from './fabric.api';
 import { BrokerConnector } from './bridge';
 
 // current version
-const version = '1.3.0';
+const version = '1.3.1';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -653,6 +653,16 @@ export interface EventBusLowApi {
      * @param {SentFrom} name option name of calling actor (for logging)
      */
     sendResponse(cname: ChannelName, payload: any, name?: SentFrom): void;
+
+
+    /**
+     * Send buffered response. Performant if dealing with constant stream of fast-arriving inputs..
+     *
+     * @param {ChannelName} cname chall name to send response to.
+     * @param {Message | MessageHandlerConfig} payload payload to send.
+     * @param {SentFrom} name optional name of calling actor (for logging)
+     */
+    sendBufferedResponse(cname: ChannelName, payload: Message | MessageHandlerConfig, name?: SentFrom): void;
 
     /**
      *  Used internally to send messages to simpler API's in main event bus.
