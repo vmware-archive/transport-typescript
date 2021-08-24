@@ -318,9 +318,11 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
     request<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, id?: UUID): MessageHandler<R, E> {
 
-        const handler: MessageHandler<R, E> = this.createMessageHandler(handlerConfig, false, name, id);
-        this.send(handlerConfig.sendChannel, new Message(id).request(handlerConfig), name);
+        const handler: MessageHandler<R, E> = this.createMessageHandler(handlerConfig, false, () => {
+            this.send(handlerConfig.sendChannel, new Message(id).request(handlerConfig), name);
+        }, name, id);
         return handler;
+
     }
 
     respond<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom): MessageResponder<R, E> {
@@ -330,7 +332,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
     listen<R>(handlerConfig: MessageHandlerConfig, requestStream?: boolean,
               name?: SentFrom, id?: UUID): MessageHandler<R> {
-        return this.createMessageHandler(handlerConfig, requestStream, name, id);
+        return this.createMessageHandler(handlerConfig, requestStream, () => {}, name, id);
     }
 
     /**
@@ -482,6 +484,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     private createMessageHandler(
         handlerConfig: MessageHandlerConfig,
         requestStream: boolean = false,
+        fireHandler: () => void,
         name?: string,
         messageId?: UUID): MessageHandler<any> {
 
@@ -507,6 +510,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         };
 
         return {
+            fire: fireHandler,
             handle: (success: MessageFunction<any>, error?: MessageFunction<any>): Subscription => {
 
                 let _chan: Observable<Message>;

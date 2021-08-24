@@ -18,7 +18,7 @@ import { FabricApi } from './fabric.api';
 import { BrokerConnector } from './bridge';
 
 // current version
-const version = '1.3.0';
+const version = '1.3.1';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -89,6 +89,8 @@ export interface MessageHandler<T = any, E = any> {
      * @param messageType optional filter for responses, requests or errors. If left blank, you get the firehose.
      */
     getObservable(messageType?: MessageType): Observable<T>;
+
+    fire(): void;
 }
 
 /**

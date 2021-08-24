@@ -233,6 +233,7 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
                 }
             }
         );
+        handler.fire();
         return handler;
     }
 
@@ -310,14 +311,10 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
         payload: any,
         name = this.getName()): boolean {
 
-        this.api.tickEventLoop(
-            () => {
-                this.api.send(
-                    cname,
-                    new Message().response(payload),
-                    name
-                );
-            }
+        this.api.send(
+            cname,
+            new Message().response(payload),
+            name
         );
         return true;
     }
@@ -328,14 +325,10 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
         id: UUID,
         from?: string,
         proxyBroadcast: boolean = false): void {
-        this.api.tickEventLoop(
-            () => {
-                this.api.send(
-                    cname,
-                    new Message(id, 1, proxyBroadcast).response(payload),
-                    from
-                );
-            }
+        this.api.send(
+            cname,
+            new Message(id, 1, proxyBroadcast).response(payload),
+            from
         );
     }
 
@@ -346,14 +339,10 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
         version: number,
         from?: string,
         proxyBroadcast: boolean = false): void {
-        this.api.tickEventLoop(
-            () => {
-                this.api.send(
-                    cname,
-                    new Message(id, version, proxyBroadcast).response(payload),
-                    from
-                );
-            }
+        this.api.send(
+            cname,
+            new Message(id, version, proxyBroadcast).response(payload),
+            from
         );
     }
 
@@ -468,7 +457,7 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
 
         return this.api.request(
             new MessageHandlerConfig(sendChannel, requestPayload, true, returnChannel),
-            name,
+            from,
             uuid
         );
     }

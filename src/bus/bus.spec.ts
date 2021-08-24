@@ -342,7 +342,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
             () => bus.closeChannel('puppers')
             , 5);
 
-        // should have settled 
+        // should have settled
         bus.api.tickEventLoop(
             () => {
 
@@ -367,7 +367,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
 
         bus.sendErrorMessage('puppers', 'why are my shoes ruined?');
 
-        // should have settled 
+        // should have settled
         bus.api.tickEventLoop(
             () => {
                 expect(bus.api.countListeners()).toEqual(3);
@@ -389,7 +389,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
 
         bus.sendErrorMessage('puppers', 'why are my shoes ruined?');
 
-        // should have settled 
+        // should have settled
         bus.api.tickEventLoop(
             () => {
                 expect(bus.api.countListeners()).toEqual(3);
@@ -437,7 +437,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
 
         bus.sendRequestMessage('puppers', 'how many bones has fox hidden?');
 
-        // should have settled 
+        // should have settled
         bus.api.tickEventLoop(
             () => {
                 responder.tick('ignore me');
@@ -449,7 +449,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
             , 10);
 
 
-        // should have settled 
+        // should have settled
         bus.api.tickEventLoop(
             () => {
                 expect(count).toEqual(1); // only a single event should have made it through
@@ -494,7 +494,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
 
         bus.sendRequestMessage('puppers', 'how many bones has fox hidden?');
 
-        // should have settled 
+        // should have settled
         bus.api.tickEventLoop(
             () => {
                 handler.tick('ignore me');
@@ -506,7 +506,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
             , 10);
 
 
-        // should have settled 
+        // should have settled
         bus.api.tickEventLoop(
             () => {
                 expect(count).toEqual(1); // only a single event should have made it through
@@ -598,12 +598,13 @@ describe('TransportEventBus [bus/bus.ts]', () => {
             .generate(
                 (req: string) => 'get the ball!'
             );
-        bus.requestOnce('puppy-time', 'command')
-            .handle(
-                (resp: string) => {
-                    expect(resp).toBe('get the ball!');
-                }
-            );
+        const requester = bus.requestOnce('puppy-time', 'command');
+        requester.handle(
+            (resp: string) => {
+                expect(resp).toBe('get the ball!');
+            }
+        );
+        requester.fire();
 
         bus.api.tickEventLoop(
             () => {
@@ -722,13 +723,14 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         }
                     );
 
-                bus.requestOnce(testChannel, 'strawbarita')
-                    .handle(
-                        (resp: string) => {
-                            expect(resp).toEqual('margarita');
-                            done();
-                        }
-                    );
+                const req = bus.requestOnce(testChannel, 'strawbarita');
+                req.handle(
+                    (resp: string) => {
+                        expect(resp).toEqual('margarita');
+                        done();
+                    }
+                );
+                req.fire();
             }
         );
 
@@ -743,13 +745,14 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         }
                     );
 
-                bus.requestOnce(testChannel, 'magnum', '#some-different-return')
-                    .handle(
-                        (resp: string) => {
-                            expect(resp).toEqual('maggie');
-                            done();
-                        }
-                    );
+                const req = bus.requestOnce(testChannel, 'magnum', '#some-different-return');
+                req.handle(
+                    (resp: string) => {
+                        expect(resp).toEqual('maggie');
+                        done();
+                    }
+                );
+                req.fire();
             }
         );
 
@@ -764,16 +767,18 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         (request: string) => {
                             expect(request).toEqual('strawbarita');
                             bus.api.sendResponse(channel2, 'margarita');
+                            bus.api.tickEventLoop(null);
                         }
                     );
 
-                bus.requestOnce(channel1, 'strawbarita', channel2)
-                    .handle(
-                        (resp: string) => {
-                            expect(resp).toEqual('margarita');
-                            done();
-                        }
-                    );
+                const req = bus.requestOnce(channel1, 'strawbarita', channel2);
+                req.handle(
+                    (resp: string) => {
+                        expect(resp).toEqual('margarita');
+                        done();
+                    }
+                );
+                req.fire();
             }
         );
 
@@ -799,6 +804,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         done();
                     }
                 );
+                handler2.fire();
             }
         );
 
@@ -835,6 +841,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                     }
                 );
 
+                requester.fire();
             }
         );
 
@@ -1164,13 +1171,14 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                     }
                 );
 
-                bus.requestOnce(testChannel, 'bikes')
-                    .handle(
-                        (msg: string) => {
-                            expect(msg).toEqual('cars');
-                            done();
-                        }
-                    );
+                const req = bus.requestOnce(testChannel, 'bikes');
+                req.handle(
+                    (msg: string) => {
+                        expect(msg).toEqual('cars');
+                        done();
+                    }
+                );
+                req.fire();
             }
         );
 
@@ -1202,6 +1210,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         done();
                     }
                 );
+                stream.fire();
             }
         );
 
@@ -1262,6 +1271,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         done();
                     }
                 );
+                requester.fire();
             }
         );
 
@@ -1333,13 +1343,14 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                 // enable the easter egg and test it.
                 const castBus = bus as TransportEventBus;
                 castBus.easterEgg();
-                bus.requestOnce('__maglingtonpuddles__', 'hi maggie!')
-                    .handle(
-                        (msg: string) => {
-                            expect(msg).toEqual('Maggie wags his little nubby tail at you, as ' +
-                                'he sits under his little yellow boat on the beach');
-                            done();
-                        });
+                const req = bus.requestOnce('__maglingtonpuddles__', 'hi maggie!');
+                req.handle(
+                    (msg: string) => {
+                        expect(msg).toEqual('Maggie wags his little nubby tail at you, as ' +
+                            'he sits under his little yellow boat on the beach');
+                        done();
+                    });
+                req.fire();
 
             }
         );
@@ -1478,7 +1489,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         expect(req).toEqual('where is my dinner?');
                         counter++;
                         if (counter === 3) {
-                            responder.close(); // stop responding, but keep handling. 
+                            responder.close(); // stop responding, but keep handling.
                         }
                         return 'coming soon, calm down pup!';
                     }
@@ -1640,10 +1651,11 @@ describe('TransportEventBus [bus/bus.ts]', () => {
 
                 bus.sendRequestMessage('foxy-pop', true);
 
-                bus.requestOnceWithId(id, 'foxy-pop', true)
-                    .handle(
-                        () => idCount++
-                    );
+                const req = bus.requestOnceWithId(id, 'foxy-pop', true);
+                req.handle(
+                    () => idCount++
+                );
+                req.fire();
 
                 bus.sendRequestMessage('foxy-pop', true);
                 bus.sendRequestMessageWithId('foxy-pop', true, id);
@@ -1674,12 +1686,13 @@ describe('TransportEventBus [bus/bus.ts]', () => {
 
                 bus.sendRequestMessageWithId('ember-puppy', 1, '1234');
 
-                bus.requestStreamWithId(id, 'ember-puppy', 2)
-                    .handle(
-                        () => {
-                            idCount++;
-                        }
-                    );
+                const req = bus.requestStreamWithId(id, 'ember-puppy', 2);
+                req.handle(
+                    () => {
+                        idCount++;
+                    }
+                );
+                req.fire();
 
                 bus.sendRequestMessageWithId('ember-puppy', 3, '5678');
                 bus.sendRequestMessageWithId('ember-puppy', 4, id);
@@ -1830,7 +1843,8 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                 () => {
 
                    const requestStreamSpy = spyOn(bus, 'requestStreamWithId').and.returnValue({
-                      handle: () => {}
+                      handle: () => {},
+                      fire: () => {}
                    });
 
                    let advancedConfig: BridgeConnectionAdvancedConfig = {
@@ -1990,18 +2004,18 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                 bus.listenGalacticStream('space-dogs', null, {brokerIdentity: 'connString', isPrivate: false});
                 bus.sendGalacticMessage('space-dogs', 'off to the moon goes fox!');
             });
-        
+
         describe('markChannelAsGalactic()', () => {
             const channelName = 'space-cats';
 
-            beforeEach(() => {                
+            beforeEach(() => {
                 bus.markChannelAsGalactic(channelName, 'connString');
             });
 
             it('sets the channel to be galactic', () => {
                 const channel: Channel = bus.api.getChannelObject(channelName);
 
-                expect(channel.galactic).toEqual(true);    
+                expect(channel.galactic).toEqual(true);
             });
 
             it('sends MonitorNewGalacticChannel message', (done) => {
@@ -2020,7 +2034,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                             }
                         }
                     );
-            });    
+            });
         });
 
         it('markChannelsAsGalactic triggers markChannelAsGalactic for each channel names', () => {
@@ -2042,14 +2056,14 @@ describe('TransportEventBus [bus/bus.ts]', () => {
         describe('markChannelAsLocal()', () => {
             const channelName = 'space-cats';
 
-            beforeEach(() => {                
+            beforeEach(() => {
                 bus.markChannelAsLocal(channelName);
             });
 
             it('sets the channel to be private', () => {
                 bus.markChannelAsLocal(channelName);
                 const channel: Channel = bus.api.getChannelObject(channelName);
-    
+
                 expect(channel.galactic).toEqual(false);
             });
 
@@ -2069,7 +2083,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                             }
                         }
                     );
-    
+
                 bus.markChannelAsLocal(channelName);
             });
         });
