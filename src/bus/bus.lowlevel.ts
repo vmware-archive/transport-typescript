@@ -15,7 +15,7 @@ import {
     MessageHandlerConfig
 } from './model/message.model';
 import { Observable, Subject, Subscription, merge } from 'rxjs';
-import { bufferTime, filter, map } from 'rxjs/operators';
+import { bufferTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { Logger } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
 import { MonitorChannel, MonitorObject, MonitorType } from './model/monitor.model';
@@ -56,21 +56,23 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         this.bufferedSendStream = new Subject<BufferedSendPayload>();
         this.bufferedSendStream.pipe(
             bufferTime(this.sendBufferFlushInterval),
-            filter(arr => arr.length > 0)
-        ).subscribe({
-            next: (mhs: Array<BufferedSendPayload>) => {
-                this.tickEventLoop(
-                    () => {
-                        mhs.forEach((buf: BufferedSendPayload) => {
-                            if (buf.messagePayload instanceof MessageHandlerConfig) {
-                                this.send(buf.messagePayload.sendChannel, new Message().response(buf.messagePayload));
-                            } else {
-                                this.send(buf.channel, buf.messagePayload, buf.name);
-                            }
+            distinctUntilChanged((x: Array<BufferedSendPayload>, y: Array<BufferedSendPayload>) => {
+                return x.length === 0 && y.length === 0;
+            })
+            ).subscribe({
+                next: (mhs: Array<BufferedSendPayload>) => {
+                    this.tickEventLoop(
+                        () => {
+                            mhs.forEach((buf: BufferedSendPayload) => {
+                                if (buf.messagePayload instanceof MessageHandlerConfig) {
+                                    this.send(buf.messagePayload.sendChannel, new Message().response(buf.messagePayload));
+                                } else {
+                                    this.send(buf.channel, buf.messagePayload, buf.name);
+                                }
+                            });
                         });
-                    });
-            }
-        });
+                }
+            });
 
         // create monitor stream.
         this.monitorStream = new Channel(this.monitorChannel);
@@ -203,17 +205,13 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     }
 
     sendRequest(cname: string, payload: any, name?: string): void {
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
+        const mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
         this.send(mh.sendChannel, new Message().request(mh), name);
     }
 
     sendResponse(cname: string, payload: any, name?: string): void {
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
-        this.tickEventLoop(
-            () => {
-                this.send(mh.sendChannel, new Message().response(mh), name);
-            }
-        );
+        const mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
+        this.send(mh.sendChannel, new Message().response(mh), name);
     }
 
     sendBufferedResponse(cname: string, payload: Message | MessageHandlerConfig, name?: string): void {
