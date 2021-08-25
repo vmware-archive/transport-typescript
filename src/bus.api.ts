@@ -560,6 +560,11 @@ export abstract class EventBus {
 
     /** Set NgZone reference for efficient macro task scheduling in Angular apps */
     abstract setNgZoneRef(ngZoneRef: NgZoneRef): void;
+
+    /**
+     * Perform any cleanups to free up any resources for garbage collection
+     */
+    abstract destroy(): void;
 }
 
 /**
@@ -574,6 +579,11 @@ export interface EventBusLowApi {
      * @returns {Map<string, Channel>} map of all channels.
      */
     readonly channelMap: Map<ChannelName, Channel>;
+
+    /**
+     * Subscription to Subject that schedules Angular change detection.
+     */
+    ngViewRefreshSubscription?: Subscription;
 
     /**
      * A new channel is created by the first reference to it. All subsequent references to that channel are handed
@@ -786,11 +796,6 @@ export interface EventBusLowApi {
     loggerInstance: Logger;
 
     /**
-     * Subscription for Subject that triggers Angular change detection
-     */
-    ngViewRefreshSubscription: Subscription;
-
-    /**
      * For external access to messagebus private logger (so output streams are sequentialized).
      *
      * @param {string} msg log message
@@ -852,6 +857,11 @@ export interface EventBusLowApi {
      */
     getId(): UUID;
 
+    /**
+     * Set up Subject and subscribe to it that will fire as messages are emitted to trigger Angular change detection.
+     * As the name implies, should only be used when in Angular apps.
+     */
+    setUpNgViewRefreshScheduler(): void;
 }
 
 

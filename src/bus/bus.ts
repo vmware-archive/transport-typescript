@@ -37,7 +37,6 @@ import { FabricApi } from '../fabric.api';
 import { FabricApiImpl } from '../fabric/fabric';
 import { NgZoneRef } from '.';
 
-
 export class TransportEventBus extends EventBus implements EventBusEnabled {
 
     private static instance: EventBus;
@@ -46,7 +45,7 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
      * Destroy the bus completely.
      */
     public static destroy(): void {
-        this.instance.api.ngViewRefreshSubscription?.unsubscribe(); // unsubscribe from Angular change detection scheduler
+        this.instance.destroy();
         this.instance = null;
     }
 
@@ -166,6 +165,14 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
 
     public setNgZoneRef(ngZoneRef: NgZoneRef): void {
         this.zoneRef = ngZoneRef;
+        this.api.setUpNgViewRefreshScheduler();
+    }
+
+    public destroy(): void {
+         // unsubscribe from Angular change detection scheduler
+         this.api.ngViewRefreshSubscription?.unsubscribe();
+
+         // other future cleanup code goes in here
     }
 
     public enableDevMode(): void {
