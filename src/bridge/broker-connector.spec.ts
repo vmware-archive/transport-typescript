@@ -85,7 +85,7 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                 session: session.id,
                 isQueue: false,
                 brokerPrefix: 'fake'
-            };            
+            };
             let headers = session.connect.calls.mostRecent().args[0];
             let headerKeys = Object.keys(headers);
             expect(globalHeaderKeys.every(key => headerKeys.includes(key))).toBeTruthy();
@@ -108,13 +108,13 @@ describe('BrokerConnector [broker-connector.ts]', () => {
                     bc.disconnectClient(session.id);
                     headers = session.disconnect.calls.mostRecent().args[0];
                     headerKeys = Object.keys(headers);
-                    expect(globalHeaderKeys.every(key => headerKeys.includes(key))).toBeTruthy();                    
+                    expect(globalHeaderKeys.every(key => headerKeys.includes(key))).toBeTruthy();
 
                     done();
                 },
                 10 // found by trial and error.
             );
-        });        
+        });
     });
 
     describe('Service configuration and basic connect/disconnect', () => {
@@ -1210,9 +1210,9 @@ describe('BrokerConnector [broker-connector.ts]', () => {
             (done) => {
                 let count = 0;
                 /*
- 
+
                 This tests that galactic channels operate over low level API's
- 
+
                  */
 
                 const chan = bus.api.getGalacticChannel(

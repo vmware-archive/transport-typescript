@@ -173,17 +173,13 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     }
 
     sendRequest(cname: string, payload: any, name?: string): void {
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
+        const mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
         this.send(mh.sendChannel, new Message().request(mh), name);
     }
 
     sendResponse(cname: string, payload: any, name?: string): void {
-        let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
-        this.tickEventLoop(
-            () => {
-                this.send(mh.sendChannel, new Message().response(mh), name);
-            }
-        );
+        const mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
+        this.send(mh.sendChannel, new Message().response(mh), name);
     }
 
     complete(cname: ChannelName, from?: SentFrom): boolean {
@@ -289,17 +285,30 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
     send(cname: ChannelName, message: Message, from?: SentFrom): boolean {
         message.sender = from; // make sure we know where this message came from.
-        let mo = new MonitorObject;
-        if (!this.internalChannelMap.has(cname)) {
-            mo = new MonitorObject().build(MonitorType.MonitorDropped, cname, from, message);
+        const channelFound = this.internalChannelMap.has(cname);
+        let mo = new MonitorObject().build(
+            channelFound ? MonitorType.MonitorData : MonitorType.MonitorDropped,
+            cname,
+            from,
+            message
+        );
+
+        if (!channelFound) {
             this.monitorStream.send(new Message().request(mo));
             return false;
         }
 
-        mo = new MonitorObject().build(MonitorType.MonitorData, cname, from, message);
-        this.monitorStream.send(new Message().request(mo));
-        this.internalChannelMap.get(cname)
-            .send(message);
+
+        if (this.eventBusRef.zoneRef) {
+            this.eventBusRef.zoneRef.runOutsideAngular(() => {
+                this.internalChannelMap.get(cname).send(message);
+                this.monitorStream.send(new Message().request(mo));
+            });
+        } else {
+            this.monitorStream.send(new Message().request(mo));
+            this.internalChannelMap.get(cname).send(message);
+        }
+
         return true;
     }
 
@@ -325,6 +334,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         const handler: MessageHandler<R, E> = this.createMessageHandler(handlerConfig, false, name, id);
         this.send(handlerConfig.sendChannel, new Message(id).request(handlerConfig), name);
         return handler;
+
     }
 
     respond<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom): MessageResponder<R, E> {

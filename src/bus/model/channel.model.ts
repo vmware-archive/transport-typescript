@@ -114,10 +114,9 @@ export class Channel {
      * @param message Message
      */
     send(message: Message) {
-        setTimeout(
-            () => {
-                this._streamObject.next(message);
-            });
+        setTimeout(() => {
+            this._streamObject.next(message);
+        });
     }
 
     /**

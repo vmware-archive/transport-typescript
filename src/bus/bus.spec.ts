@@ -342,7 +342,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
             () => bus.closeChannel('puppers')
             , 5);
 
-        // should have settled 
+        // should have settled
         bus.api.tickEventLoop(
             () => {
 
@@ -367,7 +367,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
 
         bus.sendErrorMessage('puppers', 'why are my shoes ruined?');
 
-        // should have settled 
+        // should have settled
         bus.api.tickEventLoop(
             () => {
                 expect(bus.api.countListeners()).toEqual(3);
@@ -389,7 +389,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
 
         bus.sendErrorMessage('puppers', 'why are my shoes ruined?');
 
-        // should have settled 
+        // should have settled
         bus.api.tickEventLoop(
             () => {
                 expect(bus.api.countListeners()).toEqual(3);
@@ -437,7 +437,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
 
         bus.sendRequestMessage('puppers', 'how many bones has fox hidden?');
 
-        // should have settled 
+        // should have settled
         bus.api.tickEventLoop(
             () => {
                 responder.tick('ignore me');
@@ -449,7 +449,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
             , 10);
 
 
-        // should have settled 
+        // should have settled
         bus.api.tickEventLoop(
             () => {
                 expect(count).toEqual(1); // only a single event should have made it through
@@ -494,7 +494,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
 
         bus.sendRequestMessage('puppers', 'how many bones has fox hidden?');
 
-        // should have settled 
+        // should have settled
         bus.api.tickEventLoop(
             () => {
                 handler.tick('ignore me');
@@ -506,7 +506,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
             , 10);
 
 
-        // should have settled 
+        // should have settled
         bus.api.tickEventLoop(
             () => {
                 expect(count).toEqual(1); // only a single event should have made it through
@@ -834,7 +834,6 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         }
                     }
                 );
-
             }
         );
 
@@ -1478,7 +1477,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         expect(req).toEqual('where is my dinner?');
                         counter++;
                         if (counter === 3) {
-                            responder.close(); // stop responding, but keep handling. 
+                            responder.close(); // stop responding, but keep handling.
                         }
                         return 'coming soon, calm down pup!';
                     }
@@ -1990,18 +1989,18 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                 bus.listenGalacticStream('space-dogs', null, {brokerIdentity: 'connString', isPrivate: false});
                 bus.sendGalacticMessage('space-dogs', 'off to the moon goes fox!');
             });
-        
+
         describe('markChannelAsGalactic()', () => {
             const channelName = 'space-cats';
 
-            beforeEach(() => {                
+            beforeEach(() => {
                 bus.markChannelAsGalactic(channelName, 'connString');
             });
 
             it('sets the channel to be galactic', () => {
                 const channel: Channel = bus.api.getChannelObject(channelName);
 
-                expect(channel.galactic).toEqual(true);    
+                expect(channel.galactic).toEqual(true);
             });
 
             it('sends MonitorNewGalacticChannel message', (done) => {
@@ -2020,7 +2019,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                             }
                         }
                     );
-            });    
+            });
         });
 
         it('markChannelsAsGalactic triggers markChannelAsGalactic for each channel names', () => {
@@ -2042,14 +2041,14 @@ describe('TransportEventBus [bus/bus.ts]', () => {
         describe('markChannelAsLocal()', () => {
             const channelName = 'space-cats';
 
-            beforeEach(() => {                
+            beforeEach(() => {
                 bus.markChannelAsLocal(channelName);
             });
 
             it('sets the channel to be private', () => {
                 bus.markChannelAsLocal(channelName);
                 const channel: Channel = bus.api.getChannelObject(channelName);
-    
+
                 expect(channel.galactic).toEqual(false);
             });
 
@@ -2069,7 +2068,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                             }
                         }
                     );
-    
+
                 bus.markChannelAsLocal(channelName);
             });
         });

@@ -17,8 +17,11 @@ import { GeneralUtil } from './util/util';
 import { FabricApi } from './fabric.api';
 import { BrokerConnector } from './bridge';
 
+// used to accept NgZone instance from Angular to schedule tasks outside of Zone, enabling efficient change detection
+export declare type NgZoneRef = any;
+
 // current version
-const version = '1.3.0';
+const version = '1.3.1';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -159,6 +162,11 @@ export abstract class EventBus {
      * Reference to the broker connector.
      */
     readonly brokerConnector: BrokerConnector;
+
+    /**
+     * Reference to ngZone.
+     */
+    public zoneRef: NgZoneRef;
 
     /**
      * Simple API Methods
@@ -549,6 +557,9 @@ export abstract class EventBus {
 
     /** Enable Fake Socket for broker connector */
     abstract enableDevMode(): void;
+
+    /** Set NgZone reference for efficient macro task scheduling in Angular apps */
+    abstract setNgZoneRef(ngZoneRef: NgZoneRef): void;
 }
 
 /**

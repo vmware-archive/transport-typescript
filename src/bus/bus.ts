@@ -35,6 +35,7 @@ import { MessageProxyConfig, ProxyControl } from '../proxy/message.proxy.api';
 import { MessageProxy } from '../proxy/message.proxy';
 import { FabricApi } from '../fabric.api';
 import { FabricApiImpl } from '../fabric/fabric';
+import { NgZoneRef } from '.';
 
 
 export class TransportEventBus extends EventBus implements EventBusEnabled {
@@ -78,7 +79,7 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
      * @returns {EventBus} the newly rebooted bus
      */
     public static rebootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
-        this.instance = new this(logLevel, disableBootMessage);
+        this.instance = new this(logLevel, disableBootMessage, false);
         return this.instance;
     }
 
@@ -152,12 +153,18 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
         // this.easterEgg();
     }
 
+    public zoneRef: NgZoneRef;
+
     public get logger(): Logger {
         return this.log;
     }
 
     public getName() {
         return 'EventBus';
+    }
+
+    public setNgZoneRef(ngZoneRef: NgZoneRef): void {
+        this.zoneRef = ngZoneRef;
     }
 
     public enableDevMode(): void {
@@ -310,14 +317,10 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
         payload: any,
         name = this.getName()): boolean {
 
-        this.api.tickEventLoop(
-            () => {
-                this.api.send(
-                    cname,
-                    new Message().response(payload),
-                    name
-                );
-            }
+        this.api.send(
+            cname,
+            new Message().response(payload),
+            name
         );
         return true;
     }
@@ -328,14 +331,10 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
         id: UUID,
         from?: string,
         proxyBroadcast: boolean = false): void {
-        this.api.tickEventLoop(
-            () => {
-                this.api.send(
-                    cname,
-                    new Message(id, 1, proxyBroadcast).response(payload),
-                    from
-                );
-            }
+        this.api.send(
+            cname,
+            new Message(id, 1, proxyBroadcast).response(payload),
+            from
         );
     }
 
@@ -346,14 +345,10 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
         version: number,
         from?: string,
         proxyBroadcast: boolean = false): void {
-        this.api.tickEventLoop(
-            () => {
-                this.api.send(
-                    cname,
-                    new Message(id, version, proxyBroadcast).response(payload),
-                    from
-                );
-            }
+        this.api.send(
+            cname,
+            new Message(id, version, proxyBroadcast).response(payload),
+            from
         );
     }
 
@@ -468,7 +463,7 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
 
         return this.api.request(
             new MessageHandlerConfig(sendChannel, requestPayload, true, returnChannel),
-            name,
+            from,
             uuid
         );
     }
