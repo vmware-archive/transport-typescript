@@ -17,6 +17,7 @@ import { GeneralUtil } from '../util/util';
 import { MessageHandler, MessageResponder, MessageType } from '../bus.api';
 import { BridgeConnectionAdvancedConfig, StompConfig } from '../bridge';
 import { StompBusCommand } from '../bridge/stomp.model';
+import { NgZoneRef } from '.';
 
 function makeCallCountCaller(done: any, targetCount: number): any {
     let count = 0;
@@ -2118,5 +2119,103 @@ describe('TransportEventBus [bus/bus.ts]', () => {
 
             }
         );
+    });
+
+    describe('NgZone support tests', () => {
+        it('ngZoneRef should be set', () => {
+            const ngZoneRef: NgZoneRef = {};
+
+            // pass NgZone to bus
+            bus.setNgZoneRef(ngZoneRef);
+
+            expect(bus.zoneRef).not.toBeUndefined();
+        });
+
+        it('Angular change detection is invoked when ngZoneRef is present', (done) => {
+            let changeDetectionCount = 0;
+
+            const ngZoneRef: NgZoneRef = {
+                run(fn: any): void {
+                    changeDetectionCount++;
+                    expect(fn instanceof Function).toBeTruthy();
+                    expect(changeDetectionCount).toBe(1);
+                    done();
+                },
+                runOutsideAngular(fn: Function): void {
+                    fn();
+                }
+            };
+
+            // set up a channel
+            bus.api.getChannel(testChannel);
+
+            // pass NgZone to bus
+            bus.setNgZoneRef(ngZoneRef);
+
+            // send message
+            bus.sendResponseMessage(testChannel, 'testing');
+        });
+
+        it('Angular change detection is debounced if messages arrive rapidly', (done) => {
+            let changeDetectionCount = 0;
+            let sentMessagesCount = 0;
+
+            const ngZoneRef: NgZoneRef = {
+                run(fn: any): void {
+                    changeDetectionCount++;
+                    expect(changeDetectionCount).toBe(1);
+                    expect(sentMessagesCount).toBe(100);
+                    done();
+                },
+                runOutsideAngular(fn: Function): void {
+                    sentMessagesCount++;
+                    fn();
+                }
+            };
+
+            // set up a channel
+            bus.api.getChannel(testChannel);
+
+            // pass NgZone to bus
+            bus.setNgZoneRef(ngZoneRef);
+
+            // send messages
+            for (let i = 0; i < 100; i++) {
+                bus.sendResponseMessage(testChannel, 'testing');
+            }
+        });
+
+        it('Angular change detection is not invoked when ngZoneRef is not set', (done) => {
+            bus.listenOnce(testChannel)
+                .handle(() => {
+                    expect(bus.api.ngViewRefreshSubscription).toBeUndefined();
+                    done();
+                });
+
+            // set up a channel
+            bus.api.getChannel(testChannel);
+
+            // send message
+            bus.sendResponseMessage(testChannel, 'testing');
+        });
+
+        it('Subscription is properly disposed of when bus is destroyed', () => {
+            const ngZoneRef: NgZoneRef = {
+                run(fn: any): void {},
+                runOutsideAngular(fn: Function): void {}
+            };
+
+            // pass NgZone to bus
+            bus.setNgZoneRef(ngZoneRef);
+
+            // subscription is alive
+            expect(bus.api.ngViewRefreshSubscription.closed).toBeFalsy();
+
+            // clean up any tied up resources
+            bus.destroy();
+
+            // ngViewRefreshSubscription should be closed
+            expect(bus.api.ngViewRefreshSubscription.closed).toBeTruthy();
+        });
     });
 });
