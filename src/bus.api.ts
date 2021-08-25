@@ -92,8 +92,6 @@ export interface MessageHandler<T = any, E = any> {
      * @param messageType optional filter for responses, requests or errors. If left blank, you get the firehose.
      */
     getObservable(messageType?: MessageType): Observable<T>;
-
-    fire(): void;
 }
 
 /**

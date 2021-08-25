@@ -598,13 +598,12 @@ describe('TransportEventBus [bus/bus.ts]', () => {
             .generate(
                 (req: string) => 'get the ball!'
             );
-        const requester = bus.requestOnce('puppy-time', 'command');
-        requester.handle(
-            (resp: string) => {
-                expect(resp).toBe('get the ball!');
-            }
-        );
-        requester.fire();
+        bus.requestOnce('puppy-time', 'command')
+            .handle(
+                (resp: string) => {
+                    expect(resp).toBe('get the ball!');
+                }
+            );
 
         bus.api.tickEventLoop(
             () => {
@@ -723,14 +722,13 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         }
                     );
 
-                const req = bus.requestOnce(testChannel, 'strawbarita');
-                req.handle(
-                    (resp: string) => {
-                        expect(resp).toEqual('margarita');
-                        done();
-                    }
-                );
-                req.fire();
+                bus.requestOnce(testChannel, 'strawbarita')
+                    .handle(
+                        (resp: string) => {
+                            expect(resp).toEqual('margarita');
+                            done();
+                        }
+                    );
             }
         );
 
@@ -745,14 +743,13 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         }
                     );
 
-                const req = bus.requestOnce(testChannel, 'magnum', '#some-different-return');
-                req.handle(
-                    (resp: string) => {
-                        expect(resp).toEqual('maggie');
-                        done();
-                    }
-                );
-                req.fire();
+                bus.requestOnce(testChannel, 'magnum', '#some-different-return')
+                    .handle(
+                        (resp: string) => {
+                            expect(resp).toEqual('maggie');
+                            done();
+                        }
+                    );
             }
         );
 
@@ -767,18 +764,16 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         (request: string) => {
                             expect(request).toEqual('strawbarita');
                             bus.api.sendResponse(channel2, 'margarita');
-                            bus.api.tickEventLoop(null);
                         }
                     );
 
-                const req = bus.requestOnce(channel1, 'strawbarita', channel2);
-                req.handle(
-                    (resp: string) => {
-                        expect(resp).toEqual('margarita');
-                        done();
-                    }
-                );
-                req.fire();
+                bus.requestOnce(channel1, 'strawbarita', channel2)
+                    .handle(
+                        (resp: string) => {
+                            expect(resp).toEqual('margarita');
+                            done();
+                        }
+                    );
             }
         );
 
@@ -804,7 +799,6 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         done();
                     }
                 );
-                handler2.fire();
             }
         );
 
@@ -840,8 +834,6 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         }
                     }
                 );
-
-                requester.fire();
             }
         );
 
@@ -1171,14 +1163,13 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                     }
                 );
 
-                const req = bus.requestOnce(testChannel, 'bikes');
-                req.handle(
-                    (msg: string) => {
-                        expect(msg).toEqual('cars');
-                        done();
-                    }
-                );
-                req.fire();
+                bus.requestOnce(testChannel, 'bikes')
+                    .handle(
+                        (msg: string) => {
+                            expect(msg).toEqual('cars');
+                            done();
+                        }
+                    );
             }
         );
 
@@ -1210,7 +1201,6 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         done();
                     }
                 );
-                stream.fire();
             }
         );
 
@@ -1271,7 +1261,6 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                         done();
                     }
                 );
-                requester.fire();
             }
         );
 
@@ -1343,14 +1332,13 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                 // enable the easter egg and test it.
                 const castBus = bus as TransportEventBus;
                 castBus.easterEgg();
-                const req = bus.requestOnce('__maglingtonpuddles__', 'hi maggie!');
-                req.handle(
-                    (msg: string) => {
-                        expect(msg).toEqual('Maggie wags his little nubby tail at you, as ' +
-                            'he sits under his little yellow boat on the beach');
-                        done();
-                    });
-                req.fire();
+                bus.requestOnce('__maglingtonpuddles__', 'hi maggie!')
+                    .handle(
+                        (msg: string) => {
+                            expect(msg).toEqual('Maggie wags his little nubby tail at you, as ' +
+                                'he sits under his little yellow boat on the beach');
+                            done();
+                        });
 
             }
         );
@@ -1651,11 +1639,10 @@ describe('TransportEventBus [bus/bus.ts]', () => {
 
                 bus.sendRequestMessage('foxy-pop', true);
 
-                const req = bus.requestOnceWithId(id, 'foxy-pop', true);
-                req.handle(
-                    () => idCount++
-                );
-                req.fire();
+                bus.requestOnceWithId(id, 'foxy-pop', true)
+                    .handle(
+                        () => idCount++
+                    );
 
                 bus.sendRequestMessage('foxy-pop', true);
                 bus.sendRequestMessageWithId('foxy-pop', true, id);
@@ -1686,13 +1673,12 @@ describe('TransportEventBus [bus/bus.ts]', () => {
 
                 bus.sendRequestMessageWithId('ember-puppy', 1, '1234');
 
-                const req = bus.requestStreamWithId(id, 'ember-puppy', 2);
-                req.handle(
-                    () => {
-                        idCount++;
-                    }
-                );
-                req.fire();
+                bus.requestStreamWithId(id, 'ember-puppy', 2)
+                    .handle(
+                        () => {
+                            idCount++;
+                        }
+                    );
 
                 bus.sendRequestMessageWithId('ember-puppy', 3, '5678');
                 bus.sendRequestMessageWithId('ember-puppy', 4, id);
@@ -1843,8 +1829,7 @@ describe('TransportEventBus [bus/bus.ts]', () => {
                 () => {
 
                    const requestStreamSpy = spyOn(bus, 'requestStreamWithId').and.returnValue({
-                      handle: () => {},
-                      fire: () => {}
+                      handle: () => {}
                    });
 
                    let advancedConfig: BridgeConnectionAdvancedConfig = {

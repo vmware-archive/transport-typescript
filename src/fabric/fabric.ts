@@ -268,7 +268,6 @@ export class FabricApiImpl implements FabricApi {
         }
 
         if (handler) {
-            handler.fire();
             return handler.getObservable(MessageType.MessageTypeResponse).pipe(
                 map(
                     (resp: APIResponse<string>) => {

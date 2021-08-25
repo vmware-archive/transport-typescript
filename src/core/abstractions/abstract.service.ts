@@ -219,8 +219,6 @@ export abstract class AbstractService<ReqT, RespT> extends AbstractBase implemen
                         failureHandler(err, callerArgs);
                     }
                 );
-
-            messageHandler.fire();
         };
     }
 

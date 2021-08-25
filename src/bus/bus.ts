@@ -240,7 +240,6 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
                 }
             }
         );
-        handler.fire();
         return handler;
     }
 
