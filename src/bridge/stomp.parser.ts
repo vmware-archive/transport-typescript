@@ -202,24 +202,22 @@ export class StompParser {
     }
 
     // create galactic topic/queue detination
-    public static generateGalacticDesintation(dest: string, channel: string, isQueue: boolean): string {
-        return (isQueue ? '/user' : '') + dest + '/' + channel;
+    public static generateGalacticDesintation(dest: string, channel: string): string {
+        return dest + '/' + channel;
     }
 
     // convert destination back into a channel
     public static convertSubscriptionToChannel(subscription: string,
-                                               topicOrQueueDesintation: string,
-                                               isQueue: boolean): string {
+                                               topicOrQueueDesintation: string): string {
         return subscription.replace(
-            (isQueue ? '/user' + topicOrQueueDesintation : topicOrQueueDesintation) + '/',
+            topicOrQueueDesintation + '/',
             '');
     }
 
     // convert topic/queue back into a channel
     public static convertTopicOrQueueToChannel(subscription: string,
-                                               brokerPrefix: string,
-                                               isQueue: boolean): string {
+                                               brokerPrefix: string): string {
         return subscription.replace(
-            isQueue ? '/user' + brokerPrefix + '/' : brokerPrefix + '/', '').trim();
+            brokerPrefix + '/', '').trim();
     }
 }

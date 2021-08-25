@@ -248,12 +248,12 @@ describe('Stomp Parser [stomp.parser]', () => {
 
             // public channel
             const subA = StompParser.convertSubscriptionToChannel(
-                'puppykitty/', 'kitty', false);
+                'puppykitty/', 'kitty');
             expect(subA).toEqual('puppy');
 
             // private channel
             const subB = StompParser.convertSubscriptionToChannel(
-                '/userpuppy/kitty', 'puppy', true);
+                'puppy/kitty', 'puppy');
             expect(subB).toEqual('kitty');
 
         }
