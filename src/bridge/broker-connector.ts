@@ -315,7 +315,7 @@ export class BrokerConnector implements EventBusEnabled {
                     const subscriptionId = this.generateSubscriptionId(session.id, cleanedChannel);
                     const brokerPrefix = galacticConfig.isPrivate ? config.queueLocation : config.topicLocation;
                     const destination =
-                        StompParser.generateGalacticDesintation(brokerPrefix, cleanedChannel, galacticConfig.isPrivate);
+                        StompParser.generateGalacticDesintation(brokerPrefix, cleanedChannel);
                     const subscription =
                         StompParser.generateStompBrokerSubscriptionRequest(
                             session.id, destination, subscriptionId, galacticConfig.isPrivate, brokerPrefix
@@ -358,7 +358,7 @@ export class BrokerConnector implements EventBusEnabled {
                 const brokerPrefix = this._privateChannels.get(channel)[sessionBrokerIdentity] ?
                     config.queueLocation : config.topicLocation;
                 const destination =
-                    StompParser.generateGalacticDesintation(brokerPrefix, cleanedChannel, isPrivateChannel);
+                    StompParser.generateGalacticDesintation(brokerPrefix, cleanedChannel);
                 const subscription = StompParser.generateStompBrokerSubscriptionRequest(
                         session.id, destination, subscriptionId, isPrivateChannel, brokerPrefix);
 
@@ -741,7 +741,7 @@ export class BrokerConnector implements EventBusEnabled {
                 );
 
             const channel: string = StompParser.convertTopicOrQueueToChannel(
-                data.destination, data.brokerPrefix, data.isQueue);
+                data.destination, data.brokerPrefix);
 
             const chan: Observable<Message> =
                 this.bus.api.getRequestChannel(channel, this.getName());
@@ -764,8 +764,7 @@ export class BrokerConnector implements EventBusEnabled {
                     let respChan =
                         StompParser.convertSubscriptionToChannel(
                             data.destination,
-                            data.isQueue ? session.config.queueLocation : session.config.topicLocation,
-                            data.isQueue);
+                            data.isQueue ? session.config.queueLocation : session.config.topicLocation);
                     let payload = JSON.parse(msg.body);
 
                     const respChannelObject = this.bus.api.getChannelObject(respChan);
@@ -820,8 +819,7 @@ export class BrokerConnector implements EventBusEnabled {
 
             // let the bus know.
             this.sendBusCommandResponseRaw(message, BrokerConnectorChannel.subscription, true);
-            const channel: string = StompParser.convertTopicOrQueueToChannel(
-                data.destination, data.brokerPrefix, data.isQueue);
+            const channel: string = StompParser.convertTopicOrQueueToChannel(data.destination, data.brokerPrefix);
 
             const sub: Subscription = session.getGalacticSubscription(channel);
 
