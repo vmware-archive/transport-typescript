@@ -21,7 +21,7 @@ import { BrokerConnector } from './bridge';
 export declare type NgZoneRef = any;
 
 // current version
-const version = '1.3.1';
+const version = '1.3.2';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -784,6 +784,11 @@ export interface EventBusLowApi {
      * Quick access to logger instance for spies and testing.
      */
     loggerInstance: Logger;
+
+    /**
+     * Subscription for Subject that triggers Angular change detection
+     */
+    ngViewRefreshSubscription: Subscription;
 
     /**
      * For external access to messagebus private logger (so output streams are sequentialized).

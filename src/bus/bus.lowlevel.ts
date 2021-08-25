@@ -15,7 +15,7 @@ import {
     MessageHandlerConfig
 } from './model/message.model';
 import { Observable, Subject, Subscription, merge } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { debounceTime, filter, map } from 'rxjs/operators';
 import { Logger } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
 import { MonitorChannel, MonitorObject, MonitorType } from './model/monitor.model';
@@ -23,16 +23,23 @@ import { LogUtil } from '../log/util';
 import { UUID } from './store/store.model';
 import { GeneralUtil } from '../util/util';
 
+// interval to debounce the scheduling of angular change detection with
+const NGZONE_TRIGGER_DEBOUNCE_THRESHOLD = 10;
+
 export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
     readonly channelMap: Map<ChannelName, Channel>;
+
     private log: Logger;
     private monitorChannel = MonitorChannel.stream;
     private monitorStream: Channel;
     private dumpMonitor: boolean;
     private internalChannelMap: Map<string, Channel>;
-    public loggerInstance: Logger;
+    private ngViewRefreshSubject: Subject<void>;
     private id: UUID;
+
+    public ngViewRefreshSubscription: Subscription;
+    public loggerInstance: Logger;
 
     public getId(): UUID {
         return this.id;
@@ -41,6 +48,17 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     constructor(private eventBusRef: EventBus, channelMap: Map<string, Channel>, logger: Logger) {
         this.internalChannelMap = channelMap;
         this.id = GeneralUtil.genUUID();
+
+        // create a Subject that triggers Angular change detection when a new message arrives. to prevent
+        // suffocating CPU resource from too many cycles, debounce the incoming messages by NGZONE_TRIGGER_DEBOUNCE_THRESHOLD milliseconds.
+        this.ngViewRefreshSubject = new Subject();
+        this.ngViewRefreshSubscription = this.ngViewRefreshSubject
+            .pipe(debounceTime(NGZONE_TRIGGER_DEBOUNCE_THRESHOLD))
+            .subscribe(() => {
+                if (this.eventBusRef.zoneRef) {
+                    this.eventBusRef.zoneRef.run(() => {});
+                }
+            });
 
         // create monitor stream.
         this.monitorStream = new Channel(this.monitorChannel);
@@ -303,6 +321,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
             this.eventBusRef.zoneRef.runOutsideAngular(() => {
                 this.internalChannelMap.get(cname).send(message);
                 this.monitorStream.send(new Message().request(mo));
+                this.ngViewRefreshSubject.next();
             });
         } else {
             this.monitorStream.send(new Message().request(mo));

@@ -46,6 +46,7 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
      * Destroy the bus completely.
      */
     public static destroy(): void {
+        this.instance.api.ngViewRefreshSubscription?.unsubscribe(); // unsubscribe from Angular change detection scheduler
         this.instance = null;
     }
 
