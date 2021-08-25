@@ -35,6 +35,7 @@ import { MessageProxyConfig, ProxyControl } from '../proxy/message.proxy.api';
 import { MessageProxy } from '../proxy/message.proxy';
 import { FabricApi } from '../fabric.api';
 import { FabricApiImpl } from '../fabric/fabric';
+import { NgZoneRef } from '.';
 
 
 export class TransportEventBus extends EventBus implements EventBusEnabled {
@@ -78,7 +79,7 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
      * @returns {EventBus} the newly rebooted bus
      */
     public static rebootWithOptions(logLevel: LogLevel, disableBootMessage: boolean): EventBus {
-        this.instance = new this(logLevel, disableBootMessage);
+        this.instance = new this(logLevel, disableBootMessage, false);
         return this.instance;
     }
 
@@ -152,12 +153,18 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
         // this.easterEgg();
     }
 
+    public zoneRef: NgZoneRef;
+
     public get logger(): Logger {
         return this.log;
     }
 
     public getName() {
         return 'EventBus';
+    }
+
+    public setNgZoneRef(ngZoneRef: NgZoneRef): void {
+        this.zoneRef = ngZoneRef;
     }
 
     public enableDevMode(): void {
