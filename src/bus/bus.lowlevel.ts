@@ -15,7 +15,7 @@ import {
     MessageHandlerConfig
 } from './model/message.model';
 import { Observable, Subject, Subscription, merge } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { debounceTime, filter, map } from 'rxjs/operators';
 import { Logger } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
 import { MonitorChannel, MonitorObject, MonitorType } from './model/monitor.model';
@@ -23,16 +23,23 @@ import { LogUtil } from '../log/util';
 import { UUID } from './store/store.model';
 import { GeneralUtil } from '../util/util';
 
+// interval to debounce the scheduling of angular change detection with
+const NGZONE_TRIGGER_DEBOUNCE_THRESHOLD = 10;
+
 export class EventBusLowLevelApiImpl implements EventBusLowApi {
 
     readonly channelMap: Map<ChannelName, Channel>;
+
     private log: Logger;
     private monitorChannel = MonitorChannel.stream;
     private monitorStream: Channel;
     private dumpMonitor: boolean;
     private internalChannelMap: Map<string, Channel>;
-    public loggerInstance: Logger;
     private id: UUID;
+    private ngViewRefreshSubject?: Subject<void>;
+
+    public ngViewRefreshSubscription?: Subscription;
+    public loggerInstance: Logger;
 
     public getId(): UUID {
         return this.id;
@@ -303,6 +310,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
             this.eventBusRef.zoneRef.runOutsideAngular(() => {
                 this.internalChannelMap.get(cname).send(message);
                 this.monitorStream.send(new Message().request(mo));
+                this.ngViewRefreshSubject?.next();
             });
         } else {
             this.monitorStream.send(new Message().request(mo));
@@ -345,6 +353,18 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     listen<R>(handlerConfig: MessageHandlerConfig, requestStream?: boolean,
               name?: SentFrom, id?: UUID): MessageHandler<R> {
         return this.createMessageHandler(handlerConfig, requestStream, name, id);
+    }
+
+    setUpNgViewRefreshScheduler(): void {
+        // kill any existing subscription
+        this.ngViewRefreshSubscription?.unsubscribe();
+
+        // create a Subject that triggers Angular change detection when a new message arrives. to prevent
+        // suffocating CPU resource from too many cycles, debounce the incoming messages by NGZONE_TRIGGER_DEBOUNCE_THRESHOLD milliseconds.
+        this.ngViewRefreshSubject = new Subject();
+        this.ngViewRefreshSubscription = this.ngViewRefreshSubject
+            .pipe(debounceTime(NGZONE_TRIGGER_DEBOUNCE_THRESHOLD))
+            .subscribe(() => this.eventBusRef.zoneRef.run(() => {}));
     }
 
     /**

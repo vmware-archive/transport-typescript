@@ -21,7 +21,7 @@ import { BrokerConnector } from './bridge';
 export declare type NgZoneRef = any;
 
 // current version
-const version = '1.3.1';
+const version = '1.3.2';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -560,6 +560,11 @@ export abstract class EventBus {
 
     /** Set NgZone reference for efficient macro task scheduling in Angular apps */
     abstract setNgZoneRef(ngZoneRef: NgZoneRef): void;
+
+    /**
+     * Perform any cleanups to free up any resources for garbage collection
+     */
+    abstract destroy(): void;
 }
 
 /**
@@ -574,6 +579,11 @@ export interface EventBusLowApi {
      * @returns {Map<string, Channel>} map of all channels.
      */
     readonly channelMap: Map<ChannelName, Channel>;
+
+    /**
+     * Subscription to Subject that schedules Angular change detection.
+     */
+    ngViewRefreshSubscription?: Subscription;
 
     /**
      * A new channel is created by the first reference to it. All subsequent references to that channel are handed
@@ -847,6 +857,11 @@ export interface EventBusLowApi {
      */
     getId(): UUID;
 
+    /**
+     * Set up Subject and subscribe to it that will fire as messages are emitted to trigger Angular change detection.
+     * As the name implies, should only be used when in Angular apps.
+     */
+    setUpNgViewRefreshScheduler(): void;
 }
 
 
