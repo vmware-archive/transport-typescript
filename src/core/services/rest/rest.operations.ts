@@ -29,6 +29,7 @@ export interface RestOperation {
 export class RestOperations extends AbstractCore {
 
     protected static _instance: RestOperations;
+    protected readonly execContext: any;
 
     /**
      * Kill instance of service.
@@ -46,6 +47,7 @@ export class RestOperations extends AbstractCore {
     constructor() {
         super();
         this.id = GeneralUtil.genUUID();
+        this.execContext = this.bus.api.ngZone() ?? { run: (fn: () => void) => fn() };
     }
 
     public setGlobalHttpHeaders(headers: any, from: SentFrom) {
@@ -205,7 +207,7 @@ export class RestOperations extends AbstractCore {
                         , from);
 
                 }
-                operation.successHandler(responseObject);
+                this.execContext.run(() => operation.successHandler(responseObject));
             }
         );
 
@@ -217,7 +219,7 @@ export class RestOperations extends AbstractCore {
                         error = error.payload;
                     }
 
-                    operation.errorHandler(error);
+                    this.execContext.run(() => operation.errorHandler(error));
                 }
             );
         }

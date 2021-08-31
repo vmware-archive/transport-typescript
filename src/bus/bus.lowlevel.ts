@@ -6,7 +6,7 @@
 
 import {
     ChannelBrokerMapping,
-    ChannelName, EventBus, EventBusLowApi, MessageFunction, MessageHandler, MessageResponder, MessageType,
+    ChannelName, EventBus, EventBusLowApi, MessageFunction, MessageHandler, MessageResponder, MessageType, NgZoneRef,
     SentFrom
 } from '../bus.api';
 import { Channel } from './model/channel.model';
@@ -37,12 +37,17 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     private internalChannelMap: Map<string, Channel>;
     private id: UUID;
     private ngViewRefreshSubject?: Subject<void>;
+    private _ngZone: NgZoneRef;
 
     public ngViewRefreshSubscription?: Subscription;
     public loggerInstance: Logger;
 
     public getId(): UUID {
         return this.id;
+    }
+
+    public ngZone(): NgZoneRef {
+        return this._ngZone;
     }
 
     constructor(private eventBusRef: EventBus, channelMap: Map<string, Channel>, logger: Logger) {
@@ -358,6 +363,9 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     setUpNgViewRefreshScheduler(): void {
         // kill any existing subscription
         this.ngViewRefreshSubscription?.unsubscribe();
+
+        // grab and store handle of angular zone
+        this._ngZone = this.eventBusRef.zoneRef;
 
         // create a Subject that triggers Angular change detection when a new message arrives. to prevent
         // suffocating CPU resource from too many cycles, debounce the incoming messages by NGZONE_TRIGGER_DEBOUNCE_THRESHOLD milliseconds.
