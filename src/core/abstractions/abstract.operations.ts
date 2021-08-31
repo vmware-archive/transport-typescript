@@ -27,6 +27,7 @@ export abstract class AbstractOperations extends AbstractBase {
 
         const bus: EventBus = BusUtil.getBusInstance();
         const transaction: BusTransaction = bus.createTransaction(TransactionType.ASYNC, this.getName());
+        const execContext: any = bus.api.ngZone() ?? { run: (fn: () => void) => fn() };
 
         if (bus.fabric.isXsrfTokenEnabled()) {
             (request as any)['headers'] = {
@@ -38,14 +39,14 @@ export abstract class AbstractOperations extends AbstractBase {
         transaction.onComplete<AbstractMessageObject<RequestType, RetPayload>>(
             (responses: AbstractMessageObject<RequestType, RetPayload>[]) => {
                 const transactionResults = responses.map(response => response.payload);
-                successHandler(transactionResults.length === 1 ? transactionResults[0] : transactionResults);
+                execContext.run(() => successHandler(transactionResults.length === 1 ? transactionResults[0] : transactionResults));
             }
         );
 
         transaction.onError(
             (error: GeneralError) => {
                 if (errorHandler) {
-                    errorHandler(error);
+                    execContext.run(() => errorHandler(error));
                 }
             }
         );

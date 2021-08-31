@@ -21,7 +21,7 @@ import { BrokerConnector } from './bridge';
 export declare type NgZoneRef = any;
 
 // current version
-const version = '1.3.2';
+const version = '1.3.3';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -856,6 +856,11 @@ export interface EventBusLowApi {
      * Get uuid of the bus.;
      */
     getId(): UUID;
+
+    /**
+     * Get handle of NgZone
+     */
+    ngZone(): NgZoneRef;
 
     /**
      * Set up Subject and subscribe to it that will fire as messages are emitted to trigger Angular change detection.
