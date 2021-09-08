@@ -21,7 +21,7 @@ import { BrokerConnector } from './bridge';
 export declare type NgZoneRef = any;
 
 // current version
-const version = '1.3.4';
+const version = '1.3.5';
 
 export type ChannelName = string;
 export type SentFrom = string;

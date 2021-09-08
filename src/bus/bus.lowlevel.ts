@@ -499,7 +499,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     private sendSubscribedMonitorMessage(uuid: UUID, channelName: ChannelName, from?: SentFrom): void {
         this.monitorStream.send(
             new Message().request(
-                new MonitorObject().build(MonitorType.MonitorObserverSubscribedChannel, channelName, name,
+                new MonitorObject().build(MonitorType.MonitorObserverSubscribedChannel, channelName, from,
                     {id: uuid, from: from})
             )
         );
@@ -508,7 +508,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
     private sendUnsubscribedMonitorMessage(uuid: UUID, channelName: ChannelName, from?: SentFrom): void {
         this.monitorStream.send(
             new Message().request(
-                new MonitorObject().build(MonitorType.MonitorObserverUnsubscribedChannel, channelName, name,
+                new MonitorObject().build(MonitorType.MonitorObserverUnsubscribedChannel, channelName, from,
                     {id: uuid, from: from})
             )
         );
