@@ -3,39 +3,42 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-import { Channel } from './model/channel.model';
-import { MonitorObject, MonitorType } from './model/monitor.model';
+import {Channel} from './model/channel.model';
+import {MonitorObject, MonitorType} from './model/monitor.model';
+import {Message, MessageHandlerConfig} from './model/message.model';
+import {BusStoreApi} from '../store.api';
+import {UUID} from './store/store.model';
+import {BrokerConnectorChannel, StompBusCommand, StompConfig} from '../bridge/stomp.model';
+import {StompClient} from '../bridge/stomp.client';
+import {StompParser} from '../bridge/stomp.parser';
+import {BridgeConnectionAdvancedConfig} from '../bridge/bridge.model';
 import {
-    Message,
-    MessageHandlerConfig
-} from './model/message.model';
-import { BusStoreApi } from '../store.api';
-import { UUID } from './store/store.model';
-import { BrokerConnectorChannel, StompBusCommand, StompConfig } from '../bridge/stomp.model';
-import { StompClient } from '../bridge/stomp.client';
-import { StompParser } from '../bridge/stomp.parser';
-import { BridgeConnectionAdvancedConfig } from '../bridge/bridge.model';
-import {
-    BusTransaction, ChannelBrokerMapping,
+    BusTransaction,
+    ChannelBrokerMapping,
     ChannelName,
     EventBus,
     EventBusEnabled,
-    EventBusLowApi, MessageFunction, MessageHandler, MessageResponder,
+    EventBusLowApi,
+    MessageFunction,
+    MessageHandler,
+    MessageResponder,
+    MessageType,
     SentFrom,
     TransactionType
 } from '../bus.api';
-import { EventBusLowLevelApiImpl } from './bus.lowlevel';
-import { Logger } from '../log/logger.service';
-import { LogLevel } from '../log/logger.model';
-import { StoreManager } from './store/store.manager';
-import { BusTransactionImpl } from './transaction';
-import { BrokerConnector } from '../bridge/broker-connector';
-import { GeneralUtil } from '../util/util';
-import { MessageProxyConfig, ProxyControl } from '../proxy/message.proxy.api';
-import { MessageProxy } from '../proxy/message.proxy';
-import { FabricApi } from '../fabric.api';
-import { FabricApiImpl } from '../fabric/fabric';
-import { NgZoneRef } from '.';
+import {EventBusLowLevelApiImpl} from './bus.lowlevel';
+import {Logger} from '../log/logger.service';
+import {LogLevel} from '../log/logger.model';
+import {StoreManager} from './store/store.manager';
+import {BusTransactionImpl} from './transaction';
+import {BrokerConnector} from '../bridge/broker-connector';
+import {GeneralUtil} from '../util/util';
+import {MessageProxyConfig, ProxyControl} from '../proxy/message.proxy.api';
+import {MessageProxy} from '../proxy/message.proxy';
+import {FabricApi} from '../fabric.api';
+import {FabricApiImpl} from '../fabric/fabric';
+import {NgZoneRef} from '.';
+import {Observable, share, Subscriber} from 'rxjs';
 
 export class TransportEventBus extends EventBus implements EventBusEnabled {
 
@@ -251,13 +254,13 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
         return handler;
     }
 
-    public listenGalacticStream<T>(cname: ChannelName, name: SentFrom = this.getName(),
-                                   galacticConfig?: ChannelBrokerMapping): MessageHandler<T> {
+    public listenGalacticStream<T, E = any>(cname: ChannelName, name: SentFrom = this.getName(),
+                                            galacticConfig?: ChannelBrokerMapping): MessageHandler<T, E> {
         if (!this.internalChannelMap.has(cname)) {
             this.api.getGalacticChannel(
                 cname, galacticConfig, name, false); // create a public galactic channel by default;
         }
-        return this.listenStream(cname, name);
+        return this.listenStream<T, E>(cname, name);
     }
 
     public isGalacticChannel(cname: ChannelName): boolean {
@@ -287,9 +290,9 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
         );
     }
 
-    public sendRequestMessage(
+    public sendRequestMessage<R>(
         cname: ChannelName,
-        payload: any,
+        payload: R,
         name = this.getName()
     ): void {
         this.api.send(cname, new Message().request(payload), name);
@@ -320,9 +323,9 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
     }
 
 
-    public sendResponseMessage(
+    public sendResponseMessage<R>(
         cname: ChannelName,
-        payload: any,
+        payload: R,
         name = this.getName()): boolean {
 
         this.api.send(
@@ -390,9 +393,9 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
     }
 
 
-    public sendErrorMessage(
+    public sendErrorMessage<E = any>(
         cname: ChannelName,
-        payload: any,
+        payload: E,
         name = this.getName(),
         proxyBroadcast: boolean = false): void {
 
@@ -400,92 +403,92 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
     }
 
 
-    public respondOnce<R>(
+    public respondOnce<R, E = any>(
         sendChannel: ChannelName,
         returnChannel?: ChannelName,
-        name = this.getName()): MessageResponder<R> {
+        name = this.getName()): MessageResponder<R, E> {
 
-        return this.api.respond(
+        return this.api.respond<R, E>(
             new MessageHandlerConfig(sendChannel, null, true, returnChannel),
             name
         );
     }
 
-    public respondStream<R>(
+    public respondStream<R, E = any>(
         sendChannel: ChannelName,
         returnChannel?: ChannelName,
-        name = this.getName()): MessageResponder<R> {
+        name = this.getName()): MessageResponder<R, E> {
 
-        return this.api.respond(
+        return this.api.respond<R, E>(
             new MessageHandlerConfig(sendChannel, null, false, returnChannel),
             name
         );
 
     }
 
-    public requestStream<T, R>(
+    public requestStream<T, R, E = any>(
         sendChannel: ChannelName,
         requestPayload: T,
         returnChannel?: ChannelName,
-        name = this.getName()): MessageHandler<R> {
+        name = this.getName()): MessageHandler<R, E> {
 
-        return this.api.request(
+        return this.api.request<R, E>(
             new MessageHandlerConfig(sendChannel, requestPayload, false, returnChannel),
             name
         );
 
     }
 
-    public requestStreamWithId<T, R>(
+    public requestStreamWithId<T, R, E = any>(
         uuid: UUID,
         sendChannel: ChannelName,
         requestPayload: T,
         returnChannel?: ChannelName,
-        name = this.getName()): MessageHandler<R> {
+        name = this.getName()): MessageHandler<R, E> {
 
-        return this.api.request(
+        return this.api.request<R, E>(
             new MessageHandlerConfig(sendChannel, requestPayload, false, returnChannel),
             name,
             uuid
         );
     }
 
-    public requestOnce<T, R>(
+    public requestOnce<T, R, E = any>(
         sendChannel: ChannelName,
         requestPayload: T,
         returnChannel?: ChannelName,
-        name = this.getName()): MessageHandler<R> {
+        name = this.getName()): MessageHandler<R, E> {
 
-        return this.api.request(
+        return this.api.request<R, E>(
             new MessageHandlerConfig(sendChannel, requestPayload, true, returnChannel),
             name
         );
     }
 
-    public requestOnceWithId<T, R>(
+    public requestOnceWithId<T, R, E = any>(
         uuid: UUID,
         sendChannel: ChannelName,
         requestPayload: T,
         returnChannel?: ChannelName,
-        from?: SentFrom): MessageHandler<R> {
+        from?: SentFrom): MessageHandler<R, E> {
 
-        return this.api.request(
+        return this.api.request<R, E>(
             new MessageHandlerConfig(sendChannel, requestPayload, true, returnChannel),
             from,
             uuid
         );
     }
 
-    public listenOnce<R>(channel: ChannelName, name = this.getName(), id?: UUID): MessageHandler<R> {
-        return this.api.listen(
+    public listenOnce<R, E = any>(channel: ChannelName, name = this.getName(), id?: UUID): MessageHandler<R, E> {
+        return this.api.listen<R, E>(
             new MessageHandlerConfig(channel, null, true, channel),
             false,
             name
         );
     }
 
-    public listenStream<R>(channel: ChannelName, name = this.getName(), id?: UUID): MessageHandler<R> {
-        return this.api.listen(
+    public listenStream<R, E = any>(channel: ChannelName, name = this.getName(), id?: UUID): MessageHandler<R, E> {
+        return this.api.listen<R, E>(
             new MessageHandlerConfig(channel, null, false, channel),
             false,
             name,
@@ -493,8 +496,8 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
         );
     }
 
-    public listenRequestOnce<R>(channel: ChannelName, name = this.getName(), id?: UUID): MessageHandler<R> {
-        return this.api.listen(
+    public listenRequestOnce<R, E = any>(channel: ChannelName, name = this.getName(), id?: UUID): MessageHandler<R, E> {
+        return this.api.listen<R, E>(
             new MessageHandlerConfig(channel, null, true, channel),
             true,
             name,
@@ -502,8 +505,8 @@ export class TransportEventBus extends EventBus implements EventBusEnabled {
         );
     }
 
-    public listenRequestStream<R>(channel: ChannelName, name = this.getName(), id?: UUID): MessageHandler<R> {
-        return this.api.listen(
+    public listenRequestStream<R, E = any>(channel: ChannelName, name = this.getName(), id?: UUID): MessageHandler<R, E> {
+        return this.api.listen<R, E>(
             new MessageHandlerConfig(channel, null, false, channel),
             true,
             name,
