@@ -21,7 +21,7 @@ import { BrokerConnector } from './bridge';
 export declare type NgZoneRef = any;
 
 // current version
-const version = '1.3.5';
+const version = '1.3.6';
 
 export type ChannelName = string;
 export type SentFrom = string;
@@ -300,8 +300,8 @@ export abstract class EventBus {
      * @param {SentFrom} from optional name of actor implementing method (for logging)
      * @returns {MessageResponder<T>} reference to MessageResponder, generate() function returns response payload.
      */
-    abstract respondStream<T>(sendChannel: ChannelName, returnChannel?: ChannelName,
-                              from?: SentFrom): MessageResponder<T>;
+    abstract respondStream<T, E = any>(sendChannel: ChannelName, returnChannel?: ChannelName,
+                                       from?: SentFrom): MessageResponder<T, E>;
 
     /**
      * Send a command payload to sendChannel and listen for responses on returnChannel (defaults to sendChannel if left
@@ -315,8 +315,8 @@ export abstract class EventBus {
      * @param {SentFrom} from optional name of the actor implementing (for logging)
      * @returns {MessageHandler<R>} reference to MessageHandler, handle() function receives any inbound responses.
      */
-    abstract requestStream<T, R>(sendChannel: ChannelName, requestPayload: T,
-                                 returnChannel?: ChannelName, from?: SentFrom): MessageHandler<R>;
+    abstract requestStream<T, R, E = any>(sendChannel: ChannelName, requestPayload: T,
+                                          returnChannel?: ChannelName, from?: SentFrom): MessageHandler<R, E>;
 
     /**
      * Send a command payload to sendChannel with and ID and listen for responses (also with that ID)
@@ -331,8 +331,8 @@ export abstract class EventBus {
      * @param {SentFrom} from optional name of the actor implementing (for logging)
      * @returns {MessageHandler<R>} reference to the MessageHandler, handle() function receives any inbound responses.
      */
-    abstract requestStreamWithId<T, R>(uuid: UUID, sendChannel: ChannelName, requestPayload: T,
-                                       returnChannel?: ChannelName, from?: SentFrom): MessageHandler<R>;
+    abstract requestStreamWithId<T, R, E = any>(uuid: UUID, sendChannel: ChannelName, requestPayload: T,
+                                                returnChannel?: ChannelName, from?: SentFrom): MessageHandler<R, E>;
 
     /**
      * Send a command payload to sendChannel and listen for a single response on returnChannel
@@ -345,8 +345,8 @@ export abstract class EventBus {
      * @param {SentFrom} from optional name of the actor implementing (for logging)
      * @returns {MessageHandler<R>} reference to MessageHandler, handle() function receives any inbound response.
      */
-    abstract requestOnce<T, R>(sendChannel: ChannelName, requestPayload: T, returnChannel?: ChannelName,
-                               from?: SentFrom): MessageHandler<R>;
+    abstract requestOnce<T, R, E = any>(sendChannel: ChannelName, requestPayload: T, returnChannel?: ChannelName,
+                                        from?: SentFrom): MessageHandler<R, E>;
 
 
     /**
@@ -363,8 +363,8 @@ export abstract class EventBus {
      * @param {SentFrom} from options name of the actor implementing (for logging)
      * @returns {MessageHandler<R>} reference to MessageHandler handle() function received any inbound responses.
      */
-    abstract requestOnceWithId<T, R>(uuid: UUID, sendChannel: ChannelName, requestPayload: T,
-                                     returnChannel?: ChannelName, from?: SentFrom): MessageHandler<R>;
+    abstract requestOnceWithId<T, R, E = any>(uuid: UUID, sendChannel: ChannelName, requestPayload: T,
+                                              returnChannel?: ChannelName, from?: SentFrom): MessageHandler<R, E>;
 
 
     /**
@@ -375,7 +375,7 @@ export abstract class EventBus {
      * @param {UUID} id optional ID of message you're looking for, will filter out all other messages
      * @returns {MessageHandler<R> reference to MessageHandler, the handle() function will process a single response.
      */
-    abstract listenOnce<R>(channel: ChannelName, from?: SentFrom, id?: UUID): MessageHandler<R>;
+    abstract listenOnce<R, E = any>(channel: ChannelName, from?: SentFrom, id?: UUID): MessageHandler<R, E>;
 
     /**
      * Listen for all responses on a channel. Continue to handle until the stream is closed via the handler.
@@ -386,7 +386,7 @@ export abstract class EventBus {
      * @returns {MessageHandler<R>} reference to MessageHandler. the handle() function will process all responses
      * until closed.
      */
-    abstract listenStream<R>(channel: ChannelName, from?: SentFrom, id?: UUID): MessageHandler<R>;
+    abstract listenStream<R, E = any>(channel: ChannelName, from?: SentFrom, id?: UUID): MessageHandler<R, E>;
 
 
     /**
@@ -397,7 +397,7 @@ export abstract class EventBus {
      * @param {UUID} id optional ID of message you're looking for, will filter out all other messages
      * @returns {MessageHandler<R>} reference to MessageHandler, then handle() function will only fire once.
      */
-    abstract listenRequestOnce<R>(channel: ChannelName, from?: SentFrom, id?: UUID): MessageHandler<R>;
+    abstract listenRequestOnce<R, E = any>(channel: ChannelName, from?: SentFrom, id?: UUID): MessageHandler<R, E>;
 
     /**
      * Listen to a channel for all requests, continue handling requests until the handler is closed.
@@ -408,7 +408,7 @@ export abstract class EventBus {
      * @returns {MessageHandler<R>} reference to MessageHandler, then handle() function will continue to fire until
      * closed.
      */
-    abstract listenRequestStream<R>(channel: ChannelName, from?: SentFrom, id?: UUID): MessageHandler<R>;
+    abstract listenRequestStream<R, E = any>(channel: ChannelName, from?: SentFrom, id?: UUID): MessageHandler<R, E>;
 
     /**
      * Galactic Methods
@@ -424,8 +424,8 @@ export abstract class EventBus {
      * @returns {MessageHandler<R>} reference to MessageHandler. All responses will be handled via the handle() method.
      * @deprecated use markChannelAsGalactic() and fabric.generateFabricRequest()
      */
-    abstract listenGalacticStream<R>(cname: ChannelName, from?: SentFrom,
-                                     galacticConfig?: ChannelBrokerMapping): MessageHandler<R>;
+    abstract listenGalacticStream<R, E>(cname: ChannelName, from?: SentFrom,
+                                        galacticConfig?: ChannelBrokerMapping): MessageHandler<R, E>;
 
     /**
      * Check if a channel is marked as Galactic (mapped to broker) or not.
@@ -683,7 +683,7 @@ export interface EventBusLowApi {
      * @param {UUID} id enable message tracking if this is supplied
      * @returns {MessageHandler<R>} reference to MessageHandler<R>
      */
-    request<R>(handlerConfig: MessageHandlerConfig, name?: SentFrom, id?: UUID): MessageHandler<R>;
+    request<R, E = any>(handlerConfig: MessageHandlerConfig, name?: SentFrom, id?: UUID): MessageHandler<R, E>;
 
     /**
      * Used internally to send messages to simple API's in main event bus.
@@ -704,8 +704,8 @@ export interface EventBusLowApi {
      * @param {UUID} id enable message tracking if this is supplied
      * @returns {MessageHandler<R>} reference to MessageHandler<R>
      */
-    listen<R>(handlerConfig: MessageHandlerConfig,
-              requestStream?: boolean, name?: SentFrom, id?: UUID): MessageHandler<R>;
+    listen<R, E = any>(handlerConfig: MessageHandlerConfig,
+                       requestStream?: boolean, name?: SentFrom, id?: UUID): MessageHandler<R, E>;
 
     /**
      * Close a channel. If the closer is the last subscriber, then the channel is destroyed.

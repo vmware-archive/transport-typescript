@@ -355,8 +355,8 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         return this.createMessageResponder(handlerConfig, name);
     }
 
-    listen<R>(handlerConfig: MessageHandlerConfig, requestStream?: boolean,
-              name?: SentFrom, id?: UUID): MessageHandler<R> {
+    listen<R, E = any>(handlerConfig: MessageHandlerConfig, requestStream?: boolean,
+                       name?: SentFrom, id?: UUID): MessageHandler<R, E> {
         return this.createMessageHandler(handlerConfig, requestStream, name, id);
     }
 
@@ -450,7 +450,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                             killSubscription();
                         }
                     },
-                    (errorData: any) => {
+                    (errorData: E) => {
 
                         this.log.error('responder caught error, discarding.', name);
                         if (sub) {
@@ -460,7 +460,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                 );
                 return sub;
             },
-            tick: (payload: any): void => {
+            tick: (payload: T): void => {
                 if (!closed) {
                     this.sendResponse(handlerConfig.returnChannel, payload);
                 }
@@ -480,7 +480,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
             isClosed(): boolean {
                 return closed;
             },
-            getObservable(): Observable<any> {
+            getObservable(): Observable<T> {
                 const chan = merge(requestChannel, errorChannel);
                 return chan.pipe(map(
                     (msg: Message) => {
@@ -521,11 +521,11 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
      * @param {string} name
      * @returns {MessageHandler<any>}
      */
-    private createMessageHandler(
+    private createMessageHandler<T, E>(
         handlerConfig: MessageHandlerConfig,
         requestStream: boolean = false,
         name?: string,
-        messageId?: UUID): MessageHandler<any> {
+        messageId?: UUID): MessageHandler<T, E> {
 
         let sub: Subscription;
         const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.returnChannel, name, true);
@@ -549,7 +549,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
         };
 
         return {
-            handle: (success: MessageFunction<any>, error?: MessageFunction<any>): Subscription => {
+            handle: (success: MessageFunction<T>, error?: MessageFunction<E>): Subscription => {
 
                 let _chan: Observable<Message>;
                 if (requestStream) {
@@ -599,7 +599,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                                 + ', handler only online for ' + registeredId, name);
                         }
                     },
-                    (errorData: any) => {
+                    (errorData: E) => {
                         if (error) {
                             error(errorData);
                         } else {
@@ -612,12 +612,12 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
                 );
                 return sub;
             },
-            tick: (payload: any): void => {
+            tick: (payload: T): void => {
                 if (!closed) {
                     this.eventBusRef.sendRequestMessageWithId(handlerConfig.sendChannel, payload, messageId);
                 }
             },
-            error: (payload: any): void => {
+            error: (payload: T): void => {
                 if (sub && !sub.closed) {
                     this.eventBusRef.sendErrorMessage(handlerConfig.returnChannel, payload);
                 }
@@ -634,7 +634,7 @@ export class EventBusLowLevelApiImpl implements EventBusLowApi {
             isClosed(): boolean {
                 return closed;
             },
-            getObservable(type?: MessageType): Observable<any> {
+            getObservable(type?: MessageType): Observable<T> {
 
                 let chan;
                 //if (type) {
