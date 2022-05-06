@@ -690,7 +690,16 @@ export class BrokerConnector implements EventBusEnabled {
                     const session = this.sessions.get(sessionId);
                     for (let [chan, bIds] of this.channelBrokerIdentitiesMap.entries()) {
                         // decrement connectedBrokers for the channel
-                        this._galacticChannels.get(chan).connectedBrokers--;
+                        // NOTE: in an unlikely scenario, there could be a "double free" condition of the galactic channel object
+                        // that had been already cleaned up by this.closeGalacticChannel() when an event from the _closeObservable
+                        // tried to access the object and decrement the connectedBrokers counter, leading to access to undefined.
+                        // this is an extremely hard to reproduce issue, but I suspect that it greatly has to do with the browser
+                        // tab process being put to sleep (after a long idle) and a resultant race condition that may have led to
+                        // the above chain of actions. a fix implemented here is to protect the decrement instruction against
+                        // a situation where the galactic channel object has been destroyed.
+                        if (this._galacticChannels.has(chan)) {
+                            this._galacticChannels.get(chan).connectedBrokers--;
+                        }
 
                         // If the client will not immediately try to reconnect, clean up by
                         // removing the connection string from the channelBrokerIdentitiesMap
