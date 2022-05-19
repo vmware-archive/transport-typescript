@@ -66,6 +66,7 @@
     "resolutions": {
         "glob-parent": "^5.1.2",
         "set-value": ">=4.0.1",
-        "minimist": ">=1.2.6"
+        "minimist": ">=1.2.6",
+        "async": ">=3.2.3"
     }
 }
