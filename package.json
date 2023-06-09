@@ -41,6 +41,7 @@
         "karma-webpack": "^4.0.2",
         "merge-stream": "^1.0.1",
         "require-dir": "^1.0.0",
+        "socket.io": "^4.6.0",
         "ts-loader": "^6.2.2",
         "tslint": "5.11.0",
         "typedoc": "^0.22.11",
@@ -62,11 +63,11 @@
         "preinstall": "npx npm-force-resolutions"
     },
     "resolutions": {
-        "glob-parent": "^5.1.2",
-        "set-value": ">=4.0.1",
-        "minimist": ">=1.2.6",
-        "async": ">=3.2.3",
-        "ua-parser-js": ">=0.7.33",
-        "json5": ">=2.2.2"
+        "glob-parent": "5.1.2",
+        "set-value": "4.0.1",
+        "minimist": "1.2.6",
+        "async": "3.2.3",
+        "ua-parser-js": "0.7.33",
+        "json5": "2.2.2"
     }
 }
